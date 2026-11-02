@@ -1,0 +1,22 @@
+# Slice 5: Ask, stream, stop. Spec
+
+Depends on slices 0 to 2 (panel exists). Inputs: CONTRACT.md; design-system.md §6.5 states 1, 5, 6, §6.6; domain-model.md §7; architecture.md §7 (answer machine); user-flows.md slice 5.
+
+## 1. Files
+- `lib/stream/chatClient.ts`: `askStream(question, { signal, onEvent }): Promise<void>`. POST `/api/chat` JSON `{question}`; read `res.body` with `TextDecoder(stream:true)`; buffer; split on `\n\n`; for each block take lines starting with `data:`; `parseSseLine`; call `onEvent(event)`; on `AbortError` resolve quietly after calling `onEvent({type:"aborted"})` (an internal event, not in the contract, typed separately); on non-2xx throw `new ChatHttpError(status)`; on parse error throw `ChatProtocolError`. Keep the last partial block in the buffer across reads.
+- `features/assistant/useAnswerMachine.ts`: `useReducer` with the exact union from architecture.md §7 plus `question: string` and `id: string` on every non-idle state; actions `ASK(question)`, `TOKEN(value)`, `DONE(payload)`, `STOP`, `ERROR(message)`, `RETRY`. Token batching: tokens append to a ref and a single `TOKEN_FLUSH(text)` dispatches per animation frame. `DONE` resolves citations via `resolveCitation(ds, c, answerText)` (ds comes from a `DatasetContext` provider that exposes the markets, regions, products and periods only, serialised into the client, not the series). `RETRY` re-asks the same question as a new answer; the old one stays.
+- `features/assistant/AnswerList.tsx`: newest answer at the bottom; the list scrolls to the new card on ASK; `aria-live="polite"` region announcing "Answer complete" on DONE, "Answer stopped" on STOP, "Answer failed" on ERROR (visually hidden).
+- `features/assistant/AnswerCard.tsx`: per design-system.md §6.5: question echo; card; text in `--text-answer`; while `streaming` the caret; footer per state: streaming → `STREAMING…` + Stop (secondary, `square` 12 px); done → `ConfidenceMeter` + `Show sources` (disabled until slice 7 renders the table; render the button now with the Collapsible containing a placeholder "Sources" table shell); stopped → pill `Stopped · partial answer` after the text, footer caption `PARTIAL · NO SOURCES ATTACHED` + Retry (ghost). Chips render in slice 6; in this slice the citations are resolved and stored but the chip row renders plain `<span>` placeholders with the label text (so slice 6 only swaps the component).
+- `ui/components/ConfidenceMeter.tsx` per §6.6 with the exact words, meanings and icons.
+- `Composer`: `disabled` while an answer is streaming; Send turns into nothing else (Stop lives in the card).
+- `Panel.tsx`: owns the machine; Suggestions `onPick` now fills **and sends**.
+- `app/api/chat/route.ts`: the reference handler verbatim, typed with `SseEventSchema` on the way out in dev (`assert` the object parses before enqueueing).
+
+## 2. Tests first
+- `tests/unit/chatClient.test.ts`: with a mocked `fetch` returning a `ReadableStream` that emits `data: {"type":"token","value":"Three "}\n\n`, then a block split across two chunks, then `done`: `onEvent` receives 3 events in order with the exact values; aborting mid-stream resolves and emits `aborted`; a 500 throws `ChatHttpError`.
+- `tests/unit/answerMachine.test.ts` (reducer, pure): idle → ASK → streaming with empty text; TOKEN_FLUSH appends; DONE → done with kind/confidence and `citations.length === 3` resolved for the Germany-dip payload; STOP from streaming → stopped keeping text; ERROR with text "" → failed; RETRY from stopped → streaming with the same question.
+- `features/assistant/AnswerCard.stories.tsx`: stories `Streaming`, `Done`, `Stopped`, each with the Germany-dip text and `onStop`/`onRetry: fn()`. Play per story: the specified texts, pills and buttons render; on `Done` the meter's accessible name for high is "High confidence: directly supported by cited data". Story `StreamingReducedMotion` sets `globals: { reducedMotion: "on" }`; play: the caret's computed `animation-name` is `none`. `ui/components/ConfidenceMeter.stories.tsx`: `High`, `Medium`, `Low` (a11y addon only). A11y addon passes on all.
+- `tests/e2e/slice5.spec.ts`: the five criteria from user-flows.md slice 5 verbatim, against the real route (the 35 ms token delay makes the Germany answer take about 1.8 s; use `expect.poll` with a 5 s timeout). Chip names are asserted in slice 6; here assert the three placeholder labels appear.
+
+## 3. Done when
+Green; a screen recording of ask, stream, stop, retry is attached.
