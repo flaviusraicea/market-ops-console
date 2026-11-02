@@ -34,6 +34,21 @@ export default defineConfig({
           setupFiles: [".storybook/vitest.setup.ts"],
         },
       },
+      {
+        resolve: { alias },
+        define: { "import.meta.env.SB_THEME": '"dark"' },
+        plugins: [storybookTest({ configDir: path.join(dirname, ".storybook") })],
+        test: {
+          name: "stories:dark",
+          browser: {
+            enabled: true,
+            provider: playwright({}),
+            headless: true,
+            instances: [{ browser: "chromium" }],
+          },
+          setupFiles: [".storybook/vitest.setup.ts"],
+        },
+      },
     ],
   },
 });

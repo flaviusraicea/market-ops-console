@@ -66,6 +66,9 @@ export const Germany: Story = {
     const urls = spy.mock.calls.map((c) => String((c[0] as { queryString: string }).queryString));
     await expect(urls.some((u) => u.includes("mode=analyst"))).toBe(true);
 
-    await expect(canvas.getByRole("button", { name: "Switch to dark theme" })).toBeInTheDocument();
+    const dark = document.documentElement.getAttribute("data-theme") === "dark";
+    await expect(
+      canvas.getByRole("button", { name: dark ? "Switch to light theme" : "Switch to dark theme" }),
+    ).toBeInTheDocument();
   },
 };

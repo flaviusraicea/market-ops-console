@@ -45,3 +45,7 @@ AGENTS.md
 
 *storybook.log
 storybook-static
+
+# playwright
+/playwright-report/
+/test-results/
