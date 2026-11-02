@@ -44,6 +44,12 @@ export function formatPeriodShort(p: string): string {
   return `${monthShort.format(new Date(Date.UTC(y, m - 1, 1)))} ${String(y).slice(2)}`;
 }
 
+/** "Feb": month name only, for comparisons such as "−27% vs Feb". */
+export function formatMonthShort(p: string): string {
+  const { y, m } = parts(p);
+  return monthShort.format(new Date(Date.UTC(y, m - 1, 1)));
+}
+
 export function formatCount(a: number, b: number): string {
   return `${a} of ${b}`;
 }

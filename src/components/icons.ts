@@ -18,6 +18,7 @@ export {
   Square,
   Sun,
   Table as TableIcon,
+  TriangleAlert,
   X,
 } from "lucide-react";
 export const ICON_STROKE = 1.75;
