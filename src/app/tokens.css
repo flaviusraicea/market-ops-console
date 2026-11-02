@@ -1,0 +1,273 @@
+/* Ledger design tokens. Source: docs/design-system.md sections 1 to 5.
+   Raw colour values live only in this file. Contrast is asserted by scripts/check-contrast.ts. */
+
+:root {
+  /* Fonts (section 1). next/font overrides --font-display and --font-ui at runtime. */
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Colour: light theme (section 3.1) */
+  --bg: #f1ede4;
+  --surface: #ffffff;
+  --surface-2: #e8e3d8;
+  --border: #bfb8a8;
+  --grid: #e3ded3;
+  --ink: #1c1a17;
+  --ink-2: #5b574f;
+  --ink-muted: #66615a;
+  --ink-disabled: #8e887c;
+  --accent: #174a94;
+  --accent-hover: #123c78;
+  --on-accent: #ffffff;
+  --accent-soft: #e3ebf6;
+  --focus: #174a94;
+  --ok-text: #1e6b3a;
+  --ok-bg: #e3f1e7;
+  --ok-mark: #2e8b57;
+  --warn-text: #7a4e00;
+  --warn-bg: #fbefd2;
+  --warn-mark: #b57a00;
+  --bad-text: #a32d2d;
+  --bad-bg: #f9e1e1;
+  --bad-mark: #c2362b;
+  --on-bad: #ffffff;
+  --bad-hover: #a32d2d;
+  --ai-bg: #eeeaf9;
+  --ai-border: #8f7fd0;
+  --ai-label: #43318f;
+  --series-actual: #1c1a17;
+  --series-forecast: #2f5f9e;
+  --series-prior: #7d786e;
+  --cat-1: #2f5f9e;
+  --cat-2: #c2622e;
+  --cat-3: #1f8f7a;
+  --cat-4: #b8860b;
+  --cat-5: #a0527e;
+  --cat-6: #4e8a2f;
+  --seq-1: #e6ecf5;
+  --seq-2: #c3d2e8;
+  --seq-3: #9ab4d8;
+  --seq-4: #6e92c3;
+  --seq-5: #4a72a9;
+  --seq-6: #2f5f9e;
+  --seq-7: #1f4e8c;
+  --div-n3: #b5552c;
+  --div-n2: #d08a6b;
+  --div-n1: #e9c4b2;
+  --div-0: #d9d4c9;
+  --div-p1: #b7c7de;
+  --div-p2: #7f9fc9;
+  --div-p3: #2f5f9e;
+  --shadow-popover: 0 1px 2px rgba(28, 26, 23, 0.06), 0 4px 12px rgba(28, 26, 23, 0.08);
+  --shimmer: rgba(255, 255, 255, 0.35);
+
+  /* Type scale (section 2): size / line / weight / letter-spacing */
+  --text-display: 32px;
+  --text-display-lh: 38px;
+  --text-display-weight: 600;
+  --text-display-ls: -0.01em;
+  --text-title: 22px;
+  --text-title-lh: 28px;
+  --text-title-weight: 600;
+  --text-title-ls: -0.005em;
+  --text-answer: 16px;
+  --text-answer-lh: 24px;
+  --text-answer-weight: 400;
+  --text-label: 12px;
+  --text-label-lh: 16px;
+  --text-label-weight: 500;
+  --text-caption: 11px;
+  --text-caption-lh: 14px;
+  --text-caption-weight: 600;
+  --text-caption-ls: 0.06em;
+  --text-mono: 12px;
+  --text-mono-lh: 16px;
+
+  /* Density: Overview values (section 4). Analyst overrides below. */
+  --space-unit: 8px;
+  --gap: 16px;
+  --pad-card: 20px;
+  --pad-cell-y: 12px;
+  --pad-cell-x: 16px;
+  --row-h: 44px;
+  --control-h: 36px;
+  --chip-h: 24px;
+  --header-h: 56px;
+  --text-body: 14px;
+  --text-body-lh: 20px;
+  --text-body-weight: 400;
+  --text-kpi: 28px;
+  --text-kpi-lh: 32px;
+  --text-kpi-weight: 600;
+  --text-kpi-ls: -0.01em;
+  --grid-cols: 2;
+
+  /* Fixed in both densities */
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --radius-pill: 999px;
+  --page-max: 1280px;
+  --gutter: 16px;
+  --assistant-w: 380px;
+
+  /* Motion (section 5) */
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-chart: 240ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+html[data-density="analyst"] {
+  --space-unit: 4px;
+  --gap: 8px;
+  --pad-card: 12px;
+  --pad-cell-y: 7px;
+  --pad-cell-x: 12px;
+  --row-h: 32px;
+  --control-h: 28px;
+  --chip-h: 22px;
+  --header-h: 48px;
+  --text-body: 13px;
+  --text-body-lh: 18px;
+  --text-kpi: 22px;
+  --text-kpi-lh: 26px;
+  --grid-cols: 3;
+}
+
+/* Colour: dark theme (section 3.2), explicit choice */
+:root[data-theme="dark"] {
+  --bg: #161512;
+  --surface: #201e1a;
+  --surface-2: #2a2722;
+  --border: #413d35;
+  --grid: #332f29;
+  --ink: #ece8e0;
+  --ink-2: #b5afa3;
+  --ink-muted: #9a9488;
+  --ink-disabled: #78726a;
+  --accent: #8fb4e6;
+  --accent-hover: #a9c6ee;
+  --on-accent: #161512;
+  --accent-soft: #243040;
+  --focus: #8fb4e6;
+  --ok-text: #8fd9a8;
+  --ok-bg: #1c2e22;
+  --ok-mark: #5fbf84;
+  --warn-text: #f0c978;
+  --warn-bg: #3a2e14;
+  --warn-mark: #e0a93a;
+  --bad-text: #f3a1a1;
+  --bad-bg: #3a2020;
+  --bad-mark: #e36b5f;
+  --on-bad: #161512;
+  --bad-hover: #f08a80;
+  --ai-bg: #272338;
+  --ai-border: #6e5bd9;
+  --ai-label: #c3b6f5;
+  --series-actual: #ece8e0;
+  --series-forecast: #6291d4;
+  --series-prior: #9a9488;
+  --cat-1: #6291d4;
+  --cat-2: #d4753f;
+  --cat-3: #279a80;
+  --cat-4: #b08a22;
+  --cat-5: #c26a98;
+  --cat-6: #63a040;
+  --seq-1: #2a3444;
+  --seq-2: #334a68;
+  --seq-3: #3f6190;
+  --seq-4: #5079b3;
+  --seq-5: #6291d4;
+  --seq-6: #86ace4;
+  --seq-7: #afc9ee;
+  --div-n3: #e0875c;
+  --div-n2: #b86a45;
+  --div-n1: #7a4c35;
+  --div-0: #3a3730;
+  --div-p1: #3b5476;
+  --div-p2: #5079b3;
+  --div-p3: #86ace4;
+  --shadow-popover: none;
+  --shimmer: rgba(255, 255, 255, 0.06);
+}
+
+/* Colour: dark theme, following the OS unless the user chose light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161512;
+    --surface: #201e1a;
+    --surface-2: #2a2722;
+    --border: #413d35;
+    --grid: #332f29;
+    --ink: #ece8e0;
+    --ink-2: #b5afa3;
+    --ink-muted: #9a9488;
+    --ink-disabled: #78726a;
+    --accent: #8fb4e6;
+    --accent-hover: #a9c6ee;
+    --on-accent: #161512;
+    --accent-soft: #243040;
+    --focus: #8fb4e6;
+    --ok-text: #8fd9a8;
+    --ok-bg: #1c2e22;
+    --ok-mark: #5fbf84;
+    --warn-text: #f0c978;
+    --warn-bg: #3a2e14;
+    --warn-mark: #e0a93a;
+    --bad-text: #f3a1a1;
+    --bad-bg: #3a2020;
+    --bad-mark: #e36b5f;
+    --on-bad: #161512;
+    --bad-hover: #f08a80;
+    --ai-bg: #272338;
+    --ai-border: #6e5bd9;
+    --ai-label: #c3b6f5;
+    --series-actual: #ece8e0;
+    --series-forecast: #6291d4;
+    --series-prior: #9a9488;
+    --cat-1: #6291d4;
+    --cat-2: #d4753f;
+    --cat-3: #279a80;
+    --cat-4: #b08a22;
+    --cat-5: #c26a98;
+    --cat-6: #63a040;
+    --seq-1: #2a3444;
+    --seq-2: #334a68;
+    --seq-3: #3f6190;
+    --seq-4: #5079b3;
+    --seq-5: #6291d4;
+    --seq-6: #86ace4;
+    --seq-7: #afc9ee;
+    --div-n3: #e0875c;
+    --div-n2: #b86a45;
+    --div-n1: #7a4c35;
+    --div-0: #3a3730;
+    --div-p1: #3b5476;
+    --div-p2: #5079b3;
+    --div-p3: #86ace4;
+    --shadow-popover: none;
+    --shimmer: rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* Reduced motion: OS setting or the console's own override */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-chart: 0ms;
+  }
+}
+
+html[data-reduced-motion="true"] {
+  --dur-fast: 0ms;
+  --dur-base: 0ms;
+  --dur-chart: 0ms;
+}
