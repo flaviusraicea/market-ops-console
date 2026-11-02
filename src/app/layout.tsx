@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
 
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <WebVitals />
           {children}
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
