@@ -10,6 +10,7 @@ import {
   type Kind,
   type Resolution,
 } from "@/domain";
+import { claimTextFor } from "./inlineMap";
 import { useDataset } from "@/lib/context/dataset";
 import { askStream, type AskStream } from "@/lib/stream/chatClient";
 
@@ -62,9 +63,13 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
       return { ...state, text: state.text + action.text };
     case "DONE": {
       if (state.status !== "streaming") return state;
-      const citations = action.citations.map((citation) => ({
+      const citations = action.citations.map((citation, i) => ({
         citation,
-        resolution: resolveCitation(action.ds, citation, state.text),
+        resolution: resolveCitation(
+          action.ds,
+          citation,
+          claimTextFor(state.text, action.citations, i),
+        ),
       }));
       return {
         status: "done",

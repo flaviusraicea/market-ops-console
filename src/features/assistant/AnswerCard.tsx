@@ -11,6 +11,8 @@ import { useDataset } from "@/lib/context/dataset";
 import { formatPeriodAbbr } from "@/lib/format";
 import { SUGGESTIONS } from "./Suggestions";
 import { CitationRow } from "./CitationRow";
+import { SourcesTable } from "./SourcesTable";
+import { useSourcesRows } from "./useSourcesRows";
 import { renderWithCitations } from "./renderWithCitations";
 import type { Answer } from "./useAnswerMachine";
 
@@ -128,6 +130,36 @@ function AbstainNote({ onTry }: { onTry: (text: string) => void }) {
   );
 }
 
+/** Show sources opens by itself only when the assistant disagrees with the data, so that is the first thing seen. */
+function SourcesDisclosure({ answer }: { answer: Extract<Answer, { status: "done" }> }) {
+  const sources = useSourcesRows(answer.citations);
+  const disagrees = answer.citations.some((c) => c.resolution.ok && c.resolution.disagreement);
+  return (
+    <Collapsible defaultOpen={disagrees}>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <ConfidenceMeter level={answer.confidence} />
+        <CollapsibleTrigger asChild>
+          <Button type="button" variant="ghost">
+            Show sources
+            <ChevronDown
+              aria-hidden
+              className="size-3.5 transition-transform duration-[var(--dur-fast)] [[aria-expanded=true]_&]:rotate-180"
+              strokeWidth={ICON_STROKE}
+            />
+          </Button>
+        </CollapsibleTrigger>
+      </div>
+      <CollapsibleContent>
+        {sources.status === "ready" ? (
+          <SourcesTable rows={sources.rows} caption={sources.caption} />
+        ) : (
+          <SourcesTable rows={[]} caption="" loading placeholderRows={answer.citations.length} />
+        )}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 function Footer({ answer, onStop, onRetry }: AnswerCardProps) {
   if (answer.status === "done" && answer.kind === "abstain") {
     return (
@@ -140,39 +172,7 @@ function Footer({ answer, onStop, onRetry }: AnswerCardProps) {
     );
   }
   if (answer.status === "done") {
-    return (
-      <Collapsible>
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <ConfidenceMeter level={answer.confidence} />
-          {/* Disabled until slice 7 renders the sources table. */}
-          <CollapsibleTrigger asChild>
-            <Button type="button" variant="ghost" disabled>
-              Show sources
-              <ChevronDown
-                aria-hidden
-                className="size-3.5 transition-transform duration-[var(--dur-fast)] [[aria-expanded=true]_&]:rotate-180"
-                strokeWidth={ICON_STROKE}
-              />
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-        <CollapsibleContent>
-          <table className="mt-3 w-full bg-surface text-left">
-            <caption className="sr-only">Sources</caption>
-            <thead>
-              <tr>
-                {["Claim", "Entity", "Period", "Source value", "Assistant"].map((h) => (
-                  <th key={h} scope="col" className={CAPTION}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody />
-          </table>
-        </CollapsibleContent>
-      </Collapsible>
-    );
+    return <SourcesDisclosure answer={answer} />;
   }
   if (answer.status === "streaming" || answer.status === "stopped") {
     // One button for both states, so focus stays on it when Stop turns into Retry.

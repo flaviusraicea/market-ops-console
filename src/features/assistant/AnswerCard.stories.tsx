@@ -90,7 +90,14 @@ export const Done: Story = {
     await expect(
       canvas.getByRole("img", { name: "High confidence: directly supported by cited data" }),
     ).toBeInTheDocument();
-    await expect(canvas.getByRole("button", { name: "Show sources" })).toBeDisabled();
+    const sources = canvas.getByRole("button", { name: "Show sources" });
+    await expect(sources).toBeEnabled();
+    await expect(sources).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(sources);
+    const table = await canvas.findByRole("region", { name: "Sources table" });
+    await expect(
+      await within(table).findByRole("row", { name: /Fell in early 2026/ }),
+    ).toBeVisible();
   },
 };
 
