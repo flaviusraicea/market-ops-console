@@ -51,10 +51,15 @@ export type MapValueVM = {
 export type MoverVM = { id: string; name: string; status: Status; growth: number; display: string };
 
 export type OverviewVM = {
+  /** Entity in view and its caption, for the title row above the tiles. */
+  title: string;
+  caption: string;
   tiles: KpiTileVM[];
   map: {
     metric: Metric;
     selected: string | undefined;
+    /** Markets drawn at full strength; everything else is dimmed. Undefined at portfolio level. */
+    focus: string[] | undefined;
     periodLabel: string;
     provenance: string;
     maxRevenue: number;
@@ -63,6 +68,8 @@ export type OverviewVM = {
   };
   movers: { period: string; rising: MoverVM[]; falling: MoverVM[] };
 };
+
+const BASIS_LABEL = { month: "Month", ytd: "YTD", mat: "MAT" } as const;
 
 const SOURCE = "Source · data.json";
 const DERIVED = "Derived · sum of series";
@@ -208,11 +215,19 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
   const rising = [...byGrowth].sort((a, b) => b.growth - a.growth).slice(0, 3);
   const falling = [...byGrowth].sort((a, b) => a.growth - b.growth).slice(0, 3);
 
+  // A market always carries its region (invariants), so the region's markets cover both cases.
+  const focus = ctx.region
+    ? ds.markets.filter((m) => m.regionId === ctx.region).map((m) => m.id)
+    : undefined;
+
   return {
+    title: entityName(ds, entityOf(ctx)),
+    caption: `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]}`,
     tiles: tilesFor(ds, ctx),
     map: {
       metric: ctx.metric,
       selected: ctx.market,
+      focus,
       periodLabel: formatPeriod(ctx.period),
       provenance: allSource ? SOURCE : DERIVED,
       maxRevenue: Math.max(...entries.map((e) => e.k.totals.actual)),

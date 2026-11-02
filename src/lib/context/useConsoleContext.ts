@@ -5,6 +5,7 @@ import { useCallback, useMemo } from "react";
 
 import type { ContextPatch } from "@/domain";
 import { logEvent } from "@/lib/events";
+import { useNavigationTransition } from "./navigation";
 import { applyContextChange, normalizeContext } from "./invariants";
 import { useConsoleMeta } from "./meta";
 import { contextParsers } from "./parsers";
@@ -15,7 +16,8 @@ export type SetContextOptions = { history?: "push" | "replace" };
 export function useConsoleContext() {
   const meta = useConsoleMeta();
   const parsers = useMemo(() => contextParsers(meta), [meta]);
-  const [raw, setRaw] = useQueryStates(parsers, { shallow: false, scroll: false });
+  const [isPending, startTransition] = useNavigationTransition();
+  const [raw, setRaw] = useQueryStates(parsers, { shallow: false, scroll: false, startTransition });
 
   const ctx = useMemo(() => normalizeContext(meta, raw), [meta, raw]);
 
@@ -28,28 +30,32 @@ export function useConsoleContext() {
         return;
       }
       const { next } = result;
-      void setRaw(
-        {
-          region: next.region ?? null,
-          market: next.market ?? null,
-          product: next.product ?? null,
-          period: next.period,
-          mode: next.mode,
-          metric: next.metric,
-          basis: next.basis,
-          cite: next.cite ?? null,
-          facts: next.facts ?? null,
-        },
-        { history: opts?.history ?? result.history },
-      );
+      startTransition(() => {
+        void setRaw(
+          {
+            region: next.region ?? null,
+            market: next.market ?? null,
+            product: next.product ?? null,
+            period: next.period,
+            mode: next.mode,
+            metric: next.metric,
+            basis: next.basis,
+            cite: next.cite ?? null,
+            facts: next.facts ?? null,
+          },
+          { history: opts?.history ?? result.history },
+        );
+      });
       logEvent({ type: "navigate", ctx: next });
     },
-    [meta, ctx, setRaw],
+    [meta, ctx, setRaw, startTransition],
   );
 
   const reset = useCallback(() => {
-    void setRaw(null, { history: "push" });
-  }, [setRaw]);
+    startTransition(() => {
+      void setRaw(null, { history: "push" });
+    });
+  }, [setRaw, startTransition]);
 
-  return { ctx, setContext, reset };
+  return { ctx, setContext, reset, isPending };
 }

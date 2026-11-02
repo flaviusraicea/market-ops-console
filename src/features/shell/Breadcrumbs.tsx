@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
+
 import type { ContextPatch } from "@/domain";
 import { cn } from "@/components/cn";
 
-export type Crumb = { label: string; ctx: ContextPatch };
+export type Crumb = { label: string; ctx: ContextPatch; href: string };
 
 export function Breadcrumbs({
   trail,
@@ -32,16 +34,21 @@ export function Breadcrumbs({
                   {crumb.label}
                 </span>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => onNavigate(crumb.ctx)}
+                <Link
+                  href={crumb.href}
+                  onClick={(e) => {
+                    // Modified clicks keep the browser's own behaviour (new tab, new window).
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                    e.preventDefault();
+                    onNavigate(crumb.ctx);
+                  }}
                   className={cn(
                     "text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-ink-2",
                     "underline-offset-2 hover:underline focus-visible:underline",
                   )}
                 >
                   {crumb.label}
-                </button>
+                </Link>
               )}
             </li>
           );
