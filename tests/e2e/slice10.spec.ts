@@ -3,14 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const URL = "/?mode=analyst";
 
-// The route keeps one in-memory store per server, so the journeys run in order from an empty list.
-test.describe.configure({ mode: "serial" });
-test.beforeEach(async ({ request }) => {
-  const { rules } = (await (await request.get("/api/alerts")).json()) as {
-    rules: { id: string }[];
-  };
-  await Promise.all(rules.map((r) => request.delete(`/api/alerts?id=${r.id}`)));
-});
+// Rules live in the browser; every test gets a fresh context, so each starts from an empty list.
 
 async function chooseScope(page: Page, name: string) {
   await page.getByRole("combobox", { name: "Scope" }).click();
@@ -101,6 +94,35 @@ test("Delete asks first, with a danger button, and removes the rule", async ({ p
 
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(list.getByText("Attainment below 95% · Germany")).toHaveCount(0);
+});
+
+test("saved rules survive a reload, and a deleted rule stays gone", async ({ page }) => {
+  await page.goto(URL);
+  await chooseScope(page, "Europe");
+  await card(page).getByRole("button", { name: "Save thresholds" }).click();
+  await expect(card(page).getByText("Saved · just now")).toBeVisible();
+
+  await page.reload();
+  const list = card(page).getByRole("list", { name: "Saved alert rules" });
+  await expect(list.getByText("Growth below 0% · Europe")).toBeVisible();
+  await expect(list.getByText("Attainment below 95% · Europe")).toBeVisible();
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+
+  // Saving again updates the two rules rather than adding more.
+  await chooseScope(page, "Europe");
+  await card(page).getByRole("button", { name: "Save thresholds" }).click();
+  await expect(card(page).getByText("Saved · just now")).toBeVisible();
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+
+  for (const name of ["Growth below 0% · Europe", "Attainment below 95% · Europe"]) {
+    await list.getByRole("button", { name: `Delete ${name}` }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  }
+  await page.reload();
+  await expect(
+    card(page).getByText("No alert rules yet. Add one to watch a threshold."),
+  ).toBeVisible();
 });
 
 for (const theme of ["light", "dark"] as const) {
