@@ -4,6 +4,7 @@ export {
   ArrowDownRight,
   ArrowUp,
   ArrowUpRight,
+  Check,
   ChevronDown,
   CircleAlert,
   CirclePause,

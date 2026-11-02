@@ -89,7 +89,7 @@ const layerConfigs = [
       "no-restricted-imports": boundaryRule({
         layer: "features",
         aliases: ["domain", "lib", "components", "features"],
-        packages: ["react", "react-dom", "next", "@tanstack/react-query"],
+        packages: ["react", "react-dom", "next", "@tanstack/react-query", "react-hook-form"],
       }),
     },
   },

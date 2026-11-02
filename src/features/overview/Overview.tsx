@@ -1,5 +1,8 @@
 import type { Context } from "@/domain";
 import { getDataset } from "@/lib/dataset";
+import { AlertsCard } from "@/features/alerts/AlertsCard";
+import { DatasetProvider } from "@/lib/context/dataset";
+import { lightDataset } from "@/lib/context/invariants";
 import { ErrorBoundary } from "@/features/shell/ErrorBoundary";
 import { KpiRow } from "./KpiRow";
 import { MapCard } from "./MapCard";
@@ -20,6 +23,13 @@ export function Overview({ ctx }: { ctx: Context }) {
       <ErrorBoundary widget="top-movers">
         <TopMovers movers={vm.movers} />
       </ErrorBoundary>
+      {ctx.mode === "analyst" ? (
+        <ErrorBoundary widget="alerts">
+          <DatasetProvider dataset={lightDataset(getDataset())}>
+            <AlertsCard />
+          </DatasetProvider>
+        </ErrorBoundary>
+      ) : null}
     </div>
   );
 }

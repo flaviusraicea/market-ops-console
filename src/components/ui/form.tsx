@@ -14,6 +14,7 @@ import {
   type FieldValues,
 } from "react-hook-form";
 
+import { CircleAlert, ICON_STROKE } from "@/components/icons";
 import { Label } from "@/components/ui/label";
 
 const Form = FormProvider;
@@ -136,12 +137,15 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
       data-slot="form-message"
       id={formMessageId}
       className={cn(
-        "text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-bad-text",
+        "flex items-start gap-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-bad-text",
         className,
       )}
       {...props}
     >
-      {body}
+      {error ? (
+        <CircleAlert aria-hidden className="mt-px size-3.5 shrink-0" strokeWidth={ICON_STROKE} />
+      ) : null}
+      <span>{body}</span>
     </p>
   );
 }

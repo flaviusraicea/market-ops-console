@@ -4,7 +4,8 @@ export type ConsoleEvent =
   | { type: "navigate"; ctx: Context }
   | { type: "widget_error"; widget: string; message: string }
   | { type: "invalid_context"; message: string }
-  | { type: "ask"; question: string };
+  | { type: "ask"; question: string }
+  | { type: "alert_save_failed"; message: string };
 
 export type LoggedEvent = ConsoleEvent & { at: number };
 
