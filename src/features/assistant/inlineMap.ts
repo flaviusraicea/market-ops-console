@@ -1,4 +1,5 @@
 import type { Citation } from "@/domain";
+import type { SourcesMeta } from "./sourcesRows";
 
 export type InlinePhrase = { phrase: string; citationIndex: number };
 
@@ -24,6 +25,56 @@ export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
     { phrase: "Brazil", citationIndex: 2 },
   ],
 };
+
+/**
+ * What the sources table says about each answer: the claim in the user's words, the assistant's own word for it, and
+ * the caption (preview-spec 9.4 and its sources addendum). Same keys as INLINE_MAP.
+ */
+export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
+  "Germany, Feb 2026|Germany, Mar 2026 (largest dip)|Veltrix in Germany, Mar 2026": {
+    caption: "Source · data.json · Germany is Off track at 92.0% attainment for May 2026.",
+    items: [
+      { claim: "Fell in early 2026", assistantWord: "Revenue fell" },
+      { claim: "Steepest drop in March", assistantWord: "Steepest drop" },
+      { claim: "Decline across the portfolio", assistantWord: "Across products" },
+    ],
+  },
+  "Germany, latest period|Germany, March dip|Italy, latest period|Brazil, latest period": {
+    caption:
+      "The dashboard follows data.json. 4 markets are at risk and 2 are off track there; the assistant names 3.",
+    items: [
+      { claim: "Germany at risk", assistantWord: "At risk" },
+      { claim: "March dip", assistantWord: "Sharp dip" },
+      { claim: "Italy at risk", assistantWord: "At risk" },
+      { claim: "Brazil at risk", assistantWord: "At risk" },
+    ],
+  },
+  "Germany|Italy|Brazil": {
+    caption:
+      "Source · data.json · The data does not break out forecast drivers, which is why confidence is Low.",
+    withRevenue: true,
+    items: [
+      { claim: "Largest contributor", assistantWord: "Under plan" },
+      { claim: "Largest contributor", assistantWord: "Under plan" },
+      { claim: "Smaller drag", assistantWord: "Smaller drag" },
+    ],
+  },
+};
+
+export const DEFAULT_SOURCES_META: SourcesMeta = { caption: "Source · data.json", items: [] };
+
+/**
+ * The words a status check should read for one citation: its mapped claim ("Germany at risk"), not the whole answer,
+ * so a status word elsewhere in the text cannot make an unrelated chip look like a disagreement. Without a mapped
+ * claim the whole text is used.
+ */
+export function claimTextFor(
+  text: string,
+  citations: readonly Pick<Citation, "label">[],
+  index: number,
+): string {
+  return SOURCES_META[inlineKey(citations)]?.items[index]?.claim ?? text;
+}
 
 export function inlineKey(citations: readonly Pick<Citation, "label">[]): string {
   return citations.map((c) => c.label ?? "").join("|");

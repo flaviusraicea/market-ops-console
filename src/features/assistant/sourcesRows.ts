@@ -57,7 +57,7 @@ export function sourcesRows(
         entity: "Could not resolve",
         period: DASH,
         sourceValue: DASH,
-        assistant: DASH,
+        assistant: citation.label ?? DASH,
         disagreement: false,
         resolved: false,
       };
@@ -66,7 +66,7 @@ export function sourcesRows(
     return {
       claim: item?.claim ?? label,
       entity: entityName(ds, entity),
-      period,
+      period: resolution.target.periodDefaulted ? `${period} (latest)` : period,
       sourceValue: sourceValue(ds, entity, period, meta.withRevenue ?? false),
       assistant: resolution.disagreement
         ? upperFirst(resolution.disagreement.assistant)
@@ -75,7 +75,12 @@ export function sourcesRows(
       resolved: true,
     };
   });
-  return { rows, caption: meta.caption };
+  const broken = rows.filter((r) => !r.resolved).length;
+  const note =
+    broken === 0
+      ? ""
+      : ` ${broken} ${broken === 1 ? "citation" : "citations"} could not be resolved.`;
+  return { rows, caption: `${meta.caption}${note}` };
 }
 
 function sourceValue(ds: Dataset, entity: Entity, period: Period, withRevenue: boolean): string {
