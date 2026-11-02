@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/components/cn";
-import { formatMoneyCompact, formatPct, formatPeriodMedium, formatPeriodShort } from "@/lib/format";
+import { formatMoneyCompact, formatPct, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { attainmentDiverging } from "./scales";
 
@@ -67,7 +67,7 @@ export function HeatMap({ rows, periods, selected, label, onCell }: HeatMapProps
     const box = el.getBoundingClientRect();
     tip.show(
       {
-        title: `${rows[row]!.name} · ${formatPeriodMedium(cell.period)}`,
+        title: `${rows[row]!.name} · ${formatPeriodAbbr(cell.period)}`,
         rows: [
           { label: "Actual", value: formatMoneyCompact(cell.actual) },
           { label: "Forecast", value: formatMoneyCompact(cell.forecast) },
@@ -143,7 +143,7 @@ export function HeatMap({ rows, periods, selected, label, onCell }: HeatMapProps
                 aria-colindex={i + 2}
                 className="relative h-4 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
               >
-                <span className="sr-only">{formatPeriodMedium(p)}</span>
+                <span className="sr-only">{formatPeriodAbbr(p)}</span>
                 {i % 3 === 0 ? (
                   <span aria-hidden className="absolute bottom-0 left-0 whitespace-nowrap">
                     {formatPeriodShort(p)}
@@ -180,7 +180,7 @@ export function HeatMap({ rows, periods, selected, label, onCell }: HeatMapProps
                       aria-colindex={ci + 2}
                       aria-selected={isSelected}
                       tabIndex={ri === r && ci === c ? 0 : -1}
-                      aria-label={`${row.name}, ${formatPeriodMedium(cell.period)}, ${cell.display} of forecast`}
+                      aria-label={`${row.name}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast`}
                       data-period={cell.period}
                       data-market={row.id}
                       className={cn("h-6 cursor-pointer rounded-[2px]")}

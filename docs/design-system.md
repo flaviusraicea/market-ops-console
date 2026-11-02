@@ -410,6 +410,7 @@ Rows for assistant states 1, 2 and 3 are in preview-spec.md section 9.4 and prev
 - Currency: USD, `$` prefix, two significant decimals with `M` for millions (`$22.85M`, `$0.94M`) in tiles, grid and tooltips; full integers with thousands separators in tables (`1,676,586`).
 - Percentages: one decimal, always with sign for deltas and growth (`+7.3%`, `−9.7%`), no sign for levels (`92.0%`). Use the real minus sign U+2212, never a hyphen.
 - Periods: `May 2026` in prose and labels; `2026-05` only in mono cells and tooltips.
+- Month names: short (`Jun 2024`) in compact text such as chips, pills, coverage lines and table cells; full (`June 2024`) in pickers and captions. Helpers: `formatPeriodAbbr` for short, `formatPeriod` for full.
 - Counts: `6 of 13`.
 
 

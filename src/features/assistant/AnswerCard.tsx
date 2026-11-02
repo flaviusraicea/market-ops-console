@@ -4,22 +4,30 @@ import type { ReactNode } from "react";
 
 import { ConfidenceMeter } from "@/components/ConfidenceMeter";
 import { Notice } from "@/components/Notice";
-import { ChevronDown, CirclePause, ICON_STROKE, Square } from "@/components/icons";
+import { ChevronDown, CirclePause, CircleSlash, ICON_STROKE, Square } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useDataset } from "@/lib/context/dataset";
+import { formatPeriodAbbr } from "@/lib/format";
+import { SUGGESTIONS } from "./Suggestions";
 import type { Answer } from "./useAnswerMachine";
 
 type AnswerCardProps = {
   answer: Answer;
   onStop: () => void;
   onRetry: () => void;
+  /** Puts a suggested question in the composer without sending it. */
+  onTry: (text: string) => void;
 };
+
+const PILL =
+  "inline-flex h-[var(--chip-h)] items-center gap-1 rounded-pill bg-surface-2 px-2.5 font-ui text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2";
 
 const CAPTION =
   "text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted";
 
 /** Design-system.md 6.5: question echo, then the AI card. Chips arrive in slice 6; until then they are plain labels. */
-export function AnswerCard({ answer, onStop, onRetry }: AnswerCardProps) {
+export function AnswerCard({ answer, onStop, onRetry, onTry }: AnswerCardProps) {
   const { status, text, question } = answer;
   return (
     <div className="flex flex-col gap-2">
@@ -34,7 +42,13 @@ export function AnswerCard({ answer, onStop, onRetry }: AnswerCardProps) {
         <>
           {text ? (
             <Card>
-              <AnswerText>{text}</AnswerText>
+              <AnswerText>
+                {text}{" "}
+                <span className={`${PILL} align-middle`}>
+                  <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+                  Partial answer
+                </span>
+              </AnswerText>
             </Card>
           ) : null}
           <Notice
@@ -56,14 +70,14 @@ export function AnswerCard({ answer, onStop, onRetry }: AnswerCardProps) {
             {status === "stopped" ? (
               <>
                 {" "}
-                <span className="inline-flex h-[var(--chip-h)] items-center gap-1 rounded-pill bg-surface-2 px-2.5 align-middle font-ui text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
+                <span className={`${PILL} align-middle`}>
                   <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
                   Stopped · partial answer
                 </span>
               </>
             ) : null}
           </AnswerText>
-          {status === "done" ? (
+          {status === "done" && answer.kind !== "abstain" ? (
             <ul aria-label="Citations" className="flex flex-wrap gap-1.5">
               {answer.citations.map(({ citation, resolution }, i) => (
                 <li key={i}>
@@ -76,7 +90,8 @@ export function AnswerCard({ answer, onStop, onRetry }: AnswerCardProps) {
               ))}
             </ul>
           ) : null}
-          <Footer answer={answer} onStop={onStop} onRetry={onRetry} />
+          {status === "done" && answer.kind === "abstain" ? <AbstainNote onTry={onTry} /> : null}
+          <Footer answer={answer} onStop={onStop} onRetry={onRetry} onTry={onTry} />
         </Card>
       )}
     </div>
@@ -99,7 +114,37 @@ function AnswerText({ children }: { children: ReactNode }) {
   );
 }
 
+/** Design-system.md 6.5 state 4: what the data covers, and a question the assistant can answer. */
+function AbstainNote({ onTry }: { onTry: (text: string) => void }) {
+  const { periods } = useDataset().meta;
+  const first = periods[0];
+  const last = periods[periods.length - 1];
+  const suggestion = SUGGESTIONS[0];
+  return (
+    <div className="flex flex-col items-start gap-2">
+      {first && last ? (
+        <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+          Data covers {formatPeriodAbbr(first)} to {formatPeriodAbbr(last)}.
+        </p>
+      ) : null}
+      <Button type="button" variant="ghost" className="-ml-3" onClick={() => onTry(suggestion)}>
+        Try: &ldquo;{suggestion}&rdquo;
+      </Button>
+    </div>
+  );
+}
+
 function Footer({ answer, onStop, onRetry }: AnswerCardProps) {
+  if (answer.status === "done" && answer.kind === "abstain") {
+    return (
+      <div className="flex">
+        <span className={PILL}>
+          <CircleSlash aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+          Can&rsquo;t answer from this data
+        </span>
+      </div>
+    );
+  }
   if (answer.status === "done") {
     return (
       <Collapsible>

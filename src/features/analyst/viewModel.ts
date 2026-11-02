@@ -26,7 +26,7 @@ import {
   formatMoneyCompact,
   formatPct,
   formatPeriod,
-  formatPeriodMedium,
+  formatPeriodAbbr,
   formatPeriodShort,
 } from "@/lib/format";
 
@@ -306,7 +306,7 @@ function timeSeriesVM(ds: Dataset, ctx: Context): TimeSeriesVM {
     return {
       period,
       label: formatPeriodShort(period),
-      name: formatPeriodMedium(period),
+      name: formatPeriodAbbr(period),
       actual: a.actual,
       forecast: a.forecast,
       priorYear: a.priorYear,
@@ -335,7 +335,7 @@ function timeSeriesVM(ds: Dataset, ctx: Context): TimeSeriesVM {
 
   return {
     title: `${name} · Revenue vs forecast vs prior year`,
-    caption: `${formatPeriodMedium(first)} – ${formatPeriodMedium(last)} · USD · ${DERIVED}`,
+    caption: `${formatPeriodAbbr(first)} – ${formatPeriodAbbr(last)} · USD · ${DERIVED}`,
     desc,
     selectedPeriod: ctx.period,
     points,
@@ -429,7 +429,7 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
   const scope = ctx.region ? entityName(ds, { kind: "region", regionId: ctx.region }) : "Portfolio";
   return {
     title: `Attainment by month · ${scope}`,
-    caption: `${formatPeriodMedium(periods[0] ?? "")} – ${formatPeriodMedium(periods[periods.length - 1] ?? "")} · % of forecast · ${DERIVED}`,
+    caption: `${formatPeriodAbbr(periods[0] ?? "")} – ${formatPeriodAbbr(periods[periods.length - 1] ?? "")} · % of forecast · ${DERIVED}`,
     periods,
     rows,
     selected: ctx.market ? { market: ctx.market, period: ctx.period } : undefined,

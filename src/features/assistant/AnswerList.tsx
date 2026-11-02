@@ -14,6 +14,8 @@ type AnswerListProps = {
   onPick: (text: string) => void;
   onStop: (id: string) => void;
   onRetry: (id: string) => void;
+  /** A card's "Try" button: fill the composer with a question. */
+  onTry: (text: string) => void;
   /** Panel bumps this when the user asks or retries; the list then scrolls the newest card into view. */
   scrollSignal?: number;
 };
@@ -35,6 +37,7 @@ export function AnswerList({
   onPick,
   onStop,
   onRetry,
+  onTry,
   scrollSignal = 0,
 }: AnswerListProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -163,7 +166,12 @@ export function AnswerList({
           <ol className="flex flex-col gap-4">
             {answers.map((a) => (
               <li key={a.id}>
-                <AnswerCard answer={a} onStop={() => onStop(a.id)} onRetry={() => onRetry(a.id)} />
+                <AnswerCard
+                  answer={a}
+                  onStop={() => onStop(a.id)}
+                  onRetry={() => onRetry(a.id)}
+                  onTry={onTry}
+                />
               </li>
             ))}
           </ol>
