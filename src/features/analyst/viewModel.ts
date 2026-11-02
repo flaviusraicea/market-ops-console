@@ -3,6 +3,7 @@ import {
   STATUS_RULE_TEXT,
   askWhyPrompt,
   attainmentPct,
+  effectiveBasis,
   entityName,
   entityOf,
   factsFor,
@@ -51,6 +52,8 @@ export type SparkVM = {
 export type AskWhyVM = { aria: string; text: string };
 
 export type MarketRowVM = {
+  /** Unformatted revenue; the grid is sorted by it, largest first. */
+  revenueValue: number;
   id: string;
   name: string;
   iso2: string;
@@ -68,6 +71,8 @@ export type MarketRowVM = {
 };
 
 export type ProductRowVM = {
+  /** Unformatted revenue; the grid is sorted by it, largest first. */
+  revenueValue: number;
   id: string;
   name: string;
   revenue: string;
@@ -201,26 +206,29 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
     const market = ds.markets.find((m) => m.id === ctx.market);
     const marketId = ctx.market;
     const periodLabel = formatPeriod(ctx.period);
-    const rows: ProductRowVM[] = ds.products.map((p) => {
-      const entity: Entity = { kind: "product", marketId, productId: p.id };
-      const t = totals(factsFor(ds, { entity, periods: [ctx.period] }));
-      const growth = growthPct(t);
-      return {
-        id: p.id,
-        name: p.name,
-        revenue: formatMoneyCompact(t.actual),
-        attainment: formatPct(attainmentPct(t), { sign: false }),
-        growth: formatPct(growth, { sign: true }),
-        growthDirection: direction(growth),
-        units: formatInt(t.units),
-        trend: sparkFor(ds, entity),
-        selected: ctx.product === p.id,
-      };
-    });
+    const rows: ProductRowVM[] = ds.products
+      .map((p) => {
+        const entity: Entity = { kind: "product", marketId, productId: p.id };
+        const t = totals(factsFor(ds, { entity, periods: [ctx.period] }));
+        const growth = growthPct(t);
+        return {
+          revenueValue: t.actual,
+          id: p.id,
+          name: p.name,
+          revenue: formatMoneyCompact(t.actual),
+          attainment: formatPct(attainmentPct(t), { sign: false }),
+          growth: formatPct(growth, { sign: true }),
+          growthDirection: direction(growth),
+          units: formatInt(t.units),
+          trend: sparkFor(ds, entity),
+          selected: ctx.product === p.id,
+        };
+      })
+      .sort((a, b) => b.revenueValue - a.revenueValue);
     return {
       kind: "products",
       title: `Products · ${market?.name ?? marketId}`,
-      caption: `${rows.length} products · ${periodLabel} · ${DERIVED}`,
+      caption: `${rows.length} products · ${periodLabel} · Sorted by revenue · ${DERIVED}`,
       marketId,
       rows,
     };
@@ -228,34 +236,36 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
 
   const entity = entityOf(ctx);
   const markets = marketsIn(ds, entity);
-  const latest = ds.meta.latestPeriod;
-  const rows: MarketRowVM[] = markets.map((m) => {
-    const k = m.kpis;
-    const attainment = formatPct(k.forecastAttainmentPct, { sign: false });
-    const growth = formatPct(k.growthPct, { sign: true });
-    const aboveButOff = k.status === "off_track" && k.forecastAttainmentPct >= 100;
-    return {
-      id: m.id,
-      name: m.name,
-      iso2: m.iso2.toUpperCase(),
-      status: k.status,
-      statusLabel: STATUS_LABEL[k.status],
-      revenue: formatMoneyCompact(k.revenue),
-      attainment,
-      growth,
-      growthDirection: direction(k.growthPct),
-      share: formatPct(k.sharePct, { sign: false }),
-      ...(aboveButOff ? { attainmentNote: OFF_TRACK_ABOVE_PLAN(attainment, growth) } : {}),
-      trend: sparkFor(ds, { kind: "market", marketId: m.id }, k.anomalies[0]?.period),
-      askWhy: askWhyPrompt(m.id, m.name, k.status),
-    };
-  });
-  const latestLabel = formatPeriod(latest);
-  const stale = ctx.period !== latest;
+  const atLatest = ctx.period === ds.meta.latestPeriod;
+  // Values follow the selected period. Status, share and the anomaly list are given only for the latest month.
+  const rows: MarketRowVM[] = markets
+    .map((m) => ({ m, k: kpiFor(ds, { kind: "market", marketId: m.id }, ctx.period, "month") }))
+    .sort((a, b) => b.k.totals.actual - a.k.totals.actual)
+    .map(({ m, k }) => {
+      const attainment = formatPct(k.attainmentPct, { sign: false });
+      const growth = formatPct(k.growthPct, { sign: true });
+      const aboveButOff = m.kpis.status === "off_track" && k.attainmentPct >= 100;
+      return {
+        revenueValue: k.totals.actual,
+        id: m.id,
+        name: m.name,
+        iso2: m.iso2.toUpperCase(),
+        status: m.kpis.status,
+        statusLabel: STATUS_LABEL[m.kpis.status],
+        revenue: formatMoneyCompact(k.totals.actual),
+        attainment,
+        growth,
+        growthDirection: direction(k.growthPct),
+        share: formatPct(m.kpis.sharePct, { sign: false }),
+        ...(aboveButOff ? { attainmentNote: OFF_TRACK_ABOVE_PLAN(attainment, growth) } : {}),
+        trend: sparkFor(ds, { kind: "market", marketId: m.id }, m.kpis.anomalies[0]?.period),
+        askWhy: askWhyPrompt(m.id, m.name, m.kpis.status),
+      };
+    });
   return {
     kind: "markets",
     title: `Markets · ${entityName(ds, entity)}`,
-    caption: `${rows.length} markets · ${stale ? `Latest month, ${latestLabel}` : latestLabel} · ${SOURCE}`,
+    caption: `${rows.length} markets · ${formatPeriod(ctx.period)} · Sorted by revenue · ${atLatest ? SOURCE : DERIVED}`,
     statusRule: STATUS_RULE_TEXT,
     rows,
   };
@@ -428,7 +438,7 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
 
 export function analystVM(ds: Dataset, ctx: Context): AnalystVM {
   return {
-    basis: ctx.basis,
+    basis: effectiveBasis(ds, ctx.basis, ctx.period),
     matDisabled: periodIndex(ds, ctx.period) < 11,
     grid: gridVM(ds, ctx),
     timeSeries: timeSeriesVM(ds, ctx),

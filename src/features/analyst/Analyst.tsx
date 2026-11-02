@@ -17,15 +17,15 @@ export function Analyst({ ctx }: { ctx: Context }) {
       <ErrorBoundary widget="market-grid">
         <MarketGrid grid={vm.grid} />
       </ErrorBoundary>
-      <div className="grid gap-[var(--gap)] min-[1024px]:grid-cols-2">
-        <ErrorBoundary widget="time-series">
-          <TimeSeriesCard vm={vm.timeSeries} />
-        </ErrorBoundary>
+      <ErrorBoundary widget="time-series">
+        <TimeSeriesCard vm={vm.timeSeries} />
+      </ErrorBoundary>
+      <div className="grid gap-[var(--gap)] min-[1024px]:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <ErrorBoundary widget="radar">
           <RadarCard vm={vm.radar} rowLabel={ctx.region ? "Market" : "Region"} />
         </ErrorBoundary>
         <ErrorBoundary widget="heat-map">
-          <HeatMapCard vm={vm.heatMap} className="min-[1024px]:col-span-2" />
+          <HeatMapCard vm={vm.heatMap} />
         </ErrorBoundary>
       </div>
     </>

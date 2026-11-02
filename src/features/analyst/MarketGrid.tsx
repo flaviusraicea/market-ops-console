@@ -3,7 +3,7 @@
 import type { KeyboardEvent } from "react";
 
 import { cn } from "@/components/cn";
-import { ICON_STROKE, Info, MessageSquareText } from "@/components/icons";
+import { ArrowDown, ICON_STROKE, Info, MessageSquareText } from "@/components/icons";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,8 +83,12 @@ function MarketRows({ rows, statusRule }: { rows: MarketRowVM[]; statusRule: str
               <InfoTip label="How status is determined">{statusRule}</InfoTip>
             </span>
           </TableHead>
-          <TableHead scope="col" className="text-right">
-            Revenue
+          <TableHead scope="col" aria-sort="descending" className="text-right">
+            <span className="inline-flex items-center gap-1">
+              <ArrowDown aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+              Revenue
+              <span className="sr-only">, sorted largest first</span>
+            </span>
           </TableHead>
           <TableHead scope="col" className="text-right">
             Attainment
@@ -159,8 +163,12 @@ function ProductRows({ rows }: { rows: ProductRowVM[] }) {
       <TableHeader>
         <TableRow>
           <TableHead scope="col">Product</TableHead>
-          <TableHead scope="col" className="text-right">
-            Revenue
+          <TableHead scope="col" aria-sort="descending" className="text-right">
+            <span className="inline-flex items-center gap-1">
+              <ArrowDown aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+              Revenue
+              <span className="sr-only">, sorted largest first</span>
+            </span>
           </TableHead>
           <TableHead scope="col" className="text-right">
             Attainment

@@ -1,6 +1,7 @@
 import {
   STATUS_LABEL,
   attentionCount,
+  effectiveBasis,
   entityName,
   entityOf,
   kpiFor,
@@ -84,9 +85,13 @@ function sameMonthLastYear(period: Period): string {
 const signedMoney = (n: number) =>
   `${n > 0 ? "+" : n < 0 ? "−" : ""}${formatMoneyCompact(Math.abs(n))}`;
 
+function basisFor(ds: Dataset, ctx: Context) {
+  return ctx.mode === "analyst" ? effectiveBasis(ds, ctx.basis, ctx.period) : "month";
+}
+
 function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
   const entity = entityOf(ctx);
-  const basis = ctx.mode === "analyst" ? ctx.basis : "month";
+  const basis = basisFor(ds, ctx);
   const k = kpiFor(ds, entity, ctx.period, basis);
   const ytd = kpiFor(ds, entity, ctx.period, "ytd");
   const provenance = k.provenance === "source" ? SOURCE : DERIVED;
@@ -156,7 +161,8 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
 }
 
 export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
-  const basis = ctx.mode === "analyst" ? ctx.basis : "month";
+  const basis = basisFor(ds, ctx);
+  const matFallback = ctx.mode === "analyst" && ctx.basis === "mat" && basis === "month";
   const regionName = new Map(ds.regions.map((r) => [r.id, r.name]));
 
   const entries = ds.markets.map((m) => {
@@ -222,7 +228,7 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
 
   return {
     title: entityName(ds, entityOf(ctx)),
-    caption: `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]}`,
+    caption: `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]}${matFallback ? " · MAT unavailable, showing Month" : ""}`,
     tiles: tilesFor(ds, ctx),
     map: {
       metric: ctx.metric,

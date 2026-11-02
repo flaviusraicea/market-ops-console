@@ -35,7 +35,7 @@ type HeatMapProps = {
   onCell: (market: string, period: string) => void;
 };
 
-const NAME_COL = "7.5rem";
+const NAME_COL = "6.5rem";
 const PAGE = 6;
 
 /**
@@ -125,7 +125,7 @@ export function HeatMap({ rows, periods, selected, label, onCell }: HeatMapProps
           aria-label={label}
           aria-rowcount={rows.length + 1}
           aria-colcount={nCols + 1}
-          className="grid min-w-[40rem] gap-[2px] bg-surface"
+          className="grid min-w-[26rem] gap-[2px] bg-surface"
           style={{ gridTemplateColumns: `${NAME_COL} repeat(${nCols}, minmax(0, 1fr))` }}
         >
           <div role="row" aria-rowindex={1} className="contents">

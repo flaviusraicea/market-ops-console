@@ -14,8 +14,8 @@ test("the Europe grid has five rows in order with statuses, and the status toolt
   const grid = card(page, "Markets · Europe");
   const rows = grid.locator("tbody tr");
   await expect(rows).toHaveCount(5);
-  const names = ["Germany", "United Kingdom", "France", "Italy", "Spain"];
-  const statuses = ["Off track", "At risk", "At risk", "At risk", "Off track"];
+  const names = ["United Kingdom", "Germany", "France", "Italy", "Spain"];
+  const statuses = ["At risk", "Off track", "At risk", "At risk", "Off track"];
   for (const [i, name] of names.entries()) {
     await expect(rows.nth(i)).toContainText(name);
     await expect(rows.nth(i)).toContainText(statuses[i]!);
@@ -106,6 +106,7 @@ test("MAT is unavailable before twelve months and explains why", async ({ page }
   await expect(page.getByRole("tooltip").first()).toContainText("Needs 12 months of data");
   await page.goto("/?mode=analyst&period=2025-04&basis=mat");
   await expect(page.getByRole("radio", { name: "Month" })).toBeChecked();
+  await expect(page.getByText("MAT unavailable, showing Month")).toBeVisible();
 });
 
 test("the radar has the three axes and the alert thresholds card follows the heat map", async ({
