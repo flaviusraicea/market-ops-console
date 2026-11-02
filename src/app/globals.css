@@ -157,3 +157,9 @@ html[data-reduced-motion="true"] .caret {
 .cite-inline:focus-visible {
   text-decoration-style: solid;
 }
+
+/* A followed citation landed on this widget (slice 6): ring for two seconds. */
+[data-landed] {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

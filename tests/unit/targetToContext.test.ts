@@ -17,7 +17,13 @@ describe("targetToContext", () => {
   it("maps a product target to region, market, product and period", () => {
     expect(
       targetToContext(target({ marketId: "de", productId: "veltrix", period: p("2026-03") }), ds),
-    ).toEqual({ region: "eu", market: "de", product: "veltrix", period: "2026-03" });
+    ).toEqual({
+      region: "eu",
+      market: "de",
+      product: "veltrix",
+      period: "2026-03",
+      mode: "analyst",
+    });
   });
   it("maps a region target and clears market and product", () => {
     const patch = targetToContext(target({ regionId: "apac", period: p("2026-05") }), ds);
@@ -26,6 +32,7 @@ describe("targetToContext", () => {
       market: undefined,
       product: undefined,
       period: "2026-05",
+      mode: "analyst",
     });
     expect(Object.keys(patch)).toEqual(expect.arrayContaining(["market", "product"]));
   });
@@ -35,6 +42,7 @@ describe("targetToContext", () => {
       market: "it",
       product: undefined,
       period: "2026-02",
+      mode: "analyst",
     });
   });
   it("uses the latest period when the citation names none", () => {
