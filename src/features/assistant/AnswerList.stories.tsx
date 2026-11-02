@@ -32,7 +32,7 @@ function Harness() {
         Append answer
       </button>
       <div className="flex h-[320px] flex-col p-4">
-        <AnswerList answers={answers} onPick={fn()} onStop={fn()} onRetry={fn()} />
+        <AnswerList answers={answers} onPick={fn()} onStop={fn()} onRetry={fn()} onTry={fn()} />
       </div>
     </div>
   );
@@ -53,7 +53,7 @@ const inView = (el: HTMLElement, box: HTMLElement) => {
 };
 
 export const ThreeAnswers: Story = {
-  args: { answers: three, onPick: fn(), onStop: fn(), onRetry: fn() },
+  args: { answers: three, onPick: fn(), onStop: fn(), onRetry: fn(), onTry: fn() },
   render: () => <Harness />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

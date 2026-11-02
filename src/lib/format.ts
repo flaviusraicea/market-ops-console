@@ -39,6 +39,12 @@ export function formatPeriod(p: string): string {
   return `${monthLong.format(new Date(Date.UTC(y, m - 1, 1)))} ${y}`;
 }
 
+/** "Jun 2024": abbreviated month, full year (the assistant's coverage line). */
+export function formatPeriodAbbr(p: string): string {
+  const { y, m } = parts(p);
+  return `${monthShort.format(new Date(Date.UTC(y, m - 1, 1)))} ${y}`;
+}
+
 export function formatPeriodShort(p: string): string {
   const { y, m } = parts(p);
   return `${monthShort.format(new Date(Date.UTC(y, m - 1, 1)))} ${String(y).slice(2)}`;

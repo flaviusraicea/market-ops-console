@@ -8,6 +8,7 @@ export {
   ChevronDown,
   CircleAlert,
   CirclePause,
+  CircleSlash,
   MessageSquareText,
   Minus,
   Moon,
