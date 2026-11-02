@@ -30,3 +30,9 @@ Design and architecture documents live in `/docs` (copied from the design folder
 
 - Answers stream from `POST /api/chat` (Server-Sent Events) and can be stopped; a stopped answer keeps its text, is marked partial and carries no citations or confidence.
 - The conversation is kept in memory for the session only. A reload starts with an empty panel.
+
+## Alert notes
+
+- Analyst mode has an `Alert thresholds` card. Saving writes a growth rule and an attainment rule for the chosen scope through `POST /api/alerts`; saving the same metric and scope again updates the rule.
+- Rules live in memory on the server instance (`src/app/api/alerts/route.ts`), so they reset when the server restarts and are not shared between instances.
+- The `Simulate failure` checkbox sends `?fail=1`, so the route answers 500 after its 600 ms delay and the UI shows the rollback.
