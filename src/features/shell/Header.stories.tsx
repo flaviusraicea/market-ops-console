@@ -36,6 +36,22 @@ type Story = StoryObj<typeof meta>;
 export const Portfolio: Story = {
   args: { trail: breadcrumbTrail(ds, portfolio) },
   parameters: { nuqs: { searchParams: "", onUrlUpdate: fn() } },
+  play: async ({ canvasElement }) => {
+    // At the latest period there is no period chip to clear.
+    await expect(
+      within(canvasElement).queryByRole("button", { name: "Clear period" }),
+    ).not.toBeInTheDocument();
+  },
+};
+
+export const EarlierPeriod: Story = {
+  args: { trail: breadcrumbTrail(ds, portfolio), period: "2026-03" },
+  parameters: { nuqs: { searchParams: "?period=2026-03", onUrlUpdate: fn() } },
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).getByRole("button", { name: "Clear period" }),
+    ).toBeInTheDocument();
+  },
 };
 
 export const Germany: Story = {

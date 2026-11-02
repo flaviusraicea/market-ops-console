@@ -3,7 +3,8 @@ import type { Context } from "@/domain";
 export type ConsoleEvent =
   | { type: "navigate"; ctx: Context }
   | { type: "widget_error"; widget: string; message: string }
-  | { type: "invalid_context"; message: string };
+  | { type: "invalid_context"; message: string }
+  | { type: "ask"; question: string };
 
 export type LoggedEvent = ConsoleEvent & { at: number };
 
