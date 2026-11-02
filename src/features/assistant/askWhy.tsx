@@ -20,7 +20,7 @@ export function AskWhyProvider({ children }: { children: ReactNode }) {
   return <AskWhyContext.Provider value={value}>{children}</AskWhyContext.Provider>;
 }
 
-/** Fills the composer with a question. Until slice 9 it does not send. */
+/** Fills the composer with a question and focuses it. It never sends. */
 export function useAskWhy(): { prefill: (text: string) => void } {
   return { prefill: useContext(AskWhyContext).prefill };
 }

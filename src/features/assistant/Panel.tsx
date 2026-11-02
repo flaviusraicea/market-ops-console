@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { logEvent } from "@/lib/events";
+import { prefersReducedMotion } from "@/lib/motion";
 import type { AskStream } from "@/lib/stream/chatClient";
 import { AnswerList } from "./AnswerList";
 import { useAskWhyRequest } from "./askWhy";
@@ -33,7 +34,16 @@ export function Panel({ onSubmit, stream }: PanelProps) {
     setDraft(request.text);
   }
   useEffect(() => {
-    if (request) ref.current?.focus();
+    if (!request) return;
+    const el = ref.current;
+    el?.focus();
+    // Below 1024 px the panel sits under the dashboard, so bring it into view.
+    if (el && !window.matchMedia("(min-width: 1024px)").matches) {
+      el.scrollIntoView({
+        block: "center",
+        behavior: prefersReducedMotion() ? "instant" : "smooth",
+      });
+    }
   }, [request]);
 
   const { answers, ask, stop, retry, isStreaming } = useAnswerMachine(stream);

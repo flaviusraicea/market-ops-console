@@ -3,7 +3,6 @@
 import { ICON_STROKE, MessageSquareText } from "@/components/icons";
 import { cn } from "@/components/cn";
 import { Button } from "@/components/ui/button";
-import { askWhyPrompt } from "@/domain";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import type { MoverVM, OverviewVM } from "./viewModel";
 
@@ -16,7 +15,6 @@ function Column({ title, items }: { title: string; items: MoverVM[] }) {
       </h4>
       <ul>
         {items.map((m) => {
-          const q = askWhyPrompt(m.id, m.name, m.status);
           return (
             <li
               key={m.id}
@@ -35,8 +33,8 @@ function Column({ title, items }: { title: string; items: MoverVM[] }) {
                 type="button"
                 variant="ghost"
                 size="icon"
-                aria-label={q.aria}
-                onClick={() => prefill(q.text)}
+                aria-label={m.askWhy.aria}
+                onClick={() => prefill(m.askWhy.text)}
               >
                 <MessageSquareText aria-hidden className="size-4" strokeWidth={ICON_STROKE} />
               </Button>

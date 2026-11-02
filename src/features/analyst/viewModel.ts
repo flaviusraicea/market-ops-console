@@ -259,7 +259,7 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
         share: formatPct(m.kpis.sharePct, { sign: false }),
         ...(aboveButOff ? { attainmentNote: OFF_TRACK_ABOVE_PLAN(attainment, growth) } : {}),
         trend: sparkFor(ds, { kind: "market", marketId: m.id }, m.kpis.anomalies[0]?.period),
-        askWhy: askWhyPrompt(m.id, m.name, m.kpis.status),
+        askWhy: askWhyPrompt(m),
       };
     });
   return {
