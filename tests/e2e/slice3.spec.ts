@@ -90,3 +90,33 @@ for (const scheme of ["light", "dark"] as const) {
     await context.close();
   });
 }
+
+test("the header keeps one row and the same height from portfolio to Germany · Veltrix at 1440 px", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const height = async () => (await page.locator("header").boundingBox())!.height;
+
+  await page.goto("/");
+  const portfolio = await height();
+  await page.goto("/?region=eu&market=de&product=veltrix&period=2026-03");
+  await expect(page.getByRole("combobox", { name: "Product" })).toBeVisible();
+  expect(await height()).toBe(portfolio);
+
+  // Every control sits on the same row, and the breadcrumb still ends in the current crumb.
+  const tops = await Promise.all(
+    [
+      page.getByRole("combobox", { name: "Product" }),
+      page.getByRole("combobox", { name: "Period" }),
+      page.getByRole("radiogroup", { name: "View mode" }),
+      page.getByRole("button", { name: /Switch to (dark|light) theme/ }),
+    ].map(async (l) => {
+      const b = (await l.boundingBox())!;
+      return b.y + b.height / 2;
+    }),
+  );
+  expect(Math.max(...tops) - Math.min(...tops)).toBeLessThan(2);
+  await expect(
+    page.getByRole("navigation", { name: "Drill path" }).locator("[aria-current=page]"),
+  ).toBeVisible();
+});

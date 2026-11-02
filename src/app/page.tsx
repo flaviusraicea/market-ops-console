@@ -30,7 +30,6 @@ export default async function Page({ searchParams }: PageProps) {
   const ds = getDataset();
   const ctx = parseContextFromSearchParams(ds, await searchParams);
   const meta = metaFromDataset(ds);
-  const productName = ctx.product ? ds.products.find((p) => p.id === ctx.product)?.name : undefined;
 
   return (
     <ConsoleMetaProvider meta={meta}>
@@ -44,7 +43,6 @@ export default async function Page({ searchParams }: PageProps) {
               periods={ds.meta.periods}
               latestPeriod={ds.meta.latestPeriod}
               mode={ctx.mode}
-              productName={productName}
             />
           }
           dashboard={

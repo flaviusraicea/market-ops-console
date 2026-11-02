@@ -24,7 +24,7 @@ export function ProductSelect({
 }) {
   return (
     <Select value={product ?? ALL} onValueChange={(v) => onChange(v === ALL ? undefined : v)}>
-      <SelectTrigger aria-label="Product" className="min-w-[148px]">
+      <SelectTrigger aria-label="Product" className="min-w-[136px]">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

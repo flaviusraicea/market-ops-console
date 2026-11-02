@@ -21,7 +21,7 @@ export function PeriodSelect({
   const newestFirst = [...periods].reverse();
   return (
     <Select value={period} onValueChange={onChange}>
-      <SelectTrigger aria-label="Period" className="min-w-[132px]">
+      <SelectTrigger aria-label="Period" className="min-w-[120px]">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
