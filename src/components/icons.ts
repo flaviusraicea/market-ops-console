@@ -7,6 +7,7 @@ export {
   Check,
   ChevronDown,
   CircleAlert,
+  Link2,
   CirclePause,
   CircleSlash,
   Info,

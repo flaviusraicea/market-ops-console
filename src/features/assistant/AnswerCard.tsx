@@ -10,6 +10,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useDataset } from "@/lib/context/dataset";
 import { formatPeriodAbbr } from "@/lib/format";
 import { SUGGESTIONS } from "./Suggestions";
+import { CitationRow } from "./CitationRow";
+import { renderWithCitations } from "./renderWithCitations";
 import type { Answer } from "./useAnswerMachine";
 
 type AnswerCardProps = {
@@ -18,6 +20,8 @@ type AnswerCardProps = {
   onRetry: () => void;
   /** Puts a suggested question in the composer without sending it. */
   onTry: (text: string) => void;
+  /** True for the newest answer; only its chips can show as pressed. */
+  isLatest?: boolean;
 };
 
 const PILL =
@@ -26,8 +30,8 @@ const PILL =
 const CAPTION =
   "text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted";
 
-/** Design-system.md 6.5: question echo, then the AI card. Chips arrive in slice 6; until then they are plain labels. */
-export function AnswerCard({ answer, onStop, onRetry, onTry }: AnswerCardProps) {
+/** Design-system.md 6.5: question echo, then the AI card. */
+export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: AnswerCardProps) {
   const { status, text, question } = answer;
   return (
     <div className="flex flex-col gap-2">
@@ -65,7 +69,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry }: AnswerCardProps) 
       ) : (
         <Card>
           <AnswerText>
-            {text}
+            {status === "done" ? renderWithCitations(text, answer.citations, answer.id) : text}
             {status === "streaming" ? <span aria-hidden className="caret" /> : null}
             {status === "stopped" ? (
               <>
@@ -78,17 +82,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry }: AnswerCardProps) 
             ) : null}
           </AnswerText>
           {status === "done" && answer.kind !== "abstain" ? (
-            <ul aria-label="Citations" className="flex flex-wrap gap-1.5">
-              {answer.citations.map(({ citation, resolution }, i) => (
-                <li key={i}>
-                  <span className="inline-flex h-[var(--chip-h)] items-center rounded-pill bg-accent-soft px-2.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-accent">
-                    {resolution.ok
-                      ? resolution.target.label
-                      : citation.label || "Unresolved source"}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <CitationRow answerId={answer.id} citations={answer.citations} isLatest={isLatest} />
           ) : null}
           {status === "done" && answer.kind === "abstain" ? <AbstainNote onTry={onTry} /> : null}
           <Footer answer={answer} onStop={onStop} onRetry={onRetry} onTry={onTry} />

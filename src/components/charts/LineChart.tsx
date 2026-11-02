@@ -3,7 +3,7 @@
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
 import { LinePath } from "@visx/shape";
-import { useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 
 import { TriangleAlert, ICON_STROKE } from "@/components/icons";
 import {
@@ -53,6 +53,8 @@ type LineChartProps = {
   anomalies: readonly LineAnomaly[];
   /** The period in the URL context. The crosshair rests here and keyboard navigation starts here. */
   selectedPeriod: string;
+  /** Set while a followed citation lands here: the tooltip opens at this period. */
+  landedPeriod?: string;
   title: string;
   desc: string;
   onPeriod: (period: string) => void;
@@ -67,6 +69,7 @@ function LineSvg({
   points,
   anomalies,
   selectedPeriod,
+  landedPeriod,
   title,
   desc,
   onPeriod,
@@ -116,6 +119,18 @@ function LineSvg({
     setCursor(null);
     tip.hide();
   }
+
+  // A citation landing opens the tooltip at its month, and closes it again when the landing ends.
+  useEffect(() => {
+    if (landedPeriod === undefined) return;
+    const index = points.findIndex((p) => p.period === landedPeriod);
+    if (index < 0) return;
+    // Syncing a prop to the imperative tooltip; reveal and hide are recreated every render, the landing re-runs this.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    reveal(index);
+    return hide;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [landedPeriod, points]);
 
   function indexAt(e: MouseEvent<HTMLElement>): number {
     const box = e.currentTarget.getBoundingClientRect();
