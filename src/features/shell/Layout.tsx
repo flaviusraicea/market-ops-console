@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { AskWhyProvider } from "@/features/assistant/askWhy";
+
 type LayoutProps = {
   header: ReactNode;
   dashboard: ReactNode;
@@ -9,7 +11,7 @@ type LayoutProps = {
 /** Page grid (design-system.md section 4): dashboard column plus a 380 px assistant column from 1024 px up. */
 export function Layout({ header, dashboard, assistant }: LayoutProps) {
   return (
-    <>
+    <AskWhyProvider>
       <a
         href="#main"
         className="sr-only-focusable rounded-control bg-surface px-3 py-2 text-ink focus:fixed focus:top-2 focus:left-2 focus:z-50"
@@ -36,6 +38,6 @@ export function Layout({ header, dashboard, assistant }: LayoutProps) {
           </aside>
         </main>
       </div>
-    </>
+    </AskWhyProvider>
   );
 }

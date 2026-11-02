@@ -1,15 +1,27 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { logEvent } from "@/lib/events";
 import { AnswerList } from "./AnswerList";
+import { useAskWhyRequest } from "./askWhy";
 import { Composer } from "./Composer";
 
 export function Panel({ onSubmit }: { onSubmit?: (question: string) => void }) {
   const [draft, setDraft] = useState("");
   const ref = useRef<HTMLTextAreaElement>(null);
+  const request = useAskWhyRequest();
+
+  // An "Ask why" button elsewhere fills the composer and moves focus here.
+  const [applied, setApplied] = useState(0);
+  if (request && request.nonce !== applied) {
+    setApplied(request.nonce);
+    setDraft(request.text);
+  }
+  useEffect(() => {
+    if (request) ref.current?.focus();
+  }, [request]);
 
   function pick(text: string) {
     setDraft(text);

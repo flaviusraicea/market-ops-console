@@ -36,7 +36,7 @@ export default async function Page({
         }
         dashboard={
           <Suspense fallback={<OverviewSkeleton />}>
-            <Overview />
+            <Overview ctx={ctx} />
           </Suspense>
         }
         assistant={<Panel />}
