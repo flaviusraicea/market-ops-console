@@ -55,7 +55,13 @@ const uiPackages = [
 const layerConfigs = [
   {
     files: ["domain/**/*.{ts,tsx}"],
-    rules: { "no-restricted-imports": boundaryRule({ layer: "domain", aliases: ["domain"], packages: ["zod"] }) },
+    rules: {
+      "no-restricted-imports": boundaryRule({
+        layer: "domain",
+        aliases: ["domain"],
+        packages: ["zod"],
+      }),
+    },
   },
   {
     files: ["lib/**/*.{ts,tsx}"],
@@ -70,7 +76,11 @@ const layerConfigs = [
   {
     files: ["ui/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": boundaryRule({ layer: "ui", aliases: ["lib", "ui"], packages: uiPackages }),
+      "no-restricted-imports": boundaryRule({
+        layer: "ui",
+        aliases: ["lib", "ui"],
+        packages: uiPackages,
+      }),
     },
   },
   {
@@ -85,12 +95,7 @@ const layerConfigs = [
   },
 ];
 
-const storyExtras = [
-  "storybook",
-  "@storybook",
-  "@tanstack/react-query",
-  "nuqs/adapters/testing",
-];
+const storyExtras = ["storybook", "@storybook", "@tanstack/react-query", "nuqs/adapters/testing"];
 
 // Stories follow the rules of the folder they sit in, plus the story tooling and the dataset.
 const storyConfigs = [

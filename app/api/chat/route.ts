@@ -37,7 +37,9 @@ export async function POST(req: Request) {
     async start(controller) {
       // Error fixture: emit a single error event and stop.
       if (fixture.kind === "error") {
-        controller.enqueue(send({ type: "error", message: fixture.error ?? "Something went wrong." }));
+        controller.enqueue(
+          send({ type: "error", message: fixture.error ?? "Something went wrong." }),
+        );
         controller.close();
         return;
       }
