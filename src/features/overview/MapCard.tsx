@@ -1,0 +1,212 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { Notice } from "@/components/Notice";
+import { Choropleth, type MapGeo } from "@/components/charts/Choropleth";
+import { Legend, type LegendItem } from "@/components/charts/Legend";
+import {
+  ATTAINMENT_LEGEND,
+  GROWTH_LEGEND,
+  revenueLegend,
+  type LegendBin,
+} from "@/components/charts/scales";
+import { ViewAsTable } from "@/components/charts/ViewAsTable";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type { Metric } from "@/domain";
+import { useConsoleContext } from "@/lib/context/useConsoleContext";
+import type { OverviewVM } from "./viewModel";
+
+const METRIC_LABEL: Record<Metric, string> = {
+  attainment: "Attainment",
+  revenue: "Revenue",
+  growth: "Growth",
+};
+
+const DOT: Record<string, string> = {
+  on_track: "bg-ok-mark",
+  at_risk: "bg-warn-mark",
+  off_track: "bg-bad-mark",
+};
+
+type GeoState = { status: "loading" } | { status: "error" } | { status: "ready"; geo: MapGeo };
+
+let geoCache: Promise<MapGeo> | null = null;
+let geoLoaded: MapGeo | null = null;
+
+function loadGeo(): Promise<MapGeo> {
+  geoCache ??= fetch("/geo/markets.json")
+    .then((res) => {
+      if (!res.ok) throw new Error(`Geometry request failed: ${res.status}`);
+      return res.json() as Promise<MapGeo>;
+    })
+    .then((geo) => {
+      geoLoaded = geo;
+      return geo;
+    })
+    .catch((err: unknown) => {
+      geoCache = null; // allow a later mount to retry
+      throw err;
+    });
+  return geoCache;
+}
+
+function useGeo(): GeoState {
+  const [state, setState] = useState<GeoState>(
+    geoLoaded ? { status: "ready", geo: geoLoaded } : { status: "loading" },
+  );
+  useEffect(() => {
+    if (geoLoaded) return;
+    let live = true;
+    loadGeo().then(
+      (geo) => live && setState({ status: "ready", geo }),
+      () => live && setState({ status: "error" }),
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  return state;
+}
+
+function legendFor(map: OverviewVM["map"]): LegendBin[] {
+  if (map.metric === "attainment") return ATTAINMENT_LEGEND;
+  if (map.metric === "growth") return GROWTH_LEGEND;
+  return revenueLegend(map.maxRevenue);
+}
+
+function MarketsTable({ map }: { map: OverviewVM["map"] }) {
+  return (
+    <Table>
+      <TableCaption className="sr-only">
+        Markets, {map.periodLabel}. Source · data.json
+      </TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead scope="col">Market</TableHead>
+          <TableHead scope="col">Region</TableHead>
+          <TableHead scope="col">Status</TableHead>
+          <TableHead scope="col" className="text-right">
+            Attainment
+          </TableHead>
+          <TableHead scope="col" className="text-right">
+            Revenue (USD)
+          </TableHead>
+          <TableHead scope="col" className="text-right">
+            Growth
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {map.rows.map((r) => (
+          <TableRow key={r.id} {...(map.selected === r.id ? { "data-state": "selected" } : {})}>
+            <TableCell className="font-medium">{r.name}</TableCell>
+            <TableCell className="text-ink-2">{r.region}</TableCell>
+            <TableCell>
+              <Badge variant={r.status}>
+                <span aria-hidden className={`size-2 rounded-pill ${DOT[r.status]}`} />
+                {r.statusLabel}
+              </Badge>
+            </TableCell>
+            <TableCell className="text-right">{r.attainment}</TableCell>
+            <TableCell className="text-right">{r.revenue}</TableCell>
+            <TableCell className="text-right">{r.growth}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+export function MapCard({ map }: { map: OverviewVM["map"] }) {
+  const { setContext } = useConsoleContext();
+  const geoState = useGeo();
+  const metricLabel = METRIC_LABEL[map.metric];
+
+  const legend: LegendItem[] = legendFor(map).map((b) => ({
+    label: b.label,
+    swatch: "fill",
+    color: b.token,
+  }));
+
+  const toolbar = (
+    <div className="flex flex-col gap-3">
+      <Select
+        value={map.metric}
+        onValueChange={(metric) => setContext({ metric: metric as Metric })}
+      >
+        <SelectTrigger aria-label="Map metric" className="min-w-[132px]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {(Object.keys(METRIC_LABEL) as Metric[]).map((m) => (
+            <SelectItem key={m} value={m}>
+              {METRIC_LABEL[m]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Legend items={legend} label={`${metricLabel} colour scale`} />
+    </div>
+  );
+
+  const chart =
+    geoState.status === "ready" ? (
+      <Choropleth
+        geo={geoState.geo}
+        values={map.values}
+        metric={map.metric}
+        metricLabel={metricLabel}
+        periodLabel={map.periodLabel}
+        selected={map.selected}
+        onSelect={(market) => setContext({ market })}
+      />
+    ) : (
+      <Skeleton aria-hidden className="aspect-[2/1] w-full" />
+    );
+
+  return (
+    <section
+      aria-labelledby="map-h"
+      className="flex flex-col gap-3 rounded-card border border-border bg-surface p-[var(--pad-card)]"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h3
+          id="map-h"
+          className="font-display text-[length:var(--text-title)] leading-[var(--text-title-lh)] font-semibold tracking-[var(--text-title-ls)]"
+        >
+          Markets by {metricLabel}
+        </h3>
+        <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+          {map.periodLabel} · {map.provenance}
+        </p>
+      </div>
+      {geoState.status === "error" ? (
+        <Notice title="Map unavailable">The market table below has the same data.</Notice>
+      ) : null}
+      <ViewAsTable
+        toolbar={toolbar}
+        chart={chart}
+        table={<MarketsTable map={map} />}
+        forced={geoState.status === "error"}
+      />
+    </section>
+  );
+}
