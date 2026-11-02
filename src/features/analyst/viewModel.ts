@@ -183,6 +183,13 @@ function peerMarkets(ds: Dataset, ctx: Context): Market[] {
   return ctx.region ? marketsIn(ds, { kind: "region", regionId: ctx.region }) : ds.markets;
 }
 
+/** The one market order shared by the grid and the heat map: selected period's revenue, largest first. */
+function marketsByRevenue(ds: Dataset, markets: Market[], period: Period) {
+  return markets
+    .map((m) => ({ m, k: kpiFor(ds, { kind: "market", marketId: m.id }, period, "month") }))
+    .sort((a, b) => b.k.totals.actual - a.k.totals.actual);
+}
+
 function monthlyActuals(ds: Dataset, entity: Entity): number[] {
   const facts = factsFor(ds, { entity, periods: ds.meta.periods });
   const byPeriod = new Map<string, number>();
@@ -238,30 +245,27 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
   const markets = marketsIn(ds, entity);
   const atLatest = ctx.period === ds.meta.latestPeriod;
   // Values follow the selected period. Status, share and the anomaly list are given only for the latest month.
-  const rows: MarketRowVM[] = markets
-    .map((m) => ({ m, k: kpiFor(ds, { kind: "market", marketId: m.id }, ctx.period, "month") }))
-    .sort((a, b) => b.k.totals.actual - a.k.totals.actual)
-    .map(({ m, k }) => {
-      const attainment = formatPct(k.attainmentPct, { sign: false });
-      const growth = formatPct(k.growthPct, { sign: true });
-      const aboveButOff = m.kpis.status === "off_track" && k.attainmentPct >= 100;
-      return {
-        revenueValue: k.totals.actual,
-        id: m.id,
-        name: m.name,
-        iso2: m.iso2.toUpperCase(),
-        status: m.kpis.status,
-        statusLabel: STATUS_LABEL[m.kpis.status],
-        revenue: formatMoneyCompact(k.totals.actual),
-        attainment,
-        growth,
-        growthDirection: direction(k.growthPct),
-        share: formatPct(m.kpis.sharePct, { sign: false }),
-        ...(aboveButOff ? { attainmentNote: OFF_TRACK_ABOVE_PLAN(attainment, growth) } : {}),
-        trend: sparkFor(ds, { kind: "market", marketId: m.id }, m.kpis.anomalies[0]?.period),
-        askWhy: askWhyPrompt(m),
-      };
-    });
+  const rows: MarketRowVM[] = marketsByRevenue(ds, markets, ctx.period).map(({ m, k }) => {
+    const attainment = formatPct(k.attainmentPct, { sign: false });
+    const growth = formatPct(k.growthPct, { sign: true });
+    const aboveButOff = m.kpis.status === "off_track" && k.attainmentPct >= 100;
+    return {
+      revenueValue: k.totals.actual,
+      id: m.id,
+      name: m.name,
+      iso2: m.iso2.toUpperCase(),
+      status: m.kpis.status,
+      statusLabel: STATUS_LABEL[m.kpis.status],
+      revenue: formatMoneyCompact(k.totals.actual),
+      attainment,
+      growth,
+      growthDirection: direction(k.growthPct),
+      share: formatPct(m.kpis.sharePct, { sign: false }),
+      ...(aboveButOff ? { attainmentNote: OFF_TRACK_ABOVE_PLAN(attainment, growth) } : {}),
+      trend: sparkFor(ds, { kind: "market", marketId: m.id }, m.kpis.anomalies[0]?.period),
+      askWhy: askWhyPrompt(m),
+    };
+  });
   return {
     kind: "markets",
     title: `Markets · ${entityName(ds, entity)}`,
@@ -408,7 +412,7 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
 }
 
 function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
-  const markets = peerMarkets(ds, ctx);
+  const markets = marketsByRevenue(ds, peerMarkets(ds, ctx), ctx.period).map(({ m }) => m);
   const periods = ds.meta.periods as Period[];
   const rows: HeatRowVM[] = markets.map((m) => {
     const cells = periods.map((period) => {
@@ -429,7 +433,7 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
   const scope = ctx.region ? entityName(ds, { kind: "region", regionId: ctx.region }) : "Portfolio";
   return {
     title: `Attainment by month · ${scope}`,
-    caption: `${formatPeriodAbbr(periods[0] ?? "")} – ${formatPeriodAbbr(periods[periods.length - 1] ?? "")} · % of forecast · ${DERIVED}`,
+    caption: `${formatPeriodAbbr(periods[0] ?? "")} – ${formatPeriodAbbr(periods[periods.length - 1] ?? "")} · % of forecast · Sorted by revenue · ${DERIVED}`,
     periods,
     rows,
     selected: ctx.market ? { market: ctx.market, period: ctx.period } : undefined,

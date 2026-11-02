@@ -61,6 +61,19 @@ test("a heat map cell sets market and period, and the time series tooltip opens 
   await expect(series.getByRole("tooltip")).toContainText("Actual$1.21M");
 });
 
+test("heat map rows follow the grid's revenue order", async ({ page }) => {
+  await page.goto(EUROPE);
+  const gridNames = await card(page, /Markets · Europe/)
+    .locator("tbody tr")
+    .evaluateAll((rows) => rows.map((r) => r.querySelector("th, td")?.textContent?.trim() ?? ""));
+  const heatNames = await card(page, /Attainment by month/)
+    .getByRole("rowheader")
+    .allTextContents();
+  // The grid card also holds a hidden by-name table; the first rows are the visible grid.
+  const gridOrder = gridNames.slice(0, heatNames.length).map((n) => n.replace(/\s*[A-Z]{2}$/, ""));
+  expect(heatNames.map((n) => n.trim())).toEqual(gridOrder);
+});
+
 test("ArrowRight on the heat map moves to the next month", async ({ page }) => {
   await page.goto("/?mode=analyst&region=eu&market=de&period=2026-03");
   await page.getByRole("gridcell", { name: "Germany, Mar 2026, 92.2% of forecast" }).focus();
