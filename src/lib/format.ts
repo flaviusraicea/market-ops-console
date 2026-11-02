@@ -50,6 +50,28 @@ export function formatPeriodShort(p: string): string {
   return `${monthShort.format(new Date(Date.UTC(y, m - 1, 1)))} ${String(y).slice(2)}`;
 }
 
+/** "February": the month name alone, for sentences such as "versus February". */
+export function formatMonthName(p: string): string {
+  const { y, m } = parts(p);
+  return monthLong.format(new Date(Date.UTC(y, m - 1, 1)));
+}
+
+/** "Feb": the short month name alone, for chart labels such as "−27% vs Feb". */
+export function formatMonthShort(p: string): string {
+  const { y, m } = parts(p);
+  return monthShort.format(new Date(Date.UTC(y, m - 1, 1)));
+}
+
+/** Axis label: "$0", "$0.5M", "$2.5M". */
+export function formatMoneyAxis(n: number): string {
+  if (n === 0) return "$0";
+  return `$${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(n / 1_000_000)}M`;
+}
+
+export function formatInt(n: number): string {
+  return int.format(n);
+}
+
 export function formatCount(a: number, b: number): string {
   return `${a} of ${b}`;
 }

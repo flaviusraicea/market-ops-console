@@ -108,7 +108,7 @@ Steps
 States: analyst density; selected row; hover tooltip; table view; reduced motion (no transitions).
 
 Acceptance
-- E2E: Given `/?mode=analyst&region=eu`, then the grid has five rows in order Germany, United Kingdom, France, Italy, Spain with statuses Off track, At risk, At risk, At risk, Off track, and the Status header tooltip text contains "attainment is below about 92.5%".
+- E2E: Given `/?mode=analyst&region=eu`, then the grid has five rows sorted by revenue, United Kingdom, Germany, France, Italy, Spain, with statuses At risk, Off track, At risk, At risk, Off track, and the Status header tooltip text contains "attainment is below about 92.5%".
 - E2E: Given the grid, when the Germany row is activated with Enter, then the URL contains `market=de` and the time series shows one anomaly marker whose name is "Anomaly: March 2026 revenue fell 27 percent versus February".
 - E2E: Given the heat map, when the cell "Germany, Mar 2026" is activated, then the URL contains `period=2026-03` and the time series tooltip (opened with keyboard) shows "Mar 2026".
 - E2E: Given the heat map focused, when Arrow Right is pressed, then focus moves to the next period cell and its accessible name reads "Germany, Apr 2026, 92.2% of forecast".

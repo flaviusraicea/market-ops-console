@@ -32,7 +32,7 @@ test("a deep link renders every part of the state", async ({ page }) => {
   await expect(page.getByRole("combobox", { name: "Period" })).toContainText("March 2026");
   await expect(page.getByRole("combobox", { name: "Product" })).toContainText("Veltrix");
   await expect(page.getByRole("radio", { name: "Analyst" })).toBeChecked();
-  await expect(page.getByRole("heading", { name: "Germany · Veltrix" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Germany · Veltrix", exact: true })).toBeVisible();
   await expect(page).toHaveTitle("Germany · Veltrix · March 2026 · Market Ops");
 });
 
@@ -84,7 +84,9 @@ for (const scheme of ["light", "dark"] as const) {
     const context = await browser.newContext({ colorScheme: scheme });
     const page = await context.newPage();
     await page.goto("/?region=eu&market=de&product=veltrix&period=2026-03");
-    await expect(page.getByRole("heading", { name: "Germany · Veltrix" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Germany · Veltrix", exact: true }),
+    ).toBeVisible();
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
     await context.close();

@@ -9,6 +9,7 @@ export {
   CircleAlert,
   CirclePause,
   CircleSlash,
+  Info,
   MessageSquareText,
   Minus,
   Moon,
@@ -18,6 +19,7 @@ export {
   Sparkles,
   Square,
   Sun,
+  TriangleAlert,
   Table as TableIcon,
   X,
 } from "lucide-react";
