@@ -11,10 +11,11 @@ type FrameProps = {
   desc: string;
   margin?: Margins;
   /**
-   * Charts whose marks are focusable buttons use role="group": axe forbids interactive
-   * descendants inside role={interactive ? "group" : "img"}. Static charts keep role={interactive ? "group" : "img"}.
+   * "img" for static charts. A chart with focusable marks passes "group", because an img
+   * may not contain interactive descendants (axe nested-interactive). The title and
+   * description still apply through aria-labelledby and aria-describedby.
    */
-  interactive?: boolean;
+  role?: "img" | "group";
   /** Rendered inside the plot-area group, already translated by the margins. */
   children: ReactNode;
 };
@@ -28,14 +29,14 @@ export function Frame({
   title,
   desc,
   margin = NO_MARGIN,
-  interactive = false,
+  role = "img",
   children,
 }: FrameProps) {
   const titleId = useId();
   const descId = useId();
   return (
     <svg
-      role={interactive ? "group" : "img"}
+      role={role}
       aria-labelledby={titleId}
       aria-describedby={descId}
       viewBox={`0 0 ${width} ${height}`}

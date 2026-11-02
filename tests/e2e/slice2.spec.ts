@@ -119,3 +119,14 @@ for (const scheme of ["light", "dark"] as const) {
     await context.close();
   });
 }
+
+test("the growth map colours Italy (+0.3%) positive and Germany (-9.7%) deepest negative", async ({
+  page,
+}) => {
+  await page.goto("/?metric=growth");
+  const fill = (name: RegExp) =>
+    page.getByRole("button", { name }).evaluate((el) => el.getAttribute("fill"));
+  expect(await fill(/^Germany,/)).toBe("var(--div-n3)");
+  expect(await fill(/^Italy,/)).toBe("var(--div-p1)");
+  expect(await fill(/^China,/)).toBe("var(--div-p3)");
+});

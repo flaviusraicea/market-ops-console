@@ -25,6 +25,9 @@ const MARKET_IDS: Record<string, string> = {
   mx: "484",
 };
 
+// Antarctica has no market and would squeeze the populated world into the top of the frame.
+const ANTARCTICA_ID = "010";
+
 const root = path.join(__dirname, "..");
 const atlasPath = path.join(root, "node_modules", "world-atlas", "countries-110m.json");
 const outPath = path.join(root, "public", "geo", "markets.json");
@@ -82,7 +85,9 @@ if (markets.length !== Object.keys(MARKET_IDS).length) {
   );
 }
 
-const landGeometries = countries.geometries.filter((g) => !idToMarket.has(String(g.id)));
+const landGeometries = countries.geometries.filter(
+  (g) => !idToMarket.has(String(g.id)) && String(g.id) !== ANTARCTICA_ID,
+);
 const land = merge(topology, landGeometries as Parameters<typeof merge>[1]);
 
 const collection: FeatureCollection = {
