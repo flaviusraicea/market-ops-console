@@ -3,9 +3,18 @@
 import * as React from "react";
 import { cn } from "@/components/cn";
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+/** `scrollLabel` makes the scrolling container a focusable named region, for tables wider than their card. */
+function Table({
+  className,
+  scrollLabel,
+  ...props
+}: React.ComponentProps<"table"> & { scrollLabel?: string }) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div
+      data-slot="table-container"
+      className="relative w-full overflow-x-auto"
+      {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
+    >
       <table
         data-slot="table"
         className={cn(

@@ -54,3 +54,12 @@ describe("applyContextChange invariants", () => {
     expect(r.ok).toBe(false);
   });
 });
+
+describe("MAT basis", () => {
+  it("falls back to Month when the period has fewer than twelve months", () => {
+    expect(parseContextFromSearchParams(ds, { basis: "mat", period: "2025-04" }).basis).toBe(
+      "month",
+    );
+    expect(parseContextFromSearchParams(ds, { basis: "mat", period: "2025-05" }).basis).toBe("mat");
+  });
+});

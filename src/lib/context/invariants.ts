@@ -58,6 +58,8 @@ export function normalizeContext(meta: ConsoleMeta, raw: RawContext): Context {
     metric: pick<Metric>(METRICS, raw.metric, "attainment"),
     basis: pick<Basis>(BASES, raw.basis, "month"),
   };
+  // MAT needs twelve months of data; an earlier period falls back to Month instead of failing.
+  if (ctx.basis === "mat" && meta.periods.indexOf(ctx.period) < 11) ctx.basis = "month";
   const market = raw.market && meta.marketRegion[raw.market] ? raw.market : undefined;
   if (market) {
     ctx.market = market;

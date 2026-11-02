@@ -8,6 +8,7 @@ export {
   ChevronDown,
   CircleAlert,
   CirclePause,
+  Info,
   MessageSquareText,
   Minus,
   Moon,
@@ -17,6 +18,7 @@ export {
   Sparkles,
   Square,
   Sun,
+  TriangleAlert,
   Table as TableIcon,
   X,
 } from "lucide-react";
