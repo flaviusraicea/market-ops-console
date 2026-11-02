@@ -100,6 +100,15 @@ describe("analyst view model", () => {
     expect(cell("it", "2026-03")).toBe(92.8);
   });
 
+  it("heatMapVM rows follow the grid's revenue order, at region and portfolio level", () => {
+    for (const ctx of [europe, base]) {
+      const vm = analystVM(ds, ctx);
+      if (vm.grid.kind !== "markets") throw new Error("expected market rows");
+      expect(vm.heatMap.rows.map((r) => r.id)).toEqual(vm.grid.rows.map((r) => r.id));
+    }
+    expect(analystVM(ds, europe).heatMap.caption).toContain("Sorted by revenue");
+  });
+
   it("peers stay in view when a market is selected, and the selection is carried", () => {
     const hm = analystVM(ds, { ...germany, period: "2026-03" as Period }).heatMap;
     expect(hm.rows).toHaveLength(5);
