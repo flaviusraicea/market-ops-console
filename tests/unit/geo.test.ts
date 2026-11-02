@@ -31,4 +31,15 @@ describe("public/geo/markets.json", () => {
     expect(land).toHaveLength(1);
     expect(land[0]?.geometry.type).toBe("MultiPolygon");
   });
+
+  it("leaves Antarctica out of the land backdrop", () => {
+    const land = geo.features.find((f) => f.properties?.["kind"] === "land");
+    const lats: number[] = [];
+    const walk = (c: unknown): void => {
+      if (Array.isArray(c) && typeof c[0] === "number") lats.push(c[1] as number);
+      else if (Array.isArray(c)) c.forEach(walk);
+    };
+    walk((land?.geometry as { coordinates: unknown }).coordinates);
+    expect(Math.min(...lats)).toBeGreaterThan(-60);
+  });
 });

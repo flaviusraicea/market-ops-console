@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ATTAINMENT_LEGEND,
   attainmentDiverging,
+  GROWTH_LEGEND,
   growthDiverging,
   revenueSequential,
 } from "@/components/charts/scales";
@@ -27,17 +29,57 @@ describe("attainmentDiverging", () => {
 describe("growthDiverging", () => {
   it.each([
     [-9.7, "--div-n3"],
+    [-5.1, "--div-n3"],
     [-5, "--div-n2"],
-    [-0.1, "--div-n2"],
-    [0.0, "--div-0"],
+    [-4.6, "--div-n2"],
+    [-2, "--div-n1"],
+    [-1.0, "--div-n1"],
+    [-0.1, "--div-n1"],
+    [-0.05, "--div-0"],
+    [0, "--div-0"],
     [0.05, "--div-0"],
-    [1.5, "--div-n1"],
+    [0.3, "--div-p1"],
     [2, "--div-p1"],
-    [5, "--div-p1"],
-    [10, "--div-p2"],
+    [3.5, "--div-p2"],
+    [5, "--div-p2"],
+    [5.1, "--div-p3"],
     [18.2, "--div-p3"],
   ])("%s → %s", (value, token) => {
     expect(growthDiverging(value)).toBe(token);
+  });
+
+  it("never gives a non-negative value a negative colour, or the reverse", () => {
+    for (let v = -20; v <= 20; v += 0.05) {
+      const token = growthDiverging(Math.round(v * 100) / 100);
+      if (v >= 0) expect(token).not.toMatch(/--div-n/);
+      if (v <= 0) expect(token).not.toMatch(/--div-p/);
+    }
+  });
+});
+
+describe("legends", () => {
+  it("label the seven growth bins symmetrically, every label with a percent sign", () => {
+    expect(GROWTH_LEGEND.map((b) => b.label)).toEqual([
+      "<−5%",
+      "−5 to −2%",
+      "−2 to 0%",
+      "0%",
+      "0 to 2%",
+      "2 to 5%",
+      ">5%",
+    ]);
+  });
+
+  it("label the seven attainment bins, every label with a percent sign", () => {
+    expect(ATTAINMENT_LEGEND.map((b) => b.label)).toEqual([
+      "<92.5%",
+      "92.5–95%",
+      "95–100%",
+      "100%",
+      "100–102%",
+      "102–105%",
+      ">105%",
+    ]);
   });
 });
 
