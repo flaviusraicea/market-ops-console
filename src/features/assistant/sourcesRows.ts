@@ -96,6 +96,7 @@ function sourceValue(ds: Dataset, entity: Entity, period: Period, withRevenue: b
   }
 
   const t = totals(factsFor(ds, { entity, periods: [period] }));
+  if (t.forecast === 0) return DASH; // no monthly facts for this target; never divide by zero
   const base = `${formatMoneyCompact(t.actual)} actual · ${formatPct(attainmentPct(t), { sign: false })} of forecast`;
   const anomaly = market?.kpis.anomalies.find((a) => a.period === period);
   const prev = previousPeriod(ds, period);

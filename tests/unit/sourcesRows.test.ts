@@ -1,3 +1,5 @@
+import { lightDataset } from "@/lib/context/invariants";
+import { loadFullDataset } from "@/features/assistant/useSourcesRows";
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
@@ -144,5 +146,20 @@ describe("claimTextFor", () => {
   });
   it("falls back to the whole text without a mapped claim", () => {
     expect(claimTextFor("A. B.", [{ label: "x" }], 0)).toBe("A. B.");
+  });
+});
+
+describe("lazy series", () => {
+  it("shows a dash instead of dividing by zero while the panel dataset has no series", () => {
+    const light = lightDataset(ds);
+    const { rows } = sourcesRows(light, resolved("germany-dip").citations, GERMANY_DIP);
+    expect(rows[0]!.sourceValue).toBe("—");
+  });
+
+  it("resolves a non-latest row once the full dataset chunk has loaded", async () => {
+    const full = await loadFullDataset();
+    expect(full.series.length).toBeGreaterThan(0);
+    const { rows } = sourcesRows(full, resolved("germany-dip").citations, GERMANY_DIP);
+    expect(rows[0]!.sourceValue).toBe("$1.66M actual · 91.1% of forecast");
   });
 });

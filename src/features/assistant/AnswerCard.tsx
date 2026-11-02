@@ -11,9 +11,8 @@ import { useDataset } from "@/lib/context/dataset";
 import { formatPeriodAbbr } from "@/lib/format";
 import { SUGGESTIONS } from "./Suggestions";
 import { CitationRow } from "./CitationRow";
-import { DEFAULT_SOURCES_META, SOURCES_META, inlineKey } from "./inlineMap";
 import { SourcesTable } from "./SourcesTable";
-import { sourcesRows } from "./sourcesRows";
+import { useSourcesRows } from "./useSourcesRows";
 import { renderWithCitations } from "./renderWithCitations";
 import type { Answer } from "./useAnswerMachine";
 
@@ -133,15 +132,10 @@ function AbstainNote({ onTry }: { onTry: (text: string) => void }) {
 
 /** Show sources opens by itself only when the assistant disagrees with the data, so that is the first thing seen. */
 function SourcesDisclosure({ answer }: { answer: Extract<Answer, { status: "done" }> }) {
-  const ds = useDataset();
-  const key = inlineKey(answer.citations.map((c) => c.citation));
-  const { rows, caption } = sourcesRows(
-    ds,
-    answer.citations,
-    SOURCES_META[key] ?? DEFAULT_SOURCES_META,
-  );
+  const sources = useSourcesRows(answer.citations);
+  const disagrees = answer.citations.some((c) => c.resolution.ok && c.resolution.disagreement);
   return (
-    <Collapsible defaultOpen={rows.some((r) => r.disagreement)}>
+    <Collapsible defaultOpen={disagrees}>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <ConfidenceMeter level={answer.confidence} />
         <CollapsibleTrigger asChild>
@@ -156,7 +150,11 @@ function SourcesDisclosure({ answer }: { answer: Extract<Answer, { status: "done
         </CollapsibleTrigger>
       </div>
       <CollapsibleContent>
-        <SourcesTable rows={rows} caption={caption} />
+        {sources.status === "ready" ? (
+          <SourcesTable rows={sources.rows} caption={sources.caption} />
+        ) : (
+          <SourcesTable rows={[]} caption="" loading placeholderRows={answer.citations.length} />
+        )}
       </CollapsibleContent>
     </Collapsible>
   );
