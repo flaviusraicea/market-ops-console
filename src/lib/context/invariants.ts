@@ -115,3 +115,8 @@ export function applyContextChange(
   const history = HISTORY_KEYS.some((k) => out[k] !== current[k]) ? "push" : "replace";
   return { ok: true, next, history };
 }
+
+/** The dataset without its fact series: markets, regions, products and periods, enough to resolve citations. */
+export function lightDataset(ds: Dataset): Dataset {
+  return { ...ds, series: [] };
+}

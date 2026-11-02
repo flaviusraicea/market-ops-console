@@ -118,3 +118,30 @@ html[data-reduced-motion="true"] .skeleton {
   animation: none;
   background-image: none;
 }
+
+/* Streaming caret (design-system.md 6.5): a 2px bar, static under reduced motion. */
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--ai-label);
+  animation: blink 1s steps(2) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+}
+
+html[data-reduced-motion="true"] .caret {
+  animation: none;
+}

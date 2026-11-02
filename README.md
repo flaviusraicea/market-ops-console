@@ -25,3 +25,8 @@ pnpm dev          # http://localhost:3000
 Component tests are Storybook stories with play functions; `pnpm test:stories` runs them headless in Chromium. Run `pnpm exec playwright install chromium` once before the browser tests.
 
 Design and architecture documents live in `/docs` (copied from the design folder).
+
+## Assistant notes
+
+- Answers stream from `POST /api/chat` (Server-Sent Events) and can be stopped; a stopped answer keeps its text, is marked partial and carries no citations or confidence.
+- The conversation is kept in memory for the session only. A reload starts with an empty panel.

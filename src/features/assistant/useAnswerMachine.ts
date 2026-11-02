@@ -1,0 +1,245 @@
+"use client";
+
+import { useCallback, useEffect, useReducer, useRef } from "react";
+
+import {
+  resolveCitation,
+  type Citation,
+  type Confidence,
+  type Dataset,
+  type Kind,
+  type Resolution,
+} from "@/domain";
+import { useDataset } from "@/lib/context/dataset";
+import { askStream, type AskStream } from "@/lib/stream/chatClient";
+
+export type Resolved = { citation: Citation; resolution: Resolution };
+
+type Base = { id: string; question: string };
+
+/** One answer's lifecycle (architecture.md section 7). A stopped answer is partial: no citations, no confidence. */
+export type AnswerState =
+  | { status: "idle" }
+  | (Base & { status: "streaming"; text: string; controller: AbortController })
+  | (Base & {
+      status: "done";
+      text: string;
+      kind: Kind;
+      confidence: Confidence;
+      citations: Resolved[];
+    })
+  | (Base & { status: "stopped"; text: string })
+  | (Base & { status: "failed"; text: string; message: string });
+
+export type Answer = Exclude<AnswerState, { status: "idle" }>;
+
+export type AnswerAction =
+  | { type: "ASK"; id: string; question: string; controller: AbortController }
+  | { type: "TOKEN_FLUSH"; text: string }
+  | {
+      type: "DONE";
+      kind: Kind;
+      confidence: Confidence;
+      citations: readonly Citation[];
+      ds: Dataset;
+    }
+  | { type: "STOP" }
+  | { type: "ERROR"; message: string }
+  | { type: "RETRY"; id: string; controller: AbortController };
+
+export function answerReducer(state: AnswerState, action: AnswerAction): AnswerState {
+  switch (action.type) {
+    case "ASK":
+      return {
+        status: "streaming",
+        id: action.id,
+        question: action.question,
+        text: "",
+        controller: action.controller,
+      };
+    case "TOKEN_FLUSH":
+      if (state.status !== "streaming") return state;
+      return { ...state, text: state.text + action.text };
+    case "DONE": {
+      if (state.status !== "streaming") return state;
+      const citations = action.citations.map((citation) => ({
+        citation,
+        resolution: resolveCitation(action.ds, citation, state.text),
+      }));
+      return {
+        status: "done",
+        id: state.id,
+        question: state.question,
+        text: state.text,
+        kind: action.kind,
+        confidence: action.confidence,
+        citations,
+      };
+    }
+    case "STOP":
+      if (state.status !== "streaming") return state;
+      return { status: "stopped", id: state.id, question: state.question, text: state.text };
+    case "ERROR":
+      if (state.status !== "streaming") return state;
+      return {
+        status: "failed",
+        id: state.id,
+        question: state.question,
+        text: state.text,
+        message: action.message,
+      };
+    case "RETRY":
+      if (state.status === "idle" || state.status === "streaming") return state;
+      return {
+        status: "streaming",
+        id: action.id,
+        question: state.question,
+        text: "",
+        controller: action.controller,
+      };
+  }
+}
+
+/** `id` addresses the answer an action applies to. ASK appends a new answer; RETRY appends a copy of `id` re-asked. */
+export type HistoryMessage = { id: string; action: AnswerAction };
+
+/** The session's answers, oldest first. In memory only. */
+export function historyReducer(state: readonly Answer[], msg: HistoryMessage): Answer[] {
+  const { id, action } = msg;
+  if (action.type === "ASK") {
+    const next = answerReducer({ status: "idle" }, action);
+    return next.status === "idle" ? [...state] : [...state, next];
+  }
+  if (action.type === "RETRY") {
+    const source = state.find((a) => a.id === id);
+    if (!source) return [...state];
+    const next = answerReducer(source, action);
+    return next === source || next.status === "idle" ? [...state] : [...state, next];
+  }
+  return state.map((a) => {
+    if (a.id !== id) return a;
+    const next = answerReducer(a, action);
+    return next.status === "idle" ? a : next;
+  });
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : "The assistant could not answer.";
+}
+
+export function useAnswerMachine(stream: AskStream = askStream) {
+  const ds = useDataset();
+  const [answers, dispatch] = useReducer(historyReducer, [] as Answer[]);
+  const answersRef = useRef<readonly Answer[]>(answers);
+  const flushers = useRef(new Map<string, () => void>());
+  const seq = useRef(0);
+
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  useEffect(() => {
+    const live = flushers.current;
+    return () => {
+      for (const a of answersRef.current) if (a.status === "streaming") a.controller.abort();
+      live.clear();
+    };
+  }, []);
+
+  const run = useCallback(
+    async (id: string, question: string, controller: AbortController) => {
+      // Tokens collect in a buffer; one TOKEN_FLUSH per animation frame keeps renders at frame rate.
+      let pending = "";
+      let frame = 0;
+      let settled = false;
+      const flush = () => {
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
+        if (pending === "") return;
+        const text = pending;
+        pending = "";
+        dispatch({ id, action: { type: "TOKEN_FLUSH", text } });
+      };
+      flushers.current.set(id, flush);
+
+      const finish = (action: AnswerAction) => {
+        flush();
+        settled = true;
+        flushers.current.delete(id);
+        dispatch({ id, action });
+      };
+
+      try {
+        await stream(question, {
+          signal: controller.signal,
+          onEvent(event) {
+            if (settled) return;
+            switch (event.type) {
+              case "token":
+                pending += event.value;
+                if (!frame) frame = requestAnimationFrame(flush);
+                break;
+              case "done":
+                finish({
+                  type: "DONE",
+                  kind: event.kind,
+                  confidence: event.confidence,
+                  citations: event.citations,
+                  ds,
+                });
+                break;
+              case "error":
+                finish({ type: "ERROR", message: event.message });
+                break;
+              case "aborted":
+                // stop() already moved the answer to `stopped`.
+                pending = "";
+                settled = true;
+                flushers.current.delete(id);
+                break;
+            }
+          },
+        });
+        if (!settled) {
+          finish({ type: "ERROR", message: "The connection closed before the answer finished." });
+        }
+      } catch (err) {
+        if (!settled) finish({ type: "ERROR", message: errorMessage(err) });
+      }
+    },
+    [ds, stream],
+  );
+
+  const ask = useCallback(
+    (question: string) => {
+      const id = `a${++seq.current}`;
+      const controller = new AbortController();
+      dispatch({ id, action: { type: "ASK", id, question, controller } });
+      void run(id, question, controller);
+    },
+    [run],
+  );
+
+  const stop = useCallback((id: string) => {
+    const target = answersRef.current.find((a) => a.id === id);
+    if (target?.status !== "streaming") return;
+    flushers.current.get(id)?.();
+    dispatch({ id, action: { type: "STOP" } });
+    target.controller.abort();
+  }, []);
+
+  const retry = useCallback(
+    (fromId: string) => {
+      const source = answersRef.current.find((a) => a.id === fromId);
+      if (!source || source.status === "streaming") return;
+      const id = `a${++seq.current}`;
+      const controller = new AbortController();
+      dispatch({ id: fromId, action: { type: "RETRY", id, controller } });
+      void run(id, source.question, controller);
+    },
+    [run],
+  );
+
+  const isStreaming = answers.some((a) => a.status === "streaming");
+  return { answers, ask, stop, retry, isStreaming };
+}

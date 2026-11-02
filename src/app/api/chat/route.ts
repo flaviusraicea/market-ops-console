@@ -9,6 +9,7 @@
 // Adjust the import below to wherever you put fixtures.json.
 
 import fixtures from "@/data/fixtures.json";
+import { SseEventSchema } from "@/domain";
 
 export const runtime = "nodejs";
 
@@ -31,7 +32,11 @@ export async function POST(req: Request) {
   const { question = "" } = (await req.json()) as { question?: string };
   const fixture = pickFixture(question);
   const encoder = new TextEncoder();
-  const send = (obj: unknown) => encoder.encode(`data: ${JSON.stringify(obj)}\n\n`);
+  const send = (obj: unknown) => {
+    // In development, assert every outgoing event matches the contract before it is enqueued.
+    if (process.env.NODE_ENV !== "production") SseEventSchema.parse(obj);
+    return encoder.encode(`data: ${JSON.stringify(obj)}\n\n`);
+  };
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {

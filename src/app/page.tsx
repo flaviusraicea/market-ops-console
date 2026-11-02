@@ -6,8 +6,9 @@ import { Overview } from "@/features/overview/Overview";
 import { OverviewSkeleton } from "@/features/overview/OverviewSkeleton";
 import { Header } from "@/features/shell/Header";
 import { Layout } from "@/features/shell/Layout";
+import { DatasetProvider } from "@/lib/context/dataset";
 import { ConsoleMetaProvider } from "@/lib/context/meta";
-import { metaFromDataset } from "@/lib/context/invariants";
+import { lightDataset, metaFromDataset } from "@/lib/context/invariants";
 import { parseContextFromSearchParams } from "@/lib/context/parsers";
 import { getDataset } from "@/lib/dataset";
 
@@ -39,7 +40,11 @@ export default async function Page({
             <Overview ctx={ctx} />
           </Suspense>
         }
-        assistant={<Panel />}
+        assistant={
+          <DatasetProvider dataset={lightDataset(ds)}>
+            <Panel />
+          </DatasetProvider>
+        }
       />
     </ConsoleMetaProvider>
   );
