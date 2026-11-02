@@ -1,4 +1,9 @@
+import { Suspense } from "react";
+
 import { breadcrumbTrail } from "@/domain";
+import { Panel } from "@/features/assistant/Panel";
+import { Overview } from "@/features/overview/Overview";
+import { OverviewSkeleton } from "@/features/overview/OverviewSkeleton";
 import { Header } from "@/features/shell/Header";
 import { Layout } from "@/features/shell/Layout";
 import { ConsoleMetaProvider } from "@/lib/context/meta";
@@ -29,23 +34,13 @@ export default async function Page({
             productName={productName}
           />
         }
-      >
-        <main
-          id="main"
-          className="grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_var(--assistant-w)]"
-        >
-          <section aria-labelledby="dashboard-h" className="min-h-64">
-            <h2 id="dashboard-h" className="sr-only">
-              Dashboard
-            </h2>
-          </section>
-          <section aria-labelledby="assistant-h" className="min-h-64">
-            <h2 id="assistant-h" className="sr-only">
-              Assistant
-            </h2>
-          </section>
-        </main>
-      </Layout>
+        dashboard={
+          <Suspense fallback={<OverviewSkeleton />}>
+            <Overview />
+          </Suspense>
+        }
+        assistant={<Panel />}
+      />
     </ConsoleMetaProvider>
   );
 }

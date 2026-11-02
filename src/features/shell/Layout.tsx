@@ -1,6 +1,13 @@
 import type { ReactNode } from "react";
 
-export function Layout({ header, children }: { header: ReactNode; children: ReactNode }) {
+type LayoutProps = {
+  header: ReactNode;
+  dashboard: ReactNode;
+  assistant: ReactNode;
+};
+
+/** Page grid (design-system.md section 4): dashboard column plus a 380 px assistant column from 1024 px up. */
+export function Layout({ header, dashboard, assistant }: LayoutProps) {
   return (
     <>
       <a
@@ -11,7 +18,23 @@ export function Layout({ header, children }: { header: ReactNode; children: Reac
       </a>
       {header}
       <div className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--gap)]">
-        {children}
+        <main
+          id="main"
+          className="grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_var(--assistant-w)]"
+        >
+          <section aria-labelledby="dashboard-h" className="min-w-0">
+            <h2 id="dashboard-h" className="sr-only">
+              Dashboard
+            </h2>
+            {dashboard}
+          </section>
+          <aside aria-labelledby="assistant-h" className="min-w-0">
+            <h2 id="assistant-h" className="sr-only">
+              Assistant
+            </h2>
+            {assistant}
+          </aside>
+        </main>
       </div>
     </>
   );
