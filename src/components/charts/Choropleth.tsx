@@ -146,7 +146,7 @@ function MapSvg({
   return (
     <div ref={wrapRef} className="relative" style={{ width, height }}>
       <Frame
-        interactive
+        role="group"
         width={width}
         height={height}
         title={`Markets by ${metricLabel}`}

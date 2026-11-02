@@ -45,14 +45,17 @@ export function revenueSequential(value: number, max: number): SequentialToken {
   return SEQUENTIAL[Math.min(6, Math.floor(ratio * 7))] as SequentialToken;
 }
 
-/** Year-on-year growth in percent: the near-zero bin is neutral, the rest follow the spec breakpoints. */
+/**
+ * Year-on-year growth in percent, symmetric around 0 with a neutral band of ±0.05.
+ * A negative hue is never used for a value ≥ 0, and a positive hue never for a value ≤ 0.
+ */
 export function growthDiverging(value: number): DivergingToken {
   if (Math.abs(value) <= NEAR_ZERO) return "--div-0";
   if (value < -5) return "--div-n3";
-  if (value < 0) return "--div-n2";
-  if (value < 2) return "--div-n1";
-  if (value <= 5) return "--div-p1";
-  if (value <= 10) return "--div-p2";
+  if (value < -2) return "--div-n2";
+  if (value < 0) return "--div-n1";
+  if (value <= 2) return "--div-p1";
+  if (value <= 5) return "--div-p2";
   return "--div-p3";
 }
 
@@ -71,7 +74,7 @@ export const ATTAINMENT_LEGEND: LegendBin[] = bins([
   ">105%",
 ]);
 
-export const GROWTH_LEGEND: LegendBin[] = bins(["<−5%", "−5–0", "0–2", "0", "2–5", "5–10", ">10%"]);
+export const GROWTH_LEGEND: LegendBin[] = bins(["<−5%", "−5 to −2", "−2 to 0", "0", "0 to 2", "2 to 5", ">5%"]);
 
 export function revenueLegend(max: number): LegendBin[] {
   return SEQUENTIAL.map((token, i) => ({
