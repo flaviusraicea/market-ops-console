@@ -133,7 +133,7 @@ export const FailedAfterTokens: Story = {
     await expect(canvasElement.querySelector("p.font-display")).toHaveTextContent(
       dip.answer.text.slice(0, 60).trim(),
     );
-    await expect(canvas.getByText("Partial answer")).toBeInTheDocument();
+    await expect(canvas.getByText("Failed \u00b7 partial answer")).toBeInTheDocument();
     await expect(canvas.getByRole("alert")).toHaveTextContent("Request failed");
     await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
   },
