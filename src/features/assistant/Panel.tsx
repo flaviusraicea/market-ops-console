@@ -8,6 +8,7 @@ import type { AskStream } from "@/lib/stream/chatClient";
 import { AnswerList } from "./AnswerList";
 import { useAskWhyRequest } from "./askWhy";
 import { Composer } from "./Composer";
+import { usePublishAnswers } from "./AnswerStore";
 import { useAnswerMachine } from "./useAnswerMachine";
 
 type PanelProps = {
@@ -37,6 +38,7 @@ export function Panel({ onSubmit, stream }: PanelProps) {
   }, [request]);
 
   const { answers, ask, stop, retry, isStreaming } = useAnswerMachine(stream);
+  usePublishAnswers(answers);
 
   // The Try button on an abstain card fills the composer like "Ask why" does, and leaves sending to the user.
   function fill(text: string) {

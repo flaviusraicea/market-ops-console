@@ -145,3 +145,15 @@ html[data-reduced-motion="true"] .skeleton {
 html[data-reduced-motion="true"] .caret {
   animation: none;
 }
+
+/* Inline citation (design-system.md 6.5): accent text, dotted underline, solid on hover and focus. */
+.cite-inline {
+  color: var(--accent);
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.cite-inline:hover,
+.cite-inline:focus-visible {
+  text-decoration-style: solid;
+}

@@ -76,7 +76,8 @@ export const Done: Story = {
   args: { answer: done },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText(dip.answer.text)).toBeInTheDocument();
+    await expect(canvasElement.querySelector("p.font-display")?.textContent).toBe(dip.answer.text);
+    await expect(canvasElement.querySelectorAll("a.cite-inline")).toHaveLength(3);
     await expect(canvasElement.querySelector(".caret")).toBeNull();
     const labels = within(canvas.getByRole("list", { name: "Citations" }))
       .getAllByRole("listitem")
