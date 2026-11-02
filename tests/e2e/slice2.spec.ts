@@ -85,7 +85,7 @@ test("Ask why fills the composer and does not send", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Ask why Germany dipped" }).click();
   const composer = page.getByRole("textbox", { name: "Ask the assistant" });
-  await expect(composer).toHaveValue("Why did Germany dip?");
+  await expect(composer).toHaveValue("Why did Germany's revenue dip?");
   await expect(composer).toBeFocused();
   await page.getByRole("button", { name: "Ask why China is on track" }).click();
   await expect(composer).toHaveValue("Why is China on track?");

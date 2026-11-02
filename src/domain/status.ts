@@ -1,4 +1,4 @@
-import type { Status } from "./dataset";
+import type { Market, Status } from "./dataset";
 
 export const STATUS_RULE_TEXT =
   "Status is given in the data. It is consistent with: off track when growth is negative or attainment is below about 92.5%; at risk when attainment is below 100%; on track otherwise.";
@@ -9,13 +9,18 @@ export const STATUS_LABEL: Record<Status, string> = {
   off_track: "Off track",
 };
 
-/** The question the "Ask why" affordance puts in the composer. Germany is the dataset's headline dip. */
-export function askWhyPrompt(
-  marketId: string,
-  name: string,
-  status: Status,
-): { aria: string; text: string } {
-  if (marketId === "de") return { aria: "Ask why Germany dipped", text: "Why did Germany dip?" };
-  const label = STATUS_LABEL[status].toLowerCase();
-  return { aria: `Ask why ${name} is ${label}`, text: `Why is ${name} ${label}?` };
+const hasDip = (market: Market) => market.kpis.anomalies.some((a) => a.type === "dip");
+
+/** The question an "Ask why" button puts in the composer. Single source for every button. Never sent for the user. */
+export function prefillFor(market: Market): string {
+  if (hasDip(market)) return `Why did ${market.name}'s revenue dip?`;
+  return `Why is ${market.name} ${STATUS_LABEL[market.kpis.status].toLowerCase()}?`;
+}
+
+/** The button's text and accessible name, built from the same rule as the question. */
+export function askWhyPrompt(market: Market): { aria: string; text: string } {
+  const aria = hasDip(market)
+    ? `Ask why ${market.name} dipped`
+    : `Ask why ${market.name} is ${STATUS_LABEL[market.kpis.status].toLowerCase()}`;
+  return { aria, text: prefillFor(market) };
 }

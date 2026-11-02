@@ -1,5 +1,6 @@
 import {
   STATUS_LABEL,
+  askWhyPrompt,
   attentionCount,
   effectiveBasis,
   entityName,
@@ -49,7 +50,14 @@ export type MapValueVM = {
   revenue: string;
 };
 
-export type MoverVM = { id: string; name: string; status: Status; growth: number; display: string };
+export type MoverVM = {
+  id: string;
+  name: string;
+  status: Status;
+  growth: number;
+  display: string;
+  askWhy: { aria: string; text: string };
+};
 
 export type OverviewVM = {
   /** Entity in view and its caption, for the title row above the tiles. */
@@ -217,6 +225,7 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
     status: m.kpis.status,
     growth: k.growthPct,
     display: formatPct(k.growthPct, { sign: true }),
+    askWhy: askWhyPrompt(m),
   }));
   const rising = [...byGrowth].sort((a, b) => b.growth - a.growth).slice(0, 3);
   const falling = [...byGrowth].sort((a, b) => a.growth - b.growth).slice(0, 3);
