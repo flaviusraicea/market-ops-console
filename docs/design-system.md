@@ -333,7 +333,7 @@ States to build (texts and chips in 9.4):
 6. **Partial (stopped)**: the same cut text, no caret, followed by an inline pill `Stopped · partial answer` (background `--surface-2`, text `--ink-2`, lucide `circle-pause` 12 px). No chips, no meter. Footer left: caption `PARTIAL · NO SOURCES ATTACHED`. Footer right: ghost button `Retry`.
 7. **Error**: the Notice component (6.12) with title `Request failed`, body `The assistant could not answer. Nothing was changed.` and a secondary `Retry`. Keep the question echo above it. No chips, no meter.
 
-Input row at the bottom of the panel: `<textarea rows="1">` with placeholder `Ask about markets, products or periods…` in `--ink-muted`, height `--control-h`, border, radius control, full width, with a primary icon button `Send` (lucide `arrow-up`, `--accent` background, `--on-accent` icon) to the right. Under it three suggestion chips (same chip style as citations but background `--surface-2`, text `--ink-2`): `Which markets are at risk?`, `Why did Germany dip?`, `What will sales be next year?`.
+Input row at the bottom of the panel: `<textarea rows="1">` with placeholder `Ask about markets, products or periods…` in `--ink-muted`, height `--control-h`, border, radius control, full width, with a primary icon button `Send` (lucide `arrow-up`, `--accent` background, `--on-accent` icon) to the right. Under it three suggestion chips (same chip style as citations but background `--surface-2`, text `--ink-2`): `Which markets are at risk?`, `Why did Germany dip?`, `Compare APAC and Europe`.
 
 ### 6.6 Confidence meter
 

@@ -19,7 +19,7 @@ test("cold open content", async ({ page }) => {
   for (const name of [
     "Which markets are at risk?",
     "Why did Germany dip?",
-    "What will sales be next year?",
+    "Compare APAC and Europe",
   ]) {
     await expect(page.getByRole("button", { name, exact: true })).toBeVisible();
   }

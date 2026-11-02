@@ -32,7 +32,6 @@ export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
  */
 export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
   "Germany, Feb 2026|Germany, Mar 2026 (largest dip)|Veltrix in Germany, Mar 2026": {
-    caption: "Source · data.json · Germany is Off track at 92.0% attainment for May 2026.",
     items: [
       { claim: "Fell in early 2026", assistantWord: "Revenue fell" },
       { claim: "Steepest drop in March", assistantWord: "Steepest drop" },
@@ -40,8 +39,6 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
     ],
   },
   "Germany, latest period|Germany, March dip|Italy, latest period|Brazil, latest period": {
-    caption:
-      "The dashboard follows data.json. 4 markets are at risk and 2 are off track there; the assistant names 3.",
     items: [
       { claim: "Germany at risk", assistantWord: "At risk" },
       { claim: "March dip", assistantWord: "Sharp dip" },
@@ -50,8 +47,6 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
     ],
   },
   "Germany|Italy|Brazil": {
-    caption:
-      "Source · data.json · The data does not break out forecast drivers, which is why confidence is Low.",
     withRevenue: true,
     items: [
       { claim: "Largest contributor", assistantWord: "Under plan" },
@@ -61,7 +56,7 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
   },
 };
 
-export const DEFAULT_SOURCES_META: SourcesMeta = { caption: "Source · data.json", items: [] };
+export const DEFAULT_SOURCES_META: SourcesMeta = { items: [] };
 
 /**
  * The words a status check should read for one citation: its mapped claim ("Germany at risk"), not the whole answer,

@@ -1,7 +1,7 @@
 export const SUGGESTIONS = [
   "Which markets are at risk?",
   "Why did Germany dip?",
-  "What will sales be next year?",
+  "Compare APAC and Europe",
 ] as const;
 
 export function Suggestions({ onPick }: { onPick: (text: string) => void }) {

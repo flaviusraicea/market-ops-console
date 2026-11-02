@@ -28,6 +28,13 @@ Component tests are Storybook stories with play functions; `pnpm test:stories` r
 
 Design and architecture documents live in `/docs` (copied from the design folder).
 
+## Try it
+
+- `Which markets are at risk?` shows the "Differs from source" note: the assistant says 3 markets are at risk, data.json says 4 at risk and 2 off track.
+- `Why did Germany dip?` shows a sourced answer with a High confidence meter and clickable citations.
+- `Compare APAC and Europe` streams a comparison answer.
+- `What will sales be next year?` is the abstain demo: the assistant declines, says what the data covers and offers a question it can answer.
+
 ## Assistant notes
 
 - Answers stream from `POST /api/chat` (Server-Sent Events) and can be stopped; a stopped answer keeps its text, is marked partial and carries no citations or confidence.

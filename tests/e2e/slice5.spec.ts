@@ -79,8 +79,8 @@ test("asking twice keeps both echoes in order and the composer focused", async (
   await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(2, { timeout: 5000 });
   const echoes = page.locator('[data-slot="question-echo"]');
   await expect(echoes).toHaveText([
-    `You asked: ${GERMANY}`,
-    "You asked: Which markets are at risk?",
+    `You asked, about Portfolio · May 2026:${GERMANY}`,
+    "You asked, about Portfolio · May 2026:Which markets are at risk?",
   ]);
   await expect(box).toBeFocused();
 });
@@ -88,7 +88,7 @@ test("asking twice keeps both echoes in order and the composer focused", async (
 test("a suggestion fills and sends", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: GERMANY, exact: true }).click();
-  await expect(page.getByText(`You asked: ${GERMANY}`)).toBeVisible();
+  await expect(page.locator('[data-slot="question-echo"]')).toContainText(GERMANY);
   await expect(page.getByRole("textbox", { name: "Ask the assistant" })).toBeFocused();
   await expect(page.getByRole("img", { name: /^High confidence/ })).toBeVisible({ timeout: 5000 });
 });

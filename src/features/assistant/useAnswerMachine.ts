@@ -16,7 +16,8 @@ import { askStream, type AskStream } from "@/lib/stream/chatClient";
 
 export type Resolved = { citation: Citation; resolution: Resolution };
 
-type Base = { id: string; question: string };
+/** `about` is where the question was asked from, e.g. "Portfolio · May 2026". */
+type Base = { id: string; question: string; about?: string };
 
 /** One answer's lifecycle (architecture.md section 7). A stopped answer is partial: no citations, no confidence. */
 export type AnswerState =
@@ -35,7 +36,7 @@ export type AnswerState =
 export type Answer = Exclude<AnswerState, { status: "idle" }>;
 
 export type AnswerAction =
-  | { type: "ASK"; id: string; question: string; controller: AbortController }
+  | { type: "ASK"; id: string; question: string; about?: string; controller: AbortController }
   | { type: "TOKEN_FLUSH"; text: string }
   | {
       type: "DONE";
@@ -55,6 +56,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "streaming",
         id: action.id,
         question: action.question,
+        ...(action.about ? { about: action.about } : {}),
         text: "",
         controller: action.controller,
       };
@@ -75,6 +77,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "done",
         id: state.id,
         question: state.question,
+        ...(state.about ? { about: state.about } : {}),
         text: state.text,
         kind: action.kind,
         confidence: action.confidence,
@@ -83,13 +86,20 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
     }
     case "STOP":
       if (state.status !== "streaming") return state;
-      return { status: "stopped", id: state.id, question: state.question, text: state.text };
+      return {
+        status: "stopped",
+        id: state.id,
+        question: state.question,
+        ...(state.about ? { about: state.about } : {}),
+        text: state.text,
+      };
     case "ERROR":
       if (state.status !== "streaming") return state;
       return {
         status: "failed",
         id: state.id,
         question: state.question,
+        ...(state.about ? { about: state.about } : {}),
         text: state.text,
         message: action.message,
       };
@@ -99,6 +109,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "streaming",
         id: action.id,
         question: state.question,
+        ...(state.about ? { about: state.about } : {}),
         text: "",
         controller: action.controller,
       };
@@ -216,10 +227,13 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   );
 
   const ask = useCallback(
-    (question: string) => {
+    (question: string, about?: string) => {
       const id = `a${++seq.current}`;
       const controller = new AbortController();
-      dispatch({ id, action: { type: "ASK", id, question, controller } });
+      dispatch({
+        id,
+        action: { type: "ASK", id, question, ...(about ? { about } : {}), controller },
+      });
       void run(id, question, controller);
     },
     [run],

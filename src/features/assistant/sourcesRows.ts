@@ -16,7 +16,6 @@ import type { Resolved } from "./useAnswerMachine";
 
 /** Per-answer wording that is not in the citation itself. In slice 6 `inlineMap.ts` supplies it per fixture. */
 export type SourcesMeta = {
-  caption: string;
   /** Add the market revenue to rows at the latest period (the forecast-miss answer). */
   withRevenue?: boolean;
   /** Same order as the citations. Missing entries fall back to the citation label and an empty echo. */
@@ -31,6 +30,8 @@ export type SourceRow = {
   assistant: string;
   disagreement: boolean;
   resolved: boolean;
+  /** True when the source value is computed from monthly facts rather than read from the market's KPIs. */
+  derived: boolean;
 };
 
 const DASH = "—";
@@ -60,6 +61,7 @@ export function sourcesRows(
         assistant: citation.label ?? DASH,
         disagreement: false,
         resolved: false,
+        derived: false,
       };
     }
     const { entity, period, label } = resolution.target;
@@ -68,6 +70,7 @@ export function sourcesRows(
       entity: entityName(ds, entity),
       period: resolution.target.periodDefaulted ? `${period} (latest)` : period,
       sourceValue: sourceValue(ds, entity, period, meta.withRevenue ?? false),
+      derived: !isDashboardKpi(ds, entity, period),
       assistant: resolution.disagreement
         ? upperFirst(resolution.disagreement.assistant)
         : (item?.assistantWord ?? DASH),
@@ -79,8 +82,14 @@ export function sourcesRows(
   const note =
     broken === 0
       ? ""
-      : ` ${broken} ${broken === 1 ? "citation" : "citations"} could not be resolved.`;
-  return { rows, caption: `${meta.caption}${note}` };
+      : ` · ${broken} ${broken === 1 ? "citation" : "citations"} could not be resolved`;
+  const derived = rows.some((r) => r.derived) ? " · derived" : "";
+  return { rows, caption: `Sources · data.json · attainment as given${derived}${note}` };
+}
+
+/** True when the value is the dashboard's own precomputed market KPIs (latest period), not derived from facts. */
+function isDashboardKpi(ds: Dataset, entity: Entity, period: Period): boolean {
+  return entity.kind === "market" && period === latestPeriod(ds);
 }
 
 function sourceValue(ds: Dataset, entity: Entity, period: Period, withRevenue: boolean): string {
