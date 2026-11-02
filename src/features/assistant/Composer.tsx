@@ -50,7 +50,9 @@ export function Composer({ value, onChange, onSubmit, disabled, textareaRef }: C
         ref={textareaRef}
         rows={1}
         value={value}
-        disabled={disabled}
+        // Read-only rather than disabled while an answer streams, so the textarea keeps focus.
+        readOnly={disabled}
+        aria-disabled={disabled || undefined}
         placeholder="Ask about markets, products or periods…"
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
@@ -59,7 +61,7 @@ export function Composer({ value, onChange, onSubmit, disabled, textareaRef }: C
             submit();
           }
         }}
-        className="max-h-40 resize-none overflow-y-auto"
+        className="max-h-40 resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
       />
       <Button type="submit" size="icon" aria-label="Send" disabled={disabled}>
         <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />

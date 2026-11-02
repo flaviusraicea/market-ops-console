@@ -5,7 +5,8 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 import data from "../src/data/data.json";
 import { parseDataset, type Dataset } from "../src/domain";
-import { metaFromDataset } from "../src/lib/context/invariants";
+import { lightDataset, metaFromDataset } from "../src/lib/context/invariants";
+import { DatasetProvider } from "../src/lib/context/dataset";
 import { ConsoleMetaProvider } from "../src/lib/context/meta";
 
 type NuqsParameters = {
@@ -51,7 +52,9 @@ const ds = parseDataset(data);
 export const withDataset: Decorator = (Story) => (
   <DatasetContext.Provider value={ds}>
     <ConsoleMetaProvider meta={metaFromDataset(ds)}>
-      <Story />
+      <DatasetProvider dataset={lightDataset(ds)}>
+        <Story />
+      </DatasetProvider>
     </ConsoleMetaProvider>
   </DatasetContext.Provider>
 );
