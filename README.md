@@ -1,1 +1,27 @@
-# market-ops-console
+# Market Ops
+
+A market operations console: portfolio performance, forecast attainment and an assistant.
+
+## Quick setup
+
+- Node 22 (`engines` in `package.json`) and pnpm 10.
+
+```bash
+pnpm install
+pnpm dev          # http://localhost:3000
+```
+
+| Script                               | What it does                                                          |
+| ------------------------------------ | --------------------------------------------------------------------- |
+| `pnpm dev` / `build` / `start`       | Next.js development server, production build, production server       |
+| `pnpm lint` / `typecheck`            | ESLint (including layer boundaries) and `tsc --noEmit`                |
+| `pnpm test`                          | All Vitest projects: `unit`, `stories`, `stories:dark`                |
+| `pnpm test:unit` / `test:stories`    | Unit tests (jsdom) and Storybook stories in headless Chromium         |
+| `pnpm test:e2e`                      | Playwright journeys with axe, against the production build            |
+| `pnpm storybook` / `build-storybook` | Component workbench on port 6006, static build to `storybook-static/` |
+| `pnpm check:contrast`                | Asserts every design-token contrast pair in both themes               |
+| `pnpm ci`                            | Lint, typecheck, contrast, tests, build and Storybook build           |
+
+Component tests are Storybook stories with play functions; `pnpm test:stories` runs them headless in Chromium. Run `pnpm exec playwright install chromium` once before the browser tests.
+
+Design and architecture documents live in `/docs` (copied from the design folder).
