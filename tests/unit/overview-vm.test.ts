@@ -109,3 +109,28 @@ describe("overview view model", () => {
     expect(growth.values["de"]?.label).toBe("−9.7% growth");
   });
 });
+
+describe("overview scope, title and map focus", () => {
+  it("portfolio: title, caption, nothing dimmed", () => {
+    const vm = overviewVM(ds, base);
+    expect(vm.title).toBe("Portfolio");
+    expect(vm.caption).toBe("May 2026 · Month");
+    expect(vm.map.focus).toBeUndefined();
+  });
+  it("market and product: entity title, region markets stay in focus", () => {
+    const vm = overviewVM(ds, {
+      ...base,
+      region: "eu",
+      market: "de",
+      product: "veltrix",
+      period: "2026-03" as Period,
+      mode: "analyst",
+      basis: "ytd",
+    });
+    expect(vm.title).toBe("Germany · Veltrix");
+    expect(vm.caption).toBe("March 2026 · YTD");
+    expect(vm.map.selected).toBe("de");
+    expect(vm.map.focus).toContain("de");
+    expect(vm.map.focus).not.toContain("cn");
+  });
+});

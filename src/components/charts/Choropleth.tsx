@@ -38,6 +38,8 @@ type ChoroplethProps = {
   /** Used in the chart description. */
   periodLabel: string;
   selected?: string | undefined;
+  /** Markets drawn at full strength; the rest are dimmed. Omit to dim none. */
+  focus?: readonly string[] | undefined;
   onSelect: (marketId: string) => void;
 };
 
@@ -60,6 +62,7 @@ function MapSvg({
   metricLabel,
   periodLabel,
   selected,
+  focus,
   onSelect,
 }: ChoroplethProps & { width: number; height: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -164,6 +167,7 @@ function MapSvg({
           const id = marketIdOf(f)!;
           const v = values[id]!;
           const isSelected = selected === id;
+          const dim = !!focus && !focus.includes(id);
           return (
             <path
               key={id}
@@ -175,6 +179,8 @@ function MapSvg({
               tabIndex={i === keyboard.activeIndex ? 0 : -1}
               aria-label={`${v.name}, ${v.statusLabel.toLowerCase()}, ${v.label}`}
               aria-pressed={isSelected}
+              data-dim={dim}
+              fillOpacity={dim ? 0.6 : 1}
               fill={`var(${colourFor(metric, v.value, max)})`}
               stroke={isSelected ? "var(--accent)" : "var(--surface)"}
               strokeWidth={isSelected ? 2 : 1}

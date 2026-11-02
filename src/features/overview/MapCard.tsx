@@ -176,6 +176,7 @@ export function MapCard({ map }: { map: OverviewVM["map"] }) {
         metricLabel={metricLabel}
         periodLabel={map.periodLabel}
         selected={map.selected}
+        focus={map.focus}
         onSelect={(market) => setContext({ market })}
       />
     ) : (

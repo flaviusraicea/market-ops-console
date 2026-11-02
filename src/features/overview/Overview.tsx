@@ -11,6 +11,14 @@ export function Overview({ ctx }: { ctx: Context }) {
   const vm = overviewVM(getDataset(), ctx);
   return (
     <div className="flex flex-col gap-[var(--gap)]">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 className="font-display text-[length:var(--text-title)] leading-[var(--text-title-lh)] font-semibold tracking-[var(--text-title-ls)] text-ink">
+          {vm.title}
+        </h2>
+        <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+          {vm.caption}
+        </p>
+      </div>
       <ErrorBoundary widget="kpi-row">
         <KpiRow tiles={vm.tiles} />
       </ErrorBoundary>

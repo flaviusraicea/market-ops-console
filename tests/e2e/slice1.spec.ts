@@ -43,9 +43,10 @@ test("tab order on a drilled earlier period", async ({ page }) => {
   await page.goto("/?period=2026-03&market=de");
   await tabThrough(page, [
     { role: "link", name: "Skip to content" },
-    { role: "button", name: "Portfolio" },
-    { role: "button", name: "Europe" },
+    { role: "link", name: "Portfolio" },
+    { role: "link", name: "Europe" },
     { role: "button", name: "Clear period" },
+    { role: "combobox", name: "Product" },
     { role: "combobox", name: "Period" },
     { role: "radio", name: "Overview" },
     { role: "button", name: "Switch to dark theme" },

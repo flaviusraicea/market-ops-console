@@ -24,6 +24,7 @@ const meta = {
   decorators: [withDataset],
   args: {
     periods,
+    products: ds.products.map((p) => ({ id: p.id, name: p.name })),
     latestPeriod: ds.meta.latestPeriod,
     period: "2026-05",
     mode: "overview",
@@ -54,6 +55,17 @@ export const EarlierPeriod: Story = {
   },
 };
 
+export const NoMarketNoProductSelect: Story = {
+  name: "Portfolio has no product select",
+  args: { trail: breadcrumbTrail(ds, portfolio) },
+  parameters: { nuqs: { searchParams: "", onUrlUpdate: fn() } },
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).queryByRole("combobox", { name: "Product" }),
+    ).not.toBeInTheDocument();
+  },
+};
+
 export const Germany: Story = {
   args: { trail: breadcrumbTrail(ds, germany) },
   parameters: { nuqs: { searchParams: "?region=eu&market=de", onUrlUpdate: fn() } },
@@ -63,8 +75,15 @@ export const Germany: Story = {
     const nav = canvas.getByRole("navigation", { name: "Drill path" });
     const items = within(nav).getAllByRole("listitem");
     await expect(items).toHaveLength(3);
+    const portfolioLink = within(items[0]!).getByRole("link", { name: "Portfolio" });
+    await expect(portfolioLink).toHaveAttribute("href", "/");
+    const europeLink = within(items[1]!).getByRole("link", { name: "Europe" });
+    await expect(europeLink).toHaveAttribute("href", "/?region=eu");
     const last = items[2]!;
     await expect(within(last).getByText("Germany")).toHaveAttribute("aria-current", "page");
+
+    // A market is selected, so the product selector is offered.
+    await expect(canvas.getByRole("combobox", { name: "Product" })).toBeInTheDocument();
 
     await expect(canvas.getByText(/data through may 2026/i)).toBeInTheDocument();
 
