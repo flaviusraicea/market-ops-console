@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from "react";
+import { useId, type ReactNode, type Ref } from "react";
 
 import { cn } from "@/components/cn";
 
@@ -8,15 +8,22 @@ export function AnalystCard({
   caption,
   className,
   children,
+  landed = false,
+  sectionRef,
 }: {
   title: string;
   caption: string;
   className?: string;
   children: ReactNode;
+  /** A followed citation points at this card: show the landing ring. */
+  landed?: boolean;
+  sectionRef?: Ref<HTMLElement>;
 }) {
   const id = useId();
   return (
     <section
+      ref={sectionRef}
+      data-landed={landed ? "" : undefined}
       aria-labelledby={id}
       className={cn(
         "flex min-w-0 flex-col gap-3 rounded-card border border-border bg-surface p-[var(--pad-card)]",

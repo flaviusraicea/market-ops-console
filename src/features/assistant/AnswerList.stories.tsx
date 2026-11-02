@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { useState } from "react";
 
+import { withDataset } from "../../../.storybook/decorators";
 import { AnswerList } from "./AnswerList";
 import type { Answer } from "./useAnswerMachine";
 
@@ -41,6 +42,7 @@ function Harness() {
 const meta = {
   title: "features/assistant/AnswerList",
   component: AnswerList,
+  decorators: [withDataset],
 } satisfies Meta<typeof AnswerList>;
 
 export default meta;

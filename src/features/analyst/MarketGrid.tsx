@@ -19,6 +19,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
+import { useLanding } from "./useLanding";
 import { AnalystCard } from "./AnalystCard";
 import type { GridVM, MarketRowVM, ProductRowVM } from "./viewModel";
 
@@ -49,8 +50,9 @@ function InfoTip({ label, children }: { label: string; children: string }) {
 }
 
 /** A focusable row that selects on Enter or Space, unless the key came from a control inside it. */
-function rowProps(selected: boolean, onSelect: () => void) {
+function rowProps(selected: boolean, onSelect: () => void, landed = false) {
   return {
+    "data-landed": landed ? "" : undefined,
     tabIndex: 0,
     "aria-current": selected ? ("true" as const) : undefined,
     "data-state": selected ? "selected" : undefined,
@@ -156,7 +158,7 @@ function MarketRows({ rows, statusRule }: { rows: MarketRowVM[]; statusRule: str
   );
 }
 
-function ProductRows({ rows }: { rows: ProductRowVM[] }) {
+function ProductRows({ rows, landed }: { rows: ProductRowVM[]; landed: boolean }) {
   const { setContext } = useConsoleContext();
   return (
     <>
@@ -184,7 +186,10 @@ function ProductRows({ rows }: { rows: ProductRowVM[] }) {
       </TableHeader>
       <TableBody>
         {rows.map((r) => (
-          <TableRow key={r.id} {...rowProps(r.selected, () => setContext({ product: r.id }))}>
+          <TableRow
+            key={r.id}
+            {...rowProps(r.selected, () => setContext({ product: r.id }), landed && r.selected)}
+          >
             <TableCell className="font-medium text-ink">{r.name}</TableCell>
             <TableCell className="text-right tabular-nums">{r.revenue}</TableCell>
             <TableCell className="text-right tabular-nums">{r.attainment}</TableCell>
@@ -204,8 +209,16 @@ function ProductRows({ rows }: { rows: ProductRowVM[] }) {
 
 /** Design-system 6.4. A plain table (no grid role): rows are focusable and select on Enter or Space. */
 export function MarketGrid({ grid }: { grid: GridVM }) {
+  const landing = useLanding();
+  const kind = landing.target?.entity.kind;
+  // A product citation rings the selected product row; any other kind rings the card (market, region).
+  const productLanding = landing.active && kind === "product";
   return (
-    <AnalystCard title={grid.title} caption={grid.caption}>
+    <AnalystCard
+      title={grid.title}
+      caption={grid.caption}
+      landed={landing.active && kind !== "product" && kind !== "portfolio"}
+    >
       <TooltipProvider>
         <Table scrollLabel={`${grid.title}, scrollable`}>
           <TableCaption className="sr-only">
@@ -214,7 +227,7 @@ export function MarketGrid({ grid }: { grid: GridVM }) {
           {grid.kind === "markets" ? (
             <MarketRows rows={grid.rows} statusRule={grid.statusRule} />
           ) : (
-            <ProductRows rows={grid.rows} />
+            <ProductRows rows={grid.rows} landed={productLanding} />
           )}
         </Table>
       </TooltipProvider>

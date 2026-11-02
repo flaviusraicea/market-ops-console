@@ -1,0 +1,36 @@
+name: lighthouse
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lighthouse:
+    name: lighthouse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      # Serves the production build (next start) and audits "/" and an Analyst URL, 3 runs each.
+      # Accessibility below 0.95 fails the job; performance assertions only warn (see docs/performance-monitoring.md).
+      - run: pnpm exec lhci autorun
+        env:
+          LHCI_UPLOAD__TARGET: temporary-public-storage
+      - name: Link the reports in the job summary
+        if: always()
+        run: |
+          {
+            echo "### Lighthouse reports"
+            echo
+            if [ -f .lighthouseci/links.json ]; then
+              node -e 'const l=require("./.lighthouseci/links.json");for(const [u,r] of Object.entries(l))console.log("- ["+u+"]("+r+")")'
+            else
+              echo "No report links were produced."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -168,6 +168,7 @@ export function AnswerList({
               <li key={a.id}>
                 <AnswerCard
                   answer={a}
+                  isLatest={a.id === last?.id}
                   onStop={() => onStop(a.id)}
                   onRetry={() => onRetry(a.id)}
                   onTry={onTry}
