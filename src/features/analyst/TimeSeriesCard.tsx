@@ -30,6 +30,7 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
   return (
     <AnalystCard
       title={vm.title}
+      subtitle={vm.subtitle}
       caption={vm.caption}
       landed={landed}
       sectionRef={ref}
@@ -43,12 +44,14 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
             anomalies={vm.anomalies}
             selectedPeriod={vm.selectedPeriod}
             {...(landed && landing.target ? { landedPeriod: landing.target.period } : {})}
-            title={vm.title}
+            title={vm.chartTitle}
             desc={vm.desc}
             onPeriod={(period) => setContext({ period: period as Period })}
           />
         }
-        table={<LineChartTable caption={vm.title} points={vm.points} anomalies={vm.anomalies} />}
+        table={
+          <LineChartTable caption={vm.chartTitle} points={vm.points} anomalies={vm.anomalies} />
+        }
       />
     </AnalystCard>
   );

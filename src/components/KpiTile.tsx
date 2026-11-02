@@ -1,5 +1,6 @@
 import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Minus } from "@/components/icons";
 import { cn } from "@/components/cn";
+import { Eyebrow } from "@/components/Eyebrow";
 
 export type Direction = "up" | "down" | "flat";
 
@@ -33,19 +34,17 @@ export function KpiTile({ label, headline, delta, provenance, className }: KpiTi
         className,
       )}
     >
-      <p className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted">
-        {label}
-      </p>
+      <Eyebrow as="p">{label}</Eyebrow>
       <p
         data-slot="kpi-headline"
-        className="text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-[var(--text-kpi-weight)] tracking-[var(--text-kpi-ls)]"
+        className="num font-[family-name:var(--font-display)] text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-semibold tracking-[var(--text-kpi-ls)]"
       >
         {headline}
       </p>
       <p
         data-slot="kpi-delta"
         data-direction={delta.direction}
-        className="flex items-center gap-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]"
+        className="num flex items-center gap-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]"
       >
         <Icon
           aria-hidden

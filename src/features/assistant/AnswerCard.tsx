@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { ConfidenceMeter } from "@/components/ConfidenceMeter";
+import { EYEBROW_CLASS } from "@/components/Eyebrow";
 import { Notice } from "@/components/Notice";
 import { ChevronDown, CirclePause, CircleSlash, ICON_STROKE, Square } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -29,8 +30,7 @@ type AnswerCardProps = {
 const PILL =
   "inline-flex h-[var(--chip-h)] items-center gap-1 rounded-pill bg-surface-2 px-2.5 font-ui text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2";
 
-const CAPTION =
-  "text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted";
+const CAPTION = `${EYEBROW_CLASS} text-ink-muted`;
 
 /** Design-system.md 6.5: question echo, then the AI card. */
 export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: AnswerCardProps) {

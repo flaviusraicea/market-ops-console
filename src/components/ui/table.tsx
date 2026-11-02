@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/components/cn";
+import { EYEBROW_CLASS } from "@/components/Eyebrow";
 
 /** `scrollLabel` makes the scrolling container a focusable named region, for tables wider than their card. */
 function Table({
@@ -78,7 +79,9 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "px-[var(--pad-cell-x)] py-[var(--pad-cell-y)] text-left align-middle text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] whitespace-nowrap text-ink-muted uppercase",
+        "px-[var(--pad-cell-x)] py-[var(--pad-cell-y)] text-left align-middle",
+        EYEBROW_CLASS,
+        "text-ink-muted uppercase",
         className,
       )}
       {...props}
@@ -91,7 +94,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "px-[var(--pad-cell-x)] py-[var(--pad-cell-y)] align-middle whitespace-nowrap",
+        "num px-[var(--pad-cell-x)] py-[var(--pad-cell-y)] align-middle whitespace-nowrap",
         className,
       )}
       {...props}

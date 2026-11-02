@@ -42,7 +42,7 @@ test("activating the Germany row with Enter selects Germany and shows the March 
   await row.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/market=de/);
-  const series = card(page, /Germany · Revenue vs forecast/);
+  const series = card(page, /Germany.*Revenue vs forecast/);
   await expect(series.getByRole("button", { name: ANOMALY })).toHaveCount(1);
   await expect(card(page, "Products · Germany").locator("tbody tr")).toHaveCount(5);
 });
@@ -55,7 +55,7 @@ test("a heat map cell sets market and period, and the time series tooltip opens 
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/period=2026-03/);
   await expect(page).toHaveURL(/market=de/);
-  const series = card(page, /Germany · Revenue vs forecast/);
+  const series = card(page, /Germany.*Revenue vs forecast/);
   await series.getByRole("slider", { name: "Month" }).focus();
   await expect(series.getByRole("tooltip")).toContainText("Mar 2026");
   await expect(series.getByRole("tooltip")).toContainText("Actual$1.21M");
@@ -84,7 +84,7 @@ test("ArrowRight on the heat map moves to the next month", async ({ page }) => {
 
 test("View as table works on the grid-less charts, then returns to the chart", async ({ page }) => {
   await page.goto("/?mode=analyst&region=eu&market=de");
-  for (const name of [/Germany · Revenue vs forecast/, /compared/, /Attainment by month/]) {
+  for (const name of [/Germany.*Revenue vs forecast/, /compared/, /Attainment by month/]) {
     const c = card(page, name);
     await c.getByRole("button", { name: "View as table" }).click();
     await expect(c.getByRole("table")).toBeVisible();
@@ -128,13 +128,19 @@ test("MAT is unavailable before twelve months and explains why", async ({ page }
   await expect(page.getByText("MAT unavailable, showing Month")).toBeVisible();
 });
 
-test("the radar has the three axes and the alert thresholds card follows the heat map", async ({
+test("the radar has the five axes and the alert thresholds card follows the heat map", async ({
   page,
 }) => {
   await page.goto(EUROPE);
   const radar = card(page, /compared/);
-  for (const axis of ["Attainment", "Growth", "Share (given)"]) {
-    await expect(radar.getByText(axis, { exact: true }).first()).toBeVisible();
+  for (const axis of [
+    "Attainment",
+    "Growth YoY",
+    "Share (given)",
+    "Month on month",
+    "Forecast accuracy",
+  ]) {
+    await expect(radar.locator(`[data-axis="${axis}"]`)).toBeVisible();
   }
   const heat = await card(page, /Attainment by month/).boundingBox();
   const alerts = await card(page, "Alert thresholds").boundingBox();

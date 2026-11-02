@@ -265,6 +265,20 @@ export const Germany: Story = {
         name: "Anomaly: March 2026 revenue fell 27 percent versus February",
       }),
     ).toBeVisible();
+    // The label sits clear of the marker: their bounding boxes do not intersect.
+    const label = canvasElement
+      .querySelector('[data-slot="anomaly-label"]')!
+      .getBoundingClientRect();
+    const marker = canvas
+      .getByRole("button", { name: /Anomaly: March 2026/ })
+      .querySelector("circle:last-of-type")!
+      .getBoundingClientRect();
+    const overlap =
+      label.left < marker.right &&
+      label.right > marker.left &&
+      label.top < marker.bottom &&
+      label.bottom > marker.top;
+    await expect(overlap).toBe(false);
     const cursor = canvas.getByRole("slider", { name: "Month" });
     cursor.focus();
     await userEvent.keyboard("{ArrowLeft}{ArrowLeft}{ArrowLeft}");

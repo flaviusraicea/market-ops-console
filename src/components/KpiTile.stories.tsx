@@ -49,9 +49,28 @@ export const Negative: Story = {
   },
 };
 
+export const TabularHeadlines: Story = {
+  args: {
+    label: "PORTFOLIO REVENUE",
+    headline: "$22.85M",
+    delta: { direction: "up", value: "+7.3%", comparison: "vs May 2025" },
+    provenance: "Source · data.json",
+  },
+  play: async ({ canvasElement }) => {
+    // Storybook has no next/font, so only the declared features are asserted here; the measured
+    // width match for the real Source Serif 4 is in tests/e2e/slice13.spec.ts.
+    const head = canvasElement.querySelector<HTMLElement>('[data-slot="kpi-headline"]')!;
+    const style = getComputedStyle(head);
+    await expect(style.fontVariantNumeric).toContain("tabular-nums");
+    await expect(style.fontVariantNumeric).toContain("lining-nums");
+    await expect(style.fontWeight).toBe("600");
+    await expect(style.fontFamily).toContain("Georgia");
+  },
+};
+
 export const Flat: Story = {
   args: {
-    label: "MARKETS NEEDING ATTENTION",
+    label: "NEEDS ATTENTION",
     headline: "6 of 13",
     delta: { direction: "flat", value: "4 at risk · 2 off track", comparison: "" },
     provenance: "Source · data.json",
