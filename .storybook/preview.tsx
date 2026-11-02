@@ -1,6 +1,6 @@
 import type { Preview } from "@storybook/nextjs-vite";
 
-import "../app/globals.css";
+import "../src/app/globals.css";
 import { withProviders } from "./decorators";
 
 // next/font variables do not exist in Storybook, so the fallback stacks from

@@ -4,7 +4,7 @@ import { ESLint } from "eslint";
 import { afterAll, describe, expect, it } from "vitest";
 
 const root = path.resolve(__dirname, "../..");
-const dir = path.join(root, "ui", "__boundary_fixture__");
+const dir = path.join(root, "src", "components", "__boundary_fixture__");
 
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
@@ -17,32 +17,35 @@ async function lint(rel: string, code: string) {
 }
 
 describe("layer boundaries", () => {
-  it("ui may not import domain", async () => {
+  it("components may not import domain", async () => {
     const msgs = await lint(
-      "ui/__boundary_fixture__/bad.ts",
+      "src/components/__boundary_fixture__/bad.ts",
       'import { parseDataset } from "@/domain";\nexport const x = parseDataset;\n',
     );
     expect(msgs.length).toBeGreaterThan(0);
   });
-  it("ui may not import features", async () => {
+  it("components may not import features", async () => {
     const msgs = await lint(
-      "ui/__boundary_fixture__/bad2.ts",
+      "src/components/__boundary_fixture__/bad2.ts",
       'import { Header } from "@/features/shell/Header";\nexport const x = Header;\n',
     );
     expect(msgs.length).toBeGreaterThan(0);
   });
   it("domain may not import react", async () => {
     const msgs = await lint(
-      "domain/__boundary_fixture__/bad.ts",
+      "src/domain/__boundary_fixture__/bad.ts",
       'import { useState } from "react";\nexport const x = useState;\n',
     );
-    rmSync(path.join(root, "domain", "__boundary_fixture__"), { recursive: true, force: true });
+    rmSync(path.join(root, "src", "domain", "__boundary_fixture__"), {
+      recursive: true,
+      force: true,
+    });
     expect(msgs.length).toBeGreaterThan(0);
   });
-  it("ui may import lib and ui", async () => {
+  it("components may import lib and components", async () => {
     const msgs = await lint(
-      "ui/__boundary_fixture__/good.ts",
-      'import { cn } from "@/ui/utils";\nexport const x = cn;\n',
+      "src/components/__boundary_fixture__/good.ts",
+      'import { cn } from "@/components/cn";\nexport const x = cn;\n',
     );
     expect(msgs).toEqual([]);
   });

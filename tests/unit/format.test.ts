@@ -7,7 +7,7 @@ import {
   formatPct,
   formatPeriod,
   formatPeriodShort,
-} from "@/lib/format/number";
+} from "@/lib/format";
 
 describe("format", () => {
   it("compact money", () => {

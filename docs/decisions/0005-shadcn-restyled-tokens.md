@@ -14,7 +14,7 @@ The product needs a distinctive look (Ledger) and consistent, accessible primiti
 
 ## Decision
 
-shadcn/ui (new-york style) with Tailwind v4. Components are copied into `ui/primitives/` and restyled through `app/tokens.css`; no shadcn default colour survives, and no raw hex exists outside `tokens.css`.
+shadcn/ui (new-york style) with Tailwind v4. Components are copied into `src/components/ui/` and restyled through `app/tokens.css`; no shadcn default colour survives, and no raw hex exists outside `tokens.css`.
 
 ## Consequences
 

@@ -3,7 +3,7 @@
 Depends on slices 4 and 5. Inputs: preview-spec.md §9.4 prefill texts; user-flows.md slice 9.
 
 ## 1. Files
-- `features/assistant/useAskWhy.ts`: `prefillFor(market: Market): string` → Germany (any market with a `dip` anomaly) → `Why did ${name}'s revenue dip?`; otherwise `Why is ${name} ${STATUS_LABEL[status].toLowerCase()}?`. `prefill(text)` sets the composer value, focuses it, and scrolls the panel into view below 1024 px. It does **not** send.
+- `src/features/assistant/useAskWhy.ts`: `prefillFor(market: Market): string` → Germany (any market with a `dip` anomaly) → `Why did ${name}'s revenue dip?`; otherwise `Why is ${name} ${STATUS_LABEL[status].toLowerCase()}?`. `prefill(text)` sets the composer value, focuses it, and scrolls the panel into view below 1024 px. It does **not** send.
 - Wire `AskWhy` buttons in TopMovers (slice 2) and MarketGrid (slice 4) to it; `aria-label` = `Ask why ${name} ${verbPhrase}` where verbPhrase is `dipped` for the dip case, else `is ${status label lowercase}`.
 
 ## 2. Tests first

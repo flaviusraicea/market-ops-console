@@ -8,8 +8,8 @@ Originally for approval. It folds in the parked tech recommendations (design/tec
 
 | Early read | Verdict | Nuance |
 |---|---|---|
-| Pure domain layer at the core | Agree | `domain/` has no React, no Next, no fetch. It depends only on zod. Everything else imports from it; it imports nothing from the app. |
-| Feature-sliced folders over a shared design-system layer | Agree | Three layers, not two: `domain/`, `ui/` (design system, no data knowledge), `features/` (data-aware composites). A feature may import `domain` and `ui`; `ui` may import neither. |
+| Pure domain layer at the core | Agree | `src/domain/` has no React, no Next, no fetch. It depends only on zod. Everything else imports from it; it imports nothing from the app. |
+| Feature-sliced folders over a shared design-system layer | Agree | Three layers, not two: `src/domain/`, `src/components/` (design system, no data knowledge), `src/features/` (data-aware composites). A feature may import `domain` and `ui`; `ui` may import neither. |
 | RSC server-loading and validation with client islands | Agree, with a simplification | `data.json` is static. Load and validate it once on the server in a cached loader, pass typed, already-shaped props to client islands. Charts, the assistant and the form are client components; tiles and the grid shell can be server-rendered. No client-side fetch of data.json, ever. |
 | URL as the single navigation state | Agree | One hook, `useContext()` over nuqs, is the only writer. Widgets never hold a copy. |
 | zod contracts for data.json and SSE | Agree | Plus a third contract: the alert rule, shared by form, route and store. |
@@ -20,81 +20,82 @@ One thing the read does not name: an error boundary per widget, so a chart throw
 ## 2. Layering and dependency rule
 
 ```
-app/            Next.js routes, layouts, route handlers      (may import features, ui, domain, lib)
-features/       data-aware composites per capability          (may import ui, domain, lib)
-ui/             design system: tokens, primitives, charts     (may import lib only)
-domain/         types, schema, selectors, resolvers, rules    (may import nothing but zod)
-lib/            framework glue: context hook, stream client, format, observability
+src/app/           Next.js routes, layouts, route handlers       (may import features, components, domain, lib)
+src/features/      data-aware screens per user flow              (may import components, domain, lib)
+src/components/    design system: primitives, charts, components (may import lib only)
+src/lib/           framework glue: context hook, stream client, format, telemetry (may import domain)
+src/domain/        types, schema, selectors, resolvers, rules    (may import nothing but zod)
 ```
 
 Enforced by an ESLint `no-restricted-imports` rule per folder, so the boundary is tested, not promised.
 
 ## 3. Folder tree
 
+Layout approved by Flavius on 2026-11-02 (see design/layout-proposal.md): everything under `src/`, one file per concept inside `domain/` and `lib/`, shadcn primitives at their default `components/ui/`.
+
 ```
-app/
-  layout.tsx                 html[data-theme], fonts, tokens.css, ThemeProvider, nuqs adapter
-  page.tsx                   server: loads data, reads searchParams, renders <Console>
-  api/chat/route.ts          the reference SSE handler, typed with domain/contracts/sse
-  api/alerts/route.ts        GET list, POST upsert, DELETE; in-memory store; ?fail=1 switch
-  tokens.css                 every CSS variable, light + dark (from design-system.md)
-  globals.css                Tailwind v4 @theme mapping tokens to utilities
-domain/
-  contracts/data.ts          zod schema for data.json → Dataset, Market, Fact, Kpis, Anomaly
-  contracts/sse.ts           zod schema for token | done | error events, Citation, Kind, Confidence
-  contracts/alert.ts         zod schema for AlertRule
-  model/types.ts             Entity, Scope, Period, Context, Provenance, Status, Basis
-  selectors/totals.ts        total, attainment, growth, variance, momChange (5.1 to 5.5)
-  selectors/periods.ts       ytd, mat, periodRange, latestPeriod, horizon
-  selectors/rankings.ts      topMovers, attentionCount, statusCounts
-  selectors/scope.ts         factsFor(scope), entityName, breadcrumbTrail
-  citations/resolve.ts       Citation → ResolvedTarget | Unresolved; disagreement detection
-  alerts/evaluate.ts         AlertRule → breaching markets
-  status/rule.ts             the inferred rule as text only (tooltip + README); never computes status
-  index.ts
-lib/
-  context/useConsoleContext.ts   nuqs parsers, invariants (market ⇒ region), single write API
-  context/parsers.ts
-  stream/chatClient.ts           fetch + AbortController + SSE line parser → typed events
-  format/number.ts               $22.85M, +7.3%, −9.7%, 1,676,586, May 2026, 2026-05
-  observability/vitals.ts        web-vitals → console/table in dev, POST /api/vitals no-op in prod
-  observability/events.ts        typed event log (navigate, ask, stop, cite, save, rollback)
-  theme/useTheme.ts              data-theme, localStorage try/catch, OS fallback
-  density/useDensity.ts          derived from Context.mode
-ui/
-  primitives/                    Button, Badge, Card, Chip, Tooltip, Collapsible, Tabs, Segmented,
-                                 Table, Input, Select, Textarea, Dialog, Skeleton, Notice, FocusRing
-  components/                    KpiTile, StatusBadge, ConfidenceMeter, CitationChip, Breadcrumbs,
-                                 ContextChips, DataStamp, ModeSwitch, ThemeToggle, ViewAsTable
-  charts/                        chart kit on visx: Frame, Axes, Grid, Tooltip, Legend, Crosshair,
-                                 useChartKeyboard; LineChart, RadarChart, HeatMap, Choropleth, Sparkline
-  icons.ts                       lucide re-exports with fixed sizes
-features/
-  shell/                         Header (breadcrumbs, period, stamp, mode, theme), Layout, ErrorBoundary
-  overview/                      KpiRow, TopMovers, MapCard (exec screen)
-  analyst/                       MarketGrid, TimeSeriesCard, RadarCard, HeatMapCard, BasisSelector,
-                                 FactsTable (virtualised, slice 12a)
-  assistant/                     Panel, Composer, Suggestions, AnswerCard, AnswerList, SourcesTable,
-                                 useAnswerMachine (reducer), useAskWhy
-  alerts/                        AlertForm, RuleList, useAlertSave (TanStack mutation), DeleteDialog
-  palette/                       CommandPalette (slice 12b)
+src/
+  app/
+    layout.tsx               html[data-theme], fonts, tokens.css, providers, nuqs adapter, skip link
+    page.tsx                 server: loads data, reads searchParams, renders the shell + regions
+    providers.tsx            QueryClientProvider, NuqsAdapter
+    api/chat/route.ts        the reference SSE handler, typed with domain/stream
+    api/alerts/route.ts      GET list, POST upsert, DELETE; in-memory store; ?fail=1 switch
+    api/vitals/route.ts      204 sink for web vitals
+    tokens.css               every CSS variable, light + dark (from design-system.md)
+    globals.css              Tailwind v4 @theme mapping tokens to utilities
+  domain/                    pure, zod only, one file per concept
+    dataset.ts               zod schema for data.json, parseDataset, Dataset/Market/Fact/Kpis/Anomaly,
+                             Entity, Scope, Period, Context, Provenance, Status, Basis
+    periods.ts               ytd, mat, periodsForBasis, latestPeriod, horizon
+    scope.ts                 factsFor(scope), entityName, breadcrumbTrail
+    metrics.ts               total, attainment, growth, variance, momChange, topMovers, statusCounts
+    status.ts                the inferred rule as text only (tooltip + README); never computes status
+    citations.ts             Citation → ResolvedTarget | Unresolved; disagreement detection
+    alerts.ts                AlertRule schema + evaluateRule → breaching markets
+    stream.ts                zod schema for token | done | error SSE events, parseSseLine
+    index.ts
+  lib/                       app plumbing
+    context/                 useConsoleContext, parsers, invariants (market ⇒ region), meta (document title)
+    dataset.ts               cached loader around parseDataset
+    format.ts                $22.85M, +7.3%, −9.7%, 1,676,586, May 2026, 2026-05
+    theme.ts                 data-theme, localStorage try/catch, OS fallback
+    density.ts               derived from Context.mode
+    events.ts                typed event log (navigate, ask, stop, cite, save, rollback)
+    vitals.tsx               web-vitals → console.table in dev, sendBeacon /api/vitals in prod
+    stream/                  chatClient (fetch + AbortController + SSE parser), slice 5
+  components/                presentational; may not import domain or features
+    ui/                      shadcn primitives, restyled with tokens (Button, Badge, Card, Tooltip,
+                             Collapsible, Tabs, Table, Input, Select, Textarea, Dialog, Skeleton, Form)
+    charts/                  visx chart kit: Frame, Axes, Grid, Tooltip, Legend, Crosshair, useChartKeyboard;
+                             LineChart, RadarChart, HeatMap, Choropleth, Sparkline
+    Notice.tsx KpiTile.tsx StatusBadge.tsx ConfidenceMeter.tsx CitationChip.tsx ViewAsTable.tsx
+    icons.ts                 lucide re-exports with fixed sizes
+    cn.ts                    class-name helper
+  features/                  screens, one folder per user flow
+    shell/                   Header (Breadcrumbs, ContextChips, PeriodSelect, DataStamp, ModeSwitch, ThemeToggle), Layout, ErrorBoundary
+    overview/                KpiRow, TopMovers, MapCard (exec screen)
+    analyst/                 MarketGrid, TimeSeriesCard, RadarCard, HeatMapCard, BasisSelector, FactsTable (12a)
+    assistant/               Panel, Composer, Suggestions, AnswerCard, AnswerList, SourcesTable, useAnswerMachine, useAskWhy
+    alerts/                  AlertForm, RuleList, useAlertSave (TanStack mutation), DeleteAlertDialog
+    palette/                 CommandPalette (12b)
+  data/
+    data.json fixtures.json  verbatim from the starter pack
+public/geo/markets.json      generated by scripts/build-geo.ts, committed
 scripts/
-  build-geo.ts                   world-atlas 110m → public/geo/markets.json (13 markets + land)
-  check-contrast.ts              reads tokens.css, asserts every pair in design-system.md §3
-data/
-  data.json, fixtures.json       verbatim from the starter pack
-public/geo/markets.json          generated, committed
+  build-geo.ts               world-atlas 110m → public/geo/markets.json (13 markets + land)
+  check-contrast.ts          reads tokens.css, asserts every pair in design-system.md §3
 tests/
-  unit/                          domain, lib (Vitest)
-  component/                     ui, features (Vitest + Testing Library)
-  e2e/                           Playwright, one spec per slice
-.storybook/                      slice 12c
+  unit/                      domain, lib, hooks (Vitest, jsdom)
+  e2e/                       Playwright, one spec per slice
+.storybook/                  Storybook 9 harness; stories (*.stories.tsx) sit next to their components
+docs/                        design documents, decision records, slice specs
 ```
 
 ## 4. Data flow
 
 ```
-data/data.json ──(server, once, cached)──▶ domain.parseDataset ──▶ Dataset (typed)
+src/data/data.json ──(server, once, cached)──▶ domain.parseDataset ──▶ Dataset (typed)
                                                      │
    URL searchParams ──▶ parseContext ──▶ Context ─────┤
                                                      ▼
@@ -143,12 +144,12 @@ Rule: no global store. If a value is needed by two features, it is either in the
 
 ## 7. Contracts and state machines
 
-**Contracts (zod, in `domain/contracts`)**
+**Contracts (zod, in `src/domain/dataset, src/domain/stream, src/domain/alerts`)**
 - `DatasetSchema`: mirrors CONTRACT.md; refines that `priorYear` matches the earlier actual where present and that every market's region exists. Parsed once; a failure fails the build, not the page.
 - `SseEventSchema`: `{type:"token", value}` | `{type:"done", kind, citations, confidence}` | `{type:"error", message}`. Unknown event types are ignored and logged.
 - `AlertRuleSchema`: `{id?, metric, comparator:"below", threshold, scope}` with the ranges from domain-model.md section 8; inferred TypeScript types are shared by the form, the route handler and the query cache.
 
-**Answer machine (`features/assistant/useAnswerMachine`)**
+**Answer machine (`src/features/assistant/useAnswerMachine`)**
 
 ```
 type AnswerState =
@@ -161,7 +162,7 @@ events: ASK, TOKEN, DONE, STOP, ERROR, RETRY
 ```
 Transitions follow domain-model.md section 7. `DONE` runs the citation resolver before entering `done`, so the UI never renders an unresolved chip without its flag.
 
-**Alert save machine (`features/alerts/useAlertSave`)**
+**Alert save machine (`src/features/alerts/useAlertSave`)**
 
 ```
 idle → saving (optimistic row shown) → saved (toast-less inline "Saved · just now")
@@ -198,26 +199,26 @@ Islands receive serialisable view models only (no Dataset on the client except t
 | Layer | Tool | What |
 |---|---|---|
 | Unit | Vitest | domain selectors with real numbers, resolver, evaluator, parsers, formatters, SSE line parser |
-| Component | Vitest + Testing Library + jest-axe | every `ui/` component per state; features with mocked streams and mutations |
+| Component | Storybook stories with play functions, run by the Storybook Vitest addon in Chromium; a11y addon fails on violations | every `src/components/` and client `src/features/` component per state; features with mocked streams and mutations |
 | E2E | Playwright (+ axe-core/playwright) | one spec per slice from user-flows.md, both themes for slices 1 and 11 |
 | Contracts | Vitest | `DatasetSchema` against the real file; `SseEventSchema` against recorded fixture streams |
 | Tokens | `scripts/check-contrast.ts` | CI gate |
-| Visual | Storybook + a11y addon (slice 12c) | per component and state |
+| Visual | Storybook (slice 0 harness), deployed per PR | per component and state, light and dark via toolbar globals |
 
 | Slice | Folders touched | Primary test |
 |---|---|---|
-| 0 | domain, lib/context, app/tokens.css, features/shell | unit + contrast |
-| 1 | features/shell, features/assistant (empty state), ui/primitives | E2E cold open |
-| 2 | features/overview, ui/charts/Choropleth, scripts/build-geo | E2E tiles and map |
-| 3 | lib/context, features/shell | E2E drill, share, back |
-| 4 | features/analyst, ui/charts (Line, Radar, HeatMap, Sparkline) | E2E coordinated views |
-| 5 | lib/stream, features/assistant/useAnswerMachine, Composer | E2E stream and stop |
-| 6 | domain/citations, CitationChip, context `cite` | E2E citation navigation |
+| 0 | domain, src/lib/context, src/app/tokens.css, src/features/shell | unit + contrast |
+| 1 | src/features/shell, src/features/assistant (empty state), src/components/ui | E2E cold open |
+| 2 | src/features/overview, src/components/charts/Choropleth, scripts/build-geo | E2E tiles and map |
+| 3 | src/lib/context, src/features/shell | E2E drill, share, back |
+| 4 | src/features/analyst, src/components/charts (Line, Radar, HeatMap, Sparkline) | E2E coordinated views |
+| 5 | src/lib/stream, src/features/assistant/useAnswerMachine, Composer | E2E stream and stop |
+| 6 | src/domain/citations, CitationChip, context `cite` | E2E citation navigation |
 | 7 | SourcesTable, disagreement path | E2E differs |
 | 8 | AnswerCard states, Notice | E2E low, abstain, error |
 | 9 | useAskWhy, TopMovers, MarketGrid | E2E ask why |
-| 10 | features/alerts, app/api/alerts, domain/alerts | E2E save and rollback |
-| 11 | lib/theme, lib/density, a11y sweep | E2E axe both themes |
+| 10 | src/features/alerts, src/app/api/alerts, src/domain/alerts | E2E save and rollback |
+| 11 | src/lib/theme, src/lib/density, a11y sweep | E2E axe both themes |
 | 12 | FactsTable, CommandPalette, .storybook | per item |
 
 ## 10. Technology recommendations (for approval)
@@ -246,7 +247,7 @@ Known mock limitation to state in the README: the alert store is in-memory per s
 - Core Web Vitals: server-rendered first paint with no client fetch; fonts with `display=swap` and fallbacks; charts hydrate as islands; the map geometry is a 30 to 60 KB static file loaded only when the map is in view; the facts table is virtualised; no layout shift because skeletons reserve the exact heights from design-system.md.
 - Bundle: visx is imported per package (`@visx/scale`, `@visx/shape`…) so only used primitives ship; d3-geo and topojson-client are loaded with the map island; cmdk is lazy.
 - No jank while streaming: tokens are appended to a ref and flushed with `requestAnimationFrame`, one render per frame at most; chart transitions use CSS on SVG attributes, 240 ms, disabled under reduced motion.
-- Observability: `lib/observability` reports LCP, CLS, INP via `web-vitals` to the console in dev and to a no-op route in prod; a typed event log records navigate, ask, token count, stop, cite, save and rollback with timestamps, viewable in a dev-only drawer; each widget sits in an error boundary that renders the inline Notice and logs the error with the Context at the time.
+- Observability: `src/lib/events` reports LCP, CLS, INP via `web-vitals` to the console in dev and to a no-op route in prod; a typed event log records navigate, ask, token count, stop, cite, save and rollback with timestamps, viewable in a dev-only drawer; each widget sits in an error boundary that renders the inline Notice and logs the error with the Context at the time.
 
 ## 12. Questions for Flavius
 

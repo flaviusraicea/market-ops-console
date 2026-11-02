@@ -6,7 +6,7 @@ import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-const alias = { "@": dirname };
+const alias = { "@": path.join(dirname, "src") };
 
 export default defineConfig({
   test: {

@@ -16,8 +16,8 @@ A Next.js App Router repo that boots to a page showing the header shell (wordmar
   - charts (install now, unused until slice 2): `@visx/scale @visx/shape @visx/axis @visx/grid @visx/group @visx/tooltip @visx/event @visx/geo @visx/responsive`, `d3-geo`, `topojson-client`, `world-atlas`, `@types/d3-geo @types/topojson-client @types/geojson`
   - dev: `vitest @vitejs/plugin-react @vitest/browser jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom`, `@playwright/test @axe-core/playwright playwright`, `eslint-plugin-boundaries` (or `eslint-plugin-import` with `no-restricted-paths`), `prettier`, `tsx`
   - Storybook (section 10.0): `storybook @storybook/nextjs-vite @storybook/addon-vitest @storybook/addon-a11y @storybook/addon-docs eslint-plugin-storybook` (Storybook 9.x; install through `pnpm dlx storybook@latest init`, see 10.0). No `jest-axe`: accessibility assertions on components come from the Storybook a11y addon, and page-level ones from Playwright axe.
-- shadcn/ui: `pnpm dlx shadcn@latest init` with style "new-york", base colour neutral, CSS variables **on**, then `add button badge card tooltip collapsible tabs table input select textarea dialog skeleton form`. The generated `components/ui/*` files are moved to `ui/primitives/` and the shadcn config `aliases` updated to match. Their colour classes are re-pointed at our tokens in slice 0 (section 5) so no shadcn default colour survives.
-- `tsconfig.json`: `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`, `exactOptionalPropertyTypes: true`. The ESLint config adds `@typescript-eslint/no-explicit-any: "error"` and `@typescript-eslint/consistent-type-imports`.
+- shadcn/ui: `pnpm dlx shadcn@latest init` with style "new-york", base colour neutral, CSS variables **on**, then `add button badge card tooltip collapsible tabs table input select textarea dialog skeleton form`. The generated `src/components/ui/*` files are moved to `src/components/ui/` and the shadcn config `aliases` updated to match. Their colour classes are re-pointed at our tokens in slice 0 (section 5) so no shadcn default colour survives.
+- `tsconfig.json`: paths `@/*` → `./src/*`; `strict: true`, `noUncheckedIndexedAccess: true`, `noImplicitOverride: true`, `exactOptionalPropertyTypes: true`. The ESLint config adds `@typescript-eslint/no-explicit-any: "error"` and `@typescript-eslint/consistent-type-imports`.
 - Scripts in `package.json`: `dev`, `build`, `start`, `lint`, `typecheck` (`tsc --noEmit`), `test` (`vitest run`, both Vitest projects: `unit` and `stories`), `test:unit` (`vitest run --project unit`), `test:stories` (`vitest run --project stories`), `test:watch`, `test:e2e` (playwright test), `storybook` (`storybook dev -p 6006`), `build-storybook` (`storybook build`, output `storybook-static/`), `check:contrast` (`tsx scripts/check-contrast.ts`), `build:geo` (`tsx scripts/build-geo.ts`, slice 2), `ci` (`pnpm lint && pnpm typecheck && pnpm check:contrast && pnpm test && pnpm build && pnpm build-storybook`).
 - `.github/workflows/ci.yml`: one job named `ci`, on push and pull request, Node 22, pnpm cache. Steps: install, `pnpm exec playwright install --with-deps chromium` (needed by the `stories` project as well as E2E), `pnpm ci`, `pnpm test:e2e`. Upload `playwright-report/` as an artifact on failure.
 - Prettier default config plus `printWidth: 100`. Commit as the first commit: "chore: scaffold console".
@@ -25,34 +25,37 @@ A Next.js App Router repo that boots to a page showing the header shell (wordmar
 ## 2. Folder layout (create every folder now, with an `index.ts` where listed)
 
 ```
-app/ layout.tsx page.tsx tokens.css globals.css
-    api/chat/route.ts        (copy reference/chat-route.ts verbatim, import from "@/data/fixtures.json")
-domain/ index.ts contracts/{data,sse,alert}.ts model/types.ts
-        selectors/{totals,periods,rankings,scope}.ts citations/resolve.ts alerts/evaluate.ts status/rule.ts
-lib/ context/{useConsoleContext.ts,parsers.ts} stream/ (empty, slice 5) format/number.ts
-     observability/{vitals,events}.ts theme/useTheme.ts density/useDensity.ts
-ui/ primitives/ (shadcn, restyled) components/ (empty) charts/ (empty) icons.ts
-features/ shell/{Header.tsx,Breadcrumbs.tsx,ContextChips.tsx,PeriodSelect.tsx,DataStamp.tsx,ModeSwitch.tsx,ThemeToggle.tsx,ErrorBoundary.tsx,Layout.tsx}
-          overview/ analyst/ assistant/ alerts/ palette/   (empty folders with .gitkeep)
-data/ data.json fixtures.json   (copied verbatim from the starter pack)
+src/
+  app/ layout.tsx page.tsx providers.tsx tokens.css globals.css
+       api/chat/route.ts        (copy reference/chat-route.ts verbatim, import from "@/data/fixtures.json")
+       api/vitals/route.ts
+  domain/ index.ts dataset.ts periods.ts scope.ts metrics.ts status.ts citations.ts alerts.ts stream.ts
+          (pure, zod only; one file per concept, no subfolders)
+  lib/ context/{useConsoleContext,parsers,invariants}.ts context/meta.tsx
+       dataset.ts format.ts theme.ts density.ts events.ts vitals.tsx
+       stream/ (empty, slice 5)
+  components/ ui/ (shadcn primitives, restyled)  charts/ (empty, slice 2)  Notice.tsx  icons.ts  cn.ts
+  features/ shell/{Header,Breadcrumbs,ContextChips,PeriodSelect,DataStamp,ModeSwitch,ThemeToggle,ErrorBoundary,Layout}.tsx
+            overview/ analyst/ assistant/ alerts/ palette/   (empty folders with .gitkeep)
+  data/ data.json fixtures.json   (copied verbatim from the starter pack)
 scripts/ check-contrast.ts
 tests/ unit/ e2e/  setup.ts
 .storybook/ main.ts preview.tsx decorators.tsx vitest.setup.ts
-*.stories.tsx live next to the component they document (ui/**, features/**); there is no tests/component/ folder.
+*.stories.tsx live next to the component they document (src/components/**, src/features/**); there is no tests/component/ folder.
 ```
 
 ESLint boundary rule (enforced):
-- `domain/**` may import only `zod` and itself.
-- `lib/**` may import `domain`, `lib`, `nuqs`, `react`, `next`, `web-vitals`.
-- `ui/**` may import `lib`, `ui`, react, lucide, shadcn deps, visx, d3. **Not** `domain` or `features`.
-- `features/**` may import `domain`, `lib`, `ui`, `features`, react, next, tanstack.
-- `app/**` may import anything.
-- `*.stories.tsx` files and `.storybook/**` may additionally import `storybook`, `@storybook/*`, `storybook/test`, `@tanstack/react-query`, `nuqs/adapters/testing` and `data/*.json`; otherwise a story follows the rules of the folder it sits in (a story in `ui/` still may not import `domain/` or `features/`; it gets any dataset-derived props from `.storybook/decorators.tsx` or inline literals).
-Add a unit test `tests/unit/boundaries.test.ts` that runs ESLint programmatically on a fixture file in `ui/` importing from `domain/` and asserts it errors.
+- `src/domain/**` may import only `zod` and itself.
+- `src/lib/**` may import `domain`, `lib`, `nuqs`, `react`, `next`, `web-vitals`.
+- `src/components/**` may import `lib`, `components`, react, lucide, shadcn deps, visx, d3. **Not** `domain` or `features`.
+- `src/features/**` may import `domain`, `lib`, `components`, `features`, react, next, tanstack.
+- `src/app/**` may import anything.
+- `*.stories.tsx` files and `.storybook/**` may additionally import `storybook`, `@storybook/*`, `storybook/test`, `@tanstack/react-query`, `nuqs/adapters/testing` and `src/data/*.json`; otherwise a story follows the rules of the folder it sits in (a story in `src/components/` still may not import `src/domain/` or `src/features/`; it gets any dataset-derived props from `.storybook/decorators.tsx` or inline literals).
+Add a unit test `tests/unit/boundaries.test.ts` that runs ESLint programmatically on a fixture file in `src/components/` importing from `src/domain/` and asserts it errors.
 
-## 3. Domain contracts (`domain/contracts`)
+## 3. Domain contracts (schemas live in the concept files: `src/domain/dataset.ts`, `src/domain/stream.ts`, `src/domain/alerts.ts`)
 
-### 3.1 `data.ts`
+### 3.1 `dataset.ts` (schema part)
 ```ts
 import { z } from "zod";
 export const PeriodSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).brand<"Period">();
@@ -75,7 +78,7 @@ export type Dataset = z.infer<typeof DatasetSchema>; export type Market = ...; e
 export function parseDataset(input: unknown): Dataset  // DatasetSchema.parse; throws ZodError
 ```
 
-### 3.2 `sse.ts`
+### 3.2 `stream.ts`
 ```ts
 export const ConfidenceSchema = z.enum(["high", "medium", "low"]);
 export const KindSchema = z.enum(["normal", "low_confidence", "abstain", "error"]);
@@ -89,7 +92,7 @@ export type SseEvent, Citation, Confidence, Kind
 export function parseSseLine(line: string): SseEvent | null  // accepts "data: {...}"; returns null for blank, comments (":"), or non-data lines; throws on invalid JSON or schema failure
 ```
 
-### 3.3 `alert.ts`
+### 3.3 `alerts.ts` (schema part)
 ```ts
 export const AlertScopeSchema = z.union([z.literal("portfolio"), z.object({ regionId: RegionIdSchema }), z.object({ marketId: z.string() })]);
 export const AlertRuleSchema = z.object({ id: z.string().optional(), metric: z.enum(["growth", "attainment"]), comparator: z.literal("below"), threshold: z.number(), scope: AlertScopeSchema, createdAt: z.string().datetime().optional() })
@@ -97,9 +100,9 @@ export const AlertRuleSchema = z.object({ id: z.string().optional(), metric: z.e
 export type AlertRule, AlertScope
 ```
 
-## 4. Domain model and selectors
+## 4. Domain model and selectors (one file per concept, no subfolders)
 
-### 4.1 `model/types.ts`
+### 4.1 `dataset.ts` (types part, same file as 3.1)
 ```ts
 export type Entity = { kind: "portfolio" } | { kind: "region"; regionId: RegionId } | { kind: "market"; marketId: string } | { kind: "product"; marketId: string; productId: string };
 export type Basis = "month" | "ytd" | "mat";
@@ -111,20 +114,20 @@ export type Provenance = "source" | "derived" | "assistant";
 export type Totals = { actual: number; forecast: number; priorYear: number; units: number; factCount: number };
 ```
 
-### 4.2 `selectors/scope.ts`
+### 4.2 `scope.ts`
 - `factsFor(ds: Dataset, scope: Scope): Fact[]` filters `ds.series` by entity and periods. Market entity matches `marketId`; region matches markets of that region; product matches both; portfolio matches all.
 - `entityOf(ctx: Context): Entity` (product if `product`, else market, else region, else portfolio).
 - `entityName(ds, entity): string` ("Portfolio", region name, market name, `"${market} · ${product}"`).
 - `breadcrumbTrail(ds, ctx): Array<{ label: string; ctx: Partial<Context> }>` → `[Portfolio]`, `[Portfolio, Europe]`, `[Portfolio, Europe, Germany]`, `[Portfolio, Europe, Germany, Veltrix]`.
 - `marketsIn(ds, entity): Market[]`.
 
-### 4.3 `selectors/periods.ts`
+### 4.3 `periods.ts`
 - `latestPeriod(ds): Period`; `horizon(ds): Period` (equals latestPeriod).
 - `periodsForBasis(ds, basis, endPeriod): Period[]`: month → `[end]`; ytd → periods from `${year(end)}-01` to end; mat → the 12 periods ending at end, or throws `RangeError("MAT needs 12 periods")` if fewer exist.
-- `previousPeriod(ds, p): Period | undefined`; `formatPeriod(p): string` lives in `lib/format`, not here.
+- `previousPeriod(ds, p): Period | undefined`; `formatPeriod(p): string` lives in `src/lib/format`, not here.
 - `periodIndex(ds, p): number` (−1 if absent); `clampPeriod(ds, p): Period` (unknown → latest).
 
-### 4.4 `selectors/totals.ts`
+### 4.4 `metrics.ts` (totals and ratios)
 - `totals(facts: Fact[]): Totals` sums.
 - `attainmentPct(t: Totals): number` = actual / forecast × 100, rounded to 1 decimal with `Math.round(x*10)/10`; throws if forecast is 0.
 - `growthPct(t): number` = (actual / priorYear − 1) × 100, 1 decimal; throws if priorYear is 0.
@@ -132,12 +135,12 @@ export type Totals = { actual: number; forecast: number; priorYear: number; unit
 - `momChangePct(ds, entity, period): number | undefined` = actual(p)/actual(p−1) − 1 as %, 1 decimal; undefined if no previous period.
 - `kpiFor(ds, entity, period, basis): { totals; attainmentPct; growthPct; variance; provenance: Provenance }` where provenance is `"source"` only when entity is a market, basis is month and period is latest (then attainmentPct and growthPct are taken from `market.kpis`, revenue from `kpis.revenue`); otherwise `"derived"` and computed.
 
-### 4.5 `selectors/rankings.ts`
+### 4.5 `metrics.ts` (rankings and counts, same file as 4.4)
 - `topMovers(ds, n = 3): { rising: Array<{market, growthPct}>; falling: Array<...> }` from `kpis.growthPct`, rising sorted desc, falling sorted asc.
 - `statusCounts(ds, entity): { on_track: number; at_risk: number; off_track: number }` over `marketsIn`.
 - `attentionCount(ds, entity): number` = at_risk + off_track.
 
-### 4.6 `citations/resolve.ts`
+### 4.6 `citations.ts`
 ```ts
 export type ResolvedTarget = { entity: Entity; period: Period; label: string; periodDefaulted: boolean };
 export type Resolution = { ok: true; target: ResolvedTarget; disagreement?: { assistant: string; source: Status } } | { ok: false; reason: "unknown_market" | "unknown_region" | "unknown_product" | "unknown_period"; label: string };
@@ -145,40 +148,40 @@ export function resolveCitation(ds: Dataset, c: Citation, claimText?: string): R
 ```
 Rules (domain-model.md §6): product + market → product entity; market → market; region → region; none → portfolio. Period missing → latest, `periodDefaulted: true`. Unknown ids → `ok: false`. Disagreement: if `claimText` is given and the entity is a market and the claim contains one of the phrases `"on track" | "at risk" | "off track"` (case-insensitive; also accept `"off-track"`), compare to `market.kpis.status`; if different, set `disagreement`.
 
-### 4.7 `alerts/evaluate.ts`
+### 4.7 `alerts.ts` (evaluator part, same file as 3.3)
 `evaluateRule(ds, rule): { breaching: Market[]; total: number }` over `marketsIn(scope)` using `kpis.growthPct` or `kpis.forecastAttainmentPct` at the latest period; breaching when value < threshold; sorted by market name.
 
-### 4.8 `status/rule.ts`
+### 4.8 `status.ts`
 `export const STATUS_RULE_TEXT = "Status is given in the data. It is consistent with: off track when growth is negative or attainment is below about 92.5%; at risk when attainment is below 100%; on track otherwise."` and `export const STATUS_LABEL: Record<Status, string> = { on_track: "On track", at_risk: "At risk", off_track: "Off track" }`.
 
-### 4.9 `domain/index.ts` re-exports everything above. **Nothing in `domain/` imports React, Next, or anything from `lib/`.**
+### 4.9 `src/domain/index.ts` re-exports everything above. **Nothing in `src/domain/` imports React, Next, or anything from `src/lib/`.**
 
 ## 5. Tokens and global CSS
 
-- `app/tokens.css`: transcribe every token from design-system.md §3.1 (light, Option A values) under `:root`, and §3.2 (dark) under both `:root[data-theme="dark"]` and `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { … } }`. Also the font, type, spacing, radius and motion tokens from §1, §2, §4, §5, with the density switch on `html[data-density="analyst"]`. Reduced motion: both `@media (prefers-reduced-motion: reduce)` and `html[data-reduced-motion="true"]` set every `--dur-*` to `0ms`.
-- `app/globals.css`: `@import "tailwindcss"; @import "./tokens.css";` then a `@theme inline { --color-bg: var(--bg); --color-surface: var(--surface); --color-surface-2: var(--surface-2); --color-border: var(--border); --color-grid: var(--grid); --color-ink: var(--ink); --color-ink-2: var(--ink-2); --color-ink-muted: var(--ink-muted); --color-ink-disabled: var(--ink-disabled); --color-accent: var(--accent); --color-accent-hover: var(--accent-hover); --color-on-accent: var(--on-accent); --color-accent-soft: var(--accent-soft); --color-focus: var(--focus); --color-ok-text … --color-bad-hover; --color-ai-bg/--color-ai-border/--color-ai-label; --color-series-actual/forecast/prior; --color-cat-1..6; --color-seq-1..7; --color-div-n3..p3; --font-display; --font-ui; --font-mono; --radius-control; --radius-card; --radius-pill; }` so utilities like `bg-surface`, `text-ink-2`, `border-border`, `bg-ai-bg`, `text-ok-text`, `rounded-card` exist.
+- `src/app/tokens.css`: transcribe every token from design-system.md §3.1 (light, Option A values) under `:root`, and §3.2 (dark) under both `:root[data-theme="dark"]` and `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { … } }`. Also the font, type, spacing, radius and motion tokens from §1, §2, §4, §5, with the density switch on `html[data-density="analyst"]`. Reduced motion: both `@media (prefers-reduced-motion: reduce)` and `html[data-reduced-motion="true"]` set every `--dur-*` to `0ms`.
+- `src/app/globals.css`: `@import "tailwindcss"; @import "./tokens.css";` then a `@theme inline { --color-bg: var(--bg); --color-surface: var(--surface); --color-surface-2: var(--surface-2); --color-border: var(--border); --color-grid: var(--grid); --color-ink: var(--ink); --color-ink-2: var(--ink-2); --color-ink-muted: var(--ink-muted); --color-ink-disabled: var(--ink-disabled); --color-accent: var(--accent); --color-accent-hover: var(--accent-hover); --color-on-accent: var(--on-accent); --color-accent-soft: var(--accent-soft); --color-focus: var(--focus); --color-ok-text … --color-bad-hover; --color-ai-bg/--color-ai-border/--color-ai-label; --color-series-actual/forecast/prior; --color-cat-1..6; --color-seq-1..7; --color-div-n3..p3; --font-display; --font-ui; --font-mono; --radius-control; --radius-card; --radius-pill; }` so utilities like `bg-surface`, `text-ink-2`, `border-border`, `bg-ai-bg`, `text-ok-text`, `rounded-card` exist.
 - `body`: `font-family: var(--font-ui); font-variant-numeric: tabular-nums; font-feature-settings: "cv11", "ss01"; background: var(--bg); color: var(--ink);`.
 - `:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }` globally; shadcn's ring classes are replaced by this.
 - Restyle the shadcn primitives: replace every `bg-background`, `text-foreground`, `border-input`, `ring-*`, `bg-primary`, `text-primary-foreground`, `bg-secondary`, `bg-destructive`, `text-muted-foreground`, `bg-muted`, `bg-accent` etc. with the token utilities per design-system.md §6.11 (buttons) and the component sections. Remove the shadcn `--background/--foreground/...` variables from `globals.css` entirely. A grep for `hsl(` and for the shadcn variable names must return nothing.
-- Fonts: in `app/layout.tsx` use `next/font/google` for `Source_Serif_4` (weights 400, 600, `opsz` axis) and `Inter` (400, 500, 600), assigned to CSS variables `--font-display` and `--font-ui` with `display: "swap"` and the fallbacks from design-system.md §1.
+- Fonts: in `src/app/layout.tsx` use `next/font/google` for `Source_Serif_4` (weights 400, 600, `opsz` axis) and `Inter` (400, 500, 600), assigned to CSS variables `--font-display` and `--font-ui` with `display: "swap"` and the fallbacks from design-system.md §1.
 
 ## 6. `scripts/check-contrast.ts`
 
-- Parses `app/tokens.css` (simple regex over `--name: #hex;` inside each scope), builds the light and dark maps, computes WCAG 2.x contrast, and asserts the pair list below. Exit 1 with a table of failures.
+- Parses `src/app/tokens.css` (simple regex over `--name: #hex;` inside each scope), builds the light and dark maps, computes WCAG 2.x contrast, and asserts the pair list below. Exit 1 with a table of failures.
 - Pair list, light and dark both: text pairs ≥ 4.5: `ink/surface, ink/bg, ink-2/surface, ink-2/bg, ink-2/surface-2, ink-muted/surface, ink-muted/bg, ink-muted/surface-2, accent/surface, accent/bg, accent/accent-soft, on-accent/accent, ok-text/ok-bg, ok-text/surface, warn-text/warn-bg, warn-text/surface, warn-text/accent-soft, bad-text/bad-bg, bad-text/surface, ai-label/ai-bg, ink/ai-bg, ink/accent-soft, ink/bad-bg, ink-2/bad-bg, on-bad/bad-mark`. Graphic pairs ≥ 3: `ok-mark/surface, warn-mark/surface, bad-mark/surface, bad-mark/bad-bg, focus/surface, series-actual/surface, series-forecast/surface, series-prior/surface, cat-1..6/surface`. Decorative (print only): `border/surface, grid/surface, surface-2/surface, ai-border/ai-bg, bg/surface`.
 - Also asserts luminance monotonic for `seq-1..7` and for each arm of `div-n3..p3`.
 - Prints the full table on success too (it is pasted into the README's accessibility section later).
 
-## 7. URL context (`lib/context`)
+## 7. URL context (`src/lib/context`)
 
 - `parsers.ts` with nuqs parsers: `parseAsStringEnum` for region, mode, metric, basis; `parseAsString` for market, product; a custom `parseAsPeriod(ds)` that validates against `meta.periods` and clamps; `parseAsInteger` for cite; `parseAsBoolean` for facts. Defaults from architecture.md §5.
 - `useConsoleContext(): { ctx: Context; setContext(partial: Partial<Context>, opts?: { history?: "push" | "replace" }): void; reset(): void }`.
-  - Invariants applied in `setContext`: setting `market` sets `region` from the dataset; setting `product` without a `market` in the result throws in dev and is ignored in prod (logged via `lib/observability/events`); clearing `region` clears `market` and `product`; clearing `market` clears `product`; changing `period`, `region`, `market`, `product`, `mode` uses `push`; `cite`, `facts`, `metric`, `basis` use `replace`; any change that is not `cite` clears `cite`.
-  - Server side: `parseContextFromSearchParams(ds, searchParams): Context` with the same rules, used by `app/page.tsx`.
-- `lib/density/useDensity.ts`: returns `ctx.mode === "analyst" ? "analyst" : "overview"` and a `useEffect` that writes `data-density` on `<html>`.
-- `lib/theme/useTheme.ts`: `theme: "light" | "dark" | "system"`, `resolved`, `setTheme`; writes `data-theme` on `<html>` (removed for system); persists to `localStorage` key `mo.theme` in try/catch; reads on mount; an inline script in `layout.tsx` applies the stored value before paint to avoid a flash.
+  - Invariants applied in `setContext`: setting `market` sets `region` from the dataset; setting `product` without a `market` in the result throws in dev and is ignored in prod (logged via `src/lib/events`); clearing `region` clears `market` and `product`; clearing `market` clears `product`; changing `period`, `region`, `market`, `product`, `mode` uses `push`; `cite`, `facts`, `metric`, `basis` use `replace`; any change that is not `cite` clears `cite`.
+  - Server side: `parseContextFromSearchParams(ds, searchParams): Context` with the same rules, used by `src/app/page.tsx`.
+- `src/lib/density.ts`: returns `ctx.mode === "analyst" ? "analyst" : "overview"` and a `useEffect` that writes `data-density` on `<html>`.
+- `src/lib/theme.ts`: `theme: "light" | "dark" | "system"`, `resolved`, `setTheme`; writes `data-theme` on `<html>` (removed for system); persists to `localStorage` key `mo.theme` in try/catch; reads on mount; an inline script in `layout.tsx` applies the stored value before paint to avoid a flash.
 
-## 8. Formatting (`lib/format/number.ts`)
+## 8. Formatting (`src/lib/format.ts`)
 
 - `formatMoneyCompact(n)`: millions with two decimals whenever |n| ≥ 100,000 (`$22.85M`, `$0.94M`, `$0.76M`); below that, full dollars with separators (`$62,818`). Never `K`. Negative → leading `−` (U+2212).
 - `formatMoneyFull(n)`: `1,676,586` (no `$`; the column header carries the unit).
@@ -186,13 +189,13 @@ Rules (domain-model.md §6): product + market → product entity; market → mar
 - `formatPeriod(p)`: `May 2026`; `formatPeriodShort(p)`: `May 26`; `formatCount(a, b)`: `6 of 13`.
 - All via `Intl.NumberFormat("en-US")`; locale fixed to en-US for determinism (README notes that a real product would take it from the user).
 
-## 9. Shell (`features/shell`) and page
+## 9. Shell (`src/features/shell`) and page
 
-- `app/layout.tsx`: `<html lang="en" suppressHydrationWarning>` with the theme pre-paint script, fonts, `globals.css`, `NuqsAdapter`, `QueryClientProvider`, a skip link "Skip to content" to `#main`.
-- `app/page.tsx` (server): `const ds = getDataset()` (a `cache()`d function in `lib/data/getDataset.ts` that `parseDataset`s the JSON import once), `const ctx = parseContextFromSearchParams(ds, await searchParams)`, renders `<Layout header={<Header ds-derived props />}><main id="main">…two empty regions with headings "Dashboard" and "Assistant" (visually hidden h2s)…</main></Layout>`.
+- `src/app/layout.tsx`: `<html lang="en" suppressHydrationWarning>` with the theme pre-paint script, fonts, `globals.css`, `NuqsAdapter`, `QueryClientProvider`, a skip link "Skip to content" to `#main`.
+- `src/app/page.tsx` (server): `const ds = getDataset()` (a `cache()`d function in `src/lib/dataset.ts` that `parseDataset`s the JSON import once), `const ctx = parseContextFromSearchParams(ds, await searchParams)`, renders `<Layout header={<Header ds-derived props />}><main id="main">…two empty regions with headings "Dashboard" and "Assistant" (visually hidden h2s)…</main></Layout>`.
 - `Header` (client island) per design-system.md §6.1: props `{ trail, period, periods, latestPeriod, mode }`; children `Breadcrumbs` (nav + ol + aria-current), `ContextChips` (period chip with clear → sets period to latest; product chip when present), `PeriodSelect` (shadcn Select listing `meta.periods` newest first, labelled "Period"), `DataStamp` (`DATA THROUGH MAY 2026` from `latestPeriod`, with `title`), `ModeSwitch` (radiogroup, arrow keys), `ThemeToggle` (aria-label swaps). All writes go through `setContext`.
-- `ErrorBoundary`: class component rendering the Notice (design-system.md §6.12) with title "This widget failed to load", body "The rest of the console still works.", secondary "Reload widget" that resets the boundary; logs via `lib/observability/events`.
-- `lib/observability/vitals.ts`: `reportWebVitals` via Next's `useReportWebVitals` in a client component mounted in layout; dev → `console.table`; prod → `navigator.sendBeacon("/api/vitals")` where `app/api/vitals/route.ts` returns 204. `events.ts`: `logEvent(e: ConsoleEvent)` with a discriminated union `{ type: "navigate", ctx } | { type: "widget_error", widget, message } | …` (extend per slice); stores the last 200 in memory and `console.debug`s in dev.
+- `ErrorBoundary`: class component rendering the Notice (design-system.md §6.12) with title "This widget failed to load", body "The rest of the console still works.", secondary "Reload widget" that resets the boundary; logs via `src/lib/events`.
+- `src/lib/vitals.tsx`: `reportWebVitals` via Next's `useReportWebVitals` in a client component mounted in layout; dev → `console.table`; prod → `navigator.sendBeacon("/api/vitals")` where `src/app/api/vitals/route.ts` returns 204. `events.ts`: `logEvent(e: ConsoleEvent)` with a discriminated union `{ type: "navigate", ctx } | { type: "widget_error", widget, message } | …` (extend per slice); stores the last 200 in memory and `console.debug`s in dev.
 
 ## 10. Tests written first (all must exist and pass before the slice is done)
 
@@ -203,28 +206,28 @@ Rules (domain-model.md §6): product + market → product entity; market → mar
 Component and integration tests are stories with play functions, run by the Storybook Vitest addon in a real Chromium through Vitest browser mode. Pure logic stays in plain Vitest; page flows stay in Playwright. Set it up now so every later slice only adds stories.
 
 - Install: `pnpm dlx storybook@latest init` in the scaffolded repo. Accept the Next.js + Vite framework (`@storybook/nextjs-vite`), the Vitest addon and the a11y addon. Delete the generated example stories. Whatever the wizard produces, the end state is the configuration below.
-- `.storybook/main.ts`: `framework: "@storybook/nextjs-vite"`, `stories: ["../ui/**/*.stories.tsx", "../features/**/*.stories.tsx"]`, addons `@storybook/addon-vitest`, `@storybook/addon-a11y`, `@storybook/addon-docs`. `staticDirs: ["../public"]`.
-- `.storybook/preview.tsx`: imports `app/globals.css` (so tokens and the Tailwind theme apply); `parameters.a11y = { test: "error" }` so any axe violation fails the story's test; `parameters.backgrounds` off (our `body` background is the real one); global types `theme` (light | dark) and `density` (overview | analyst) and `reducedMotion` (off | on) with toolbar items; a decorator that writes `data-theme`, `data-density` and `data-reduced-motion` on `document.documentElement` from those globals (removing the attribute for light / overview / off). `initialGlobals: { theme: "light", density: "overview", reducedMotion: "off" }`. Fonts: the `next/font` variables are not available in Storybook; preview sets `--font-display` and `--font-ui` on `:root` to the fallback stacks from design-system.md §1 and documents this in a comment.
-- `.storybook/decorators.tsx`: `withProviders` wraps every story in `QueryClientProvider` (fresh `QueryClient` per story, `retry: false`) and `NuqsTestingAdapter` from `nuqs/adapters/testing` with `searchParams` from `parameters.nuqs?.searchParams ?? ""` and `onUrlUpdate` pushed to a `fn()` spy exposed on `parameters.nuqs.onUrlUpdate` so play functions can assert URL writes. `withDataset` exposes `ds = parseDataset(data.json)` through a React context for stories under `features/`; `ui/` stories never use it. `withProviders` is a global decorator; `withDataset` is applied per story file.
+- `.storybook/main.ts`: `framework: "@storybook/nextjs-vite"`, `stories: ["../src/components/**/*.stories.tsx", "../src/features/**/*.stories.tsx"]`, addons `@storybook/addon-vitest`, `@storybook/addon-a11y`, `@storybook/addon-docs`. `staticDirs: ["../public"]`.
+- `.storybook/preview.tsx`: imports `src/app/globals.css` (so tokens and the Tailwind theme apply); `parameters.a11y = { test: "error" }` so any axe violation fails the story's test; `parameters.backgrounds` off (our `body` background is the real one); global types `theme` (light | dark) and `density` (overview | analyst) and `reducedMotion` (off | on) with toolbar items; a decorator that writes `data-theme`, `data-density` and `data-reduced-motion` on `document.documentElement` from those globals (removing the attribute for light / overview / off). `initialGlobals: { theme: "light", density: "overview", reducedMotion: "off" }`. Fonts: the `next/font` variables are not available in Storybook; preview sets `--font-display` and `--font-ui` on `:root` to the fallback stacks from design-system.md §1 and documents this in a comment.
+- `.storybook/decorators.tsx`: `withProviders` wraps every story in `QueryClientProvider` (fresh `QueryClient` per story, `retry: false`) and `NuqsTestingAdapter` from `nuqs/adapters/testing` with `searchParams` from `parameters.nuqs?.searchParams ?? ""` and `onUrlUpdate` pushed to a `fn()` spy exposed on `parameters.nuqs.onUrlUpdate` so play functions can assert URL writes. `withDataset` exposes `ds = parseDataset(data.json)` through a React context for stories under `src/features/`; `src/components/` stories never use it. `withProviders` is a global decorator; `withDataset` is applied per story file.
 - `.storybook/vitest.setup.ts`: `setProjectAnnotations` with the preview annotations and the addon-a11y annotations, as the wizard writes it.
 - `vitest.config.ts` with two projects:
-  - `unit`: `environment: "jsdom"`, `include: ["tests/unit/**/*.test.ts?(x)"]`, `setupFiles: ["tests/setup.ts"]`, `@/*` alias.
+  - `unit`: `environment: "jsdom"`, `include: ["tests/unit/**/*.test.ts?(x)"]`, `setupFiles: ["tests/setup.ts"]`, `@/*` → `src/*` alias.
   - `stories`: the Storybook plugin `storybookTest({ configDir: ".storybook" })` from `@storybook/addon-vitest/vitest-plugin`, `browser: { enabled: true, provider: "playwright", headless: true, instances: [{ browser: "chromium" }] }`, `setupFiles: [".storybook/vitest.setup.ts"]`.
   - Dark theme coverage: if the plugin accepts it within the timebox, add a third project `stories:dark` identical to `stories` with `define: { "import.meta.env.SB_THEME": '"dark"' }` and make preview's `initialGlobals.theme` read `import.meta.env.SB_THEME ?? "light"`. If it does not, run stories in light only and rely on slice 11's Playwright axe runs for dark; say which in the report.
 - Story conventions (every later slice follows them):
-  - File `X.stories.tsx` next to `X.tsx`; `title` is the folder path (`ui/components/KpiTile`, `features/shell/Header`); one story per state the design system lists for that component, named after the state (`Default`, `Negative`, `Flat`, `Streaming`, `Stopped`, `Unresolved`, `Dark` is never a story: dark is a global).
+  - File `X.stories.tsx` next to `X.tsx`; `title` is the folder path (`src/components/KpiTile`, `src/features/shell/Header`); one story per state the design system lists for that component, named after the state (`Default`, `Negative`, `Flat`, `Streaming`, `Stopped`, `Unresolved`, `Dark` is never a story: dark is a global).
   - Assertions live in `play` using `storybook/test` (`within`, `userEvent`, `expect`, `fn`). Each play function asserts exactly what the slice spec lists for that component; a story with no listed assertion has no play function and is still a test because the a11y addon runs on it.
   - Props that are callbacks are `fn()` args so play functions can `expect(args.onSelect).toHaveBeenCalledWith(...)`.
   - Chart stories use inline fixture data (a 2-feature geo, 24 points for one market) given in the slice spec; they never read `data.json` directly.
   - A story must render without network: anything that fetches gets its data as props or through a decorator.
 - Guardrails (both approved):
   1. **Timebox: one working day** of implementer effort to get `pnpm test:stories` green locally and in CI with the `Header` stories of 10.8. If it is not green by then, stop, report the blocker, and fall back to Testing Library tests under `tests/component/` with the same assertions while stories stay render-only. Do not spend more time on Storybook plumbing than that without a decision.
-  2. **Scope: stories only for `ui/**` and client components in `features/**`.** Domain selectors, contracts, hooks, route handlers and formatters stay in the `unit` project. User journeys stay in Playwright E2E. Server components get no stories.
+  2. **Scope: stories only for `src/components/**` and client components in `src/features/**`.** Domain selectors, contracts, hooks, route handlers and formatters stay in the `unit` project. User journeys stay in Playwright E2E. Server components get no stories.
 - Deployment: Storybook builds to `storybook-static/` and is deployed as a second Vercel project (`market-ops-console-storybook`, same repo, build command `pnpm build-storybook`, output directory `storybook-static`). Flavius creates it alongside the app project (or the implementer if given access); its URL goes in the README and in every PR description under "## Screenshots" next to the preview URL.
 - README (slice 0 "Quick setup") adds `pnpm storybook` and the line "Component tests are Storybook stories with play functions; `pnpm test:stories` runs them headless in Chromium."
 
 ### 10.1 `tests/unit/contracts.test.ts`
-- parses `data/data.json`: 4 regions, 13 markets, 5 products, 24 periods, 1,560 facts; `latestPeriod === "2026-05"`.
+- parses `src/data/data.json`: 4 regions, 13 markets, 5 products, 24 periods, 1,560 facts; `latestPeriod === "2026-05"`.
 - a copy with `markets[0].regionId = "xx"` fails with an issue at path `["markets", 0, "regionId"]`.
 - a copy with one fact's `priorYear` changed fails with an issue mentioning `priorYear`.
 - `parseSseLine('data: {"type":"token","value":"Three "}')` → `{type:"token", value:"Three "}`; blank line → null; `': ping'` → null; `'data: {"type":"nope"}'` throws.
@@ -267,7 +270,7 @@ Component and integration tests are stories with play functions, run by the Stor
 
 ### 10.7 `tests/unit/boundaries.test.ts` as in section 2.
 
-### 10.8 `features/shell/Header.stories.tsx`
+### 10.8 `src/features/shell/Header.stories.tsx`
 - Stories `Portfolio` (trail of one item) and `Germany` (Portfolio › Europe › Germany), both with `parameters.nuqs.searchParams` matching the trail.
 - `Germany` play: breadcrumb list has 3 items, the last with `aria-current="page"` and text "Germany"; the stamp reads "DATA THROUGH MAY 2026" (text content, case-insensitive match on "Data through May 2026"); the mode radiogroup has Overview checked; Arrow Right moves the check to Analyst and the nuqs `onUrlUpdate` spy received a URL containing `mode=analyst`; the theme toggle's name is "Switch to dark theme" under light.
 - The a11y addon passes on both stories (automatic, `test: "error"`).
@@ -279,7 +282,7 @@ Component and integration tests are stories with play functions, run by the Stor
 
 - `pnpm ci` is green locally and in CI; `pnpm check:contrast` prints the full table with no failures; `pnpm test:stories` runs the Header stories in Chromium and passes; `pnpm storybook` shows them with working theme and density toolbar switches.
 - `pnpm dev` shows the shell at `/`, with working breadcrumbs (only Portfolio for now), period select, stamp, mode switch (changes density visibly: header height 56 → 48 px), theme toggle (persists), and two empty labelled regions.
-- No `any`, no shadcn default colours, no raw hex outside `tokens.css` (and the font fallback line in `.storybook/preview.tsx`), no React in `domain/`, no `tests/component/` folder.
+- No `any`, no shadcn default colours, no raw hex outside `tokens.css` (and the font fallback line in `.storybook/preview.tsx`), no React in `src/domain/`, no `tests/component/` folder.
 - README has only "Quick setup" so far (pnpm, node, scripts) and a line "Design and architecture documents live in `/docs` (copied from the design folder)": copy design-system.md, domain-model.md, user-flows.md, architecture.md into `docs/` in the repo.
 - Report back: the commit hash, the contrast table, and anything that deviated from this spec with the line reference.
 

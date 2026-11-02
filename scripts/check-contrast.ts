@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-const css = readFileSync(path.join(__dirname, "..", "app", "tokens.css"), "utf8");
+const css = readFileSync(path.join(__dirname, "..", "src", "app", "tokens.css"), "utf8");
 
 function declarations(block: string): Map<string, string> {
   const map = new Map<string, string>();

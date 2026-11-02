@@ -3,10 +3,10 @@ import type { Decorator } from "@storybook/nextjs-vite";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
-import data from "../data/data.json";
-import { parseDataset, type Dataset } from "../domain";
-import { metaFromDataset } from "../lib/context/invariants";
-import { ConsoleMetaProvider } from "../lib/context/meta";
+import data from "../src/data/data.json";
+import { parseDataset, type Dataset } from "../src/domain";
+import { metaFromDataset } from "../src/lib/context/invariants";
+import { ConsoleMetaProvider } from "../src/lib/context/meta";
 
 type NuqsParameters = {
   searchParams?: string;
