@@ -102,8 +102,14 @@ test("MAT is unavailable before twelve months and explains why", async ({ page }
   await page.goto("/?mode=analyst&period=2025-04");
   const mat = page.getByRole("radio", { name: "MAT" });
   await expect(mat).toHaveAttribute("aria-disabled", "true");
-  await mat.focus();
-  await expect(page.getByRole("tooltip").first()).toContainText("Needs 12 months of data");
+  // Retry the focus until the page has hydrated and the tooltip handlers are attached.
+  await expect(async () => {
+    await mat.blur();
+    await mat.focus();
+    await expect(page.getByRole("tooltip").first()).toContainText("Needs 12 months of data", {
+      timeout: 1000,
+    });
+  }).toPass();
   await page.goto("/?mode=analyst&period=2025-04&basis=mat");
   await expect(page.getByRole("radio", { name: "Month" })).toBeChecked();
   await expect(page.getByText("MAT unavailable, showing Month")).toBeVisible();
