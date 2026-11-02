@@ -1,51 +1,62 @@
 import { Suspense } from "react";
 
-import { breadcrumbTrail } from "@/domain";
+import type { Metadata } from "next";
+
+import { breadcrumbTrail, entityName, entityOf } from "@/domain";
 import { Panel } from "@/features/assistant/Panel";
 import { Overview } from "@/features/overview/Overview";
 import { OverviewSkeleton } from "@/features/overview/OverviewSkeleton";
 import { Header } from "@/features/shell/Header";
 import { Layout } from "@/features/shell/Layout";
+import { NavigationProvider } from "@/lib/context/navigation";
+import { formatPeriod } from "@/lib/format";
 import { DatasetProvider } from "@/lib/context/dataset";
 import { ConsoleMetaProvider } from "@/lib/context/meta";
 import { lightDataset, metaFromDataset } from "@/lib/context/invariants";
 import { parseContextFromSearchParams } from "@/lib/context/parsers";
 import { getDataset } from "@/lib/dataset";
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const ds = getDataset();
+  const ctx = parseContextFromSearchParams(ds, await searchParams);
+  return {
+    title: `${entityName(ds, entityOf(ctx))} · ${formatPeriod(ctx.period)} · Market Ops`,
+  };
+}
+
+export default async function Page({ searchParams }: PageProps) {
   const ds = getDataset();
   const ctx = parseContextFromSearchParams(ds, await searchParams);
   const meta = metaFromDataset(ds);
-  const productName = ctx.product ? ds.products.find((p) => p.id === ctx.product)?.name : undefined;
 
   return (
     <ConsoleMetaProvider meta={meta}>
-      <Layout
-        header={
-          <Header
-            trail={breadcrumbTrail(ds, ctx)}
-            period={ctx.period}
-            periods={ds.meta.periods}
-            latestPeriod={ds.meta.latestPeriod}
-            mode={ctx.mode}
-            productName={productName}
-          />
-        }
-        dashboard={
-          <Suspense fallback={<OverviewSkeleton />}>
-            <Overview ctx={ctx} />
-          </Suspense>
-        }
-        assistant={
-          <DatasetProvider dataset={lightDataset(ds)}>
-            <Panel />
-          </DatasetProvider>
-        }
-      />
+      <NavigationProvider>
+        <Layout
+          header={
+            <Header
+              trail={breadcrumbTrail(ds, ctx)}
+              products={ds.products.map((p) => ({ id: p.id, name: p.name }))}
+              period={ctx.period}
+              periods={ds.meta.periods}
+              latestPeriod={ds.meta.latestPeriod}
+              mode={ctx.mode}
+            />
+          }
+          dashboard={
+            <Suspense fallback={<OverviewSkeleton />}>
+              <Overview ctx={ctx} />
+            </Suspense>
+          }
+          assistant={
+            <DatasetProvider dataset={lightDataset(ds)}>
+              <Panel />
+            </DatasetProvider>
+          }
+        />
+      </NavigationProvider>
     </ConsoleMetaProvider>
   );
 }

@@ -255,10 +255,12 @@ Every component gets a visible heading in the preview and a story in Storybook i
 
 Full-width bar, background `--surface`, bottom border, height 56 px (Overview) / 48 px (Analyst), content centred to the 1280 px column.
 
+The header is one fixed row from 1024 px up and never changes height with the drill. The wordmark and the controls on the right never shrink or wrap; the breadcrumb takes the remaining width and truncates with an ellipsis, each crumb exposing its full name as a `title`.
+
 Left to right:
 1. Wordmark: "Market Ops" in `--font-display` 18 px 600, colour `--ink`. Then a 1 px vertical rule 20 px tall in `--border`, 16 px margins.
 2. Breadcrumbs: `Portfolio › Europe › Germany`. Each crumb is a link in `--text-label` weight 500 colour `--ink-2`, underline on hover and focus; the current crumb (Germany) is `--ink` weight 600 and not a link. Separator is the `›` character in `--ink-muted` with 8 px margins. Wrap in `<nav aria-label="Drill path">` with an `<ol>`; current crumb has `aria-current="page"`.
-3. Active-context chips immediately after the crumbs, 8 px gap: `Period: May 2026 ×` and `Product: All`. Chip style: height `--chip-h`, radius pill, background `--surface-2`, border `--border`, text `--text-label` `--ink-2`, the `×` is a 16 px button with `aria-label="Clear period"`. Keyboard focusable.
+3. Active-context chip immediately after the crumbs: `Period: May 2026 ×`, shown only when the period is not the latest. There is no product chip; the Product select and the last crumb carry it. Chip style: height `--chip-h`, radius pill, background `--surface-2`, border `--border`, text `--text-label` `--ink-2`, the `×` is a 16 px button with `aria-label="Clear period"`. Keyboard focusable.
 4. Spacer (`flex: 1`).
 5. Data stamp: caption text `DATA THROUGH MAY 2026` in `--ink-muted`, with a 6 px `--ok-mark` dot before it (decorative, `aria-hidden`). Wrap: `<span>` with `title="Source: data.json, latest period 2026-05"`.
 6. Mode switch: segmented control with two options `Overview` | `Analyst`. Height `--control-h`, radius pill, background `--surface-2`, 2 px inner padding. Selected segment: background `--surface`, text `--ink` 600, border `--border`. Unselected: text `--ink-2`. Implement as `<div role="radiogroup" aria-label="View mode">` with two `<button role="radio" aria-checked>`; arrow keys move selection. This control is wired to `html[data-density]` in the preview.

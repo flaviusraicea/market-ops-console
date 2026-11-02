@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
 import { parseDataset } from "@/domain";
+import { applyContextChange, metaFromDataset } from "@/lib/context/invariants";
 import { parseContextFromSearchParams } from "@/lib/context/parsers";
 
 const ds = parseDataset(raw);
@@ -33,5 +34,23 @@ describe("parseContextFromSearchParams", () => {
       period: "2026-03",
       mode: "analyst",
     });
+  });
+});
+
+describe("applyContextChange invariants", () => {
+  const meta = metaFromDataset(ds);
+  const base = {
+    period: "2026-05",
+    mode: "overview",
+    metric: "attainment",
+    basis: "month",
+  } as const;
+  it("derives region when market is set without it", () => {
+    const r = applyContextChange(meta, base as never, { market: "de" });
+    expect(r.ok && r.next.region).toBe("eu");
+  });
+  it("rejects a product with no market", () => {
+    const r = applyContextChange(meta, base as never, { product: "veltrix" });
+    expect(r.ok).toBe(false);
   });
 });
