@@ -20,7 +20,7 @@ pnpm dev          # http://localhost:3000
 | `pnpm test:e2e`                      | Playwright journeys with axe, against the production build            |
 | `pnpm storybook` / `build-storybook` | Component workbench on port 6006, static build to `storybook-static/` |
 | `pnpm check:contrast`                | Asserts every design-token contrast pair in both themes               |
-| `pnpm ci`                            | Lint, typecheck, contrast, tests, build and Storybook build           |
+| `pnpm run ci`                        | Lint, typecheck, contrast, tests, build and Storybook build           |
 
 Component tests are Storybook stories with play functions; `pnpm test:stories` runs them headless in Chromium. Run `pnpm exec playwright install chromium` once before the browser tests.
 

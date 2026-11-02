@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: [["list"], ["html", { open: "never" }]],
   use: { baseURL: `http://localhost:${PORT}`, trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  // Serves the production build; `pnpm ci` and the CI workflow build first.
+  // Serves the production build; `pnpm run ci` and the CI workflow build first.
   webServer: {
     command: `pnpm start -p ${PORT}`,
     url: `http://localhost:${PORT}`,
