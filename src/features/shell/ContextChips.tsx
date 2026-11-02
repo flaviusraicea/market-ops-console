@@ -44,14 +44,19 @@ export function ContextChips({
   onPeriod: (p: string) => void;
   onClearProduct: () => void;
 }) {
+  // The period chip only appears when the view is off the latest period; clearing returns to it.
+  const offLatest = period !== latestPeriod;
+  if (!offLatest && !productName) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Chip
-        label="Period"
-        value={formatPeriod(period)}
-        clearLabel="Clear period"
-        onClear={() => onPeriod(latestPeriod)}
-      />
+      {offLatest ? (
+        <Chip
+          label="Period"
+          value={formatPeriod(period)}
+          clearLabel="Clear period"
+          onClear={() => onPeriod(latestPeriod)}
+        />
+      ) : null}
       {productName ? (
         <Chip
           label="Product"
