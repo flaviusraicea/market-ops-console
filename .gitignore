@@ -49,3 +49,4 @@ storybook-static
 # playwright
 /playwright-report/
 /test-results/
+.lighthouseci/
