@@ -2,6 +2,8 @@
 
 A market operations console: portfolio performance, forecast attainment and an assistant.
 
+**Live deployment:** https://market-ops-console-bay.vercel.app/
+
 ## Quick setup
 
 - Node 22 (`engines` in `package.json`) and pnpm 10.
