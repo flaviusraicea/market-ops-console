@@ -33,3 +33,8 @@ export function periodsForBasis(ds: Dataset, basis: Basis, endPeriod: Period): P
   if (end < 11) throw new RangeError("MAT needs 12 periods");
   return ds.meta.periods.slice(end - 11, end + 1);
 }
+
+/** MAT needs twelve months of data; before that the basis in effect is Month. */
+export function effectiveBasis(ds: Dataset, basis: Basis, period: Period): Basis {
+  return basis === "mat" && periodIndex(ds, period) < 11 ? "month" : basis;
+}

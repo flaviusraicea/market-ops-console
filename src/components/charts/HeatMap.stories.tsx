@@ -1,0 +1,214 @@
+import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+
+import { HeatMap, HeatMapTable, type HeatRow } from "./HeatMap";
+import { ViewAsTable } from "./ViewAsTable";
+
+// Europe, May 2026 context: the values heatMapVM produces, pasted as a literal.
+const rows: HeatRow[] = [
+  {
+    id: "de",
+    name: "Germany",
+    cells: [
+      { period: "2024-06", value: 91, display: "91.0%", actual: 1956625, forecast: 2149129 },
+      { period: "2024-07", value: 91.6, display: "91.6%", actual: 1992713, forecast: 2175143 },
+      { period: "2024-08", value: 91.6, display: "91.6%", actual: 2087070, forecast: 2279051 },
+      { period: "2024-09", value: 92, display: "92.0%", actual: 2078371, forecast: 2258500 },
+      { period: "2024-10", value: 90.8, display: "90.8%", actual: 2102735, forecast: 2314668 },
+      { period: "2024-11", value: 91.8, display: "91.8%", actual: 1981259, forecast: 2157948 },
+      { period: "2024-12", value: 92.3, display: "92.3%", actual: 1889172, forecast: 2047249 },
+      { period: "2025-01", value: 92.1, display: "92.1%", actual: 1800708, forecast: 1954532 },
+      { period: "2025-02", value: 91.7, display: "91.7%", actual: 1797459, forecast: 1959829 },
+      { period: "2025-03", value: 91.6, display: "91.6%", actual: 1757641, forecast: 1918465 },
+      { period: "2025-04", value: 92.6, display: "92.6%", actual: 1793376, forecast: 1936175 },
+      { period: "2025-05", value: 91.4, display: "91.4%", actual: 1857237, forecast: 2031775 },
+      { period: "2025-06", value: 91.6, display: "91.6%", actual: 1914010, forecast: 2088787 },
+      { period: "2025-07", value: 92.3, display: "92.3%", actual: 1999930, forecast: 2167346 },
+      { period: "2025-08", value: 91.6, display: "91.6%", actual: 2074059, forecast: 2264125 },
+      { period: "2025-09", value: 91.1, display: "91.1%", actual: 2024639, forecast: 2221322 },
+      { period: "2025-10", value: 92.3, display: "92.3%", actual: 1967231, forecast: 2132078 },
+      { period: "2025-11", value: 91.8, display: "91.8%", actual: 1944465, forecast: 2117386 },
+      { period: "2025-12", value: 92.7, display: "92.7%", actual: 1869549, forecast: 2016786 },
+      { period: "2026-01", value: 92.6, display: "92.6%", actual: 1727009, forecast: 1864685 },
+      { period: "2026-02", value: 91.1, display: "91.1%", actual: 1664879, forecast: 1828243 },
+      { period: "2026-03", value: 92.2, display: "92.2%", actual: 1211930, forecast: 1314025 },
+      { period: "2026-04", value: 92.2, display: "92.2%", actual: 1657974, forecast: 1797590 },
+      { period: "2026-05", value: 92.2, display: "92.2%", actual: 1676586, forecast: 1817644 },
+    ],
+  },
+  {
+    id: "gb",
+    name: "United Kingdom",
+    cells: [
+      { period: "2024-06", value: 94.8, display: "94.8%", actual: 1866037, forecast: 1968031 },
+      { period: "2024-07", value: 94.3, display: "94.3%", actual: 2008170, forecast: 2129031 },
+      { period: "2024-08", value: 93.2, display: "93.2%", actual: 2022841, forecast: 2170169 },
+      { period: "2024-09", value: 95.1, display: "95.1%", actual: 2059994, forecast: 2166608 },
+      { period: "2024-10", value: 93.9, display: "93.9%", actual: 2082448, forecast: 2218350 },
+      { period: "2024-11", value: 94.1, display: "94.1%", actual: 2026685, forecast: 2154241 },
+      { period: "2024-12", value: 93.4, display: "93.4%", actual: 1931187, forecast: 2067765 },
+      { period: "2025-01", value: 94.3, display: "94.3%", actual: 1940559, forecast: 2058203 },
+      { period: "2025-02", value: 93.9, display: "93.9%", actual: 1860932, forecast: 1982166 },
+      { period: "2025-03", value: 93.8, display: "93.8%", actual: 1882762, forecast: 2007266 },
+      { period: "2025-04", value: 94.8, display: "94.8%", actual: 1840592, forecast: 1942388 },
+      { period: "2025-05", value: 95, display: "95.0%", actual: 1901132, forecast: 2000980 },
+      { period: "2025-06", value: 93.7, display: "93.7%", actual: 2045803, forecast: 2183458 },
+      { period: "2025-07", value: 94.2, display: "94.2%", actual: 2092801, forecast: 2220694 },
+      { period: "2025-08", value: 94.1, display: "94.1%", actual: 2167377, forecast: 2303593 },
+      { period: "2025-09", value: 94.8, display: "94.8%", actual: 2254802, forecast: 2379211 },
+      { period: "2025-10", value: 93.6, display: "93.6%", actual: 2254126, forecast: 2409122 },
+      { period: "2025-11", value: 94.1, display: "94.1%", actual: 2182336, forecast: 2319396 },
+      { period: "2025-12", value: 93.9, display: "93.9%", actual: 2067815, forecast: 2202665 },
+      { period: "2026-01", value: 94.6, display: "94.6%", actual: 2045668, forecast: 2162772 },
+      { period: "2026-02", value: 93.1, display: "93.1%", actual: 2009209, forecast: 2157547 },
+      { period: "2026-03", value: 94, display: "94.0%", actual: 2027459, forecast: 2157799 },
+      { period: "2026-04", value: 94.3, display: "94.3%", actual: 1967237, forecast: 2085460 },
+      { period: "2026-05", value: 94.6, display: "94.6%", actual: 2068011, forecast: 2185608 },
+    ],
+  },
+  {
+    id: "fr",
+    name: "France",
+    cells: [
+      { period: "2024-06", value: 97.4, display: "97.4%", actual: 1386742, forecast: 1423976 },
+      { period: "2024-07", value: 96.2, display: "96.2%", actual: 1483286, forecast: 1542032 },
+      { period: "2024-08", value: 96.6, display: "96.6%", actual: 1543961, forecast: 1597665 },
+      { period: "2024-09", value: 95.8, display: "95.8%", actual: 1572408, forecast: 1640954 },
+      { period: "2024-10", value: 97, display: "97.0%", actual: 1590650, forecast: 1640547 },
+      { period: "2024-11", value: 96.6, display: "96.6%", actual: 1527160, forecast: 1580342 },
+      { period: "2024-12", value: 97, display: "97.0%", actual: 1478897, forecast: 1524666 },
+      { period: "2025-01", value: 96.7, display: "96.7%", actual: 1408476, forecast: 1455993 },
+      { period: "2025-02", value: 95.3, display: "95.3%", actual: 1410223, forecast: 1479849 },
+      { period: "2025-03", value: 97.5, display: "97.5%", actual: 1400308, forecast: 1435718 },
+      { period: "2025-04", value: 97.3, display: "97.3%", actual: 1438584, forecast: 1478127 },
+      { period: "2025-05", value: 96.9, display: "96.9%", actual: 1440219, forecast: 1486576 },
+      { period: "2025-06", value: 97.5, display: "97.5%", actual: 1500234, forecast: 1538950 },
+      { period: "2025-07", value: 97.3, display: "97.3%", actual: 1634129, forecast: 1680059 },
+      { period: "2025-08", value: 96.3, display: "96.3%", actual: 1726558, forecast: 1792396 },
+      { period: "2025-09", value: 97.2, display: "97.2%", actual: 1686928, forecast: 1735939 },
+      { period: "2025-10", value: 96.2, display: "96.2%", actual: 1709666, forecast: 1778096 },
+      { period: "2025-11", value: 96.4, display: "96.4%", actual: 1665669, forecast: 1727124 },
+      { period: "2025-12", value: 96.5, display: "96.5%", actual: 1618652, forecast: 1677092 },
+      { period: "2026-01", value: 95.3, display: "95.3%", actual: 1576826, forecast: 1655105 },
+      { period: "2026-02", value: 97, display: "97.0%", actual: 1537885, forecast: 1586126 },
+      { period: "2026-03", value: 96.5, display: "96.5%", actual: 1498098, forecast: 1553021 },
+      { period: "2026-04", value: 97, display: "97.0%", actual: 1547640, forecast: 1595929 },
+      { period: "2026-05", value: 96.7, display: "96.7%", actual: 1607657, forecast: 1663149 },
+    ],
+  },
+  {
+    id: "it",
+    name: "Italy",
+    cells: [
+      { period: "2024-06", value: 92.5, display: "92.5%", actual: 1013833, forecast: 1095870 },
+      { period: "2024-07", value: 92.5, display: "92.5%", actual: 1026868, forecast: 1110309 },
+      { period: "2024-08", value: 93.3, display: "93.3%", actual: 1042073, forecast: 1117335 },
+      { period: "2024-09", value: 93.1, display: "93.1%", actual: 1105030, forecast: 1186897 },
+      { period: "2024-10", value: 93, display: "93.0%", actual: 1082046, forecast: 1163752 },
+      { period: "2024-11", value: 93, display: "93.0%", actual: 1027781, forecast: 1105166 },
+      { period: "2024-12", value: 93.2, display: "93.2%", actual: 1002481, forecast: 1076081 },
+      { period: "2025-01", value: 92.2, display: "92.2%", actual: 960317, forecast: 1041410 },
+      { period: "2025-02", value: 94.1, display: "94.1%", actual: 924968, forecast: 983001 },
+      { period: "2025-03", value: 92.4, display: "92.4%", actual: 926831, forecast: 1003326 },
+      { period: "2025-04", value: 92.4, display: "92.4%", actual: 934361, forecast: 1010669 },
+      { period: "2025-05", value: 93.4, display: "93.4%", actual: 938039, forecast: 1004021 },
+      { period: "2025-06", value: 92, display: "92.0%", actual: 1005385, forecast: 1092964 },
+      { period: "2025-07", value: 92.4, display: "92.4%", actual: 1035318, forecast: 1120827 },
+      { period: "2025-08", value: 93.3, display: "93.3%", actual: 1062314, forecast: 1139034 },
+      { period: "2025-09", value: 92.9, display: "92.9%", actual: 1081216, forecast: 1163373 },
+      { period: "2025-10", value: 93, display: "93.0%", actual: 1060126, forecast: 1140226 },
+      { period: "2025-11", value: 93.3, display: "93.3%", actual: 1065128, forecast: 1141582 },
+      { period: "2025-12", value: 92.3, display: "92.3%", actual: 994678, forecast: 1078228 },
+      { period: "2026-01", value: 93.6, display: "93.6%", actual: 970254, forecast: 1037001 },
+      { period: "2026-02", value: 92.7, display: "92.7%", actual: 917992, forecast: 989951 },
+      { period: "2026-03", value: 92.8, display: "92.8%", actual: 903104, forecast: 973034 },
+      { period: "2026-04", value: 92.1, display: "92.1%", actual: 929268, forecast: 1009472 },
+      { period: "2026-05", value: 93.8, display: "93.8%", actual: 940564, forecast: 1002286 },
+    ],
+  },
+  {
+    id: "es",
+    name: "Spain",
+    cells: [
+      { period: "2024-06", value: 104.3, display: "104.3%", actual: 826704, forecast: 792718 },
+      { period: "2024-07", value: 105.2, display: "105.2%", actual: 873185, forecast: 830178 },
+      { period: "2024-08", value: 105, display: "105.0%", actual: 905281, forecast: 862041 },
+      { period: "2024-09", value: 104.9, display: "104.9%", actual: 917884, forecast: 875411 },
+      { period: "2024-10", value: 104.3, display: "104.3%", actual: 884768, forecast: 848049 },
+      { period: "2024-11", value: 103.9, display: "103.9%", actual: 879659, forecast: 846648 },
+      { period: "2024-12", value: 103.8, display: "103.8%", actual: 846349, forecast: 815061 },
+      { period: "2025-01", value: 104.6, display: "104.6%", actual: 793943, forecast: 758830 },
+      { period: "2025-02", value: 104.4, display: "104.4%", actual: 772764, forecast: 740482 },
+      { period: "2025-03", value: 104.9, display: "104.9%", actual: 775170, forecast: 738781 },
+      { period: "2025-04", value: 104.7, display: "104.7%", actual: 772140, forecast: 737315 },
+      { period: "2025-05", value: 105.4, display: "105.4%", actual: 801198, forecast: 760459 },
+      { period: "2025-06", value: 103.8, display: "103.8%", actual: 838748, forecast: 808123 },
+      { period: "2025-07", value: 103.8, display: "103.8%", actual: 882163, forecast: 849487 },
+      { period: "2025-08", value: 104.4, display: "104.4%", actual: 873739, forecast: 836886 },
+      { period: "2025-09", value: 104.2, display: "104.2%", actual: 897281, forecast: 860901 },
+      { period: "2025-10", value: 104.7, display: "104.7%", actual: 864590, forecast: 825592 },
+      { period: "2025-11", value: 104.1, display: "104.1%", actual: 853050, forecast: 819405 },
+      { period: "2025-12", value: 104.7, display: "104.7%", actual: 825272, forecast: 788188 },
+      { period: "2026-01", value: 104.6, display: "104.6%", actual: 773835, forecast: 739742 },
+      { period: "2026-02", value: 104.5, display: "104.5%", actual: 762046, forecast: 729017 },
+      { period: "2026-03", value: 104.8, display: "104.8%", actual: 748230, forecast: 713765 },
+      { period: "2026-04", value: 105.3, display: "105.3%", actual: 754154, forecast: 716409 },
+      { period: "2026-05", value: 104.7, display: "104.7%", actual: 764562, forecast: 730119 },
+    ],
+  },
+];
+const periods = rows[0]!.cells.map((c) => c.period);
+
+const meta = {
+  title: "components/charts/HeatMap",
+  component: HeatMap,
+  decorators: [
+    (Story) => (
+      <div className="max-w-3xl p-4">
+        <Story />
+      </div>
+    ),
+  ],
+  args: { rows, periods, label: "Attainment by month · Europe", onCell: fn() },
+} satisfies Meta<typeof HeatMap>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Europe: Story = {
+  args: { selected: { market: "de", period: "2026-03" } },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const grid = await canvas.findByRole("grid");
+    await expect(grid).toHaveAttribute("aria-rowcount", "6");
+    await expect(grid).toHaveAttribute("aria-colcount", "25");
+    const mar = canvas.getByRole("gridcell", { name: "Germany, Mar 2026, 92.2% of forecast" });
+    await expect(mar).toHaveAttribute("tabindex", "0");
+    mar.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    const apr = canvas.getByRole("gridcell", { name: "Germany, Apr 2026, 92.2% of forecast" });
+    await waitFor(() => expect(apr).toHaveFocus());
+    await userEvent.keyboard("{ArrowLeft}{Enter}");
+    await expect(args.onCell).toHaveBeenCalledWith("de", "2026-03");
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(canvas.getByRole("gridcell", { name: /^United Kingdom, Mar 2026/ })).toHaveFocus();
+  },
+};
+
+export const ViewAsTableState: Story = {
+  render: () => (
+    <ViewAsTable
+      chart={<HeatMap rows={rows} periods={periods} label="Attainment" onCell={() => {}} />}
+      table={<HeatMapTable caption="Attainment by month" rows={rows} periods={periods} />}
+    />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "View as table" }));
+    await expect(canvas.getByRole("button", { name: "View as chart" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(canvas.getByRole("table")).toBeVisible();
+  },
+};

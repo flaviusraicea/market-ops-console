@@ -72,7 +72,7 @@ describe("sourcesRows", () => {
     expect(caption).toContain("4 markets are at risk and 2 are off track");
   });
 
-  it("Germany dip answer: three rows matching the addendum", () => {
+  it("Germany dip answer: three rows following the formatting rule", () => {
     const { rows, caption } = sourcesRows(
       ds,
       resolved("germany-dip", GERMANY_DIP).citations,
@@ -90,14 +90,14 @@ describe("sourcesRows", () => {
         "Steepest drop in March",
         "Germany",
         "2026-03",
-        "$1.21M actual · −27% vs Feb (anomaly note)",
+        "$1.21M actual · 92.2% of forecast · −27% vs Feb (anomaly note)",
         "Steepest drop",
       ],
       [
         "Decline across the portfolio",
         "Germany · Veltrix",
         "2026-03",
-        "$0.43M actual · 92.5% of forecast · was $0.57M in Feb",
+        "$0.43M actual · 92.5% of forecast",
         "Across products",
       ],
     ]);

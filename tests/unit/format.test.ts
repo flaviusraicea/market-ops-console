@@ -6,6 +6,7 @@ import {
   formatMoneyFull,
   formatPct,
   formatPeriod,
+  formatPeriodAbbr,
   formatPeriodShort,
 } from "@/lib/format";
 
@@ -28,6 +29,7 @@ describe("format", () => {
   it("periods and counts", () => {
     expect(formatPeriod("2026-05")).toBe("May 2026");
     expect(formatPeriodShort("2026-05")).toBe("May 26");
+    expect(formatPeriodAbbr("2024-06")).toBe("Jun 2024");
     expect(formatCount(6, 13)).toBe("6 of 13");
   });
 });

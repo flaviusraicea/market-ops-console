@@ -3,15 +3,9 @@
 import { ICON_STROKE, MessageSquareText } from "@/components/icons";
 import { cn } from "@/components/cn";
 import { Button } from "@/components/ui/button";
-import { STATUS_LABEL } from "@/domain";
+import { askWhyPrompt } from "@/domain";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import type { MoverVM, OverviewVM } from "./viewModel";
-
-function question(m: MoverVM): { aria: string; text: string } {
-  if (m.id === "de") return { aria: "Ask why Germany dipped", text: "Why did Germany dip?" };
-  const status = STATUS_LABEL[m.status].toLowerCase();
-  return { aria: `Ask why ${m.name} is ${status}`, text: `Why is ${m.name} ${status}?` };
-}
 
 function Column({ title, items }: { title: string; items: MoverVM[] }) {
   const { prefill } = useAskWhy();
@@ -22,7 +16,7 @@ function Column({ title, items }: { title: string; items: MoverVM[] }) {
       </h4>
       <ul>
         {items.map((m) => {
-          const q = question(m);
+          const q = askWhyPrompt(m.id, m.name, m.status);
           return (
             <li
               key={m.id}

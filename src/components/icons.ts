@@ -8,6 +8,8 @@ export {
   ChevronDown,
   CircleAlert,
   CirclePause,
+  CircleSlash,
+  Info,
   MessageSquareText,
   Minus,
   Moon,
@@ -17,8 +19,8 @@ export {
   Sparkles,
   Square,
   Sun,
-  Table as TableIcon,
   TriangleAlert,
+  Table as TableIcon,
   X,
 } from "lucide-react";
 export const ICON_STROKE = 1.75;

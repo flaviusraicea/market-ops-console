@@ -91,20 +91,13 @@ function sourceValue(ds: Dataset, entity: Entity, period: Period, withRevenue: b
   }
 
   const t = totals(factsFor(ds, { entity, periods: [period] }));
-  const actual = `${formatMoneyCompact(t.actual)} actual`;
+  const base = `${formatMoneyCompact(t.actual)} actual · ${formatPct(attainmentPct(t), { sign: false })} of forecast`;
   const anomaly = market?.kpis.anomalies.find((a) => a.period === period);
   const prev = previousPeriod(ds, period);
-
-  if (anomaly && entity.kind === "market") {
+  if (anomaly && entity.kind === "market" && prev) {
     const mom = momChangePct(ds, entity, period);
-    if (mom !== undefined && prev) {
-      return `${actual} · ${signedWhole(mom)} vs ${formatMonthShort(prev)} (anomaly note)`;
-    }
-  }
-  const base = `${actual} · ${formatPct(attainmentPct(t), { sign: false })} of forecast`;
-  if (anomaly && entity.kind === "product" && prev) {
-    const before = totals(factsFor(ds, { entity, periods: [prev] }));
-    return `${base} · was ${formatMoneyCompact(before.actual)} in ${formatMonthShort(prev)}`;
+    if (mom !== undefined)
+      return `${base} · ${signedWhole(mom)} vs ${formatMonthShort(prev)} (anomaly note)`;
   }
   return base;
 }
