@@ -38,6 +38,12 @@ export function Panel({ onSubmit, stream }: PanelProps) {
 
   const { answers, ask, stop, retry, isStreaming } = useAnswerMachine(stream);
 
+  // The Try button on an abstain card fills the composer like "Ask why" does, and leaves sending to the user.
+  function fill(text: string) {
+    setDraft(text);
+    ref.current?.focus();
+  }
+
   function submit(question: string) {
     logEvent({ type: "ask", question });
     onSubmit?.(question);
@@ -61,6 +67,7 @@ export function Panel({ onSubmit, stream }: PanelProps) {
       <AnswerList
         answers={answers}
         onPick={submit}
+        onTry={fill}
         onStop={stop}
         onRetry={(id) => {
           retry(id);

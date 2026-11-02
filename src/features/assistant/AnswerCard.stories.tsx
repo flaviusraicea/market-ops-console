@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
 
+import { withDataset } from "../../../.storybook/decorators";
 import data from "@/data/data.json";
 import fixtures from "@/data/fixtures.json";
 import { CitationSchema, parseDataset } from "@/domain";
@@ -34,8 +35,9 @@ const done = answerReducer(
 const meta = {
   title: "features/assistant/AnswerCard",
   component: AnswerCard,
-  args: { onStop: fn(), onRetry: fn() },
+  args: { onStop: fn(), onRetry: fn(), onTry: fn() },
   decorators: [
+    withDataset,
     (Story) => (
       <div className="max-w-[380px] p-4">
         <Story />
@@ -107,9 +109,69 @@ export const Stopped: Story = {
 
 export const Failed: Story = {
   args: { answer: { ...base, status: "failed", text: "", message: "boom" } },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText(question)).toBeInTheDocument();
+    const alert = canvas.getByRole("alert");
+    await expect(within(alert).getByText("Request failed")).toBeInTheDocument();
+    await expect(
+      within(alert).getByText("The assistant could not answer. Nothing was changed."),
+    ).toBeInTheDocument();
+    await expect(canvas.queryByRole("img")).toBeNull();
+    await userEvent.click(within(alert).getByRole("button", { name: "Retry" }));
+    await expect(args.onRetry).toHaveBeenCalledOnce();
+  },
+};
+
+export const FailedAfterTokens: Story = {
+  args: {
+    answer: { ...base, status: "failed", text: dip.answer.text.slice(0, 60), message: "boom" },
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("Request failed")).toBeInTheDocument();
-    await expect(canvas.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    await expect(canvasElement.querySelector("p.font-display")).toHaveTextContent(
+      dip.answer.text.slice(0, 60).trim(),
+    );
+    await expect(canvas.getByText("Partial answer")).toBeInTheDocument();
+    await expect(canvas.getByRole("alert")).toHaveTextContent("Request failed");
+    await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
+  },
+};
+
+const abstain: Answer = {
+  id: "a2",
+  question: "What will sales be next year?",
+  status: "done",
+  text: "I can't answer that. The dataset only covers actuals and forecasts through the current horizon.",
+  kind: "abstain",
+  confidence: "low",
+  citations: [],
+};
+
+export const Abstain: Story = {
+  args: { answer: abstain },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("Can\u2019t answer from this data")).toBeInTheDocument();
+    await expect(canvas.getByText(/Jun 2024 to May 2026/)).toBeInTheDocument();
+    await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
+    await expect(canvas.queryByRole("img")).toBeNull();
+    await expect(canvas.queryByRole("button", { name: "Show sources" })).toBeNull();
+    await userEvent.click(
+      canvas.getByRole("button", { name: "Try: \u201CWhich markets are at risk?\u201D" }),
+    );
+    await expect(args.onTry).toHaveBeenCalledWith("Which markets are at risk?");
+  },
+};
+
+export const LowConfidence: Story = {
+  args: { answer: { ...done, kind: "low_confidence", confidence: "low" } as Answer },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByRole("img", { name: "Low confidence: directional only, verify before acting" }),
+    ).toBeInTheDocument();
+    await expect(canvas.getByText("Directional only, verify before acting")).toBeInTheDocument();
+    await expect(canvas.queryByText("Can\u2019t answer from this data")).toBeNull();
   },
 };
