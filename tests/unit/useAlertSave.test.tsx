@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AlertRule } from "@/domain";
+import { STORAGE_KEY, readRules, resetMemory } from "@/features/alerts/storage";
 import { useAlertSave } from "@/features/alerts/useAlertSave";
 
 const saved: AlertRule = {
@@ -17,7 +18,8 @@ const next: AlertRule = { ...saved, id: undefined, threshold: 97 };
 
 const ok = (body: unknown, status = 200) => Promise.resolve(Response.json(body, { status }));
 
-function setup(handler: (url: string, init?: RequestInit) => Promise<Response>) {
+function setup(handler: (url: string, init?: RequestInit) => Promise<Response>, seed = true) {
+  if (seed) window.localStorage.setItem(STORAGE_KEY, JSON.stringify([saved]));
   const fetchMock = vi.fn(handler);
   vi.stubGlobal("fetch", fetchMock);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -27,7 +29,11 @@ function setup(handler: (url: string, init?: RequestInit) => Promise<Response>) 
   return { fetchMock, ...renderHook(() => useAlertSave(), { wrapper }) };
 }
 
-beforeEach(() => vi.useRealTimers());
+beforeEach(() => {
+  vi.useRealTimers();
+  window.localStorage.clear();
+  resetMemory();
+});
 afterEach(() => vi.unstubAllGlobals());
 
 describe("useAlertSave", () => {
@@ -99,5 +105,95 @@ describe("useAlertSave", () => {
     act(() => result.current.remove("r1"));
     await waitFor(() => expect(result.current.deleteFailed).toBe(true));
     expect(result.current.rules).toHaveLength(1);
+  });
+});
+
+describe("browser storage", () => {
+  it("persists a confirmed save and a delete", async () => {
+    const { result } = setup((_url, init) =>
+      init?.method === "POST"
+        ? ok({ rule: { ...next, id: "new", createdAt: "2026-01-01T00:00:00.000Z" } })
+        : Promise.resolve(new Response(null, { status: 204 })),
+    );
+    await waitFor(() => expect(result.current.rules).toHaveLength(1));
+    act(() => result.current.save([next], { fail: false }));
+    await waitFor(() => expect(result.current.status).toBe("saved"));
+    // Same metric and scope: updated in place, id kept.
+    expect(readRules()).toEqual([expect.objectContaining({ id: "r1", threshold: 97 })]);
+
+    act(() => result.current.remove("r1"));
+    await waitFor(() => expect(result.current.rules).toHaveLength(0));
+    expect(readRules()).toEqual([]);
+  });
+
+  it("writes nothing when the save fails", async () => {
+    const { result } = setup(() => ok({ message: "x" }, 500));
+    await waitFor(() => expect(result.current.rules).toHaveLength(1));
+    act(() => result.current.save([next], { fail: true }));
+    await waitFor(() => expect(result.current.failure).not.toBeNull());
+    expect(readRules()).toEqual([expect.objectContaining({ threshold: 95 })]);
+  });
+
+  it("falls back to an empty list on corrupt data and drops invalid entries", () => {
+    window.localStorage.setItem(STORAGE_KEY, "{not json");
+    expect(readRules()).toEqual([]);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ a: 1 }));
+    expect(readRules()).toEqual([]);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([saved, { ...saved, threshold: 500 }]));
+    expect(readRules()).toEqual([saved]);
+  });
+
+  it("keeps rules in memory when localStorage throws", async () => {
+    const { writeRules } = await import("@/features/alerts/storage");
+    const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("quota");
+    });
+    const get = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    writeRules([saved]);
+    expect(readRules()).toEqual([saved]);
+    spy.mockRestore();
+    get.mockRestore();
+  });
+
+  it("refetches when another tab changes the rules", async () => {
+    const { result } = setup(() => ok({}));
+    await waitFor(() => expect(result.current.rules).toHaveLength(1));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+    act(() => {
+      window.dispatchEvent(new StorageEvent("storage", { key: STORAGE_KEY }));
+    });
+    await waitFor(() => expect(result.current.rules).toHaveLength(0));
+  });
+});
+
+describe("normalizeRules", () => {
+  const rule = (metric: AlertRule["metric"], scope: AlertRule["scope"], id: string): AlertRule => ({
+    id,
+    metric,
+    comparator: "below",
+    threshold: 1,
+    scope,
+  });
+
+  it("dedupes by metric and scope and orders the list the same way every time", async () => {
+    const { normalizeRules } = await import("@/features/alerts/useAlertSave");
+    const rows = [
+      rule("attainment", { regionId: "eu" }, "a"),
+      rule("attainment", "portfolio", "b"),
+      rule("growth", { regionId: "eu" }, "c"),
+      rule("growth", "portfolio", "d"),
+      rule("growth", "portfolio", "e"),
+    ];
+    const order = (r: AlertRule[]) => r.map((x) => `${x.metric}:${JSON.stringify(x.scope)}`);
+    const expected = order(normalizeRules(rows));
+    expect(expected).toEqual([
+      'growth:"portfolio"',
+      'attainment:"portfolio"',
+      'growth:{"regionId":"eu"}',
+      'attainment:{"regionId":"eu"}',
+    ]);
+    expect(order(normalizeRules([...rows].reverse()))).toEqual(expected);
   });
 });

@@ -36,5 +36,5 @@ Design and architecture documents live in `/docs` (copied from the design folder
 ## Alert notes
 
 - Analyst mode has an `Alert thresholds` card. Saving writes a growth rule and an attainment rule for the chosen scope through `POST /api/alerts`; saving the same metric and scope again updates the rule.
-- Rules live in memory on the server instance (`src/app/api/alerts/route.ts`), so they reset when the server restarts and are not shared between instances.
+- The alerts backend is a mock: `POST`/`DELETE /api/alerts` validate, wait 600 ms and can fail, but store nothing. Rules are saved in your browser (`localStorage`, key `market-ops:alerts:v1`), so they survive a reload, stay in this browser only, and stay in step across tabs. If storage is disabled or full they last for the session.
 - The `Simulate failure` checkbox sends `?fail=1`, so the route answers 500 after its 600 ms delay and the UI shows the rollback.

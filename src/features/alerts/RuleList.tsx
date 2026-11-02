@@ -8,7 +8,7 @@ import { cn } from "@/components/cn";
 import { evaluateRule } from "@/domain";
 import { useDataset } from "@/lib/context/dataset";
 import { DeleteAlertDialog } from "./DeleteAlertDialog";
-import { evaluationLine, ruleSentence } from "./labels";
+import { evaluationLine, ruleSentence, scopeToValue } from "./labels";
 import type { RuleRow } from "./useAlertSave";
 
 export function RuleList({
@@ -49,7 +49,7 @@ export function RuleList({
             const names = evaluateRule(ds, rule).breaching.map((m) => m.name);
             return (
               <li
-                key={rule.id}
+                key={`${rule.metric}:${scopeToValue(rule.scope)}`}
                 className="flex items-start justify-between gap-3 border-t border-grid py-2 first:border-t-0"
               >
                 <div className="min-w-0">

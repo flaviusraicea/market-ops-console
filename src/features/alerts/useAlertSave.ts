@@ -1,12 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { AlertRule } from "@/domain";
 import { logEvent } from "@/lib/events";
 import { alertApi, type AlertApi } from "./api";
 import { scopeToValue } from "./labels";
+import { subscribeToRules } from "./storage";
 
 export const ALERTS_KEY = ["alerts"] as const;
 
@@ -39,6 +40,30 @@ function upsertPending(rows: RuleRow[], incoming: AlertRule[]): RuleRow[] {
   return next;
 }
 
+const SCOPE_RANK = { portfolio: 0, region: 1, market: 2 } as const;
+
+/**
+ * One row per metric and scope, in a fixed order: All markets, regions, then markets, each growth before
+ * attainment. Whatever order or duplicates the server sends, the list reads the same.
+ */
+export function normalizeRules<T extends AlertRule>(rows: readonly T[]): T[] {
+  const byKey = new Map<string, T>();
+  for (const r of rows) byKey.set(keyOf(r), r);
+  const rank = (r: AlertRule) => {
+    const v = scopeToValue(r.scope);
+    return [
+      SCOPE_RANK[v.split(":")[0] as keyof typeof SCOPE_RANK],
+      v,
+      r.metric === "growth" ? 0 : 1,
+    ] as const;
+  };
+  return [...byKey.values()].sort((a, b) => {
+    const [ka, va, ma] = rank(a);
+    const [kb, vb, mb] = rank(b);
+    return ka - kb || va.localeCompare(vb) || ma - mb;
+  });
+}
+
 /** The thresholds a scope had in a snapshot, or the defaults when it had none. */
 function thresholdsFor(rows: RuleRow[], scope: AlertRule["scope"]) {
   const find = (metric: AlertRule["metric"]) =>
@@ -56,9 +81,26 @@ export function useAlertSave(api: AlertApi = alertApi) {
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [deleteFailed, setDeleteFailed] = useState(false);
 
-  const list = useQuery({ queryKey: ALERTS_KEY, queryFn: () => api.listRules() });
+  const list = useQuery({
+    queryKey: ALERTS_KEY,
+    queryFn: () => api.listRules(),
+    select: (rows) => normalizeRules(rows),
+  });
+
+  /** Refetch once the last in-flight save or delete finishes, so an early response cannot overwrite a later one. */
+  const settle = () => {
+    if (qc.isMutating({ mutationKey: ALERTS_KEY }) <= 1)
+      void qc.invalidateQueries({ queryKey: ALERTS_KEY });
+  };
+
+  // Another tab saved or deleted a rule.
+  useEffect(
+    () => subscribeToRules(() => void qc.invalidateQueries({ queryKey: ALERTS_KEY })),
+    [qc],
+  );
 
   const save = useMutation<AlertRule[], Error, SaveVars, { previous: RuleRow[] }>({
+    mutationKey: ALERTS_KEY,
     mutationFn: ({ rules, fail }) => Promise.all(rules.map((r) => api.saveRule(r, { fail }))),
     onMutate: async ({ rules }) => {
       await qc.cancelQueries({ queryKey: ALERTS_KEY });
@@ -78,10 +120,11 @@ export function useAlertSave(api: AlertApi = alertApi) {
       setFailure(null);
       setSavedAt(Date.now());
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ALERTS_KEY }),
+    onSettled: () => settle(),
   });
 
   const remove = useMutation<void, Error, { id: string; fail?: boolean }, { previous: RuleRow[] }>({
+    mutationKey: ALERTS_KEY,
     mutationFn: ({ id, fail }) => api.deleteRule(id, { fail: fail ?? false }),
     onMutate: async ({ id }) => {
       await qc.cancelQueries({ queryKey: ALERTS_KEY });
@@ -98,7 +141,7 @@ export function useAlertSave(api: AlertApi = alertApi) {
       setDeleteFailed(true);
       logEvent({ type: "alert_save_failed", message: error.message });
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: ALERTS_KEY }),
+    onSettled: () => settle(),
   });
 
   const status: SaveStatus = save.isPending
