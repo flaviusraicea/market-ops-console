@@ -66,15 +66,23 @@ const bins = (labels: readonly string[]): LegendBin[] =>
 
 export const ATTAINMENT_LEGEND: LegendBin[] = bins([
   "<92.5%",
-  "92.5–95",
-  "95–100",
-  "100",
-  "100–102",
-  "102–105",
+  "92.5–95%",
+  "95–100%",
+  "100%",
+  "100–102%",
+  "102–105%",
   ">105%",
 ]);
 
-export const GROWTH_LEGEND: LegendBin[] = bins(["<−5%", "−5 to −2", "−2 to 0", "0", "0 to 2", "2 to 5", ">5%"]);
+export const GROWTH_LEGEND: LegendBin[] = bins([
+  "<−5%",
+  "−5 to −2%",
+  "−2 to 0%",
+  "0%",
+  "0 to 2%",
+  "2 to 5%",
+  ">5%",
+]);
 
 export function revenueLegend(max: number): LegendBin[] {
   return SEQUENTIAL.map((token, i) => ({

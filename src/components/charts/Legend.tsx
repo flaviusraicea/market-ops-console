@@ -34,7 +34,11 @@ function Swatch({ swatch, color }: Pick<LegendItem, "swatch" | "color">) {
   );
 }
 
-/** Static legend (design-system 6.10). Fill swatches stack the label under the swatch so seven bins fit one row. */
+/**
+ * Static legend (design-system 6.10). Fill swatches stack a centred label under the swatch. Seven bins sit
+ * on one row from 1100px up; below that they wrap to two rows, the first three bins (the low side of the
+ * scale) on the first row and the remaining four (the neutral bin and the high side) on the second.
+ */
 export function Legend({
   items,
   label,
@@ -51,15 +55,20 @@ export function Legend({
       className={cn(
         "text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2",
         fills
-          ? "grid w-full max-w-[30rem] grid-cols-7 gap-x-1"
+          ? "grid w-full max-w-[40rem] grid-cols-4 gap-x-3 gap-y-2 min-[1100px]:grid-cols-7"
           : "flex flex-wrap items-center gap-x-4 gap-y-1",
         className,
       )}
     >
-      {items.map((item) => (
+      {items.map((item, i) => (
         <li
           key={item.label}
-          className={cn(fills ? "flex min-w-0 flex-col gap-1" : "inline-flex items-center gap-1.5")}
+          className={cn(
+            fills
+              ? "flex min-w-0 flex-col items-center gap-1 text-center whitespace-nowrap"
+              : "inline-flex items-center gap-1.5",
+            fills && items.length === 7 && i === 3 && "col-start-1 min-[1100px]:col-auto",
+          )}
         >
           <Swatch swatch={item.swatch} color={item.color} />
           <span>{item.label}</span>

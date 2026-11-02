@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ATTAINMENT_LEGEND,
   attainmentDiverging,
   GROWTH_LEGEND,
   growthDiverging,
@@ -56,16 +57,28 @@ describe("growthDiverging", () => {
   });
 });
 
-describe("GROWTH_LEGEND", () => {
-  it("labels the seven symmetric bins", () => {
+describe("legends", () => {
+  it("label the seven growth bins symmetrically, every label with a percent sign", () => {
     expect(GROWTH_LEGEND.map((b) => b.label)).toEqual([
       "<−5%",
-      "−5 to −2",
-      "−2 to 0",
-      "0",
-      "0 to 2",
-      "2 to 5",
+      "−5 to −2%",
+      "−2 to 0%",
+      "0%",
+      "0 to 2%",
+      "2 to 5%",
       ">5%",
+    ]);
+  });
+
+  it("label the seven attainment bins, every label with a percent sign", () => {
+    expect(ATTAINMENT_LEGEND.map((b) => b.label)).toEqual([
+      "<92.5%",
+      "92.5–95%",
+      "95–100%",
+      "100%",
+      "100–102%",
+      "102–105%",
+      ">105%",
     ]);
   });
 });
