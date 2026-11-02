@@ -103,3 +103,29 @@ export const StopThenRetry: Story = {
     await expect(canvas.getAllByText(/You asked:/)).toHaveLength(2);
   },
 };
+
+/** Two tokens, then the route reports an error. */
+const failsAfterTwoTokens: AskStream = async (_q, { onEvent }) => {
+  for (const value of ["Germany ", "fell "]) {
+    await tick();
+    onEvent({ type: "token", value });
+  }
+  await tick();
+  onEvent({ type: "error", message: "boom" });
+};
+
+export const FailsAfterTwoTokens: Story = {
+  args: { stream: failsAfterTwoTokens },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByRole("textbox", { name: "Ask the assistant" }), "Go{Enter}");
+    await expect(await canvas.findByText("Failed \u00b7 partial answer")).toBeInTheDocument();
+    await expect(canvasElement.querySelector("p.font-display")?.textContent).toContain(
+      "Germany fell",
+    );
+    await expect(canvas.getByRole("alert")).toHaveTextContent("Request failed");
+    await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
+    await expect(canvas.queryByRole("img", { name: /confidence/i })).toBeNull();
+    await expect(canvasElement.querySelector(".caret")).toBeNull();
+  },
+};

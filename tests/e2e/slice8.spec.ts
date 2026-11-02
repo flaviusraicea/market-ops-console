@@ -83,7 +83,7 @@ test("a stream that errors after two tokens keeps them marked partial, with the 
   await page.goto("/");
   await ask(page, "Why did Germany dip?");
   await expect(page.getByText("Germany fell sharply")).toBeVisible();
-  await expect(page.getByText("Partial answer")).toBeVisible();
+  await expect(page.getByText("Failed · partial answer")).toBeVisible();
   await expect(page.getByRole("alert").filter({ hasText: "Request failed" })).toBeVisible();
   await expect(page.getByRole("list", { name: "Citations" })).toHaveCount(0);
 });

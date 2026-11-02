@@ -46,7 +46,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry }: AnswerCardProps) 
                 {text}{" "}
                 <span className={`${PILL} align-middle`}>
                   <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-                  Partial answer
+                  Failed · partial answer
                 </span>
               </AnswerText>
             </Card>
