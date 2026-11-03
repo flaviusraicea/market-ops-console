@@ -5,7 +5,7 @@
 Each flow is one build slice and one test. Order is the build sequence: each slice only depends on the ones above it. Acceptance criteria are written as Given / When / Then so they map one-to-one onto Playwright E2E tests (marked E2E) or component and unit tests (marked C or U). Vocabulary follows domain-model.md; visuals follow design-system.md.
 
 Conventions
-- "Context" means the URL state `{region, market, product, period, mode, metric, basis, cite}`; defaults are portfolio, 2026-05, overview, attainment, month.
+- "Context" means the URL state `{region, market, product, period, mode, metric, basis, cite}`; defaults are portfolio, 2026-05, the signed-in role's view (executive or analyst), attainment, month.
 - "Latest period" is May 2026. All sample values are the ones in preview-spec.md section 9 and domain-model.md section 5.
 - Every slice ends with: axe reports zero violations on the screens it touched, and the screens render in light, dark, overview and analyst.
 
@@ -34,14 +34,14 @@ User and job: the reviewer, or any first visit. "Understand what this is and wha
 
 Steps
 1. Open `/`.
-2. See the header (wordmark, breadcrumbs at Portfolio, period May 2026, stamp "Data through May 2026", mode switch on Overview, theme toggle).
+2. See the header (wordmark, breadcrumbs at Portfolio, period May 2026, stamp "Data through May 2026", mode switch on Executive, theme toggle, account menu for Dana Whitfield).
 3. See the Overview dashboard (slice 2) and the assistant panel open on the right with three suggestion chips: "Which markets are at risk?", "Why did Germany dip?", "Compare APAC and Europe".
 4. See the assistant's empty state: one sentence "Ask about markets, products or periods. Answers cite the data they use." and the three chips.
 
 States: loading (skeleton tiles and skeleton panel, `aria-busy`), ready, fonts-failed (system fallbacks).
 
 Acceptance
-- E2E: Given a fresh browser, when `/` loads, then the h1 is "Market Ops", the stamp reads "Data through May 2026", the mode switch has Overview checked, and the assistant shows exactly three suggestion chips with those labels.
+- E2E: Given a fresh browser, when `/` loads, then the h1 is "Market Ops", the stamp reads "Data through May 2026", the mode switch has Executive checked, and the assistant shows exactly three suggestion chips with those labels.
 - E2E: Given `/` has loaded, when Tab is pressed repeatedly, then focus visits wordmark link, breadcrumb, period control, mode switch, theme toggle, then the first KPI tile action, and every focused element shows a visible ring.
 - C: Given no data yet, when the page renders, then skeletons show and no number is displayed.
 - E2E: Given the OS prefers dark, when `/` loads with no stored theme, then `html[data-theme]` is absent and the computed background is `#161512`.

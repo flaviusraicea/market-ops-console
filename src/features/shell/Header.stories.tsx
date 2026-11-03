@@ -9,7 +9,7 @@ import { Header } from "./Header";
 const ds = parseDataset(data);
 const base = {
   period: "2026-05" as Period,
-  mode: "overview",
+  mode: "executive",
   metric: "attainment",
   basis: "month",
 } as const;
@@ -27,7 +27,7 @@ const meta = {
     products: ds.products.map((p) => ({ id: p.id, name: p.name })),
     latestPeriod: ds.meta.latestPeriod,
     period: "2026-05",
-    mode: "overview",
+    mode: "executive",
   },
 } satisfies Meta<typeof Header>;
 
@@ -92,11 +92,11 @@ export const Germany: Story = {
 
     await expect(canvas.getByText(/data through may 2026/i)).toBeInTheDocument();
 
-    const group = canvas.getByRole("radiogroup", { name: "View mode" });
-    const overview = within(group).getByRole("radio", { name: "Overview" });
-    await expect(overview).toBeChecked();
+    const group = canvas.getByRole("radiogroup", { name: "View" });
+    const executive = within(group).getByRole("radio", { name: "Executive" });
+    await expect(executive).toBeChecked();
 
-    overview.focus();
+    executive.focus();
     await userEvent.keyboard("{ArrowRight}");
     await waitFor(() =>
       expect(within(group).getByRole("radio", { name: "Analyst" })).toBeChecked(),

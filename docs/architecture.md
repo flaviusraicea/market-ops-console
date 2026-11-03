@@ -61,6 +61,7 @@ src/
     format.ts                $22.85M, +7.3%, −9.7%, 1,676,586, May 2026, 2026-05
     theme.ts                 data-theme, localStorage try/catch, OS fallback
     density.ts               derived from Context.mode
+    roles.ts / role.tsx      mock sign-in: role cookie, personas, RoleProvider (slice 23); src/proxy.ts sets the cookie on a first visit
     events.ts                typed event log (navigate, ask, stop, cite, save, rollback)
     vitals.tsx               web-vitals → console.table in dev, sendBeacon /api/vitals in prod
     stream/                  chatClient (fetch + AbortController + SSE parser), slice 5
@@ -121,7 +122,7 @@ src/data/data.json ──(server, once, cached)──▶ domain.parseDataset ─
 | `market` | market id | absent | implies `region`; written together |
 | `product` | product id | absent | requires `market` |
 | `period` | `YYYY-MM` within `meta.periods` | `2026-05` | out-of-range values clamp to latest |
-| `mode` | `overview \| analyst` | `overview` | drives density |
+| `mode` | `executive \| analyst` | by role | drives density; absent means the signed-in role's view; the old value `overview` is redirected (308) to `executive` |
 | `metric` | `attainment \| revenue \| growth` | `attainment` | map colouring |
 | `basis` | `month \| ytd \| mat` | `month` | analyst only; ignored in overview |
 | `cite` | integer index into the open answer's citations | absent | cleared when the answer changes |

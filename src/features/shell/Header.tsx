@@ -12,6 +12,7 @@ import { ConnectedLiveToggle } from "@/features/live/LiveToggle";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { ContextChips } from "./ContextChips";
 import { DataStamp } from "./DataStamp";
+import { ConnectedAvatarMenu } from "./AvatarMenu";
 import { ModeSwitch } from "./ModeSwitch";
 import { ProductSelect, type ProductOption } from "./ProductSelect";
 import { PeriodSelect } from "./PeriodSelect";
@@ -60,7 +61,10 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
         className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-accent opacity-0 transition-opacity duration-[var(--dur-fast)] data-[pending=true]:opacity-100"
       />
       {/* One fixed row from 1024 px: the left group takes the slack and truncates, the right controls never wrap. Below that the header may wrap. */}
-      <div data-slot="header-row" className="mx-auto flex min-h-[var(--header-h)] max-w-[var(--page-max)] flex-wrap items-center gap-x-4 gap-y-2 px-[var(--gutter)] py-2 lg:flex-nowrap">
+      <div
+        data-slot="header-row"
+        className="mx-auto flex min-h-[var(--header-h)] max-w-[var(--page-max)] flex-wrap items-center gap-x-4 gap-y-2 px-[var(--gutter)] py-2 lg:flex-nowrap"
+      >
         <div className="flex min-w-0 items-center gap-x-4 lg:flex-1">
           <div className="flex min-w-0 items-center">
             <h1 className="shrink-0 font-display text-lg leading-6 font-semibold whitespace-nowrap text-ink">
@@ -94,6 +98,7 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
           <DataStamp latestPeriod={latestPeriod} />
           <ModeSwitch mode={mode} onChange={(m) => setContext({ mode: m })} />
           <ThemeToggle />
+          <ConnectedAvatarMenu />
         </div>
       </div>
     </header>

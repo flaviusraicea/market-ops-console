@@ -69,6 +69,8 @@ export type AlertFormProps = {
   failure?: SaveFailure | null;
   onRetry?: (opts: { fail: boolean }) => void;
   onDismiss?: () => void;
+  /** Executives see the form but cannot change it: fields disabled, Save hidden. */
+  readOnly?: boolean;
 };
 
 function SaveStatusText({ status, savedAt }: { status: SaveStatus; savedAt: number | null }) {
@@ -102,11 +104,13 @@ function ThresholdField({
   name,
   label,
   help,
+  disabled,
 }: {
   form: ReturnType<typeof useForm<Values>>;
   name: "growth" | "attainment";
   label: string;
   help: string;
+  disabled: boolean;
 }) {
   return (
     <FormField
@@ -123,6 +127,8 @@ function ThresholdField({
                 inputMode="decimal"
                 autoComplete="off"
                 className="pr-8"
+                disabled={disabled}
+                aria-disabled={disabled || undefined}
               />
             </FormControl>
             <span
@@ -147,6 +153,7 @@ export function AlertForm({
   failure = null,
   onRetry,
   onDismiss,
+  readOnly = false,
 }: AlertFormProps) {
   const ds = useDataset();
   const [simulateFail, setSimulateFail] = useState(false);
@@ -194,12 +201,14 @@ export function AlertForm({
             name="growth"
             label="Growth below"
             help="Alert when year-on-year growth falls below this value"
+            disabled={readOnly}
           />
           <ThresholdField
             form={form}
             name="attainment"
             label="Attainment below"
             help="Alert when forecast attainment falls below this value"
+            disabled={readOnly}
           />
           <FormField
             control={form.control}
@@ -207,9 +216,9 @@ export function AlertForm({
             render={({ field }) => (
               <FormItem className="content-start gap-1">
                 <FormLabel>Scope</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select value={field.value} onValueChange={field.onChange} disabled={readOnly}>
                   <FormControl>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full" aria-disabled={readOnly || undefined}>
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -249,17 +258,21 @@ export function AlertForm({
             type="checkbox"
             checked={simulateFail}
             onChange={(e) => setSimulateFail(e.target.checked)}
+            disabled={readOnly}
+            aria-disabled={readOnly || undefined}
             className="size-4 accent-[var(--accent)]"
           />
           Simulate failure
         </label>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={!form.formState.isValid || saving}>
-            Save thresholds
-          </Button>
-          <SaveStatusText status={status} savedAt={savedAt} />
-        </div>
+        {readOnly ? null : (
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={!form.formState.isValid || saving}>
+              Save thresholds
+            </Button>
+            <SaveStatusText status={status} savedAt={savedAt} />
+          </div>
+        )}
 
         {failure ? (
           <Notice

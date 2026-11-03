@@ -211,7 +211,7 @@ Dark: no shadows at all. Elevation is surface stepping (`--bg` < `--surface` < `
 
 ## 4. Spacing, density, radius, borders
 
-Two density scales, switched by `html[data-density="overview"]` (default) and `html[data-density="analyst"]`. Components read only the density tokens; they never hard-code a pixel value from this table.
+Two density scales, switched by `html[data-density="executive"]` (default) and `html[data-density="analyst"]`. Components read only the density tokens; they never hard-code a pixel value from this table.
 
 | Token | Overview | Analyst |
 |---|---|---|

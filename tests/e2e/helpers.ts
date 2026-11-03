@@ -1,5 +1,25 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
+/**
+ * A browser that is already signed in as the Analyst, for tests that edit alert rules. A fresh context is signed in
+ * as the Executive (the proxy sets that cookie on the first visit), who reads rules but cannot change them.
+ */
+export const ANALYST_STATE = {
+  cookies: [
+    {
+      name: "market-ops-role",
+      value: "analyst",
+      domain: "localhost",
+      path: "/",
+      expires: -1,
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax" as const,
+    },
+  ],
+  origins: [],
+};
+
 /** Types a question into the assistant composer and sends it. */
 export async function ask(page: Page, question: string) {
   const box = page.getByRole("textbox", { name: "Ask the assistant" });

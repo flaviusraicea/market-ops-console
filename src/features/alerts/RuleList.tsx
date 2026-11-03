@@ -16,11 +16,14 @@ export function RuleList({
   onDelete,
   deleteFailed = false,
   onDismissDeleteFailed,
+  readOnly = false,
 }: {
   rules: RuleRow[];
   onDelete: (id: string) => void;
   deleteFailed?: boolean;
   onDismissDeleteFailed?: () => void;
+  /** Executives read the rules; Delete is not offered. */
+  readOnly?: boolean;
 }) {
   const ds = useDataset();
   const [target, setTarget] = useState<RuleRow | null>(null);
@@ -68,15 +71,17 @@ export function RuleList({
                     {evaluationLine(names)}
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={rule.pending}
-                  aria-label={`Delete ${sentence}`}
-                  onClick={() => setTarget(rule)}
-                >
-                  Delete
-                </Button>
+                {readOnly ? null : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={rule.pending}
+                    aria-label={`Delete ${sentence}`}
+                    onClick={() => setTarget(rule)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </li>
             );
           })}

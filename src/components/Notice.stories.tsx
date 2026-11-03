@@ -30,6 +30,20 @@ export const Error: Story = {
   },
 };
 
+export const Neutral: Story = {
+  args: {
+    tone: "neutral",
+    title: "Read-only for Executives.",
+    children: "Switch to Analyst to edit rules.",
+    actions: <Button variant="ghost">Switch to Analyst</Button>,
+  },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("note")).toHaveTextContent(
+      "Read-only for Executives.",
+    );
+  },
+};
+
 export const Rollback: Story = {
   args: {
     title: "Couldn’t save",

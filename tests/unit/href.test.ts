@@ -14,7 +14,13 @@ describe("hrefFor", () => {
     ).toBe("/?region=eu&market=de&period=2026-03&mode=analyst");
   });
   it("is the bare root for the default portfolio view", () => {
-    expect(hrefFor(meta, { period: meta.latestPeriod as Period, mode: "overview" })).toBe("/");
+    expect(hrefFor(meta, { period: meta.latestPeriod as Period, mode: "executive" })).toBe("/");
+  });
+  it("omits the mode when it is the role's default, and writes it when it is not", () => {
+    const analyst = metaFromDataset(parseDataset(raw), "analyst");
+    expect(hrefFor(analyst, { mode: "analyst" })).toBe("/");
+    expect(hrefFor(analyst, { mode: "executive" })).toBe("/?mode=executive");
+    expect(hrefFor(meta, { mode: "analyst" })).toBe("/?mode=analyst");
   });
   it("puts product between market and period", () => {
     expect(

@@ -136,7 +136,7 @@ describe("breadcrumbTrail", () => {
       market: "de",
       product: "veltrix",
       period: p("2026-05"),
-      mode: "overview",
+      mode: "executive",
       metric: "attainment",
       basis: "month",
     });

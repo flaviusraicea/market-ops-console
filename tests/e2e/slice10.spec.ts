@@ -1,7 +1,12 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+import { ANALYST_STATE } from "./helpers";
+
 const URL = "/?mode=analyst";
+
+// Only an Analyst edits alert rules; the Executive view of this section is covered in slice23.spec.ts.
+test.use({ storageState: ANALYST_STATE });
 
 // Rules live in the browser; every test gets a fresh context, so each starts from an empty list.
 

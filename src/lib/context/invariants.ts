@@ -16,14 +16,17 @@ export type ConsoleMeta = {
   latestPeriod: string;
   marketRegion: Readonly<Record<string, RegionId>>;
   productIds: readonly string[];
+  /** The view a URL without `mode` opens on: it follows the signed-in role. */
+  defaultMode: Mode;
 };
 
-export function metaFromDataset(ds: Dataset): ConsoleMeta {
+export function metaFromDataset(ds: Dataset, defaultMode: Mode = "executive"): ConsoleMeta {
   return {
     periods: ds.meta.periods,
     latestPeriod: ds.meta.latestPeriod,
     marketRegion: Object.fromEntries(ds.markets.map((m) => [m.id, m.regionId])),
     productIds: ds.products.map((p) => p.id),
+    defaultMode,
   };
 }
 
@@ -39,7 +42,13 @@ export type RawContext = {
   facts?: boolean | null | undefined;
 };
 
-export const MODES = ["overview", "analyst"] as const;
+export const MODES = ["executive", "analyst"] as const;
+
+/** Mode as a URL value. Links written before the rename say `overview`; they mean `executive`. */
+export function parseMode(v: string | null | undefined): Mode | null {
+  if (v === "overview") return "executive";
+  return (MODES as readonly string[]).includes(v ?? "") ? (v as Mode) : null;
+}
 export const METRICS = ["attainment", "revenue", "growth"] as const;
 export const BASES = ["month", "ytd", "mat"] as const;
 
@@ -54,7 +63,7 @@ const pick = <T extends string>(values: readonly T[], v: string | null | undefin
 export function normalizeContext(meta: ConsoleMeta, raw: RawContext): Context {
   const ctx: Context = {
     period: clampPeriodTo(meta, raw.period),
-    mode: pick<Mode>(MODES, raw.mode, "overview"),
+    mode: parseMode(raw.mode) ?? meta.defaultMode,
     metric: pick<Metric>(METRICS, raw.metric, "attainment"),
     basis: pick<Basis>(BASES, raw.basis, "month"),
   };

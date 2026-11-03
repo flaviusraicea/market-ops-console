@@ -1,13 +1,13 @@
 import { createParser, parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs/server";
 
-import type { Context, Dataset } from "@/domain";
+import type { Context, Dataset, Mode } from "@/domain";
 import {
   BASES,
   METRICS,
-  MODES,
   clampPeriodTo,
   metaFromDataset,
   normalizeContext,
+  parseMode,
   type ConsoleMeta,
   type RawContext,
 } from "./invariants";
@@ -28,13 +28,18 @@ export function parseAsPeriod(meta: ConsoleMeta) {
   }).withDefault(meta.latestPeriod);
 }
 
+/** `mode` in the URL; absent means the signed-in role's view, and the pre-rename `overview` reads as `executive`. */
+export function parseAsMode(defaultMode: Mode) {
+  return createParser<Mode>({ parse: parseMode, serialize: (v) => v }).withDefault(defaultMode);
+}
+
 export function contextParsers(meta: ConsoleMeta) {
   return {
     region: parseAsStringEnum([...REGIONS]),
     market: parseAsString,
     product: parseAsString,
     period: parseAsPeriod(meta),
-    mode: parseAsStringEnum([...MODES]).withDefault("overview"),
+    mode: parseAsMode(meta.defaultMode),
     metric: parseAsStringEnum([...METRICS]).withDefault("attainment"),
     basis: parseAsStringEnum([...BASES]).withDefault("month"),
     cite: parseAsInteger,
@@ -49,7 +54,11 @@ function first(v: string | string[] | undefined): string | undefined {
 }
 
 /** Server-side parse with the same rules as the client hook. */
-export function parseContextFromSearchParams(ds: Dataset, searchParams: SearchParams): Context {
+export function parseContextFromSearchParams(
+  ds: Dataset,
+  searchParams: SearchParams,
+  defaultMode: Mode = "executive",
+): Context {
   const cite = first(searchParams.cite);
   const raw: RawContext = {
     region: first(searchParams.region),
@@ -63,5 +72,5 @@ export function parseContextFromSearchParams(ds: Dataset, searchParams: SearchPa
     facts:
       first(searchParams.facts) === "true" || first(searchParams.facts) === "1" ? true : undefined,
   };
-  return normalizeContext(metaFromDataset(ds), raw);
+  return normalizeContext(metaFromDataset(ds, defaultMode), raw);
 }

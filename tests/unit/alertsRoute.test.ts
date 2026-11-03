@@ -6,7 +6,7 @@ const post = (body: unknown, query = "") =>
   POST(
     new Request(`http://test/api/alerts${query}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", cookie: "market-ops-role=analyst" },
       body: JSON.stringify(body),
     }),
   );
@@ -44,9 +44,19 @@ describe("/api/alerts (mock backend: validates, waits, can fail, stores nothing)
   });
 
   it("deletes with 204, and 400 without an id", async () => {
-    const ok = await DELETE(new Request("http://test/api/alerts?id=x", { method: "DELETE" }));
+    const ok = await DELETE(
+      new Request("http://test/api/alerts?id=x", {
+        method: "DELETE",
+        headers: { cookie: "market-ops-role=analyst" },
+      }),
+    );
     expect(ok.status).toBe(204);
-    const bad = await DELETE(new Request("http://test/api/alerts", { method: "DELETE" }));
+    const bad = await DELETE(
+      new Request("http://test/api/alerts", {
+        method: "DELETE",
+        headers: { cookie: "market-ops-role=analyst" },
+      }),
+    );
     expect(bad.status).toBe(400);
   });
 });

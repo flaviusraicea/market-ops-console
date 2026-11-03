@@ -13,16 +13,16 @@ const meta = {
       </div>
     ),
   ],
-  args: { mode: "overview", onChange: fn() },
+  args: { mode: "executive", onChange: fn() },
 } satisfies Meta<typeof ModeSwitch>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Overview: Story = {
+export const Executive: Story = {
   play: async ({ canvasElement, args }) => {
-    const overview = within(canvasElement).getByRole("radio", { name: "Overview" });
-    overview.focus();
+    const executive = within(canvasElement).getByRole("radio", { name: "Executive" });
+    executive.focus();
     await userEvent.keyboard("{ArrowRight}");
     await expect(args.onChange).toHaveBeenCalledWith("analyst");
   },

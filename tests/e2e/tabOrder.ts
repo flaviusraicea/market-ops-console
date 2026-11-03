@@ -11,15 +11,16 @@ export type TabOrder = {
 
 export const TAB_ORDERS: readonly TabOrder[] = [
   {
-    title: "Overview (`/`)",
+    title: "Executive (`/`)",
     url: "/",
     stops: [
       "Skip to content",
       "Period",
       "Live",
       "Paused",
-      "Overview",
+      "Executive",
       "Switch to dark theme",
+      "Signed in as Dana Whitfield, Executive. Account menu",
       "About this verdict",
       "Drill into North America · 2",
       "United States, on track",
@@ -83,6 +84,7 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "Paused",
       "Analyst",
       "Switch to dark theme",
+      "Signed in as Dana Whitfield, Executive. Account menu",
       "Period",
       "Product",
       "Month",

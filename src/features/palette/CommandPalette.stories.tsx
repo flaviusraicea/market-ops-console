@@ -28,7 +28,7 @@ const meta = {
     onOpenChange: fn(),
     onSelect: fn(),
     onDismiss: fn(),
-    mode: "overview",
+    mode: "executive",
     hasMarket: false,
     reducedMotion: false,
   },
