@@ -19,6 +19,7 @@ export {
   Info,
   MapPin,
   MessageSquareText,
+  Radio,
   Minus,
   Moon,
   Package,

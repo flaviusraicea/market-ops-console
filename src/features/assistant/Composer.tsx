@@ -21,6 +21,8 @@ type ComposerProps = {
   onClearAbout?: () => void;
   /** A helper line under the box, e.g. where the text was filled from. */
   note?: string | null;
+  /** Live data is on: say that answers still come from the saved data. */
+  simulated?: boolean;
 };
 
 export function Composer({
@@ -32,6 +34,7 @@ export function Composer({
   about,
   onClearAbout,
   note,
+  simulated,
 }: ComposerProps) {
   // Auto-grow up to MAX_ROWS lines, then scroll.
   useLayoutEffect(() => {
@@ -86,7 +89,10 @@ export function Composer({
           // Read-only rather than disabled while an answer streams, so the textarea keeps focus.
           readOnly={disabled}
           aria-disabled={disabled || undefined}
-          aria-describedby={note ? "ask-note" : undefined}
+          aria-describedby={
+            [note ? "ask-note" : "", simulated ? "ask-live" : ""].filter(Boolean).join(" ") ||
+            undefined
+          }
           placeholder="Ask about markets, products or periods…"
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
@@ -101,6 +107,14 @@ export function Composer({
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
         </Button>
       </form>
+      {simulated ? (
+        <p
+          id="ask-live"
+          className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted"
+        >
+          Live data is simulated; answers use the saved data.
+        </p>
+      ) : null}
       {note ? (
         <p
           id="ask-note"

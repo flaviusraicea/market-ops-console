@@ -165,14 +165,16 @@ test("tab order from the skip link", async ({ page }) => {
       }),
     );
   }
-  expect(seen.slice(0, 4)).toEqual([
+  expect(seen.slice(0, 6)).toEqual([
     "Skip to content",
     "Period",
+    "Live",
+    "Paused",
     "Overview",
     "Switch to dark theme",
   ]);
-  expect(seen[4]).toBe("About this verdict");
-  expect(seen.slice(5, 8)).toEqual([
+  expect(seen[6]).toBe("About this verdict");
+  expect(seen.slice(7, 10)).toEqual([
     "Drill into North America · 2",
     "United States, on track",
     "Canada, on track",

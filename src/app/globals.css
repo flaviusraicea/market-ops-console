@@ -152,6 +152,34 @@ html[data-reduced-motion="true"] *::after {
   scroll-behavior: auto !important;
 }
 
+/* Live-mode dot (slice 21): pulses while data is moving. The loop ends where it begins, so a stopped animation
+   (reduced motion) leaves the dot solid. */
+.live-dot {
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+}
+
+html[data-reduced-motion="true"] .live-dot {
+  animation: none;
+}
+
 /* Streaming caret (design-system.md 6.5): a 2px bar, static under reduced motion. */
 .caret {
   display: inline-block;

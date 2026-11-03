@@ -1,3 +1,6 @@
+/** How long marks keep their tween after new data commits (a little over --dur-chart, 240 ms). */
+export const TWEEN_SETTLE_MS = 300;
+
 export const REDUCED_MOTION_KEY = "mo.reduced-motion";
 
 /** True when the OS asks for reduced motion or the console's own override is on. Client only. */
