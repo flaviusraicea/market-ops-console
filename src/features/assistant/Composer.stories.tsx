@@ -12,6 +12,32 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** One row, with a placeholder short enough not to wrap at the panel's width. */
+export const Empty: Story = {
+  decorators: [
+    (Story) => (
+      <div style={{ width: 340 }}>
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    const box = within(canvasElement).getByRole("textbox", { name: "Ask the assistant" });
+    await expect(box).toHaveAttribute("placeholder", "Ask about a market or period…");
+    await expect(box.scrollHeight).toBeLessThanOrEqual(box.clientHeight);
+  },
+};
+
+/** Grows with the text, then scrolls past four rows. */
+export const Multiline: Story = {
+  args: { value: "Why did Germany dip in March?\nAnd what about France?\nAnd Spain?" },
+  decorators: Empty.decorators!,
+  play: async ({ canvasElement }) => {
+    const box = within(canvasElement).getByRole("textbox", { name: "Ask the assistant" });
+    await expect(box.clientHeight).toBeGreaterThan(48);
+  },
+};
+
 export const WithAboutChip: Story = {
   args: {
     value: "Why did Germany's revenue dip in Mar 2026?",

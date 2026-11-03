@@ -65,7 +65,7 @@ export function AnswerMachineProvider({
   const machine = useAnswerMachine(stream);
   usePublishAnswers(machine.answers);
   const ds = useDataset();
-  const { ctx } = useConsoleContext();
+  const { ctx, setContext } = useConsoleContext();
   const { liveHost, noteAnswerDone } = useAssistantRail();
   const [submitCount, setSubmitCount] = useState(0);
   const bumpSubmit = useCallback(() => setSubmitCount((n) => n + 1), []);
@@ -76,6 +76,8 @@ export function AnswerMachineProvider({
   function submit(question: string, about?: AskContext) {
     warmAnswerCard();
     logEvent({ type: "ask", question });
+    // A followed citation belongs to the answer it came from; a new question must not land it again.
+    if (ctx.cite !== undefined) setContext({ cite: undefined }, { history: "replace" });
     const entity = entityOf(ctx);
     machine.ask(question, about ?? askContext(entity, entityName(ds, entity), ctx.period));
     setSubmitCount((n) => n + 1);

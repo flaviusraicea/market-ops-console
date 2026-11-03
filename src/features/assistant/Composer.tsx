@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, type Ref } from "react";
+import { useEffect, useLayoutEffect, type Ref } from "react";
 
 import { Eyebrow } from "@/components/Eyebrow";
 import { ArrowUp, ICON_STROKE, X } from "@/components/icons";
@@ -9,6 +9,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { warmAnswerCard } from "./AnswerCardLazy";
 
 const MAX_ROWS = 4;
+
+/** The auto-grow fallback: up to MAX_ROWS lines, then scroll. */
+function fitToText(value: string) {
+  const el = document.getElementById("ask");
+  // Hidden (a collapsed rail, an inactive view) measures 0: write nothing and wait for the next resize.
+  if (!(el instanceof HTMLTextAreaElement) || el.offsetParent === null) return;
+  el.style.height = "auto";
+  // An empty box is one row: scrollHeight would count a wrapped placeholder.
+  if (value === "") return;
+  const line = parseFloat(getComputedStyle(el).lineHeight) || 20;
+  const pad = el.offsetHeight - el.clientHeight + 12;
+  el.style.height = `${Math.min(el.scrollHeight, line * MAX_ROWS + pad)}px`;
+}
 
 type ComposerProps = {
   value: string;
@@ -37,15 +50,20 @@ export function Composer({
   note,
   simulated,
 }: ComposerProps) {
-  // Auto-grow up to MAX_ROWS lines, then scroll.
+  // `field-sizing: content` grows the box with its text, capped by max-h, and re-measures by itself when the panel
+  // is shown or resized. Browsers without it use `fitToText`.
+  const native = typeof CSS !== "undefined" && CSS.supports("field-sizing", "content");
+
   useLayoutEffect(() => {
+    if (!native) fitToText(value);
+  }, [native, value]);
+  useEffect(() => {
     const el = document.getElementById("ask");
-    if (!(el instanceof HTMLTextAreaElement)) return;
-    el.style.height = "auto";
-    const line = parseFloat(getComputedStyle(el).lineHeight) || 20;
-    const pad = el.offsetHeight - el.clientHeight + 12;
-    el.style.height = `${Math.min(el.scrollHeight, line * MAX_ROWS + pad)}px`;
-  }, [value]);
+    if (native || !el) return;
+    const observer = new ResizeObserver(() => fitToText(value));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [native, value]);
 
   function submit() {
     const question = value.trim();
@@ -94,7 +112,7 @@ export function Composer({
             [note ? "ask-note" : "", simulated ? "ask-live" : ""].filter(Boolean).join(" ") ||
             undefined
           }
-          placeholder="Ask about markets, products or periods…"
+          placeholder="Ask about a market or period…"
           onChange={(e) => {
             // The first keystroke is the cue that an answer is coming.
             warmAnswerCard();
@@ -106,7 +124,7 @@ export function Composer({
               submit();
             }
           }}
-          className="max-h-40 resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
+          className="field-sizing-content max-h-40 resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
         />
         <Button type="submit" size="icon" aria-label="Send" disabled={disabled}>
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />

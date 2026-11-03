@@ -122,7 +122,14 @@
   --dur-fast: 150ms;
   --dur-base: 200ms;
   --dur-chart: 240ms;
+  /* A followed citation (motion-spec.md section 3, row 3): ring and tint fade in, hold, fade out; opacity only. */
+  --dur-land-in: 150ms;
+  --dur-land-out: 200ms;
+  --hold-highlight: 2000ms; /* read by JS once (useLanding), so reduced motion keeps the hold */
   --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --land-tint: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 @media (min-width: 1024px) {
@@ -188,6 +195,7 @@ html[data-density="analyst"] {
   --ink-muted: #9a9488;
   --ink-disabled: #78726a;
   --accent: #8fb4e6;
+  --land-tint: color-mix(in srgb, var(--accent) 12%, transparent);
   --accent-hover: #a9c6ee;
   --on-accent: #161512;
   --accent-soft: #243040;
@@ -247,6 +255,7 @@ html[data-density="analyst"] {
     --ink-muted: #9a9488;
     --ink-disabled: #78726a;
     --accent: #8fb4e6;
+    --land-tint: color-mix(in srgb, var(--accent) 12%, transparent);
     --accent-hover: #a9c6ee;
     --on-accent: #161512;
     --accent-soft: #243040;
@@ -300,6 +309,8 @@ html[data-density="analyst"] {
     --dur-fast: 0ms;
     --dur-base: 0ms;
     --dur-chart: 0ms;
+    --dur-land-in: 0ms;
+    --dur-land-out: 0ms;
   }
 }
 
@@ -307,4 +318,6 @@ html[data-reduced-motion="true"] {
   --dur-fast: 0ms;
   --dur-base: 0ms;
   --dur-chart: 0ms;
+  --dur-land-in: 0ms;
+  --dur-land-out: 0ms;
 }
