@@ -84,7 +84,10 @@ export function resolveFixture(
     mom: mom === undefined ? "" : `; ${formatPct(mom, { sign: true })} on the previous month`,
   };
   // A function replacer keeps "$" in the values (money) from being read as a replacement pattern.
-  const text = fixture.answer.text.replace(/\{(\w+)\}/g, (whole, key: string) => values[key] ?? whole);
+  const text = fixture.answer.text.replace(
+    /\{(\w+)\}/g,
+    (whole, key: string) => values[key] ?? whole,
+  );
 
   const cite = (p: typeof period): Citation => ({
     marketId: entity.marketId,
