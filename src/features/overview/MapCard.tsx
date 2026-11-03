@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/table";
 import type { Metric } from "@/domain";
 import { reportError } from "@/lib/events";
-import { PHONE_QUERY } from "@/lib/useMediaQuery";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { GEO_URL } from "@/lib/geoAsset";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import type { OverviewVM } from "./viewModel";
@@ -74,6 +74,8 @@ function loadGeo(): Promise<MapGeo> {
  * because it shows the table first; the geometry loads when the person asks for the map.
  */
 export function useGeo(holdOnPhone = false): GeoState {
+  // Read so the effect runs again when the width crosses 768 px: a phone that is widened must load the map.
+  const phone = useMediaQuery(PHONE_QUERY);
   const [state, setState] = useState<GeoState>(
     geoLoaded ? { status: "ready", geo: geoLoaded } : { status: "loading" },
   );
@@ -88,7 +90,7 @@ export function useGeo(holdOnPhone = false): GeoState {
     return () => {
       live = false;
     };
-  }, [holdOnPhone]);
+  }, [holdOnPhone, phone]);
   return state;
 }
 
