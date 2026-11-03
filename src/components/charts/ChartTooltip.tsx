@@ -187,7 +187,7 @@ export function ChartTooltip({
       ) : null}
       <span
         aria-hidden
-        className="absolute top-full left-[calc(50%+var(--caret-shift,0px))] -mt-[4px] size-[8px] -translate-x-1/2 rotate-45 border-r border-b border-border bg-surface group-data-[flip=true]/tip:top-auto group-data-[flip=true]/tip:bottom-full group-data-[flip=true]/tip:-mt-0 group-data-[flip=true]/tip:-mb-[4px] group-data-[flip=true]/tip:border-t group-data-[flip=true]/tip:border-l group-data-[flip=true]/tip:border-r-0 group-data-[flip=true]/tip:border-b-0"
+        className="absolute top-full left-[calc(50%+var(--caret-shift,0px))] -mt-[4px] size-[8px] -translate-x-1/2 rotate-45 border-r border-b border-border bg-surface-overlay group-data-[flip=true]/tip:top-auto group-data-[flip=true]/tip:bottom-full group-data-[flip=true]/tip:-mt-0 group-data-[flip=true]/tip:-mb-[4px] group-data-[flip=true]/tip:border-t group-data-[flip=true]/tip:border-l group-data-[flip=true]/tip:border-r-0 group-data-[flip=true]/tip:border-b-0"
       />
     </div>
   );
