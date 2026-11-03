@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
 import fixturesRaw from "@/data/fixtures.json";
-import { attainmentPct, factsFor, growthPct, toPeriod, totals } from "@/domain";
+import { attainmentPct, factsFor, toPeriod, totals } from "@/domain";
 import { parseDataset } from "@/domain/dataset";
 import { FixturesFileSchema } from "@/domain/stream";
 import { crossChecks } from "@/features/assistant/crossChecks";

@@ -7,7 +7,7 @@ import {
   type Entity,
   type Market,
 } from "@/domain";
-import { formatPct } from "@/lib/format";
+import { formatPct, formatPeriod } from "@/lib/format";
 
 /**
  * The starter pack's canned answers are shown as given. Where one says something data.json contradicts, the card
@@ -51,11 +51,7 @@ const pct = (n: number) => formatPct(n, { sign: false });
 /** The lines to show under an answer, each starting "Differs from source:". Empty for any other answer. */
 export function crossChecks(ds: Dataset, key: string): string[] {
   const month = ds.meta.latestPeriod;
-  const monthName = new Date(`${month}-01T00:00:00Z`).toLocaleString("en-US", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
+  const monthName = formatPeriod(month);
   switch (key) {
     case KEYS.atRisk:
       return [`Differs from source: the answer names three markets; ${flagSentence(ds)}.`];
