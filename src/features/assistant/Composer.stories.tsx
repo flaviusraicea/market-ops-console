@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import type { Decorator, Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Composer } from "./Composer";
@@ -12,15 +12,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const narrow: Decorator = (Story) => (
+  <div style={{ width: 340 }}>
+    <Story />
+  </div>
+);
+
 /** One row, with a placeholder short enough not to wrap at the panel's width. */
 export const Empty: Story = {
-  decorators: [
-    (Story) => (
-      <div style={{ width: 340 }}>
-        <Story />
-      </div>
-    ),
-  ],
+  decorators: [narrow],
   play: async ({ canvasElement }) => {
     const box = within(canvasElement).getByRole("textbox", { name: "Ask the assistant" });
     await expect(box).toHaveAttribute("placeholder", "Ask about a market or period…");
@@ -31,7 +31,7 @@ export const Empty: Story = {
 /** Grows with the text, then scrolls past four rows. */
 export const Multiline: Story = {
   args: { value: "Why did Germany dip in March?\nAnd what about France?\nAnd Spain?" },
-  decorators: Empty.decorators!,
+  decorators: [narrow],
   play: async ({ canvasElement }) => {
     const box = within(canvasElement).getByRole("textbox", { name: "Ask the assistant" });
     await expect(box.clientHeight).toBeGreaterThan(48);

@@ -77,7 +77,8 @@ export function AnswerMachineProvider({
     warmAnswerCard();
     logEvent({ type: "ask", question });
     // A followed citation belongs to the answer it came from; a new question must not land it again.
-    if (ctx.cite !== undefined) setContext({ cite: undefined }, { history: "replace" });
+    if (ctx.cite !== undefined)
+      setContext({ cite: undefined }, { history: "replace", shallow: true });
     const entity = entityOf(ctx);
     machine.ask(question, about ?? askContext(entity, entityName(ds, entity), ctx.period));
     setSubmitCount((n) => n + 1);

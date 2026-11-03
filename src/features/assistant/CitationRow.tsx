@@ -51,7 +51,7 @@ export function CitationRow({ answerId, citations, isLatest }: CitationRowProps)
                 const next = targetToContext(resolution.target, ds);
                 // A followed chip lands in Analyst; the answer that led there stays on screen.
                 if (next.mode) openIn(next.mode);
-                follow({ answerId, index: i });
+                follow(answerId, i);
                 setContext({ ...next, cite: i }, { history: "push" });
               }}
             />

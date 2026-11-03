@@ -14,151 +14,126 @@ import {
 import type { ResolvedTarget } from "@/domain";
 import { useFollowed, useLatestAnswer } from "@/features/assistant/AnswerStore";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
-import { prefersReducedMotion } from "@/lib/motion";
+import { cssMs, onScrollIntent, prefersReducedMotion } from "@/lib/motion";
 
 export type Landing = {
   /** The ring and tint are showing (they fade in, hold, fade out; see globals.css). */
   active: boolean;
   target: ResolvedTarget | undefined;
-  /** The widget the page scrolls to for this landing registers its element here; returns the unregister. */
-  register: (el: HTMLElement | null) => () => void;
+  /** The widget the page scrolls to for this landing. Set from a ref callback or an effect. */
+  register: (el: HTMLElement | null) => void;
 };
 
-const NONE: Landing = { active: false, target: undefined, register: () => () => {} };
+const NONE: Landing = { active: false, target: undefined, register: () => {} };
 const LandingContext = createContext<Landing>(NONE);
 
+/** Layout has to be this still before the page scrolls: lazy widgets swap in for their skeletons. */
 const QUIET_MS = 120;
-const WAIT_FOR_TARGET_MS = 1500;
-/** A page that never goes quiet (a stream, a ticking live widget) does not hold the scroll back for more than this. */
+/** A page that never goes quiet (a stream, a ticking live widget) does not hold the scroll back longer than this. */
 const MAX_WAIT_MS = 800;
-const SCROLL_FALLBACK_MS = 350;
-const USER_INPUT = ["wheel", "touchstart", "keydown"] as const;
-
-/** A time custom property in ms. The CSS minifier rewrites "2000ms" as "2s" and "150ms" as ".15s". */
-const cssMs = (name: string, fallback: number) => {
-  const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const n = parseFloat(raw);
-  if (!Number.isFinite(n)) return fallback;
-  return raw.endsWith("ms") ? n : raw.endsWith("s") ? n * 1000 : fallback;
-};
+/** With no widget to scroll to, the ring still shows for the landing's target after this long. */
+const NO_TARGET_MS = 1500;
+/** Ends the wait for `scrollend`, which a scroll with nowhere to go never fires. A smooth scroll to the chart takes about 450 ms, so 350 would cut it off. */
+const SCROLL_END_FALLBACK_MS = 750;
 
 /**
  * Owns one landing at a time (motion-spec.md section 3, rows 3 and 4): when a followed chip's answer is the latest and
- * finished, wait for the page to stop moving (lazy widgets swap in for their skeletons), scroll the registered widget
- * into view once, wait for the scroll to end, then show the ring for --hold-highlight and drop it. One timer, so the
- * widgets that share the landing (chart, tooltip, grid) never drift apart. The reader's wheel, touch or keys cancel
- * the scroll, never the ring.
+ * finished, wait for the page to stop moving, scroll the registered widget into view once, wait for the scroll to
+ * end, then show the ring for --hold-highlight. One timer, so the widgets that share the landing (chart, tooltip,
+ * grid) never drift apart. The reader scrolling cancels the scroll, never the ring.
  *
  * `cite` in the URL indexes the chips of the answer that was followed, so a landing needs that answer to still be
- * the latest: a later question never re-lands an earlier chip.
+ * the latest: a later question never re-lands an earlier chip. Each follow is its own landing (`n`).
  */
 export function LandingProvider({ children }: { children: ReactNode }) {
   const { ctx } = useConsoleContext();
   const latest = useLatestAnswer();
   const { followed } = useFollowed();
   const resolution =
-    ctx.cite !== undefined &&
-    latest?.status === "done" &&
-    followed?.answerId === latest.id &&
-    followed.index === ctx.cite
+    ctx.cite !== undefined && latest?.status === "done" && followed?.answerId === latest.id
       ? latest.citations[ctx.cite]?.resolution
       : undefined;
   const target = resolution?.ok ? resolution.target : undefined;
-  const key = target && latest ? `${latest.id}:${ctx.cite}:${target.period}` : undefined;
+  const key = target && followed ? `${followed.answerId}:${followed.n}:${ctx.cite}` : undefined;
 
-  const element = useRef<HTMLElement | null>(null);
-  const register = useCallback((el: HTMLElement | null) => {
-    element.current = el;
-    return () => {
-      if (element.current === el) element.current = null;
-    };
-  }, []);
-
-  // The key whose ring is showing, and the key whose landing is over.
-  const [shown, setShown] = useState<string | null>(null);
-  const [over, setOver] = useState<string | null>(null);
+  const [element, register] = useState<HTMLElement | null>(null);
+  // The key whose ring is showing; the hold timer clears it.
+  const [shownKey, setShownKey] = useState<string | null>(null);
+  // The key already handled, so a widget remounting during the hold does not land it twice.
+  const handled = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!key) return;
-    let scrolling = true;
-    let quiet: ReturnType<typeof setTimeout> | undefined;
-    let hold: ReturnType<typeof setTimeout> | undefined;
-    let fallback: ReturnType<typeof setTimeout> | undefined;
+    if (!key || handled.current === key) return;
+    const abort = new AbortController();
+    const { signal } = abort;
+    let phase: "settle" | "scroll" | "shown" = "settle";
+    const timers: ReturnType<typeof setTimeout>[] = [];
     let frame = 0;
-    const started = performance.now();
-
-    let shownOnce = false;
-    const show = () => {
-      if (shownOnce) return;
-      shownOnce = true;
-      cleanupScroll();
-      setShown(key);
-      hold = setTimeout(
-        () => setOver(key),
-        cssMs("--dur-land-in", 150) + cssMs("--hold-highlight", 2000),
-      );
-    };
-    const onScrollEnd = () => show();
-    const cancelScroll = () => {
-      if (!scrolling) return;
-      scrolling = false;
-      cleanupScroll();
-      show();
-    };
-    function cleanupScroll() {
-      scrolling = false;
-      observer.disconnect();
-      clearTimeout(quiet);
-      clearTimeout(fallback);
+    signal.addEventListener("abort", () => {
+      timers.forEach(clearTimeout);
       cancelAnimationFrame(frame);
-      window.removeEventListener("scrollend", onScrollEnd);
-      for (const type of USER_INPUT) window.removeEventListener(type, cancelScroll);
+    });
+    const later = (fn: () => void, ms: number) => timers.push(setTimeout(fn, ms));
+
+    const show = () => {
+      if (phase === "shown") return;
+      phase = "shown";
+      handled.current = key;
+      abort.abort();
+      setShownKey(key);
+    };
+    onScrollIntent(show, signal);
+
+    if (!element) {
+      later(show, NO_TARGET_MS);
+      return () => abort.abort();
     }
-    let went = false;
+
     const go = () => {
-      if (went) return;
-      const el = element.current;
-      if (!el && performance.now() - started < WAIT_FOR_TARGET_MS) {
-        quiet = setTimeout(go, 100);
-        return;
-      }
-      went = true;
+      phase = "scroll";
       observer.disconnect();
       // Two frames after the last change, so the scroll measures settled layout.
       frame = requestAnimationFrame(() => {
         frame = requestAnimationFrame(() => {
-          if (!scrolling) return;
-          if (!el) return show();
+          if (phase !== "scroll") return;
           const smooth = !prefersReducedMotion();
-          window.addEventListener("scrollend", onScrollEnd, { once: true });
-          // A scroll that has nowhere to go never fires scrollend: the fallback ends the wait.
-          fallback = setTimeout(show, smooth ? SCROLL_FALLBACK_MS + 400 : 50);
-          el.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
-          if (!smooth) show();
+          element.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
+          if (!smooth) return show();
+          window.addEventListener("scrollend", show, { once: true, signal });
+          later(show, SCROLL_END_FALLBACK_MS);
         });
       });
     };
-    function settle() {
-      clearTimeout(quiet);
-      const left = MAX_WAIT_MS - (performance.now() - started);
-      quiet = setTimeout(go, Math.max(0, Math.min(QUIET_MS, left)));
-    }
-    const observer = new ResizeObserver(settle);
-    observer.observe(document.body);
-    for (const type of USER_INPUT) window.addEventListener(type, cancelScroll, { passive: true });
-    settle();
-    return () => {
-      cleanupScroll();
-      clearTimeout(hold);
+    const started = performance.now();
+    const settle = () => {
+      timers.forEach(clearTimeout);
+      later(go, Math.max(0, Math.min(QUIET_MS, MAX_WAIT_MS - (performance.now() - started))));
     };
-  }, [key]);
+    const observer = new ResizeObserver(settle);
+    signal.addEventListener("abort", () => observer.disconnect());
+    observer.observe(document.body);
+    settle();
+    return () => abort.abort();
+  }, [key, element]);
 
-  const active = key !== undefined && shown === key && over !== key;
-  const value = useMemo(() => ({ active, target, register }), [active, target, register]);
+  useEffect(() => {
+    if (!shownKey) return;
+    const hold = setTimeout(
+      () => setShownKey(null),
+      cssMs("--dur-land-in", 240) + cssMs("--hold-highlight", 1500),
+    );
+    return () => clearTimeout(hold);
+  }, [shownKey]);
+
+  const active = key !== undefined && shownKey === key;
+  const registerElement = useCallback((el: HTMLElement | null) => register(el), []);
+  const value = useMemo(
+    () => ({ active, target, register: registerElement }),
+    [active, target, registerElement],
+  );
   return <LandingContext.Provider value={value}>{children}</LandingContext.Provider>;
 }
 
-/** The citation the reader followed and whether its ring is showing. */
 export function useLanding(): Landing {
   return useContext(LandingContext);
 }
@@ -166,5 +141,8 @@ export function useLanding(): Landing {
 /** Registers the widget a landing scrolls to. */
 export function useLandingTarget(ref: { current: HTMLElement | null }) {
   const { register } = useLanding();
-  useEffect(() => register(ref.current), [register, ref]);
+  useEffect(() => {
+    register(ref.current);
+    return () => register(null);
+  }, [register, ref]);
 }

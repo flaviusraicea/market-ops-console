@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ArrowDown, ICON_STROKE } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { prefersReducedMotion } from "@/lib/motion";
+import { onScrollIntent, prefersReducedMotion } from "@/lib/motion";
 import { AnswerCard } from "./AnswerCardLazy";
 import { EmptyState, type PanelContext } from "./EmptyState";
 import type { Answer } from "./useAnswerMachine";
@@ -25,8 +25,6 @@ type AnswerListProps = {
 const NEAR_BOTTOM_PX = 48;
 /** How long a smooth scroll to a new card keeps the list following the stream. */
 const FOLLOW_MS = 500;
-/** Keys that scroll the page or the list. */
-const SCROLL_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]);
 
 /**
  * The session's answers, newest at the bottom. The panel caps its height (a sticky column from 1024 px, a bottom
@@ -91,23 +89,11 @@ export function AnswerList({
   // pulled back down (WCAG 2.2.2: the user stays in control of auto-moving content).
   useEffect(() => {
     if (!hasAnswers) return;
-    const stopFollowing = () => {
+    const controller = new AbortController();
+    onScrollIntent(() => {
       followUntil.current = 0;
-    };
-    const onKey = (e: KeyboardEvent) => {
-      // Space and arrows typed into the composer are not scrolling.
-      const typing =
-        e.target instanceof HTMLElement && e.target.matches("input, textarea, [contenteditable]");
-      if (!typing && SCROLL_KEYS.has(e.key)) stopFollowing();
-    };
-    window.addEventListener("wheel", stopFollowing, { passive: true });
-    window.addEventListener("touchmove", stopFollowing, { passive: true });
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("wheel", stopFollowing);
-      window.removeEventListener("touchmove", stopFollowing);
-      window.removeEventListener("keydown", onKey);
-    };
+    }, controller.signal);
+    return () => controller.abort();
   }, [hasAnswers]);
 
   function scrollToEnd(smooth: boolean) {

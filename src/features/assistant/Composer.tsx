@@ -10,6 +10,12 @@ import { warmAnswerCard } from "./AnswerCardLazy";
 
 const MAX_ROWS = 4;
 
+/**
+ * `field-sizing: content` grows the box with its text, capped by max-h, and re-measures by itself when the panel is
+ * shown or resized. Browsers without it use `fitToText`.
+ */
+const NATIVE_SIZING = typeof CSS !== "undefined" && CSS.supports("field-sizing", "content");
+
 /** The auto-grow fallback: up to MAX_ROWS lines, then scroll. */
 function fitToText(value: string) {
   const el = document.getElementById("ask");
@@ -50,20 +56,16 @@ export function Composer({
   note,
   simulated,
 }: ComposerProps) {
-  // `field-sizing: content` grows the box with its text, capped by max-h, and re-measures by itself when the panel
-  // is shown or resized. Browsers without it use `fitToText`.
-  const native = typeof CSS !== "undefined" && CSS.supports("field-sizing", "content");
-
   useLayoutEffect(() => {
-    if (!native) fitToText(value);
-  }, [native, value]);
+    if (!NATIVE_SIZING) fitToText(value);
+  }, [value]);
   useEffect(() => {
     const el = document.getElementById("ask");
-    if (native || !el) return;
-    const observer = new ResizeObserver(() => fitToText(value));
+    if (NATIVE_SIZING || !(el instanceof HTMLTextAreaElement)) return;
+    const observer = new ResizeObserver(() => fitToText(el.value));
     observer.observe(el);
     return () => observer.disconnect();
-  }, [native, value]);
+  }, []);
 
   function submit() {
     const question = value.trim();
@@ -124,9 +126,15 @@ export function Composer({
               submit();
             }
           }}
-          className="field-sizing-content max-h-40 resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
+          className="field-sizing-content min-h-[var(--composer-row)] max-h-40 resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
         />
-        <Button type="submit" size="icon" aria-label="Send" disabled={disabled}>
+        <Button
+          type="submit"
+          size="icon"
+          aria-label="Send"
+          disabled={disabled}
+          className="size-[var(--composer-row)]"
+        >
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
         </Button>
       </form>

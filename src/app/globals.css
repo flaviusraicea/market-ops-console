@@ -268,6 +268,12 @@ tr[data-landing-target][data-landed]:not(:focus-visible) {
     outline-color: transparent;
   }
 }
+/* Forced colours turn a transparent outline into a solid system colour: draw none until the row lands. */
+@media (forced-colors: active) {
+  tr[data-landing-target]:not([data-landed]):not(:focus-visible) {
+    outline-style: none;
+  }
+}
 
 /*
  * Touch targets (slice 20): on a touch screen every button, link and form control is at least 44 px each way.

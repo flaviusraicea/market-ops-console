@@ -56,3 +56,20 @@ export function onChromium(profile: (typeof devices)[string]) {
   void defaultBrowserType;
   return rest;
 }
+
+/** The Germany answer's chip for the March dip. */
+export const march = (page: Page) =>
+  page.getByRole("button", { name: "Go to Germany, Mar 2026 (largest dip)" });
+
+/** The Analyst time series card, the target of a followed citation. */
+export const timeSeries = (page: Page) =>
+  page.getByRole("region", { name: /revenue Actual vs forecast/ });
+
+/** Asks about Germany's dip and waits for the answer's three chips. */
+export async function germanyAnswer(page: Page) {
+  await page.goto("/");
+  await ask(page, "Why did Germany dip?");
+  await expect(page.getByRole("list", { name: "Citations" }).getByRole("listitem")).toHaveCount(3, {
+    timeout: 5000,
+  });
+}

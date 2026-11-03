@@ -122,14 +122,16 @@
   --dur-fast: 150ms;
   --dur-base: 200ms;
   --dur-chart: 240ms;
-  /* A followed citation (motion-spec.md section 3, row 3): ring and tint fade in, hold, fade out; opacity only. */
-  --dur-land-in: 150ms;
-  --dur-land-out: 200ms;
-  --hold-highlight: 2000ms; /* read by JS once (useLanding), so reduced motion keeps the hold */
+  /* A followed citation (motion-spec.md section 3, row 3): ring and tint fade in with the chart tweens, hold, then decay gently; opacity only. */
+  --dur-land-in: 240ms;
+  --dur-land-out: 800ms;
+  --hold-highlight: 1500ms; /* read by JS once (useLanding), so reduced motion keeps the hold */
   --ease: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --land-tint: color-mix(in srgb, var(--accent) 8%, transparent);
+  /* The composer's one row: a line of text plus padding and border, so Send matches the box in either density. */
+  --composer-row: calc(var(--text-body-lh) + 14px);
 }
 
 @media (min-width: 1024px) {
