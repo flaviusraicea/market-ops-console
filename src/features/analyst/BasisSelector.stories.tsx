@@ -30,6 +30,9 @@ export const Month: Story = {
 export const MatUnavailable: Story = {
   args: { matDisabled: true, matFallback: true },
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByRole("radio", { name: "MAT" })).toHaveAttribute("aria-disabled", "true");
+    await expect(within(canvasElement).getByRole("radio", { name: "MAT" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
   },
 };

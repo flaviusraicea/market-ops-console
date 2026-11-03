@@ -29,7 +29,7 @@ export function StatusStrip({
     <div
       aria-label="Market status by region"
       role="group"
-      className="flex flex-wrap gap-x-5 gap-y-4 max-md:snap-x max-md:snap-mandatory max-md:flex-nowrap max-md:overflow-x-auto max-md:pb-1"
+      className="relative flex flex-wrap gap-x-5 gap-y-4 max-md:snap-x max-md:snap-mandatory max-md:flex-nowrap max-md:overflow-x-auto max-md:pb-1"
     >
       {groups.map((group) => {
         const heading = (
@@ -69,6 +69,7 @@ export function StatusStrip({
                   <button
                     type="button"
                     aria-label={`${market.name}, ${market.statusLabel.toLowerCase()}`}
+                    data-chip
                     onClick={() => select(market.id)}
                     className={cn(
                       "inline-flex h-7 w-full items-center gap-1.5 rounded-control border px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] font-medium whitespace-nowrap text-ink transition-colors duration-[var(--dur-fast)]",

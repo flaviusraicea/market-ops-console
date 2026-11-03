@@ -17,7 +17,11 @@ const meta = {
   args: {
     children: (
       <>
-        <SheetSection eyebrow="Markets" subtitle="13 markets · May 2026" caption="Source · data.json">
+        <SheetSection
+          eyebrow="Markets"
+          subtitle="13 markets · May 2026"
+          caption="Source · data.json"
+        >
           <p>Grid goes here</p>
         </SheetSection>
         <SheetSection eyebrow="Map" subtitle="Markets by attainment">

@@ -25,7 +25,7 @@ export function LiveToggle({
       role="group"
       aria-label="Live data"
       className={cn(
-        "inline-flex h-[var(--control-h)] items-center rounded-pill bg-surface-2 p-0.5",
+        "inline-flex h-[var(--track-h)] items-center rounded-pill bg-surface-2 p-0.5",
         className,
       )}
     >

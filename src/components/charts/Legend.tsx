@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@/components/cn";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { StatusGlyph } from "@/components/StatusGlyph";
 
 export type LegendItem =
@@ -58,13 +61,16 @@ export function Legend({
   className?: string;
 }) {
   const fills = items.length === 7 && items.every((i) => i.swatch === "fill");
+  // On a phone the seven bins are one row that scrolls sideways, so the row takes focus for the keyboard.
+  const scrolls = useMediaQuery(PHONE_QUERY) && fills;
   return (
     <ul
       aria-label={label}
+      {...(scrolls ? { tabIndex: 0 } : {})}
       className={cn(
         "text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2",
         fills
-          ? "grid w-full max-w-[40rem] grid-cols-4 gap-x-3 gap-y-2 min-[1100px]:grid-cols-7"
+          ? "grid w-full max-w-[40rem] grid-cols-4 gap-x-3 gap-y-2 min-[1100px]:grid-cols-7 max-md:flex max-md:max-w-none max-md:overflow-x-auto max-md:pb-1"
           : "flex flex-wrap items-center gap-x-4 gap-y-1",
         items.every((i) => i.swatch === "status") && "justify-center gap-x-6",
         className,
@@ -75,7 +81,7 @@ export function Legend({
           key={item.label}
           className={cn(
             fills
-              ? "flex min-w-0 flex-col items-center gap-1 text-center whitespace-nowrap"
+              ? "flex min-w-0 flex-col items-center gap-1 text-center whitespace-nowrap max-md:min-w-[72px] max-md:shrink-0"
               : "inline-flex items-center gap-1.5",
             fills && items.length === 7 && i === 3 && "col-start-1 min-[1100px]:col-auto",
           )}

@@ -79,7 +79,8 @@ function thresholdsFor(rows: RuleRow[], scope: AlertRule["scope"]) {
 /** Save and delete with optimistic updates. Architecture 7: idle -> saving -> saved | failed -> saving. */
 /** A refused edit (the Executive role) is expected and shown to the user; anything else is reported. */
 function reportAlertFailure(error: Error) {
-  if (!(error instanceof ReadOnlyRoleError)) reportError(error, { source: "fetch", route: "/api/alerts" });
+  if (!(error instanceof ReadOnlyRoleError))
+    reportError(error, { source: "fetch", route: "/api/alerts" });
 }
 
 export function useAlertSave(api: AlertApi = alertApi) {

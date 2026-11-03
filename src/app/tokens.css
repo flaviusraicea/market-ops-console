@@ -94,6 +94,7 @@
   --pad-cell-x: 16px;
   --row-h: 44px;
   --control-h: 36px;
+  --track-h: var(--control-h);
   --chip-h: 24px;
   --header-h: 56px;
   --text-body: 14px;
@@ -124,6 +125,17 @@
 @media (min-width: 1024px) {
   :root {
     --gutter: 24px;
+  }
+}
+
+/* Touch: 44 px controls and rows in both densities; a segmented track is 4 px taller than its 44 px buttons. */
+@media (pointer: coarse) {
+  :root,
+  html[data-density="analyst"] {
+    --control-h: 44px;
+    --track-h: 48px;
+    --chip-h: 36px;
+    --row-h: 44px;
   }
 }
 

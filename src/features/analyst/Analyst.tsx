@@ -55,7 +55,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
         <ErrorBoundary widget="time-series">
           <LiveTimeSeriesCard vm={vm.timeSeries} />
         </ErrorBoundary>
-        <div className="grid min-[1024px]:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] min-[1024px]:divide-x min-[1024px]:divide-border max-[1023px]:divide-y max-[1023px]:divide-border">
+        <div className="grid grid-cols-[minmax(0,1fr)] min-[1024px]:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] min-[1024px]:divide-x min-[1024px]:divide-border max-[1023px]:divide-y max-[1023px]:divide-border">
           <ErrorBoundary widget="radar">
             <LiveRadarCard vm={vm.radar} rowLabel={ctx.region ? "Market" : "Region"} />
           </ErrorBoundary>

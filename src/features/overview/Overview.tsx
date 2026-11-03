@@ -31,13 +31,13 @@ export function Overview({ ctx }: { ctx: Context }) {
       <ErrorBoundary widget="attention">
         <LiveAttentionList attention={attentionVM(ds, ctx)} />
       </ErrorBoundary>
-      <div className="grid gap-[var(--gap)] lg:grid-cols-12">
-        <div className="lg:col-span-7">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-[var(--gap)] lg:grid-cols-12">
+        <div className="min-w-0 lg:col-span-7">
           <ErrorBoundary widget="map">
             <LiveMapCard map={vm.map} />
           </ErrorBoundary>
         </div>
-        <div className="lg:col-span-5">
+        <div className="min-w-0 lg:col-span-5">
           <ErrorBoundary widget="region-bars">
             <LiveRegionBars bars={regionBarsVM(ds, ctx)} />
           </ErrorBoundary>

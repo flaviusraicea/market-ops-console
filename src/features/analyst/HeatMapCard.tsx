@@ -23,7 +23,7 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
     >
       <ViewAsTable
         subject="the attainment by month heat map"
-        toolbar={
+        footer={
           <Legend
             label="Attainment colour scale"
             items={ATTAINMENT_LEGEND.map((b) => ({

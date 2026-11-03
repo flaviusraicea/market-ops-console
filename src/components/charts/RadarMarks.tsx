@@ -18,11 +18,16 @@ export function splitLabel(label: string): string[] {
 }
 export const RINGS = [0.5, 1];
 /** Clockwise from the top, one angle per axis. */
-export const angleOf = (axis: number, count: number) => ((-90 + (360 / count) * axis) * Math.PI) / 180;
+export const angleOf = (axis: number, count: number) =>
+  ((-90 + (360 / count) * axis) * Math.PI) / 180;
 
 export type Geometry = { cx: number; cy: number; radius: number; n: number };
 
-export const pointAt = ({ cx, cy, radius, n }: Geometry, axis: number, r: number): [number, number] => [
+export const pointAt = (
+  { cx, cy, radius, n }: Geometry,
+  axis: number,
+  r: number,
+): [number, number] => [
   cx + Math.cos(angleOf(axis, n)) * radius * r,
   cy + Math.sin(angleOf(axis, n)) * radius * r,
 ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import {
   Table,
@@ -59,6 +59,12 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const wrapRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
   const tip = useChartTooltip();
+  // Where the grid is wider than its card (a phone), it opens at the latest months, the ones that matter.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+  }, []);
   const shown = useRef({ row: 0, col: 0 });
   const nCols = periods.length;
 
@@ -175,7 +181,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
 
   return (
     <div ref={wrapRef} className="relative">
-      <div className="overflow-x-auto">
+      <div ref={scrollRef} className="overflow-x-auto [scrollbar-gutter:stable]">
         <div
           role="grid"
           aria-label={label}
@@ -262,7 +268,7 @@ export function HeatMapTable({
   periods: readonly string[];
 }) {
   return (
-    <Table scrollLabel={`${caption}, scrollable`}>
+    <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
       <TableCaption className="sr-only">{caption}</TableCaption>
       <TableHeader>
         <TableRow>

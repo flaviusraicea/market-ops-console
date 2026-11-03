@@ -1,7 +1,7 @@
 "use client";
 
 import { useTooltip } from "@visx/tooltip";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 import { cn } from "@/components/cn";
 import { Sparkles, ICON_STROKE } from "@/components/icons";
@@ -104,8 +104,23 @@ export function ChartTooltip({
   top,
   onHover,
 }: TooltipContent & { left: number; top: number; onHover?: (inside: boolean) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  // Near either edge of the chart the box slides inward to stay whole (a phone's plot is narrow); the caret
+  // keeps pointing at the mark.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const parent = el?.offsetParent;
+    if (!el || !parent) return;
+    const half = el.offsetWidth / 2;
+    const lo = half;
+    const hi = Math.max(parent.clientWidth - half, lo);
+    const shift = Math.min(Math.max(left, lo), hi) - left;
+    el.style.marginLeft = `${shift}px`;
+    el.style.setProperty("--caret-shift", `${-shift}px`);
+  });
   return (
     <div
+      ref={ref}
       role="tooltip"
       onMouseEnter={action ? () => onHover?.(true) : undefined}
       onMouseLeave={action ? () => onHover?.(false) : undefined}
@@ -148,7 +163,7 @@ export function ChartTooltip({
       ) : null}
       <span
         aria-hidden
-        className="absolute top-full left-1/2 -mt-[4px] size-[8px] -translate-x-1/2 rotate-45 border-r border-b border-border bg-surface"
+        className="absolute top-full left-[calc(50%+var(--caret-shift,0px))] -mt-[4px] size-[8px] -translate-x-1/2 rotate-45 border-r border-b border-border bg-surface"
       />
     </div>
   );

@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
 import { ArrowDown, ICON_STROKE } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useAssistantRail } from "@/features/shell/railState";
 import { prefersReducedMotion } from "@/lib/motion";
 import { AnswerCard } from "./AnswerCardLazy";
 import { EmptyState, type PanelContext } from "./EmptyState";
@@ -30,12 +28,6 @@ const FOLLOW_MS = 500;
 /** Keys that scroll the page or the list. */
 const SCROLL_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]);
 
-const ANNOUNCEMENT: Partial<Record<Answer["status"], string>> = {
-  done: "Answer complete",
-  stopped: "Answer stopped",
-  failed: "Answer failed",
-};
-
 /**
  * The session's answers, newest at the bottom. From 1024 px the panel caps its height, so the list is the only
  * scrolling part; below that nothing caps it and the page scrolls. It follows the stream only while the reader is at the bottom.
@@ -55,11 +47,6 @@ export function AnswerList({
   const heights = useRef({ list: 0, page: 0 });
   const signatureRef = useRef("");
   const [leftAt, setLeftAt] = useState<string | null>(null);
-  const [announcement, setAnnouncement] = useState<{ n: number; text: string }>({ n: 0, text: "" });
-  const seen = useRef(new Map<string, Answer["status"]>());
-
-  const { liveHost, noteAnswerDone } = useAssistantRail();
-
   const last = answers[answers.length - 1];
   const signature = last ? `${answers.length}:${last.id}:${last.status}:${last.text.length}` : "";
   const hasAnswers = answers.length > 0;
@@ -109,7 +96,8 @@ export function AnswerList({
     };
     const onKey = (e: KeyboardEvent) => {
       // Space and arrows typed into the composer are not scrolling.
-      const typing = e.target instanceof HTMLElement && e.target.matches("input, textarea, [contenteditable]");
+      const typing =
+        e.target instanceof HTMLElement && e.target.matches("input, textarea, [contenteditable]");
       if (!typing && SCROLL_KEYS.has(e.key)) stopFollowing();
     };
     window.addEventListener("wheel", stopFollowing, { passive: true });
@@ -174,20 +162,6 @@ export function AnswerList({
     rememberHeights();
   }, [scrollSignal]);
 
-  // Screen-reader announcements for the end of an answer.
-  useEffect(() => {
-    for (const a of answers) {
-      const before = seen.current.get(a.id);
-      seen.current.set(a.id, a.status);
-      const text = ANNOUNCEMENT[a.status];
-      if (before === "streaming" && text) {
-        setAnnouncement((p) => ({ n: p.n + 1, text }));
-        if (a.status === "done") noteAnswerDone();
-      }
-    }
-  }, [answers, noteAnswerDone]);
-
-  const announced = <span key={announcement.n}>{announcement.text}</span>;
   const showNewText = hasAnswers && leftAt !== null && leftAt !== signature;
 
   return (
@@ -224,19 +198,11 @@ export function AnswerList({
           variant="ghost"
           aria-label="Scroll to newest answer"
           onClick={() => scrollToEnd(true)}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 border border-border bg-surface shadow-[var(--shadow-popover)]"
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 max-lg:right-3 max-lg:left-auto max-lg:translate-x-0 border border-border bg-surface shadow-[var(--shadow-popover)]"
         >
           New text
           <ArrowDown aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
         </Button>
-      ) : null}
-      {liveHost === undefined ? (
-        <div role="status" aria-live="polite" className="sr-only">
-          {announced}
-        </div>
-      ) : liveHost ? (
-        // The shell's live region stays mounted while the panel is collapsed.
-        createPortal(announced, liveHost)
       ) : null}
     </div>
   );

@@ -253,3 +253,27 @@ html[data-reduced-motion="true"] .live-dot {
     outline-style: none;
   }
 }
+
+/*
+ * Touch targets (slice 20): on a touch screen every button, link and form control is at least 44 px each way.
+ * Chips are 36 px tall (they sit in rows and wrap); the skip link only shows on focus and is exempt.
+ * Low specificity (:where) so a component can still ask for more.
+ */
+@layer base {
+  @media (pointer: coarse) {
+    :where(button, a[href], select, summary, [role="button"], [role="radio"], [role="tab"]):not(
+      .sr-only-focusable,
+      [data-chip],
+      [data-hit]
+    ) {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    :where([data-chip]) {
+      min-height: 36px;
+    }
+    :where(input:not([type="hidden"], [type="checkbox"], [type="radio"]), textarea) {
+      min-height: 44px;
+    }
+  }
+}

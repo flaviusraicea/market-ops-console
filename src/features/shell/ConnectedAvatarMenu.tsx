@@ -50,13 +50,7 @@ export function ConnectedAvatarMenu() {
 
   if (Menu)
     return (
-      <Menu
-        role={role}
-        onSwitch={switchRole}
-        onSignOut={signOut}
-        defaultOpen
-        openedBy={openedBy}
-      />
+      <Menu role={role} onSwitch={switchRole} onSignOut={signOut} defaultOpen openedBy={openedBy} />
     );
 
   return (

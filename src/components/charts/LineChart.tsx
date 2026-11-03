@@ -357,7 +357,7 @@ export function LineChartTable({
 }) {
   const flagged = new Set(anomalies.map((a) => a.period));
   return (
-    <Table>
+    <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
       <TableCaption className="sr-only">{caption}</TableCaption>
       <TableHeader>
         <TableRow>

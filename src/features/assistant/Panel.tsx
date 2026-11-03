@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
-import { entityName, entityOf } from "@/domain";
 import { cn } from "@/components/cn";
 import { isSimulated, useLiveState } from "@/features/live/LiveProvider";
 import { PaletteButton } from "@/features/palette/PaletteButton";
@@ -11,26 +10,17 @@ import { ChevronRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAssistantRail, useFocusRequest, useOverlayKeys } from "@/features/shell/railState";
 import { DESKTOP_QUERY, OVERLAY_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
-import { useDataset } from "@/lib/context/dataset";
-import { useConsoleContext } from "@/lib/context/useConsoleContext";
-import { logEvent } from "@/lib/events";
-import { prefersReducedMotion } from "@/lib/motion";
-import type { AskStream } from "@/lib/stream/chatClient";
+import { COARSE_QUERY } from "@/lib/useMediaQuery";
 import { AnswerList } from "./AnswerList";
-import { warmAnswerCard } from "./AnswerCardLazy";
-import { useAskWhyRequest, useRegisterAskSender, type AskContext } from "./askWhy";
+import { useAskWhyRequest, type AskContext } from "./askWhy";
+import { useAnswerMachineContext } from "./AnswerMachine";
 import { Composer } from "./Composer";
 import type { PanelContext } from "./EmptyState";
-import { usePublishAnswers } from "./AnswerStore";
-import { askContext } from "./questions";
-import { useAnswerMachine } from "./useAnswerMachine";
 
 type PanelProps = {
   /** What the empty state says about the current view. */
   context: PanelContext;
   onSubmit?: (question: string) => void;
-  /** Replaces the network stream; stories and tests use it. */
-  stream?: AskStream;
 };
 
 /**
@@ -38,46 +28,69 @@ type PanelProps = {
  * to reach with the keyboard. From 1024 px the panel is sticky and only the answer list scrolls;
  * below that it sits in the page flow.
  */
-export function Panel({ context, onSubmit, stream }: PanelProps) {
+type Placement = {
+  /** `sheet` is the phone layout: the panel fills the bottom sheet instead of sitting in a column. */
+  variant: "column" | "sheet";
+  /**
+   * Whether opening the sheet moves focus to the composer. It does when the person tapped "Ask the assistant";
+   * it does not when an Ask why button or a citation opened it, because that would raise the keyboard.
+   */
+  focusComposer: boolean;
+  /** The last prefill the sheet had already shown, so reopening it does not replay that one. */
+  skipRequestsUpTo: number;
+};
+const PlacementContext = createContext<Placement>({
+  variant: "column",
+  focusComposer: true,
+  skipRequestsUpTo: 0,
+});
+
+/** Wraps the panel where it is not in the desktop column. */
+export function PanelPlacement({ value, children }: { value: Placement; children: ReactNode }) {
+  return <PlacementContext.Provider value={value}>{children}</PlacementContext.Provider>;
+}
+
+/** The panel reads the session's answer machine, so it must sit under `AnswerMachineProvider` (Layout provides it). */
+export function Panel(props: PanelProps) {
+  const machine = useAnswerMachineContext();
+  if (!machine) throw new Error("Panel must be rendered inside AnswerMachineProvider");
+  return <PanelBody {...props} machine={machine} />;
+}
+
+function PanelBody({
+  context,
+  onSubmit,
+  machine,
+}: PanelProps & { machine: NonNullable<ReturnType<typeof useAnswerMachineContext>> }) {
+  const { variant, focusComposer, skipRequestsUpTo } = useContext(PlacementContext);
+  const sheet = variant === "sheet";
   const live = useLiveState();
-  const [draft, setDraft] = useState("");
-  const [scrollSignal, setScrollSignal] = useState(0);
-  // Where a prefilled question came from, until it is sent or cleared. `note` is the composer's helper line.
-  const [pending, setPending] = useState<{ ctx: AskContext; note: string | null } | null>(null);
+  // The draft and where a prefilled question came from live in the machine's provider, so closing the phone
+  // sheet does not lose what was typed.
+  const { draft, setDraft, pending, setPending } = machine;
   const ref = useRef<HTMLTextAreaElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const request = useAskWhyRequest();
-  const ds = useDataset();
-  const { ctx } = useConsoleContext();
   const { open, collapse } = useAssistantRail();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const overlay = useMediaQuery(OVERLAY_QUERY) && open;
   const panelRef = useRef<HTMLDivElement>(null);
   const onKeyDown = useOverlayKeys(panelRef, { desktop, overlay, collapse });
 
-  const { answers, ask, stop, retry, isStreaming } = useAnswerMachine(stream);
-  usePublishAnswers(answers);
+  const { answers, stop, retry, isStreaming, submitCount, bumpSubmit } = machine;
+  const coarse = useMediaQuery(COARSE_QUERY);
 
   /** `about` is the entry point a question came from; without one the question is about the view in the URL. */
-  function submit(question: string, about?: AskContext) {
-    warmAnswerCard();
-    logEvent({ type: "ask", question });
+  function submit(question: string, about?: AskContext, { keepKeyboardDown = false } = {}) {
     onSubmit?.(question);
-    const entity = entityOf(ctx);
-    const where = about ?? askContext(entity, entityName(ds, entity), ctx.period);
-    ask(question, where);
-    setScrollSignal((n) => n + 1);
-    // Focus stays in the textarea after Send (also when Send was clicked or a suggestion was picked).
-    ref.current?.focus();
+    machine.submit(question, about);
+    // Focus stays in the textarea after Send (also when Send was clicked or a suggestion was picked), except that
+    // picking a suggestion on a touch screen must not raise the keyboard over the answer.
+    if (!(keepKeyboardDown && coarse)) ref.current?.focus();
   }
 
-  // An "Ask why" button elsewhere either sends its question or fills the composer; both move focus here.
-  useRegisterAskSender((text, about) => {
-    if (isStreaming) return false;
-    submit(text, about);
-    return true;
-  });
-  const [applied, setApplied] = useState(0);
+  // An "Ask why" button elsewhere either fills the composer or has sent its question already (see AnswerMachine).
+  const [applied, setApplied] = useState(skipRequestsUpTo);
   if (request && request.nonce !== applied) {
     setApplied(request.nonce);
     if (request.fill) {
@@ -93,17 +106,14 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
     }
   }
   useEffect(() => {
-    if (!request) return;
-    const el = ref.current;
-    el?.focus();
-    // Below 1024 px the panel sits under the dashboard, so bring it into view.
-    if (el && !window.matchMedia(DESKTOP_QUERY).matches) {
-      el.scrollIntoView({
-        block: "center",
-        behavior: prefersReducedMotion() ? "instant" : "smooth",
-      });
-    }
-  }, [request]);
+    if (!request || request.nonce <= skipRequestsUpTo) return;
+    if (sheet && !focusComposer) return;
+    ref.current?.focus();
+  }, [request, skipRequestsUpTo, sheet, focusComposer]);
+  // The sheet opened by "Ask the assistant" puts the cursor in the composer.
+  useEffect(() => {
+    if (sheet && focusComposer) ref.current?.focus();
+  }, [sheet, focusComposer]);
 
   // Opening from the rail toggle lands on the panel heading; entry points land in the composer (above).
   useFocusRequest("heading", headingRef);
@@ -122,12 +132,17 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
       {...(overlay ? { role: "dialog", "aria-modal": true, "aria-labelledby": "assistant-h" } : {})}
       onKeyDown={onKeyDown}
       className={cn(
-        "relative flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)]",
-        // From 1280 px the panel is sticky in its column; from 1024 to 1279 px it overlays the dashboard when open.
-        "xl:sticky xl:max-h-[calc(100vh-var(--header-h)-32px)]",
-        "xl:top-[var(--assistant-top)]",
-        "lg:max-xl:fixed lg:max-xl:top-[var(--below-header)] lg:max-xl:right-4 lg:max-xl:bottom-4 lg:max-xl:z-50 lg:max-xl:w-[var(--assistant-w)] lg:max-xl:shadow-popover",
-        !open && "lg:hidden",
+        "relative flex flex-col gap-4 bg-surface p-[var(--pad-card)]",
+        sheet
+          ? "h-full min-h-0"
+          : [
+              "rounded-card border border-border",
+              // From 1280 px the panel is sticky in its column; from 1024 to 1279 px it overlays the dashboard when open.
+              "xl:sticky xl:max-h-[calc(100vh-var(--header-h)-32px)]",
+              "xl:top-[var(--assistant-top)]",
+              "lg:max-xl:fixed lg:max-xl:top-[var(--below-header)] lg:max-xl:right-4 lg:max-xl:bottom-4 lg:max-xl:z-50 lg:max-xl:w-[var(--assistant-w)] lg:max-xl:shadow-popover",
+              !open && "lg:hidden",
+            ],
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -186,14 +201,14 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
       <AnswerList
         answers={answers}
         context={pending ? { ...context, about: null } : context}
-        onPick={(q) => submit(q)}
+        onPick={(q) => submit(q, undefined, { keepKeyboardDown: true })}
         onTry={fill}
         onStop={stop}
         onRetry={(id) => {
           retry(id);
-          setScrollSignal((n) => n + 1);
+          bumpSubmit();
         }}
-        scrollSignal={scrollSignal}
+        scrollSignal={submitCount}
       />
     </div>
   );

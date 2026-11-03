@@ -33,7 +33,8 @@ export function AvatarMenu({ role, onSwitch, onSignOut, defaultOpen, openedBy }:
   // opened this menu happened before this code was loaded. Replaying one key event right after mount restores
   // what a keyboard user gets from a menu that was never lazy.
   useEffect(() => {
-    if (openedBy === "keyboard") document.dispatchEvent(new KeyboardEvent("keydown", { key: "Shift" }));
+    if (openedBy === "keyboard")
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Shift" }));
   }, [openedBy]);
   return (
     // Not modal: a header menu should not hide the rest of the page from assistive technology or lock scrolling.

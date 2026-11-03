@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/components/cn";
 import { formatPeriod } from "@/lib/format";
 import {
   Select,
@@ -13,15 +14,17 @@ export function PeriodSelect({
   period,
   periods,
   onChange,
+  className,
 }: {
   period: string;
   periods: readonly string[];
   onChange: (p: string) => void;
+  className?: string;
 }) {
   const newestFirst = [...periods].reverse();
   return (
     <Select value={period} onValueChange={onChange}>
-      <SelectTrigger aria-label="Period" className="min-w-[120px]">
+      <SelectTrigger aria-label="Period" className={cn("min-w-[120px]", className)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

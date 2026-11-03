@@ -1,12 +1,16 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 
 import { Notice } from "@/components/Notice";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { LazyChoropleth, MapSkeleton } from "@/components/charts/LazyChoropleth";
 import { Legend } from "@/components/charts/Legend";
-import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
+import {
+  TableView,
+  ViewAsTableToggle,
+  useTableFirstOnPhone,
+} from "@/components/charts/ViewAsTable";
 import type { Metric } from "@/domain";
 import { METRIC_LABEL, MarketsTable, legendFor, useGeo } from "@/features/overview/MapCard";
 import { RegionBars } from "@/features/overview/RegionBars";
@@ -19,7 +23,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
   const { setContext } = useConsoleContext();
   const geoState = useGeo();
   const tableId = useId();
-  const [pressed, setPressed] = useState(false);
+  const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
   const metricLabel = METRIC_LABEL[map.metric];
   const forced = geoState.status === "error";
   const showTable = forced || pressed;
@@ -43,8 +47,9 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
             <ViewAsTableToggle
               pressed={pressed}
               controls={tableId}
-              onPressedChange={setPressed}
+              onPressedChange={toggle}
               subject="the markets map"
+              {...viewMap}
             />
           )}
         </>
@@ -53,10 +58,11 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
       {forced ? (
         <Notice title="Map unavailable">The market table below has the same data.</Notice>
       ) : null}
-      <div className="grid gap-x-6 gap-y-4 min-[1024px]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-4 min-[1024px]:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <TableView
           id={tableId}
           pressed={showTable}
+          auto={auto && !forced}
           chart={
             forced ? null : (
               <>

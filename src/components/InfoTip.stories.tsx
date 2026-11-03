@@ -27,7 +27,9 @@ export const OpensOnFocus: Story = {
     const button = within(canvasElement).getByRole("button", { name: "About forecast attainment" });
     await userEvent.tab();
     await expect(button).toHaveFocus();
-    await waitFor(() => expect(within(document.body).getAllByRole("tooltip").length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(within(document.body).getAllByRole("tooltip").length).toBeGreaterThan(0),
+    );
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(within(document.body).queryByRole("tooltip")).toBeNull());
   },

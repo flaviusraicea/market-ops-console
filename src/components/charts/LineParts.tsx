@@ -115,7 +115,9 @@ export const LineSeries = memo(function LineSeries({
         const dir = ax + 100 > innerW ? -1 : 1;
         return (
           <g key={a.period} aria-hidden>
+            {/* Under 480 px of plot the label would crowd the line: the marker, its button and tooltip stay. */}
             <line
+              {...(innerW < 480 ? { display: "none" } : {})}
               x1={ax + dir * 2}
               y1={ay - 4}
               x2={ax + dir * 8}
@@ -125,6 +127,7 @@ export const LineSeries = memo(function LineSeries({
             />
             <text
               data-slot="anomaly-label"
+              {...(innerW < 480 ? { display: "none" } : {})}
               x={ax + dir * 8}
               y={ay - 28}
               textAnchor={dir === 1 ? "start" : "end"}

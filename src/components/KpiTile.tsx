@@ -9,6 +9,8 @@ export type Direction = "up" | "down" | "flat";
 export type KpiTileProps = {
   /** The KPI name, already in capitals. */
   label: string;
+  /** What a tile too narrow for `label` shows instead (the Overview tiles on a phone). The name stays `label`. */
+  shortLabel?: string;
   headline: string;
   delta: { direction: Direction; value: string; comparison: string };
   /** For example "Source · data.json" or "Derived · sum of series". */
@@ -33,6 +35,7 @@ const DELTA_ICON = { up: ArrowUpRight, down: ArrowDownRight, flat: Minus } as co
 /** Design-system 6.2. The headline is never coloured by direction; the delta carries sign, icon and colour. */
 export function KpiTile({
   label,
+  shortLabel,
   headline,
   delta,
   provenance,
@@ -80,13 +83,25 @@ export function KpiTile({
   return (
     <div
       role="group"
+      data-slot="kpi"
       aria-label={label}
       className={cn(
-        "flex min-w-0 flex-col gap-1 rounded-card border border-border bg-surface p-[var(--pad-card)]",
+        "@container/kpi flex min-w-0 flex-col gap-1 rounded-card border border-border bg-surface p-[var(--pad-card)]",
         className,
       )}
     >
-      <Eyebrow as="p">{label}</Eyebrow>
+      <Eyebrow as="p">
+        {shortLabel ? (
+          <>
+            <span className="@max-[190px]/kpi:hidden">{label}</span>
+            <span aria-hidden className="hidden @max-[190px]/kpi:inline">
+              {shortLabel}
+            </span>
+          </>
+        ) : (
+          label
+        )}
+      </Eyebrow>
       <div className="-mr-1.5 flex items-center justify-between gap-1">
         <p
           data-slot="kpi-headline"
@@ -102,18 +117,23 @@ export function KpiTile({
       <p
         data-slot="kpi-delta"
         data-direction={delta.direction}
-        className="num flex items-center gap-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]"
+        className="num flex flex-wrap items-center gap-x-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]"
       >
-        <Icon
-          aria-hidden
-          className={cn("size-3.5 shrink-0", DELTA_STYLE[delta.direction])}
-          strokeWidth={ICON_STROKE}
-        />
-        <span className={cn("font-medium", DELTA_STYLE[delta.direction])}>{delta.value}</span>
+        <span className="inline-flex min-w-0 items-start gap-x-1">
+          <Icon
+            aria-hidden
+            className={cn(
+              "mt-[calc((1lh-0.875rem)/2)] size-3.5 shrink-0",
+              DELTA_STYLE[delta.direction],
+            )}
+            strokeWidth={ICON_STROKE}
+          />
+          <span className={cn("font-medium", DELTA_STYLE[delta.direction])}>{delta.value}</span>
+        </span>
         {delta.comparison ? (
           <>
             {" "}
-            <span className="text-ink-muted">{delta.comparison}</span>
+            <span className="whitespace-nowrap text-ink-muted">{delta.comparison}</span>
           </>
         ) : null}
       </p>

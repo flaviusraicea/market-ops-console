@@ -4,22 +4,26 @@ import * as React from "react";
 import { cn } from "@/components/cn";
 import { EYEBROW_CLASS } from "@/components/Eyebrow";
 
-/** `scrollLabel` makes the scrolling container a focusable named region, for tables wider than their card. */
+/** `stickyFirst` pins the first column (for a table that scrolls sideways on a phone). `scrollLabel` makes the scrolling container a focusable named region, for tables wider than their card. */
 function Table({
   className,
   scrollLabel,
+  stickyFirst = false,
   ...props
-}: React.ComponentProps<"table"> & { scrollLabel?: string }) {
+}: React.ComponentProps<"table"> & { scrollLabel?: string; stickyFirst?: boolean }) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="relative w-full overflow-x-auto [scrollbar-gutter:stable]"
       {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
     >
       <table
         data-slot="table"
         className={cn(
           "w-full caption-bottom text-[length:var(--text-body-dense)] leading-[18px]",
+          // Where the table is wider than its card, the first column stays in view while the rest scrolls.
+          stickyFirst &&
+            "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-accent-soft [&_thead_tr>:first-child]:bg-surface-2",
           className,
         )}
         {...props}

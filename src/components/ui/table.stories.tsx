@@ -1,7 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, within } from "storybook/test";
 
-import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "./table";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table";
 
 const meta = {
   title: "components/ui/Table",
@@ -49,6 +58,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByRole("table", { name: "Revenue by market, May 2026" })).toBeVisible();
+    await expect(
+      within(canvasElement).getByRole("table", { name: "Revenue by market, May 2026" }),
+    ).toBeVisible();
   },
 };

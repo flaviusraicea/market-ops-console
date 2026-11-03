@@ -231,7 +231,7 @@ Fixed in both densities:
 
 - `--radius-control: 6px` (buttons, inputs, chips that are rectangular), `--radius-card: 8px`, `--radius-pill: 999px` (badges, citation chips, segmented control).
 - Borders are always `1px solid var(--border)`. No 2 px borders except the focus ring.
-- Page max width 1280 px, centered, 24 px side gutter at ≥ 1024 px, 16 px below. The layout must work at 390 px wide with no horizontal scroll (widgets stack to one column, the assistant panel moves below the dashboard).
+- Page max width 1280 px, centered, 24 px side gutter at ≥ 1024 px, 16 px below. The layout must work at 390 px wide with no horizontal scroll: widgets stack to one column, wide tables and the heat map scroll inside their own labelled region with a sticky first column, and under 1024 px the assistant is a fixed bottom bar (56 px, with the palette button) that opens a 90 dvh bottom sheet. Under 768 px the header is two 44 px rows. On a touch screen (`pointer: coarse`) every control is at least 44 × 44 px and chips 36 px tall (`--control-h` 44, `--chip-h` 36, `--row-h` 44).
 - Content column split at ≥ 1024 px: dashboard `minmax(0, 1fr)`, assistant panel fixed 380 px, gap `--gap`.
 
 ## 4.1 Composition

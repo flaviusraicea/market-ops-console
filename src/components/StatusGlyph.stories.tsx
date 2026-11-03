@@ -29,13 +29,17 @@ export const AtRisk: Story = {
   args: { status: "at_risk" },
   play: async ({ canvasElement }) => {
     // Shape, not only colour: a triangle has three points.
-    await expect(canvasElement.querySelector("polygon")?.getAttribute("points")?.split(" ")).toHaveLength(3);
+    await expect(
+      canvasElement.querySelector("polygon")?.getAttribute("points")?.split(" "),
+    ).toHaveLength(3);
   },
 };
 
 export const OffTrack: Story = {
   args: { status: "off_track" },
   play: async ({ canvasElement }) => {
-    await expect(canvasElement.querySelector("polygon")?.getAttribute("points")?.split(" ")).toHaveLength(4);
+    await expect(
+      canvasElement.querySelector("polygon")?.getAttribute("points")?.split(" "),
+    ).toHaveLength(4);
   },
 };

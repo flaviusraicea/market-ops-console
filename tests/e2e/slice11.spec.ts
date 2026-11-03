@@ -6,13 +6,16 @@ import { TAB_ORDERS } from "./tabOrder";
 
 const OVERVIEW = "/";
 const ANALYST = "/?mode=analyst&region=eu&market=de";
+const DRILL = "/?region=eu&market=de";
 const THEMES = ["light", "dark"] as const;
 const WIDTHS = [390, 768, 1024, 1280, 1440] as const;
 const WCAG = ["wcag2a", "wcag2aa", "wcag21aa"];
 
 /** Resolves once every animation on the page has finished. */
 const settled = (page: Page) =>
-  page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)).then(() => true));
+  page.evaluate(() =>
+    Promise.all(document.getAnimations().map((a) => a.finished)).then(() => true),
+  );
 
 const running = (page: Page) => page.evaluate(() => document.getAnimations().length);
 
@@ -100,11 +103,16 @@ test.describe("reduced motion", () => {
     expect(await running(page)).toBe(0);
   });
 
-  test("the console's own override stops transitions and enter animations too", async ({ page }) => {
+  test("the console's own override stops transitions and enter animations too", async ({
+    page,
+  }) => {
     await open(page, OVERVIEW);
     // The user path: the palette's reduce-motion command.
     await page.keyboard.press("Control+k");
-    await page.getByRole("dialog", { name: "Command palette" }).getByRole("combobox").fill("reduce motion");
+    await page
+      .getByRole("dialog", { name: "Command palette" })
+      .getByRole("combobox")
+      .fill("reduce motion");
     await page.keyboard.press("Enter");
     await expect(page.locator("html")).toHaveAttribute("data-reduced-motion", "true");
     await page.keyboard.press("Control+k");
@@ -167,11 +175,9 @@ test.describe("axe, WCAG 2.1 AA", () => {
 });
 
 test.describe("responsive", () => {
-  for (const url of [OVERVIEW, ANALYST]) {
+  for (const url of [OVERVIEW, DRILL, ANALYST]) {
     for (const width of WIDTHS) {
       test(`${url} has no horizontal scroll at ${width} px`, async ({ page }) => {
-        // Slice 20 (mobile) owns the header, legend and toolbar wrapping at 390 px and turns this case on.
-        test.fixme(width === 390, "the 390 px layout is slice 20's");
         await page.setViewportSize({ width, height: 900 });
         await open(page, url);
         const overflow = await page.evaluate(
@@ -183,12 +189,13 @@ test.describe("responsive", () => {
   }
 
   for (const width of [390, 768]) {
-    test(`at ${width} px the panel sits under the dashboard`, async ({ page }) => {
+    test(`at ${width} px the assistant is a bottom bar, not a panel in the page`, async ({
+      page,
+    }) => {
       await page.setViewportSize({ width, height: 900 });
       await open(page, OVERVIEW);
-      const dash = await boxOf(page.getByRole("region", { name: "Dashboard" }));
-      const aside = await boxOf(page.locator("#assistant-panel"));
-      expect(aside.y).toBeGreaterThanOrEqual(dash.y + dash.height - 1);
+      await expect(page.getByRole("button", { name: "Ask the assistant" })).toBeVisible();
+      await expect(page.locator("#assistant-panel")).toHaveCount(0);
     });
   }
 });
@@ -200,7 +207,8 @@ test.describe("keyboard", () => {
       if (!el || el === document.body) return "";
       // textContent, not innerText: the CSS uppercase of eyebrows is not part of the name.
       // A table row has no name of its own: its cells, spaced.
-      const cells = el instanceof HTMLTableRowElement ? [...el.cells].map((c) => c.textContent).join(" ") : "";
+      const cells =
+        el instanceof HTMLTableRowElement ? [...el.cells].map((c) => c.textContent).join(" ") : "";
       const text =
         el.getAttribute("aria-label") ||
         cells ||

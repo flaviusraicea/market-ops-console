@@ -3,9 +3,21 @@ import { expect, fn, userEvent, within } from "storybook/test";
 
 import { Breadcrumbs, type Crumb } from "./Breadcrumbs";
 
-const portfolio: Crumb = { label: "Portfolio", ctx: { region: undefined, market: undefined }, href: "/" };
-const europe: Crumb = { label: "Europe", ctx: { region: "eu", market: undefined }, href: "/?region=eu" };
-const germany: Crumb = { label: "Germany", ctx: { region: "eu", market: "de" }, href: "/?region=eu&market=de" };
+const portfolio: Crumb = {
+  label: "Portfolio",
+  ctx: { region: undefined, market: undefined },
+  href: "/",
+};
+const europe: Crumb = {
+  label: "Europe",
+  ctx: { region: "eu", market: undefined },
+  href: "/?region=eu",
+};
+const germany: Crumb = {
+  label: "Germany",
+  ctx: { region: "eu", market: "de" },
+  href: "/?region=eu&market=de",
+};
 
 const meta = {
   title: "features/shell/Breadcrumbs",

@@ -33,7 +33,7 @@ export function ModeSwitch({ mode, onChange }: { mode: Mode; onChange: (m: Mode)
         role="radiogroup"
         aria-label="View"
         onKeyDown={onKeyDown}
-        className="inline-flex h-[var(--control-h)] items-center rounded-pill bg-surface-2 p-0.5"
+        className="inline-flex h-[var(--track-h)] items-center rounded-pill bg-surface-2 p-0.5"
       >
         {OPTIONS.map((o, i) => {
           const checked = o.value === mode;

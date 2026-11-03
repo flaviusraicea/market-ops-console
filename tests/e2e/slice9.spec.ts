@@ -28,10 +28,13 @@ test("Enter in a prefilled composer sends it, labelled with where it was filled 
   await expect(page.getByRole("list", { name: "Citations" })).toBeVisible({ timeout: 8000 });
 });
 
-test("below 1024 px the panel scrolls into view", async ({ page }) => {
+test("below 1024 px Ask why opens the assistant sheet with the composer focused", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 800, height: 700 });
   await open(page, "/?mode=analyst&region=eu");
   await page.getByRole("button", { name: "Ask why Germany dipped" }).click();
+  await expect(page.getByRole("dialog", { name: "Assistant" })).toBeVisible();
   const box = page.getByRole("textbox", { name: "Ask the assistant" });
   await expect(box).toBeFocused();
   await expect(box).toBeInViewport();

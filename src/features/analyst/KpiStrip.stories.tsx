@@ -5,7 +5,6 @@ import { dataset as ds, portfolioMay } from "../../../.storybook/decorators";
 import { overviewVM } from "@/features/overview/viewModel";
 import { KpiStrip } from "./KpiStrip";
 
-
 const meta = {
   title: "features/analyst/KpiStrip",
   component: KpiStrip,

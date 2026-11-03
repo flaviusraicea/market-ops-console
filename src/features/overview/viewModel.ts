@@ -35,6 +35,8 @@ import {
 
 export type KpiTileVM = {
   label: string;
+  /** For a tile too narrow for `label`. */
+  shortLabel?: string;
   headline: string;
   delta: { direction: "up" | "down" | "flat"; value: string; comparison: string };
   provenance: string;
@@ -135,6 +137,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
 
   const revenue: KpiTileVM = {
     label: entity.kind === "portfolio" ? "PORTFOLIO REVENUE" : `${name} REVENUE`,
+    shortLabel: "REVENUE",
     headline: formatMoneyCompact(k.totals.actual),
     delta: {
       direction: direction(k.growthPct),
@@ -147,6 +150,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
   };
   const attainment: KpiTileVM = {
     label: "FORECAST ATTAINMENT",
+    shortLabel: "ATTAINMENT",
     headline: formatPct(k.attainmentPct, { sign: false }),
     delta: {
       direction: direction(k.variance),
@@ -158,6 +162,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
   };
   const growth: KpiTileVM = {
     label: "GROWTH, YEAR ON YEAR",
+    shortLabel: "GROWTH YOY",
     headline: formatPct(k.growthPct, { sign: true }),
     delta: {
       direction: direction(k.growthPct),
@@ -321,6 +326,8 @@ export type VerdictSegment = {
 
 export type VerdictVM = {
   eyebrow: string;
+  /** The dataset's latest period, for the "Data through" line a phone shows under the eyebrow. */
+  latestPeriod: string;
   caption: string;
   segments: VerdictSegment[];
   status: Status;
@@ -400,6 +407,7 @@ export function verdictVM(ds: Dataset, ctx: Context): VerdictVM {
   return {
     eyebrow:
       `${entityName(ds, entity)} · ${formatPeriod(ctx.period)} · ${BASIS_LABEL.month}`.toUpperCase(),
+    latestPeriod: ds.meta.latestPeriod,
     caption: market ? sourceLabel(ds, atLatest(ds, ctx)) : derivedLabel(ds, atLatest(ds, ctx)),
     segments: joinSegments(parts),
     status,
@@ -551,7 +559,11 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
         sparkLabel: `${p.name}, revenue, last 12 months`,
       };
     });
-    return { kind: "products", caption: `${derivedLabel(ds, atLatest(ds, ctx))} · ${period}`, rows };
+    return {
+      kind: "products",
+      caption: `${derivedLabel(ds, atLatest(ds, ctx))} · ${period}`,
+      rows,
+    };
   }
 
   const scoped = marketsIn(ds, entityOf(ctx)).map((m) => {
