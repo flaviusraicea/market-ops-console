@@ -10,12 +10,22 @@ async function chooseScope(page: Page, name: string) {
   await page.getByRole("option", { name }).click();
 }
 
-const card = (page: Page) => page.getByRole("region", { name: "Alert thresholds" });
+const card = (page: Page) => page.getByRole("region", { name: /^Alerts/ });
+
+/** The Alerts section is folded by default and remembers being open for the tab; open it once. */
+async function openAlerts(page: Page, { remembered = false } = {}) {
+  const trigger = card(page).getByRole("button", { name: /^Alerts/ });
+  // After a reload the open state comes back by itself once the page hydrates.
+  if (remembered) await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  else if ((await trigger.getAttribute("aria-expanded")) === "false") await trigger.click();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+}
 
 test("an attainment of 120 is invalid, linked to its message, and blocks Save", async ({
   page,
 }) => {
   await page.goto(URL);
+  await openAlerts(page);
   const input = card(page).getByRole("textbox", { name: "Attainment below" });
   await input.fill("120");
   await expect(input).toHaveAttribute("aria-invalid", "true");
@@ -30,6 +40,7 @@ test("Save shows the rule at once as Saving…, then Saved · just now and the e
   page,
 }) => {
   await page.goto(URL);
+  await openAlerts(page);
   await chooseScope(page, "Europe");
   await expect(
     card(page).getByText("No alert rules yet. Add one to watch a threshold."),
@@ -51,6 +62,7 @@ test("a failed save shows 97 briefly, then the alert Notice and the saved 95 aga
   page,
 }) => {
   await page.goto(URL);
+  await openAlerts(page);
   await chooseScope(page, "Europe");
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
   await expect(card(page).getByText("Saved · just now")).toBeVisible();
@@ -78,6 +90,7 @@ test("a failed save shows 97 briefly, then the alert Notice and the saved 95 aga
 
 test("Delete asks first, with a danger button, and removes the rule", async ({ page }) => {
   await page.goto(URL);
+  await openAlerts(page);
   await chooseScope(page, "Germany");
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
   await expect(card(page).getByText("Saved · just now")).toBeVisible();
@@ -98,11 +111,13 @@ test("Delete asks first, with a danger button, and removes the rule", async ({ p
 
 test("saved rules survive a reload, and a deleted rule stays gone", async ({ page }) => {
   await page.goto(URL);
+  await openAlerts(page);
   await chooseScope(page, "Europe");
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
   await expect(card(page).getByText("Saved · just now")).toBeVisible();
 
   await page.reload();
+  await openAlerts(page, { remembered: true });
   const list = card(page).getByRole("list", { name: "Saved alert rules" });
   await expect(list.getByText("Growth below 0% · Europe")).toBeVisible();
   await expect(list.getByText("Attainment below 95% · Europe")).toBeVisible();
@@ -119,7 +134,16 @@ test("saved rules survive a reload, and a deleted rule stays gone", async ({ pag
     await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
   }
+  // The delete is confirmed after a simulated round trip; wait for it to reach storage before reloading.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => JSON.parse(localStorage.getItem("market-ops:alerts:v1") ?? "[]").length as number,
+      ),
+    )
+    .toBe(0);
   await page.reload();
+  await openAlerts(page, { remembered: true });
   await expect(
     card(page).getByText("No alert rules yet. Add one to watch a threshold."),
   ).toBeVisible();
@@ -129,10 +153,9 @@ for (const theme of ["light", "dark"] as const) {
   test(`axe finds no violations on the alerts card (${theme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme });
     await page.goto(URL);
+    await openAlerts(page);
     await expect(card(page)).toBeVisible();
-    const results = await new AxeBuilder({ page }).include("#alerts-h").analyze();
+    const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
-    const section = await new AxeBuilder({ page }).analyze();
-    expect(section.violations).toEqual([]);
   });
 }

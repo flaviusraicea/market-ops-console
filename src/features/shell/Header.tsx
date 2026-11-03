@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/components/cn";
 import type { Mode, Period } from "@/domain";
 import { hrefFor } from "@/lib/context/href";
 import { useConsoleMeta } from "@/lib/context/meta";
@@ -45,7 +46,12 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
   useDensity();
 
   return (
-    <header className="relative border-b border-border bg-surface">
+    <header
+      className={cn(
+        "relative border-b border-border bg-surface",
+        mode === "analyst" && "sticky top-0 z-30",
+      )}
+    >
       <div
         aria-hidden
         data-slot="progress"
@@ -69,18 +75,20 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
           />
         </div>
         <div className="flex shrink-0 items-center gap-x-3">
-          {ctx.market ? (
+          {ctx.market && mode !== "analyst" ? (
             <ProductSelect
               product={ctx.product}
               products={products}
               onChange={(product) => setContext({ product })}
             />
           ) : null}
-          <PeriodSelect
-            period={period}
-            periods={periods}
-            onChange={(p) => setContext({ period: p as Period })}
-          />
+          {mode !== "analyst" ? (
+            <PeriodSelect
+              period={period}
+              periods={periods}
+              onChange={(p) => setContext({ period: p as Period })}
+            />
+          ) : null}
           <DataStamp latestPeriod={latestPeriod} />
           <ModeSwitch mode={mode} onChange={(m) => setContext({ mode: m })} />
           <ThemeToggle />

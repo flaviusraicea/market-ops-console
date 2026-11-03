@@ -95,3 +95,21 @@ export const Derived: Story = {
     await expect(within(canvasElement).getByText("Derived · sum of series")).toBeVisible();
   },
 };
+
+export const Strip: Story = {
+  args: {
+    variant: "strip",
+    label: "PORTFOLIO REVENUE",
+    headline: "$22.85M",
+    delta: { direction: "up", value: "+7.3%", comparison: "vs May 2025" },
+    provenance: "Derived · sum of series",
+  },
+  play: async ({ canvasElement }) => {
+    const delta = canvasElement.querySelector('[data-slot="kpi-delta"]')!;
+    await expect(delta).toHaveTextContent("+7.3%vs May 2025");
+    await expect(canvasElement.querySelector("p[title]")).toHaveAttribute(
+      "title",
+      "Derived · sum of series",
+    );
+  },
+};

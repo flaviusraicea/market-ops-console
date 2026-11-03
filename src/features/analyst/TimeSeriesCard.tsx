@@ -1,21 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { LineChart, LineChartTable, SERIES_LEGEND } from "@/components/charts/LineChart";
 import { Legend } from "@/components/charts/Legend";
-import { ViewAsTable } from "@/components/charts/ViewAsTable";
+import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
 import { prefersReducedMotion } from "@/lib/motion";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useLanding } from "./useLanding";
 import type { Period } from "@/domain";
-import { AnalystCard } from "./AnalystCard";
+import { SheetSection } from "./Sheet";
 import type { TimeSeriesVM } from "./viewModel";
 
 export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?: string }) {
   const { setContext } = useConsoleContext();
   const landing = useLanding();
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
+  const tableId = useId();
+  const [pressed, setPressed] = useState(false);
   const landed = landing.active;
 
   // Bring the chart into view when a citation lands on it.
@@ -28,16 +30,22 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
   }, [landed]);
 
   return (
-    <AnalystCard
-      title={vm.title}
+    <SheetSection
+      eyebrow={vm.title}
       subtitle={vm.subtitle}
-      caption={vm.caption}
       landed={landed}
       sectionRef={ref}
+      actions={
+        <>
+          <Legend items={SERIES_LEGEND} label="Series" />
+          <ViewAsTableToggle pressed={pressed} controls={tableId} onPressedChange={setPressed} />
+        </>
+      }
       {...(className ? { className } : {})}
     >
-      <ViewAsTable
-        toolbar={<Legend items={SERIES_LEGEND} label="Series" />}
+      <TableView
+        id={tableId}
+        pressed={pressed}
         chart={
           <LineChart
             points={vm.points}
@@ -53,6 +61,6 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
           <LineChartTable caption={vm.chartTitle} points={vm.points} anomalies={vm.anomalies} />
         }
       />
-    </AnalystCard>
+    </SheetSection>
   );
 }

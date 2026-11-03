@@ -1,9 +1,9 @@
 "use client";
 
-import type { KeyboardEvent } from "react";
+import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
-import { ArrowDown, ICON_STROKE, Info, MessageSquareText } from "@/components/icons";
+import { ArrowDown, ArrowUp, ICON_STROKE, Info, Sparkles } from "@/components/icons";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   TableBody,
   TableCaption,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -20,14 +21,35 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useLanding } from "./useLanding";
-import { AnalystCard } from "./AnalystCard";
-import type { GridVM, MarketRowVM, ProductRowVM } from "./viewModel";
+import { SheetSection } from "./Sheet";
+import type {
+  GridTotalVM,
+  GridVM,
+  MarketRowVM,
+  ProductRowVM,
+  SortKey,
+  SortValues,
+} from "./viewModel";
 
 const DOT: Record<string, string> = {
   on_track: "bg-ok-mark",
   at_risk: "bg-warn-mark",
   off_track: "bg-bad-mark",
 };
+
+const SORT_LABEL: Record<SortKey, string> = {
+  name: "name",
+  revenue: "revenue",
+  forecast: "forecast",
+  priorYear: "prior year",
+  attainment: "attainment",
+  growth: "growth",
+  share: "share",
+  units: "units",
+};
+
+type Sort = { key: SortKey; dir: "asc" | "desc" };
+const DEFAULT_SORT: Sort = { key: "revenue", dir: "desc" };
 
 const signColour = (d: "up" | "down" | "flat") =>
   d === "up" ? "text-ok-text" : d === "down" ? "text-bad-text" : "text-ink-2";
@@ -56,7 +78,7 @@ function rowProps(selected: boolean, onSelect: () => void, landed = false) {
     tabIndex: 0,
     "aria-current": selected ? ("true" as const) : undefined,
     "data-state": selected ? "selected" : undefined,
-    className: "cursor-pointer",
+    className: "group cursor-pointer",
     onClick: (e: React.MouseEvent) => {
       if ((e.target as HTMLElement).closest("button")) return;
       onSelect();
@@ -71,48 +93,146 @@ function rowProps(selected: boolean, onSelect: () => void, landed = false) {
   };
 }
 
-function MarketRows({ rows, statusRule }: { rows: MarketRowVM[]; statusRule: string }) {
-  const { setContext } = useConsoleContext();
+/** Sorts a copy of the rows; ties fall back to revenue so the order never shuffles. */
+function sortRows<T extends { name: string; sort: SortValues }>(rows: T[], sort: Sort): T[] {
+  const sign = sort.dir === "asc" ? 1 : -1;
+  const value = (r: T, key: SortKey) => (key === "name" ? 0 : (r.sort[key] ?? 0));
+  return [...rows].sort((a, b) => {
+    if (sort.key === "name") return sign * a.name.localeCompare(b.name);
+    const diff = value(a, sort.key) - value(b, sort.key);
+    return diff !== 0 ? sign * diff : value(b, "revenue") - value(a, "revenue");
+  });
+}
+
+/** A column header that sorts: numbers start largest first, names start A to Z. */
+function SortHead({
+  label,
+  column,
+  sort,
+  onSort,
+  align = "right",
+  className,
+}: {
+  label: string;
+  column: SortKey;
+  sort: Sort;
+  onSort: (next: Sort) => void;
+  align?: "left" | "right";
+  className?: string;
+}) {
+  const active = sort.key === column;
+  const Icon = sort.dir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <TableHead
+      scope="col"
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+      className={cn(align === "right" && "text-right", className)}
+    >
+      <button
+        type="button"
+        onClick={() =>
+          onSort(
+            active
+              ? { key: column, dir: sort.dir === "asc" ? "desc" : "asc" }
+              : { key: column, dir: column === "name" ? "asc" : "desc" },
+          )
+        }
+        className={cn(
+          "inline-flex items-center gap-1 rounded-control uppercase hover:text-ink",
+          active && "text-ink",
+        )}
+      >
+        {label}
+        {active ? <Icon aria-hidden className="size-3" strokeWidth={ICON_STROKE} /> : null}
+      </button>
+    </TableHead>
+  );
+}
+
+function AskWhyButton({ label, onAsk }: { label: string; onAsk: () => void }) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      aria-label={label}
+      onClick={onAsk}
+      className="pointer-coarse:opacity-100 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-data-[state=selected]:opacity-100 focus-visible:opacity-100"
+    >
+      <Sparkles aria-hidden className="size-3.5 text-ai-label" strokeWidth={ICON_STROKE} />
+      Ask why
+    </Button>
+  );
+}
+
+const STICKY_HEAD = "sticky left-0 z-[1] bg-surface";
+
+/** The sticky first cell keeps the row's own tint so scrolled columns slide under it. */
+const STICKY_CELL =
+  "sticky left-0 z-[1] bg-surface group-hover:bg-surface-2 group-data-[state=selected]:bg-accent-soft";
+
+function MarketRows({
+  rows,
+  total,
+  sort,
+  onSort,
+}: {
+  rows: MarketRowVM[];
+  total: GridTotalVM;
+  sort: Sort;
+  onSort: (next: Sort) => void;
+}) {
+  const { ctx, setContext } = useConsoleContext();
   const { prefill } = useAskWhy();
+  const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
     <>
-      <TableHeader>
-        <TableRow>
-          <TableHead scope="col">Market</TableHead>
-          <TableHead scope="col">
-            <span className="inline-flex items-center gap-0.5">
-              Status
-              <InfoTip label="How status is determined">{statusRule}</InfoTip>
-            </span>
-          </TableHead>
-          <TableHead scope="col" aria-sort="descending" className="text-right">
-            <span className="inline-flex items-center gap-1">
-              <ArrowDown aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-              Revenue
-              <span className="sr-only">, sorted largest first</span>
-            </span>
-          </TableHead>
-          <TableHead scope="col" className="text-right">
-            Attainment
-          </TableHead>
-          <TableHead scope="col" className="text-right">
-            Growth YoY
-          </TableHead>
-          <TableHead scope="col" className="text-right">
-            Share
-          </TableHead>
-          <TableHead scope="col">Trend</TableHead>
+      <TableHeader className="bg-transparent">
+        <TableRow className="hover:bg-transparent">
+          <SortHead
+            label="Market"
+            column="name"
+            align="left"
+            sort={sort}
+            onSort={onSort}
+            className={STICKY_HEAD}
+          />
+          <TableHead scope="col">Region</TableHead>
+          <TableHead scope="col">Status</TableHead>
+          <SortHead label="Revenue" column="revenue" sort={sort} onSort={onSort} />
+          <SortHead label="Forecast" column="forecast" sort={sort} onSort={onSort} />
+          <SortHead label="Prior year" column="priorYear" sort={sort} onSort={onSort} />
+          <SortHead label="Attainment" column="attainment" sort={sort} onSort={onSort} />
+          <SortHead label="Growth YoY" column="growth" sort={sort} onSort={onSort} />
+          <SortHead label="Share" column="share" sort={sort} onSort={onSort} />
+          <SortHead label="Units" column="units" sort={sort} onSort={onSort} />
+          <TableHead scope="col">24 months</TableHead>
           <TableHead scope="col">
             <span className="sr-only">Actions</span>
           </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {rows.map((r) => (
+        {sorted.map((r) => (
           <TableRow key={r.id} {...rowProps(false, () => setContext({ market: r.id }))}>
+            <TableCell className={cn(STICKY_CELL, "font-medium text-ink")}>
+              {r.name}{" "}
+              <span className="text-[length:var(--text-caption)] font-normal text-ink-muted">
+                {r.iso2}
+              </span>
+            </TableCell>
             <TableCell>
-              <span className="font-medium text-ink">{r.name}</span>{" "}
-              <span className="text-[length:var(--text-caption)] text-ink-muted">{r.iso2}</span>
+              {ctx.region === r.regionId ? (
+                <span className="text-ink-2">{r.regionName}</span>
+              ) : (
+                <button
+                  type="button"
+                  aria-label={`Drill into ${r.regionName}`}
+                  onClick={() => setContext({ region: r.regionId })}
+                  className="rounded-control text-ink-2 underline-offset-4 hover:text-ink hover:underline"
+                >
+                  {r.regionName}
+                </button>
+              )}
             </TableCell>
             <TableCell>
               <Badge variant={r.status}>
@@ -121,6 +241,8 @@ function MarketRows({ rows, statusRule }: { rows: MarketRowVM[]; statusRule: str
               </Badge>
             </TableCell>
             <TableCell className="text-right num">{r.revenue}</TableCell>
+            <TableCell className="text-right num">{r.forecast}</TableCell>
+            <TableCell className="text-right num">{r.priorYear}</TableCell>
             <TableCell className="text-right num">
               <span className="inline-flex items-center justify-end gap-0.5">
                 {r.attainment}
@@ -133,6 +255,7 @@ function MarketRows({ rows, statusRule }: { rows: MarketRowVM[]; statusRule: str
               {r.growth}
             </TableCell>
             <TableCell className="text-right num">{r.share}</TableCell>
+            <TableCell className="text-right num">{r.units}</TableCell>
             <TableCell>
               <Sparkline
                 values={r.trend.values}
@@ -141,57 +264,95 @@ function MarketRows({ rows, statusRule }: { rows: MarketRowVM[]; statusRule: str
               />
             </TableCell>
             <TableCell className="text-right">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={r.askWhy.aria}
-                onClick={() => prefill(r.askWhy.text)}
-              >
-                <MessageSquareText aria-hidden className="size-4" strokeWidth={ICON_STROKE} />
-              </Button>
+              <AskWhyButton label={r.askWhy.aria} onAsk={() => prefill(r.askWhy.text)} />
             </TableCell>
           </TableRow>
         ))}
       </TableBody>
+      <TotalRow total={total} labelSpan={3} share trailing={2} />
     </>
   );
 }
 
-function ProductRows({ rows, landed }: { rows: ProductRowVM[]; landed: boolean }) {
+/** The ledger's bottom rule: the entity in view, summed or derived from the same facts as the rows. */
+function TotalRow({
+  total,
+  labelSpan,
+  share = false,
+  trailing,
+}: {
+  total: GridTotalVM;
+  labelSpan: number;
+  share?: boolean;
+  trailing: number;
+}) {
+  return (
+    <TableFooter>
+      <TableRow className="hover:bg-transparent">
+        <TableCell colSpan={labelSpan} className="font-semibold text-ink">
+          {total.label}
+        </TableCell>
+        <TableCell className="text-right num">{total.revenue}</TableCell>
+        <TableCell className="text-right num">{total.forecast}</TableCell>
+        <TableCell className="text-right num">{total.priorYear}</TableCell>
+        <TableCell className="text-right num">{total.attainment}</TableCell>
+        <TableCell className={cn("text-right num", signColour(total.growthDirection))}>
+          {total.growth}
+        </TableCell>
+        {share ? <TableCell /> : null}
+        <TableCell className="text-right num">{total.units}</TableCell>
+        <TableCell colSpan={trailing} />
+      </TableRow>
+    </TableFooter>
+  );
+}
+
+function ProductRows({
+  rows,
+  total,
+  landed,
+  sort,
+  onSort,
+}: {
+  rows: ProductRowVM[];
+  total: GridTotalVM;
+  landed: boolean;
+  sort: Sort;
+  onSort: (next: Sort) => void;
+}) {
   const { setContext } = useConsoleContext();
+  const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
     <>
-      <TableHeader>
-        <TableRow>
-          <TableHead scope="col">Product</TableHead>
-          <TableHead scope="col" aria-sort="descending" className="text-right">
-            <span className="inline-flex items-center gap-1">
-              <ArrowDown aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-              Revenue
-              <span className="sr-only">, sorted largest first</span>
-            </span>
-          </TableHead>
-          <TableHead scope="col" className="text-right">
-            Attainment
-          </TableHead>
-          <TableHead scope="col" className="text-right">
-            Growth YoY
-          </TableHead>
-          <TableHead scope="col" className="text-right">
-            Units
-          </TableHead>
-          <TableHead scope="col">Trend</TableHead>
+      <TableHeader className="bg-transparent">
+        <TableRow className="hover:bg-transparent">
+          <SortHead
+            label="Product"
+            column="name"
+            align="left"
+            sort={sort}
+            onSort={onSort}
+            className={STICKY_HEAD}
+          />
+          <SortHead label="Revenue" column="revenue" sort={sort} onSort={onSort} />
+          <SortHead label="Forecast" column="forecast" sort={sort} onSort={onSort} />
+          <SortHead label="Prior year" column="priorYear" sort={sort} onSort={onSort} />
+          <SortHead label="Attainment" column="attainment" sort={sort} onSort={onSort} />
+          <SortHead label="Growth YoY" column="growth" sort={sort} onSort={onSort} />
+          <SortHead label="Units" column="units" sort={sort} onSort={onSort} />
+          <TableHead scope="col">24 months</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {rows.map((r) => (
+        {sorted.map((r) => (
           <TableRow
             key={r.id}
             {...rowProps(r.selected, () => setContext({ product: r.id }), landed && r.selected)}
           >
-            <TableCell className="font-medium text-ink">{r.name}</TableCell>
+            <TableCell className={cn(STICKY_CELL, "font-medium text-ink")}>{r.name}</TableCell>
             <TableCell className="text-right num">{r.revenue}</TableCell>
+            <TableCell className="text-right num">{r.forecast}</TableCell>
+            <TableCell className="text-right num">{r.priorYear}</TableCell>
             <TableCell className="text-right num">{r.attainment}</TableCell>
             <TableCell className={cn("text-right num", signColour(r.growthDirection))}>
               {r.growth}
@@ -203,34 +364,46 @@ function ProductRows({ rows, landed }: { rows: ProductRowVM[]; landed: boolean }
           </TableRow>
         ))}
       </TableBody>
+      <TotalRow total={total} labelSpan={1} trailing={1} />
     </>
   );
 }
 
 /** Design-system 6.4. A plain table (no grid role): rows are focusable and select on Enter or Space. */
-export function MarketGrid({ grid }: { grid: GridVM }) {
+export function MarketGrid({ grid }: { grid: GridVM }): ReactNode {
   const landing = useLanding();
+  const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
   const kind = landing.target?.entity.kind;
-  // A product citation rings the selected product row; any other kind rings the card (market, region).
+  // A product citation rings the selected product row; any other kind rings the section (market, region).
   const productLanding = landing.active && kind === "product";
+  const subtitle = [grid.summary, `Sorted by ${SORT_LABEL[sort.key]}`, grid.note]
+    .filter(Boolean)
+    .join(" · ");
   return (
-    <AnalystCard
-      title={grid.title}
+    <SheetSection
+      eyebrow={grid.title}
+      subtitle={subtitle}
       caption={grid.caption}
       landed={landing.active && kind !== "product" && kind !== "portfolio"}
     >
       <TooltipProvider>
         <Table scrollLabel={`${grid.title}, scrollable`}>
           <TableCaption className="sr-only">
-            {grid.title}. {grid.caption}
+            {grid.title}. {subtitle}. {grid.caption}
           </TableCaption>
           {grid.kind === "markets" ? (
-            <MarketRows rows={grid.rows} statusRule={grid.statusRule} />
+            <MarketRows rows={grid.rows} total={grid.total} sort={sort} onSort={setSort} />
           ) : (
-            <ProductRows rows={grid.rows} landed={productLanding} />
+            <ProductRows
+              rows={grid.rows}
+              total={grid.total}
+              landed={productLanding}
+              sort={sort}
+              onSort={setSort}
+            />
           )}
         </Table>
       </TooltipProvider>
-    </AnalystCard>
+    </SheetSection>
   );
 }
