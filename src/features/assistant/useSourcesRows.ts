@@ -16,8 +16,9 @@ let full: Promise<Dataset> | undefined;
  * A failed fetch is not cached, so the next answer tries again.
  */
 function loadFull(): Promise<Dataset> {
-  full ??= import("@/lib/fullDataset")
-    .then((m) => m.loadFullDataset())
+  // The schema library rides in the same lazy chunk as the data it validates; both load in parallel.
+  full ??= Promise.all([import("@/data/data.json"), import("@/domain/dataset")])
+    .then(([data, schema]) => schema.parseDataset(data.default))
     .catch((err: unknown) => {
       full = undefined;
       throw err;
