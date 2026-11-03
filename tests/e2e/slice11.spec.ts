@@ -227,6 +227,17 @@ test.describe("keyboard", () => {
   }
 });
 
+test("the chart toggles on Analyst have distinct names that start with their visible label (WCAG 2.4.6, 2.5.3)", async ({
+  page,
+}) => {
+  await open(page, ANALYST);
+  const names = await page
+    .getByRole("button", { name: /^View as (table|chart)/ })
+    .evaluateAll((els) => els.map((el) => el.textContent?.trim().replace(/\s+/g, " ") ?? ""));
+  expect(names.length).toBeGreaterThanOrEqual(4);
+  expect(new Set(names).size).toBe(names.length);
+});
+
 test("a reader who scrolls up right after asking is not pulled back down (WCAG 2.2.2)", async ({
   page,
 }) => {

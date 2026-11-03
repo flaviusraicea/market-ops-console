@@ -295,6 +295,7 @@ export const Germany: Story = {
 export const ViewAsTableState: Story = {
   render: () => (
     <ViewAsTable
+      subject="the line chart"
       chart={
         <LineChart
           points={points}

@@ -14,6 +14,7 @@ const meta = {
     ),
   ],
   args: {
+    subject: "revenue by market",
     toolbar: <span className="text-[length:var(--text-label)] text-ink-2">Revenue by market</span>,
     chart: <p role="img" aria-label="Chart placeholder">Chart</p>,
     table: (
@@ -36,7 +37,8 @@ type Story = StoryObj<typeof meta>;
 export const Toggle: Story = {
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
-    const toggle = c.getByRole("button", { name: "View as table" });
+    // The visible label leads the name (WCAG 2.5.3); the subject tells toggles apart (2.4.6).
+    const toggle = c.getByRole("button", { name: "View as table of revenue by market" });
     await expect(toggle).toHaveAttribute("aria-pressed", "false");
     await userEvent.click(toggle);
     await expect(c.getByRole("button", { name: "View as chart" })).toHaveAttribute("aria-pressed", "true");

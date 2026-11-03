@@ -41,7 +41,12 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
             }))}
           />
           {forced ? null : (
-            <ViewAsTableToggle pressed={pressed} controls={tableId} onPressedChange={setPressed} />
+            <ViewAsTableToggle
+              pressed={pressed}
+              controls={tableId}
+              onPressedChange={setPressed}
+              subject="the markets map"
+            />
           )}
         </>
       }

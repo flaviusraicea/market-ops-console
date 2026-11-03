@@ -90,6 +90,7 @@ export const Europe: Story = {
 export const ViewAsTableState: Story = {
   render: () => (
     <ViewAsTable
+      subject="the radar chart"
       chart={<RadarChart axes={axes} series={series} title={title} desc={desc} />}
       table={<RadarChartTable caption={title} axes={axes} series={series} />}
     />

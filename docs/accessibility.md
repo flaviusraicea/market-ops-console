@@ -52,7 +52,7 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 39. China
 40. France
 41. Canada
-42. View as table
+42. View as table of the markets map
 43. Australia, on track, 101.8% attainment
 44. Drill into North America
 45. Drill into Europe
@@ -91,18 +91,18 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 21. Calyx $0.23M $0.24M $0.26M 93.4% −10.9% 858
 22. Zephyra $0.15M $0.16M $0.16M 92.6% −10.0% 1,052
 23. Attainment
-24. View as table
+24. View as table of the markets map
 25. Germany, off track, 92.0% attainment
 26. Drill into North America
 27. Drill into Europe
 28. Drill into APAC
 29. Drill into LATAM
-30. View as table
+30. View as table of the Germany revenue chart
 31. Month
 32. Anomaly: March 2026 revenue fell 27 percent versus February
-33. View as table
+33. View as table of the compare radar chart
 34. France, Attainment: 96.4%
-35. View as table
+35. View as table of the attainment by month heat map
 36. Germany, May 2026, 92.2% of forecast
 37. Alerts0 rules · Growth below · Attainment below
 38. Open assistant
