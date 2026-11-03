@@ -29,7 +29,7 @@ test.describe("theme", () => {
     // The pre-paint script sets the attribute before hydration.
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(
-      "rgb(22, 21, 18)",
+      "rgb(15, 19, 24)",
     );
   });
 
@@ -46,7 +46,7 @@ test.describe("theme", () => {
     await page.getByRole("button", { name: "Switch to dark theme" }).click();
     await expect.poll(fill).not.toBe(landLight);
     await expect.poll(chipBg).not.toBe(chipLight);
-    expect(await fill()).toBe("rgb(46, 43, 37)");
+    expect(await fill()).toBe("rgb(34, 42, 52)");
   });
 });
 
