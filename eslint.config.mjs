@@ -112,6 +112,33 @@ const storyConfigs = [
   },
 }));
 
+// Formatting lives in src/lib/format.ts; safe rendering means no raw HTML injection (docs/README.md, Testing).
+const FORMAT_MESSAGE = "Format numbers, money, percentages and dates through src/lib/format.ts.";
+const NO_HTML = {
+  selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+  message: "Only app/layout.tsx may inject HTML (theme script).",
+};
+const NO_TO_FIXED = {
+  selector: "CallExpression[callee.property.name='toFixed']",
+  message: FORMAT_MESSAGE,
+};
+const NO_INTL_OR_LOCALE = [
+  "CallExpression[callee.property.name='toLocaleString']",
+  "CallExpression[callee.property.name='toLocaleDateString']",
+  "MemberExpression[object.name='Intl']",
+].map((selector) => ({ selector, message: FORMAT_MESSAGE }));
+
+/** Files allowed to inject HTML. Keep this to one file; tests/unit/boundaries.test.ts pins it. */
+const HTML_INJECTION_ALLOWED = ["src/app/layout.tsx"];
+const FORMAT_HOME = "src/lib/format.ts";
+/** SVG path coordinates only: rounding geometry, never text a user reads. */
+const SVG_ROUNDING_ALLOWED = [
+  "src/components/charts/Sparkline.tsx",
+  "src/components/charts/RadarChart.tsx",
+];
+
+export const htmlInjectionAllowed = HTML_INJECTION_ALLOWED;
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -124,6 +151,23 @@ const eslintConfig = defineConfig([
   },
   ...layerConfigs,
   ...storyConfigs,
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [FORMAT_HOME, ...HTML_INJECTION_ALLOWED, ...SVG_ROUNDING_ALLOWED],
+    rules: { "no-restricted-syntax": ["error", NO_HTML, NO_TO_FIXED, ...NO_INTL_OR_LOCALE] },
+  },
+  {
+    files: HTML_INJECTION_ALLOWED,
+    rules: { "no-restricted-syntax": ["error", NO_TO_FIXED, ...NO_INTL_OR_LOCALE] },
+  },
+  {
+    files: [FORMAT_HOME],
+    rules: { "no-restricted-syntax": ["error", NO_HTML] },
+  },
+  {
+    files: SVG_ROUNDING_ALLOWED,
+    rules: { "no-restricted-syntax": ["error", NO_HTML, ...NO_INTL_OR_LOCALE] },
+  },
   globalIgnores([
     ".next/**",
     "out/**",

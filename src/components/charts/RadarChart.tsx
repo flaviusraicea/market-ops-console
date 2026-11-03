@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatOneDecimal } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
 import { Legend } from "./Legend";
@@ -118,7 +119,7 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
               aria-hidden
               className="fill-ink-muted text-[length:var(--text-caption)]"
             >
-              {r.toFixed(1)}
+              {formatOneDecimal(r)}
             </text>
           </g>
         ))}
