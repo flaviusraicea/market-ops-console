@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import data from "@/data/data.json";
-import { askWhyPrompt, parseDataset, prefillFor } from "@/domain";
+import { askWhyPrompt, prefillFor } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 
 const ds = parseDataset(data);
 const market = (name: string) => ds.markets.find((m) => m.name === name)!;

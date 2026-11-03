@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 
+import { reportError } from "./events";
 import { PERSONAS, type Persona, type Role } from "./roles";
 
 export type RoleValue = {
@@ -24,10 +25,15 @@ async function send(method: "POST" | "DELETE", role?: Role): Promise<boolean> {
         ? { headers: { "content-type": "application/json" }, body: JSON.stringify({ role }) }
         : {}),
     });
-    if (!res.ok) console.error("[session]", { method, role, status: res.status });
+    if (!res.ok) {
+      reportError(new Error(`Session ${method} failed with ${res.status}`), {
+        source: "fetch",
+        route: "/api/session",
+      });
+    }
     return res.ok;
   } catch (error) {
-    console.error("[session]", { method, role, status: "network", error: String(error) });
+    reportError(error, { source: "fetch", route: "/api/session" });
     return false;
   }
 }

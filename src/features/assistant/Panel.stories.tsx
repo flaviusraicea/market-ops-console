@@ -3,7 +3,8 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { portfolioMay, withDataset } from "../../../.storybook/decorators";
 import data from "@/data/data.json";
-import { parseDataset, type Period } from "@/domain";
+import { type Period } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { panelContextVM } from "@/features/overview/viewModel";
 import type { AskStream } from "@/lib/stream/chatClient";
 import type { ComponentProps } from "react";

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { portfolioMay, withDataset } from "../../../.storybook/decorators";
 import data from "@/data/data.json";
-import { parseDataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { panelContextVM } from "@/features/overview/viewModel";
 import { AnswerList } from "./AnswerList";
 import type { Answer } from "./useAnswerMachine";

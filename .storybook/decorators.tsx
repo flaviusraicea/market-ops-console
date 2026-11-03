@@ -4,7 +4,8 @@ import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import data from "../src/data/data.json";
-import { parseDataset, type Context, type Dataset, type Period } from "../src/domain";
+import { parseDataset } from "../src/domain/dataset";
+import type { Context, Dataset, Period } from "../src/domain";
 import { DatasetProviders } from "../src/lib/context/DatasetProviders";
 import { RoleContext } from "../src/lib/role";
 import { PERSONAS, type Role } from "../src/lib/roles";

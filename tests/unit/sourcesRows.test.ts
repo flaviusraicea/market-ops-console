@@ -4,7 +4,9 @@ import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
 import fixtures from "@/data/fixtures.json";
-import { CitationSchema, parseDataset, resolveCitation } from "@/domain";
+import { resolveCitation } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
+import { CitationSchema } from "@/domain/stream";
 import { SOURCES_META, claimTextFor, inlineKey } from "@/features/assistant/inlineMap";
 import { sourcesRows, type SourcesMeta } from "@/features/assistant/sourcesRows";
 import type { Resolved } from "@/features/assistant/useAnswerMachine";

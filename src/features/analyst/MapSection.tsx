@@ -1,10 +1,10 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 
 import { Notice } from "@/components/Notice";
 import { SegmentedControl } from "@/components/SegmentedControl";
-import { Choropleth } from "@/components/charts/Choropleth";
+import { LazyChoropleth, MapSkeleton } from "@/components/charts/LazyChoropleth";
 import { Legend } from "@/components/charts/Legend";
 import {
   TableView,
@@ -68,7 +68,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
             forced ? null : (
               <>
                 {geoState.status === "ready" ? (
-                  <Choropleth
+                  <LazyChoropleth
                     geo={geoState.geo}
                     values={map.values}
                     metric={map.metric}
@@ -79,7 +79,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
                     onSelect={(market) => setContext({ market })}
                   />
                 ) : (
-                  <Skeleton aria-hidden className="aspect-[2/1] w-full" />
+                  <MapSkeleton />
                 )}
                 <div className="mt-2 flex w-full justify-center">
                   <Legend

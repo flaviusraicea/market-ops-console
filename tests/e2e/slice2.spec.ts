@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { open } from "./helpers";
+
 const TILES = [
   { label: "PORTFOLIO REVENUE", headline: "$22.85M", delta: "+7.3% vs May 2025" },
   { label: "FORECAST ATTAINMENT", headline: "100.4%", delta: "+$0.10M vs forecast" },
@@ -60,7 +62,7 @@ test("View as table swaps the map for a 13-row table and back", async ({ page })
 });
 
 test("the metric select recolours the map and renames the card", async ({ page }) => {
-  await page.goto("/?mode=analyst");
+  await open(page, "/?mode=analyst");
   await page
     .getByRole("radiogroup", { name: "Map metric" })
     .getByRole("radio", { name: "Revenue" })
@@ -73,7 +75,7 @@ test("the metric select recolours the map and renames the card", async ({ page }
 });
 
 test("a failed geometry request shows the fallback and forces the table", async ({ page }) => {
-  await page.route("**/geo/markets.json", (route) => route.abort());
+  await page.route("**/geo/markets.*.json", (route) => route.abort());
   await page.goto("/");
   await expect(page.getByText("Map unavailable")).toBeVisible();
   await expect(page.getByText("The market table below has the same data.")).toBeVisible();
@@ -105,7 +107,7 @@ for (const scheme of ["light", "dark"] as const) {
 test("the growth map colours Italy (+0.3%) positive and Germany (-9.7%) deepest negative", async ({
   page,
 }) => {
-  await page.goto("/?mode=analyst&metric=growth");
+  await open(page, "/?mode=analyst&metric=growth");
   const fill = (name: RegExp) =>
     page
       .getByRole("region", { name: /Markets by/ })

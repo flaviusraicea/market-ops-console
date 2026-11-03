@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+import { open } from "./helpers";
+
 const palette = (page: Page) => page.getByRole("dialog", { name: "Command palette" });
 const input = (page: Page) => palette(page).getByRole("combobox");
 const opener = (page: Page) => page.getByRole("button", { name: "Open command palette" });
@@ -27,7 +29,7 @@ test("Ctrl+K focuses the palette input; germ + Enter drills to Germany and focus
 test("the assistant header button opens it, and Escape returns focus to the button", async ({
   page,
 }) => {
-  await page.goto("/?mode=analyst");
+  await open(page, "/?mode=analyst");
   await opener(page).click();
   await expect(input(page)).toBeFocused();
   await page.keyboard.press("Escape");
@@ -38,7 +40,7 @@ test("the assistant header button opens it, and Escape returns focus to the butt
 test("the rail icon on Analyst opens it, and Escape returns focus to the icon", async ({
   page,
 }) => {
-  await page.goto("/?mode=analyst");
+  await open(page, "/?mode=analyst");
   await page.waitForLoadState("networkidle");
   await expect(page.locator("#assistant-panel")).toBeHidden();
   await opener(page).click();

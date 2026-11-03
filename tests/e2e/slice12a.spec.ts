@@ -7,8 +7,14 @@ test("All facts opens under the Markets grid, scoped to the Context, and the URL
   page,
 }) => {
   await open(page, "/?mode=analyst&region=eu&market=de");
-  await page.getByRole("button", { name: "All facts" }).click();
+  const toggle = page.getByRole("button", { name: "All facts" });
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await toggle.click();
   await expect(page).toHaveURL(/facts=1/);
+  await expect(page.getByRole("button", { name: "Hide facts" })).toHaveAttribute(
+    "aria-expanded",
+    "true",
+  );
   const table = page.getByRole("table", { name: "120 of 1,560 facts" });
   await expect(table).toBeVisible();
   // Only the rows near the viewport are in the DOM.

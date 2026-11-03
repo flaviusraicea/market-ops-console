@@ -3,7 +3,7 @@ import { expect, within } from "storybook/test";
 
 import { portfolioMay } from "../../../.storybook/decorators";
 import data from "@/data/data.json";
-import { parseDataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { Verdict } from "./Verdict";
 import { verdictVM } from "./viewModel";
 

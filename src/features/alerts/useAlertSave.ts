@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
 import type { AlertRule } from "@/domain";
-import { logEvent } from "@/lib/events";
+import { logEvent, reportError } from "@/lib/events";
 import { ReadOnlyRoleError, alertApi, type AlertApi } from "./api";
 import { scopeToValue } from "./labels";
 import { subscribeToRules } from "./storage";
@@ -77,6 +77,12 @@ function thresholdsFor(rows: RuleRow[], scope: AlertRule["scope"]) {
 }
 
 /** Save and delete with optimistic updates. Architecture 7: idle -> saving -> saved | failed -> saving. */
+/** A refused edit (the Executive role) is expected and shown to the user; anything else is reported. */
+function reportAlertFailure(error: Error) {
+  if (!(error instanceof ReadOnlyRoleError))
+    reportError(error, { source: "fetch", route: "/api/alerts" });
+}
+
 export function useAlertSave(api: AlertApi = alertApi) {
   const qc = useQueryClient();
   const [failure, setFailure] = useState<SaveFailure | null>(null);
@@ -122,6 +128,7 @@ export function useAlertSave(api: AlertApi = alertApi) {
         readOnly: error instanceof ReadOnlyRoleError,
       });
       logEvent({ type: "alert_save_failed", message: error.message });
+      reportAlertFailure(error);
     },
     onSuccess: () => {
       setFailure(null);
@@ -149,6 +156,7 @@ export function useAlertSave(api: AlertApi = alertApi) {
       setDeleteFailed(true);
       setDeleteReadOnly(error instanceof ReadOnlyRoleError);
       logEvent({ type: "alert_save_failed", message: error.message });
+      reportAlertFailure(error);
     },
     onSettled: () => settle(),
   });

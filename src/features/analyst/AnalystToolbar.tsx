@@ -102,6 +102,7 @@ export function AnalystToolbar({
           <Button
             type="button"
             variant="ghost"
+            aria-expanded={Boolean(ctx.facts)}
             onClick={() =>
               setContext({ facts: ctx.facts ? undefined : true }, { history: "replace" })
             }

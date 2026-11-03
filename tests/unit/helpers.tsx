@@ -3,7 +3,9 @@ import type { ReactNode } from "react";
 
 import data from "@/data/data.json";
 import fixtures from "@/data/fixtures.json";
-import { CitationSchema, parseDataset, resolveCitation } from "@/domain";
+import { resolveCitation } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
+import { CitationSchema } from "@/domain/stream";
 import { DatasetProviders } from "@/lib/context/DatasetProviders";
 
 export const ds = parseDataset(data);

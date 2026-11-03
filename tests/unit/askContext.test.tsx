@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 
-import { PeriodSchema } from "@/domain";
+import { PeriodSchema } from "@/domain/dataset";
 import type { AskContext } from "@/features/assistant/askWhy";
 import { useAnswerMachine } from "@/features/assistant/useAnswerMachine";
 import { DatasetProvider } from "@/lib/context/dataset";

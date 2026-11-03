@@ -2,7 +2,7 @@
 
 import { Component, type ReactNode } from "react";
 
-import { logEvent } from "@/lib/events";
+import { logEvent, reportError } from "@/lib/events";
 import { Notice } from "@/components/Notice";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +19,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   override componentDidCatch(error: Error): void {
     logEvent({ type: "widget_error", widget: this.props.widget, message: error.message });
+    reportError(error, { source: "boundary", widget: this.props.widget });
   }
 
   private reset = () => this.setState({ failed: false });

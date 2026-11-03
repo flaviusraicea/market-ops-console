@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useLayoutEffect,
-  useRef,
-  useState,
-  type FocusEvent,
-  type KeyboardEvent,
-  type MouseEvent,
-} from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import {
   Table,
@@ -21,8 +14,8 @@ import {
 import { cn } from "@/components/cn";
 import { formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
+import { HeatCellView, type CellHandlers } from "./HeatCellView";
 import { heatCellTooltip } from "./heatMapTooltip";
-import { attainmentDiverging } from "./scales";
 
 export type HeatCell = {
   period: string;
@@ -151,6 +144,41 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
     }
   }
 
+  // The handlers read the latest closures from a ref, so the object cells receive never changes identity.
+  const latest = useRef({ onKeyDown, reveal, onCell, tip, rows });
+  useEffect(() => {
+    latest.current = { onKeyDown, reveal, onCell, tip, rows };
+  });
+  const handlers = useMemo<CellHandlers>(
+    () => ({
+      select: (row, col) => {
+        const { rows: rs, onCell: select } = latest.current;
+        const rowData = rs[row];
+        const cell = rowData?.cells[col];
+        if (rowData && cell) select(rowData.id, cell.period);
+      },
+      keyDown: (e, row, col) => latest.current.onKeyDown(e, row, col),
+      mouseMove: (e, row, col) => {
+        const { tip: t, reveal: show } = latest.current;
+        // While the pointer travels up to the tooltip action, the rows above the open tooltip stay quiet.
+        if (t.locked() && row < shown.current.row) return;
+        if (t.open && shown.current.row === row && shown.current.col === col) return;
+        show(row, col, e.currentTarget);
+      },
+      mouseLeave: () => latest.current.tip.hideSoon(),
+      focus: (e, row, col) => {
+        setPos({ r: row, c: col });
+        latest.current.reveal(row, col, e.currentTarget);
+      },
+      blur: () => latest.current.tip.hideSoon(),
+      register: (row, col, el) => {
+        if (el) cellRefs.current.set(`${row}:${col}`, el);
+        else cellRefs.current.delete(`${row}:${col}`);
+      },
+    }),
+    [],
+  );
+
   return (
     <div ref={wrapRef} className="relative">
       <div ref={scrollRef} className="overflow-x-auto [scrollbar-gutter:stable]">
@@ -204,39 +232,16 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
                 {row.cells.map((cell, ci) => {
                   const isSelected = rowSelected && selected?.period === cell.period;
                   return (
-                    <div
+                    <HeatCellView
                       key={cell.period}
-                      ref={(el) => {
-                        if (el) cellRefs.current.set(key(ri, ci), el);
-                        else cellRefs.current.delete(key(ri, ci));
-                      }}
-                      role="gridcell"
-                      aria-colindex={ci + 2}
-                      aria-selected={isSelected}
-                      tabIndex={ri === r && ci === c ? 0 : -1}
-                      aria-label={`${row.name}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast`}
-                      data-period={cell.period}
-                      data-market={row.id}
-                      className="tween-fill h-6 cursor-pointer rounded-[2px]"
-                      style={{
-                        background: `var(${attainmentDiverging(cell.value)})`,
-                        ...(isSelected ? { boxShadow: "inset 0 0 0 2px var(--accent)" } : {}),
-                      }}
-                      onClick={() => onCell(row.id, cell.period)}
-                      onKeyDown={(e) => onKeyDown(e, ri, ci)}
-                      onMouseMove={(e: MouseEvent<HTMLDivElement>) => {
-                        // While the pointer travels up to the tooltip action, the rows above the open tooltip stay quiet.
-                        if (tip.locked() && ri < shown.current.row) return;
-                        if (tip.open && shown.current.row === ri && shown.current.col === ci)
-                          return;
-                        reveal(ri, ci, e.currentTarget);
-                      }}
-                      onMouseLeave={tip.hideSoon}
-                      onFocus={(e: FocusEvent<HTMLDivElement>) => {
-                        setPos({ r: ri, c: ci });
-                        reveal(ri, ci, e.currentTarget);
-                      }}
-                      onBlur={tip.hideSoon}
+                      rowId={row.id}
+                      rowName={row.name}
+                      cell={cell}
+                      ri={ri}
+                      ci={ci}
+                      isSelected={isSelected}
+                      isTabStop={ri === r && ci === c}
+                      h={handlers}
                     />
                   );
                 })}

@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import data from "@/data/data.json";
-import { parseDataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { panelContextVM } from "@/features/overview/viewModel";
 import { AssistantRailProvider, useAssistantRail } from "@/features/shell/railState";
 import { portfolioMay, withDataset } from "../../../.storybook/decorators";

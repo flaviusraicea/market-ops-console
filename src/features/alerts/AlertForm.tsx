@@ -26,7 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlertRuleSchema, type AlertRule } from "@/domain";
+import { type AlertRule } from "@/domain";
+import { AlertRuleSchema } from "@/domain/alerts";
 import { useDataset } from "@/lib/context/dataset";
 import { formatThreshold, scopeFromValue } from "./labels";
 import { DEFAULT_THRESHOLDS, type SaveFailure, type SaveStatus } from "./useAlertSave";

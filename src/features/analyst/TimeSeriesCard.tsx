@@ -10,7 +10,7 @@ import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext, cellQuestion } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useLanding } from "./useLanding";
-import { PeriodSchema } from "@/domain";
+import { toPeriod } from "@/domain";
 import { SheetSection } from "./Sheet";
 import type { TimeSeriesVM } from "./viewModel";
 
@@ -62,13 +62,13 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
             {...(landed && landing.target ? { landedPeriod: landing.target.period } : {})}
             title={vm.chartTitle}
             desc={vm.desc}
-            onPeriod={(period) => setContext({ period: PeriodSchema.parse(period) })}
+            onPeriod={(period) => setContext({ period: toPeriod(period) })}
             ask={{
               subject: vm.subject.name,
               onAsk: ({ period, momPct }) =>
                 prefill(
                   cellQuestion(vm.subject.name, period, momPct),
-                  askContext(vm.subject.entity, vm.subject.name, PeriodSchema.parse(period)),
+                  askContext(vm.subject.entity, vm.subject.name, toPeriod(period)),
                   "the anomaly marker",
                 ),
             }}

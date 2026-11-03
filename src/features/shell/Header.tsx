@@ -12,7 +12,7 @@ import { ConnectedLiveToggle } from "@/features/live/LiveToggle";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { ContextChips } from "./ContextChips";
 import { DataStamp } from "./DataStamp";
-import { ConnectedAvatarMenu } from "./AvatarMenu";
+import { ConnectedAvatarMenu } from "./ConnectedAvatarMenu";
 import { ModeSwitch } from "./ModeSwitch";
 import { ProductSelect, type ProductOption } from "./ProductSelect";
 import { PeriodSelect } from "./PeriodSelect";

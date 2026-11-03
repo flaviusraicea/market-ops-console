@@ -1,4 +1,5 @@
-import { AlertRuleSchema, type AlertRule } from "@/domain";
+import { type AlertRule } from "@/domain";
+import { AlertRuleSchema } from "@/domain/alerts";
 import { scopeToValue } from "./labels";
 
 export const STORAGE_KEY = "market-ops:alerts:v1";

@@ -1,28 +1,22 @@
-import { z } from "zod";
-
 import type { Mode } from "./dataset";
 
 /** Whether the assistant is open, per mode. Executive opens with it; Analyst starts with the rail collapsed. */
 export type AssistantPrefs = Record<Mode, boolean>;
 export const DEFAULT_PREFS: AssistantPrefs = { executive: true, analyst: false };
 
-// A missing or malformed field falls back to its default.
-const PrefsSchema = z.object({
-  executive: z.boolean().catch(DEFAULT_PREFS.executive),
-  analyst: z.boolean().catch(DEFAULT_PREFS.analyst),
-});
-
-/** Reads the stored JSON. A corrupt value gives the defaults. */
+/** Reads the stored JSON. A missing or malformed field falls back to its default; a corrupt value gives the defaults. */
 export function parsePrefs(raw: string | null): AssistantPrefs {
   try {
-    const stored: unknown = raw ? JSON.parse(raw) : {};
-    // Before the mode was renamed the Executive preference was stored as "overview".
-    const migrated =
-      stored && typeof stored === "object" && "overview" in stored && !("executive" in stored)
-        ? { ...stored, executive: stored.overview }
-        : stored;
-    const parsed = PrefsSchema.safeParse(migrated);
-    return parsed.success ? parsed.data : DEFAULT_PREFS;
+    const parsed: unknown = raw ? JSON.parse(raw) : {};
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed))
+      return DEFAULT_PREFS;
+    const stored = parsed as Record<string, unknown>;
+    const field = (key: Mode, legacy?: string) => {
+      // Before the mode was renamed the Executive preference was stored as "overview".
+      const v = key in stored || !legacy ? stored[key] : stored[legacy];
+      return typeof v === "boolean" ? v : DEFAULT_PREFS[key];
+    };
+    return { executive: field("executive", "overview"), analyst: field("analyst") };
   } catch {
     return DEFAULT_PREFS;
   }

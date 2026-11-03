@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useSyncExternalStore } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useId, useState, useSyncExternalStore } from "react";
 
 import { cn } from "@/components/cn";
 import { ChevronDown, ICON_STROKE } from "@/components/icons";
@@ -101,13 +102,19 @@ export function AlertsSection({
   );
 }
 
-/** The section for the signed-in role. */
+/**
+ * The section for the signed-in role. TanStack Query is only used by the alert mutations, so its provider lives
+ * here and rides in this lazy chunk instead of the first load.
+ */
 export function ConnectedAlertsSection() {
   const { role, switchRole } = useRole();
+  const [client] = useState(() => new QueryClient());
   return (
-    <AlertsSection
-      readOnly={!canEditAlerts(role)}
-      onSwitchToAnalyst={() => switchRole("analyst")}
-    />
+    <QueryClientProvider client={client}>
+      <AlertsSection
+        readOnly={!canEditAlerts(role)}
+        onSwitchToAnalyst={() => switchRole("analyst")}
+      />
+    </QueryClientProvider>
   );
 }

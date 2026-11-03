@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { open } from "./helpers";
+
 for (const width of [1440, 1280]) {
   test(`breadcrumb shows Portfolio in full at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
@@ -46,7 +48,7 @@ test("the map legend sits directly under the map, inside the card", async ({ pag
 test("the metric control is a segmented radiogroup and the attention eyebrow does not wrap", async ({
   page,
 }) => {
-  await page.goto("/?mode=analyst");
+  await open(page, "/?mode=analyst");
   const group = page.getByRole("radiogroup", { name: "Map metric" });
   await expect(group.getByRole("radio")).toHaveText(["Attainment", "Revenue", "Growth"]);
   await page.goto("/");

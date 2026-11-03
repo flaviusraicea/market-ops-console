@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+import { open } from "./helpers";
+
 const EUROPE = "/?mode=analyst&region=eu";
 const ANOMALY = "Anomaly: March 2026 revenue fell 27 percent versus February";
 
@@ -10,7 +12,7 @@ const card = (page: Page, name: RegExp | string) =>
 test("the Europe grid has five rows in order with statuses, and the status tooltip explains the rule", async ({
   page,
 }) => {
-  await page.goto(EUROPE);
+  await open(page, EUROPE);
   const grid = card(page, /^Markets · Europe \d/);
   const rows = grid.locator("tbody tr");
   await expect(rows).toHaveCount(5);
@@ -25,7 +27,7 @@ test("the Europe grid has five rows in order with statuses, and the status toolt
 });
 
 test("Spain's attainment info icon explains why it is off track above plan", async ({ page }) => {
-  await page.goto(EUROPE);
+  await open(page, EUROPE);
   const note = card(page, /^Markets · Europe \d/).getByRole("button", {
     name: "Status note for Spain",
   });
@@ -43,7 +45,7 @@ test("Spain's attainment info icon explains why it is off track above plan", asy
 test("activating the Germany row with Enter selects Germany and shows the March anomaly marker", async ({
   page,
 }) => {
-  await page.goto(EUROPE);
+  await open(page, EUROPE);
   const row = card(page, /^Markets · Europe \d/).getByRole("row", { name: /Germany/ });
   await row.focus();
   await page.keyboard.press("Enter");
@@ -56,7 +58,7 @@ test("activating the Germany row with Enter selects Germany and shows the March 
 test("a heat map cell sets market and period, and the time series tooltip opens on Mar 2026", async ({
   page,
 }) => {
-  await page.goto(EUROPE);
+  await open(page, EUROPE);
   await page.getByRole("gridcell", { name: "Germany, Mar 2026, 92.2% of forecast" }).focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/period=2026-03/);
@@ -68,7 +70,7 @@ test("a heat map cell sets market and period, and the time series tooltip opens 
 });
 
 test("heat map rows follow the grid's revenue order", async ({ page }) => {
-  await page.goto(EUROPE);
+  await open(page, EUROPE);
   const gridNames = await card(page, /^Markets · Europe \d/)
     .locator("tbody tr")
     .evaluateAll((rows) => rows.map((r) => r.querySelector("th, td")?.textContent?.trim() ?? ""));
@@ -81,7 +83,7 @@ test("heat map rows follow the grid's revenue order", async ({ page }) => {
 });
 
 test("ArrowRight on the heat map moves to the next month", async ({ page }) => {
-  await page.goto("/?mode=analyst&region=eu&market=de&period=2026-03");
+  await open(page, "/?mode=analyst&region=eu&market=de&period=2026-03");
   await page.getByRole("gridcell", { name: "Germany, Mar 2026, 92.2% of forecast" }).focus();
   await page.keyboard.press("ArrowRight");
   const next = page.getByRole("gridcell", { name: "Germany, Apr 2026, 92.2% of forecast" });
@@ -89,7 +91,7 @@ test("ArrowRight on the heat map moves to the next month", async ({ page }) => {
 });
 
 test("View as table works on the grid-less charts, then returns to the chart", async ({ page }) => {
-  await page.goto("/?mode=analyst&region=eu&market=de");
+  await open(page, "/?mode=analyst&region=eu&market=de");
   for (const name of [/Germany revenue/, /^Compare/, /Attainment by month/]) {
     const c = card(page, name);
     await c.getByRole("button", { name: "View as table" }).click();
@@ -108,7 +110,7 @@ test("View as table works on the grid-less charts, then returns to the chart", a
 });
 
 test("basis YTD changes the Europe attainment tile and the caption", async ({ page }) => {
-  await page.goto(EUROPE);
+  await open(page, EUROPE);
   const tile = page.getByRole("group", { name: "FORECAST ATTAINMENT", exact: true });
   await expect(tile.locator('[data-slot="kpi-headline"]')).toHaveText("95.4%");
   await page.getByRole("radio", { name: "YTD" }).click();
@@ -117,7 +119,7 @@ test("basis YTD changes the Europe attainment tile and the caption", async ({ pa
 });
 
 test("MAT is unavailable before twelve months and explains why", async ({ page }) => {
-  await page.goto("/?mode=analyst&period=2025-04");
+  await open(page, "/?mode=analyst&period=2025-04");
   const mat = page.getByRole("radio", { name: "MAT" });
   await expect(mat).toHaveAttribute("aria-disabled", "true");
   // Retry the focus until the page has hydrated and the tooltip handlers are attached.
@@ -128,7 +130,7 @@ test("MAT is unavailable before twelve months and explains why", async ({ page }
       timeout: 1000,
     });
   }).toPass();
-  await page.goto("/?mode=analyst&period=2025-04&basis=mat");
+  await open(page, "/?mode=analyst&period=2025-04&basis=mat");
   await expect(page.getByRole("radio", { name: "Month" })).toBeChecked();
   await expect(page.getByText("MAT unavailable, showing Month")).toBeVisible();
 });
@@ -136,7 +138,7 @@ test("MAT is unavailable before twelve months and explains why", async ({ page }
 test("the radar has the five axes and the alert thresholds card follows the heat map", async ({
   page,
 }) => {
-  await page.goto(EUROPE);
+  await open(page, EUROPE);
   const radar = card(page, /^Compare/);
   for (const axis of [
     "Attainment",
@@ -156,7 +158,7 @@ for (const theme of ["light", "dark"] as const) {
   test(`analyst mode has no axe violations (${theme}, Europe and Germany)`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
     for (const url of [EUROPE, `${EUROPE}&market=de`]) {
-      await page.goto(url);
+      await open(page, url);
       await page.getByRole("gridcell").first().waitFor();
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa"])

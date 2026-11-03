@@ -19,6 +19,7 @@ import { useDataset } from "@/lib/context/dataset";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { logEvent } from "@/lib/events";
 import type { AskStream } from "@/lib/stream/chatClient";
+import { warmAnswerCard } from "./AnswerCardLazy";
 import { useRegisterAskSender, type AskContext } from "./askWhy";
 import { usePublishAnswers } from "./AnswerStore";
 import { askContext } from "./questions";
@@ -73,6 +74,7 @@ export function AnswerMachineProvider({
   const [pending, setPending] = useState<Pending | null>(null);
 
   function submit(question: string, about?: AskContext) {
+    warmAnswerCard();
     logEvent({ type: "ask", question });
     const entity = entityOf(ctx);
     machine.ask(question, about ?? askContext(entity, entityName(ds, entity), ctx.period));

@@ -1,9 +1,26 @@
 "use client";
 
 import { useReportWebVitals } from "next/web-vitals";
+import { useEffect } from "react";
 
-/** Mounted once in the root layout. Dev: console table. Production: beacon to a no-op route. */
+import { reportError } from "@/lib/events";
+
+/**
+ * Mounted once in the root layout. Vitals: console table in dev, beacon to a no-op route in production.
+ * Errors: anything that escapes a widget boundary (a handler throwing, a rejected promise) is reported too.
+ */
 export function WebVitals() {
+  useEffect(() => {
+    const onError = (e: ErrorEvent) => reportError(e.error ?? e.message, { source: "window" });
+    const onRejection = (e: PromiseRejectionEvent) => reportError(e.reason, { source: "promise" });
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
+
   useReportWebVitals((metric) => {
     if (process.env.NODE_ENV !== "production") {
       console.table([

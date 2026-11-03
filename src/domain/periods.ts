@@ -1,5 +1,14 @@
 import type { Basis, Dataset, Period } from "./dataset";
 
+/** The one definition of a period string, shared by PeriodSchema and the zod-free stream guard. */
+export const PERIOD_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** Narrows a string from a chart callback to a Period. Same rule as PeriodSchema, without the schema library. */
+export function toPeriod(value: string): Period {
+  if (!PERIOD_PATTERN.test(value)) throw new Error(`Not a period: ${value}`);
+  return value as Period;
+}
+
 export function latestPeriod(ds: Dataset): Period {
   return ds.meta.latestPeriod;
 }

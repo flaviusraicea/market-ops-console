@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-export const PeriodSchema = z
-  .string()
-  .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
-  .brand<"Period">();
+import { PERIOD_PATTERN } from "./periods";
+import { REGION_IDS } from "./regions";
+
+export const PeriodSchema = z.string().regex(PERIOD_PATTERN).brand<"Period">();
 export type Period = z.infer<typeof PeriodSchema>;
 
-export const RegionIdSchema = z.enum(["na", "eu", "apac", "latam"]);
+export const RegionIdSchema = z.enum(REGION_IDS);
 export const StatusSchema = z.enum(["on_track", "at_risk", "off_track"]);
 export const AnomalySchema = z.object({ period: PeriodSchema, type: z.string(), note: z.string() });
 export const KpisSchema = z.object({

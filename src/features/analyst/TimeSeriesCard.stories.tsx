@@ -3,7 +3,8 @@ import { useState } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import data from "@/data/data.json";
-import { parseDataset, type Context, type Period } from "@/domain";
+import { type Context, type Period } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { withDataset } from "../../../.storybook/decorators";
 import { TimeSeriesCard } from "./TimeSeriesCard";
 import { analystVM } from "./viewModel";

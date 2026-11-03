@@ -1,18 +1,30 @@
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import type { Feature, FeatureCollection } from "geojson";
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { parseDataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
+import { GEO_URL } from "@/lib/geoAsset";
 
 const ds = parseDataset(raw);
 const geo = JSON.parse(
-  readFileSync(path.join(__dirname, "..", "..", "public", "geo", "markets.json"), "utf8"),
+  readFileSync(path.join(__dirname, "..", "..", "public", GEO_URL), "utf8"),
 ) as FeatureCollection;
 
-describe("public/geo/markets.json", () => {
+describe(`public${GEO_URL}`, () => {
+  it("is the only geometry file and its name carries the hash of its content", () => {
+    const dir = path.join(__dirname, "..", "..", "public", "geo");
+    expect(readdirSync(dir)).toEqual([path.basename(GEO_URL)]);
+    const hash = createHash("sha256")
+      .update(readFileSync(path.join(dir, path.basename(GEO_URL)), "utf8"))
+      .digest("hex")
+      .slice(0, 10);
+    expect(GEO_URL).toBe(`/geo/markets.${hash}.json`);
+  });
+
   it("has the land backdrop plus 13 market features", () => {
     expect(geo.type).toBe("FeatureCollection");
     expect(geo.features).toHaveLength(14);

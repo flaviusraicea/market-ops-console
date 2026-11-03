@@ -1,13 +1,22 @@
-import { useId, type ReactNode, type Ref } from "react";
+import { useId, type CSSProperties, type ReactNode, type Ref } from "react";
 
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { pageHeadingProps } from "@/lib/motion";
 
 /** The Analyst ledger: one bordered surface whose sections are separated by rules, not cards. */
-export function Sheet({ children, className }: { children: ReactNode; className?: string }) {
+export function Sheet({
+  children,
+  className,
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+}) {
   return (
     <div
+      style={style}
       className={cn(
         "flex min-w-0 flex-col divide-y divide-border rounded-card border border-border bg-surface",
         className,

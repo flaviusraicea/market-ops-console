@@ -1,6 +1,7 @@
 import type { Preview } from "@storybook/nextjs-vite";
 
 import "../src/app/globals.css";
+import { preloadAnswerCard } from "../src/features/assistant/AnswerCardLazy";
 import { withProviders } from "./decorators";
 
 // next/font variables do not exist in Storybook, so the fallback stacks from
@@ -33,6 +34,8 @@ const withGlobalsToRoot: NonNullable<Preview["decorators"]>[number] = (Story, co
 };
 
 const preview: Preview = {
+  // The answer card loads on first use in the app; stories that render answers expect it at once.
+  loaders: [() => preloadAnswerCard()],
   decorators: [withGlobalsToRoot, withProviders],
   parameters: {
     a11y: { test: "error" },

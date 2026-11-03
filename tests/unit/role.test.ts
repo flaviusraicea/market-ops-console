@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { DELETE as signOut, POST as signIn } from "@/app/api/session/route";
 import { DELETE, POST } from "@/app/api/alerts/route";
 import raw from "@/data/data.json";
-import { parseDataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { parseContextFromSearchParams } from "@/lib/context/parsers";
 import { ROLE_COOKIE, defaultModeFor } from "@/lib/roles";
 
