@@ -130,11 +130,18 @@ test("desktop: the panel is sticky, only the list scrolls, and New text appears 
   // Asking scrolls the new card into view; scrolling away mid-stream stops following and offers "New text".
   await ask(page, "Give me a full summary");
   await expect(page.getByText("STREAMING…")).toBeVisible();
-  await page.waitForTimeout(800);
-  await region.evaluate((el) => (el.scrollTop = 0));
+  // Streaming has started and the list is following the new card down to the bottom.
+  await expect
+    .poll(async () => (await page.locator("p.font-display").last().textContent())?.length ?? 0)
+    .toBeGreaterThan(20);
+  await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  // Keep scrolling up until the list stops pulling the reader back: it follows the stream for a moment after a question.
   const newText = page.getByRole("button", { name: "Scroll to newest answer" });
-  await expect(newText).toBeVisible();
-  await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBe(0);
+  await expect(async () => {
+    await region.evaluate((el) => (el.scrollTop = 0));
+    await expect(newText).toBeVisible({ timeout: 400 });
+    await expect.poll(() => region.evaluate((el) => el.scrollTop), { timeout: 400 }).toBe(0);
+  }).toPass({ timeout: 8000 });
   await newText.click();
   await expect(newText).toHaveCount(0);
   await expect

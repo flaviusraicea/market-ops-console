@@ -61,13 +61,14 @@ export function HeatMap({ rows, periods, selected, label, onCell }: HeatMapProps
   const key = (row: number, col: number) => `${row}:${col}`;
 
   function reveal(row: number, col: number, el: Element) {
-    const cell = rows[row]?.cells[col];
+    const rowData = rows[row];
+    const cell = rowData?.cells[col];
     const wrap = wrapRef.current?.getBoundingClientRect();
-    if (!cell || !wrap) return;
+    if (!rowData || !cell || !wrap) return;
     const box = el.getBoundingClientRect();
     tip.show(
       {
-        title: `${rows[row]!.name} · ${formatPeriodAbbr(cell.period)}`,
+        title: `${rowData.name} · ${formatPeriodAbbr(cell.period)}`,
         rows: [
           { label: "Actual", value: formatMoneyCompact(cell.actual) },
           { label: "Forecast", value: formatMoneyCompact(cell.forecast) },
@@ -111,8 +112,9 @@ export function HeatMap({ rows, periods, selected, label, onCell }: HeatMapProps
       case "Enter":
       case " ": {
         e.preventDefault();
-        const cell = rows[row]?.cells[col];
-        if (cell) onCell(rows[row]!.id, cell.period);
+        const rowData = rows[row];
+        const cell = rowData?.cells[col];
+        if (rowData && cell) onCell(rowData.id, cell.period);
       }
     }
   }
