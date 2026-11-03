@@ -33,7 +33,7 @@ export const Empty: Story = {
     const labels = [
       "Which markets are at risk?",
       "Why did Germany dip?",
-      "What will sales be next year?",
+      "Compare APAC and Europe",
     ];
     const chips = within(canvas.getByRole("list", { name: "Suggested questions" })).getAllByRole(
       "button",
@@ -107,7 +107,7 @@ export const StopThenRetry: Story = {
     // The old card stays marked partial; a new request carries the same question.
     await waitFor(() => expect(asked).toEqual(["Why?", "Why?"]));
     await expect(canvas.getAllByText("Stopped \u00b7 partial answer")).toHaveLength(1);
-    await expect(canvas.getAllByText(/You asked:/)).toHaveLength(2);
+    await expect(canvasElement.querySelectorAll('[data-slot="question-echo"]')).toHaveLength(2);
   },
 };
 

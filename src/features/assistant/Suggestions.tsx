@@ -3,7 +3,7 @@ import { ArrowRight, ICON_STROKE } from "@/components/icons";
 export const SUGGESTIONS = [
   "Which markets are at risk?",
   "Why did Germany dip?",
-  "What will sales be next year?",
+  "Compare APAC and Europe",
 ] as const;
 
 /** Full-width rows: a question is a sentence, so it gets a line of its own. Picking one sends it. */

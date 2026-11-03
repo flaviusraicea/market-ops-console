@@ -83,7 +83,7 @@ export function SourcesTable({
           </tbody>
         </table>
       </div>
-      <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+      <p className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
         {loading ? <span className="sr-only">Loading sources</span> : caption}
       </p>
     </div>

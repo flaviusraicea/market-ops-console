@@ -30,6 +30,7 @@ export const GermanyDip: Story = {
         assistant: "Revenue fell",
         disagreement: false,
         resolved: true,
+        derived: false,
       },
       {
         claim: "Steepest drop in March",
@@ -39,6 +40,7 @@ export const GermanyDip: Story = {
         assistant: "Steepest drop",
         disagreement: false,
         resolved: true,
+        derived: false,
       },
       {
         claim: "Decline across the portfolio",
@@ -48,9 +50,10 @@ export const GermanyDip: Story = {
         assistant: "Across products",
         disagreement: false,
         resolved: true,
+        derived: false,
       },
     ],
-    caption: "Source · data.json · Germany is Off track at 92.0% attainment for May 2026.",
+    caption: "Sources · data.json · attainment as given · derived",
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -70,6 +73,7 @@ export const AtRisk: Story = {
         assistant: "At risk",
         disagreement: true,
         resolved: true,
+        derived: false,
       },
       {
         claim: "March dip",
@@ -79,6 +83,7 @@ export const AtRisk: Story = {
         assistant: "Sharp dip",
         disagreement: false,
         resolved: true,
+        derived: false,
       },
       {
         claim: "Italy at risk",
@@ -88,6 +93,7 @@ export const AtRisk: Story = {
         assistant: "At risk",
         disagreement: false,
         resolved: true,
+        derived: false,
       },
       {
         claim: "Brazil at risk",
@@ -97,10 +103,10 @@ export const AtRisk: Story = {
         assistant: "At risk",
         disagreement: false,
         resolved: true,
+        derived: false,
       },
     ],
-    caption:
-      "The dashboard follows data.json. 4 markets are at risk and 2 are off track there; the assistant names 3.",
+    caption: "Sources · data.json · attainment as given · derived",
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
@@ -125,8 +131,9 @@ export const Unresolved: Story = {
         assistant: "—",
         disagreement: false,
         resolved: false,
+        derived: false,
       },
     ],
-    caption: "Source · data.json",
+    caption: "Sources · data.json · attainment as given",
   },
 };

@@ -2,8 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { entityName, entityOf } from "@/domain";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ICON_STROKE, Sparkles } from "@/components/icons";
+import { useDataset } from "@/lib/context/dataset";
+import { useConsoleContext } from "@/lib/context/useConsoleContext";
+import { formatPeriod } from "@/lib/format";
 import { logEvent } from "@/lib/events";
 import { prefersReducedMotion } from "@/lib/motion";
 import type { AskStream } from "@/lib/stream/chatClient";
@@ -32,6 +36,8 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
   const [scrollSignal, setScrollSignal] = useState(0);
   const ref = useRef<HTMLTextAreaElement>(null);
   const request = useAskWhyRequest();
+  const ds = useDataset();
+  const { ctx } = useConsoleContext();
 
   const { answers, ask, stop, retry, isStreaming } = useAnswerMachine(stream);
   usePublishAnswers(answers);
@@ -39,7 +45,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
   function submit(question: string) {
     logEvent({ type: "ask", question });
     onSubmit?.(question);
-    ask(question);
+    ask(question, `${entityName(ds, entityOf(ctx))} · ${formatPeriod(ctx.period)}`);
     setScrollSignal((n) => n + 1);
     // Focus stays in the textarea after Send (also when Send was clicked or a suggestion was picked).
     ref.current?.focus();
