@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 import { EntitySchema, PeriodSchema, RegionIdSchema } from "./dataset";
+import { CONFIDENCES, SSE_KINDS } from "./sseGuard";
 
-export const ConfidenceSchema = z.enum(["high", "medium", "low"]);
-export const KindSchema = z.enum(["normal", "low_confidence", "abstain", "error"]);
+export const ConfidenceSchema = z.enum(CONFIDENCES);
+export const KindSchema = z.enum(SSE_KINDS);
 export const CitationSchema = z.object({
   marketId: z.string().optional(),
   regionId: z.string().optional(),

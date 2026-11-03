@@ -17,7 +17,7 @@ import { logEvent } from "@/lib/events";
 import { prefersReducedMotion } from "@/lib/motion";
 import type { AskStream } from "@/lib/stream/chatClient";
 import { AnswerList } from "./AnswerList";
-import { preloadAnswerCard } from "./AnswerCardLazy";
+import { warmAnswerCard } from "./AnswerCardLazy";
 import { useAskWhyRequest, useRegisterAskSender, type AskContext } from "./askWhy";
 import { Composer } from "./Composer";
 import type { PanelContext } from "./EmptyState";
@@ -60,7 +60,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
 
   /** `about` is the entry point a question came from; without one the question is about the view in the URL. */
   function submit(question: string, about?: AskContext) {
-    void preloadAnswerCard();
+    warmAnswerCard();
     logEvent({ type: "ask", question });
     onSubmit?.(question);
     const entity = entityOf(ctx);

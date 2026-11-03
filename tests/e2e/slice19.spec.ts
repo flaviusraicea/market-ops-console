@@ -76,6 +76,8 @@ test("the account menu and the answer card load on first use, and the menu opens
   await avatar.focus();
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("menuitem", { name: "Sign out" })).toBeVisible();
+  // Opened from the keyboard, focus lands on the first item, as it did before the menu was lazy.
+  await expect(page.getByRole("menuitemradio", { name: "Executive" })).toBeFocused();
   await expect.poll(loaded).toContain("accountMenu");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menuitem", { name: "Sign out" })).toHaveCount(0);
@@ -84,6 +86,40 @@ test("the account menu and the answer card load on first use, and the menu opens
 
   await page.getByRole("textbox", { name: "Ask the assistant" }).fill("Why is Germany off track?");
   await expect.poll(loaded).toContain("answerCard");
+});
+
+test("a chunk that fails to load shows an error with Retry, and the next try succeeds", async ({
+  page,
+}) => {
+  await open(page, "/");
+  // From here on every script request fails, as it would offline or after a deploy removed the old chunks.
+  let offline = true;
+  await page.route("**/_next/static/**/*.js", (route) =>
+    offline ? route.abort() : route.continue(),
+  );
+
+  // The account menu: the button says why nothing opened, and the next activation tries again.
+  const avatar = page.getByRole("button", { name: /Account menu$/ });
+  await avatar.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#account-menu-error")).toHaveText(/could not load/);
+  offline = false;
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("menuitem", { name: "Sign out" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // The answer card: a notice with Retry in place of the answer, then the answer.
+  offline = true;
+  const box = page.getByRole("textbox", { name: "Ask the assistant" });
+  await box.fill("Why is Germany off track?");
+  await box.press("Enter");
+  const notice = page.getByRole("alert").filter({ hasText: "Answer could not be shown" });
+  await expect(notice).toBeVisible();
+  offline = false;
+  await notice.getByRole("button", { name: "Retry" }).click();
+  await expect(page.getByRole("button", { name: /Show sources/ }).first()).toBeVisible({
+    timeout: 15_000,
+  });
 });
 
 test("the map swaps in for a skeleton of the same height and nothing shifts", async ({ page }) => {
@@ -105,7 +141,8 @@ test("the map swaps in for a skeleton of the same height and nothing shifts", as
   const map = card.getByRole("group", { name: /Markets by status/ });
   await expect(map).toBeVisible();
   const mapH = (await map.boundingBox())?.height;
-  expect(mapH).toBeCloseTo(skeletonH!, 0);
+  expect(skeletonH).toBeDefined();
+  expect(mapH).toBeCloseTo(skeletonH ?? 0, 0);
   await page.waitForLoadState("networkidle");
   expect(await shift()).toBeLessThan(0.01);
 });
@@ -121,12 +158,13 @@ test("the page revalidates, the geometry is cached for good, and API responses a
   page,
 }) => {
   const home = await request.get("/");
-  expect(home.headers()["cache-control"]).toBe("public, max-age=0, must-revalidate");
+  expect(home.headers()["cache-control"]).toBe("private, no-cache");
 
   await page.goto("/");
   const preload = await page.locator('link[rel="preload"][as="fetch"]').getAttribute("href");
   expect(preload).toMatch(/^\/geo\/markets\.[0-9a-f]{10}\.json$/);
-  const geo = await request.get(preload!);
+  expect(preload).not.toBeNull();
+  const geo = await request.get(preload ?? "");
   expect(geo.headers()["cache-control"]).toBe("public, max-age=31536000, immutable");
 
   const alerts = await request.get("/api/alerts");
@@ -137,9 +175,20 @@ test("an error report posted to /api/errors is accepted, a malformed one is not"
   request,
 }) => {
   const ok = await request.post("/api/errors", {
-    data: { source: "boundary", name: "TypeError", message: "boom", widget: "radar" },
+    data: {
+      level: "error",
+      source: "boundary",
+      name: "TypeError",
+      message: "boom",
+      widget: "radar",
+      at: new Date().toISOString(),
+    },
   });
   expect(ok.status()).toBe(204);
+  const unknownSource = await request.post("/api/errors", {
+    data: { level: "error", source: "nope", name: "E", message: "x", at: "now" },
+  });
+  expect(unknownSource.status()).toBe(400);
   const bad = await request.post("/api/errors", { data: "not json" });
   expect(bad.status()).toBe(400);
 });

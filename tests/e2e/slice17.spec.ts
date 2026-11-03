@@ -1,5 +1,7 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 
+import { open } from "./helpers";
+
 type MotionLog = { animations: number; transitions: Set<string> };
 declare global {
   interface Window {
@@ -60,7 +62,7 @@ test("a keyboard drill moves focus to the new page heading, a mouse drill leaves
 test("a focused grid row keeps a visible focus ring, and so does a landing target", async ({
   page,
 }) => {
-  await page.goto("/?mode=analyst&region=eu&market=de");
+  await open(page, "/?mode=analyst&region=eu&market=de");
   const target = page.locator("tr[data-landing-target]").first();
   await target.focus();
   await page.keyboard.press("Shift+Tab");
@@ -79,7 +81,7 @@ test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
   test("nothing animates or transitions at any sampled frame", async ({ page }) => {
-    await page.goto("/?mode=analyst&region=eu&market=de");
+    await open(page, "/?mode=analyst&region=eu&market=de");
     await expect(page.locator('path[data-series="actual"]')).toBeVisible();
 
     // Sample every frame from now until the drill settles.

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { answerComplete, ask } from "./helpers";
+import { answerComplete, ask, open } from "./helpers";
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -43,7 +43,7 @@ test("at portfolio scope, the same question still gets the portfolio answer", as
 test("in Germany in March, 'Why did revenue dip?' is answered from that month's numbers", async ({
   page,
 }) => {
-  await page.goto("/?mode=analyst&market=de&period=2026-03");
+  await open(page, "/?mode=analyst&market=de&period=2026-03");
   await page.getByRole("button", { name: /^Open assistant$/ }).click();
   await ask(page, "Why did revenue dip?");
   await answerComplete(page);

@@ -2,13 +2,15 @@
 // (about 26 KB gzipped) stays out of the first bundle; the schemas in stream.ts remain the contract for the
 // server route (asserted in development) and the tests, which keep this guard in step with them.
 
+import { PERIOD_PATTERN } from "./periods";
 import type { SseEvent } from "./stream";
 
-const KINDS: readonly string[] = ["normal", "low_confidence", "abstain", "error"];
-const CONFIDENCES: readonly string[] = ["high", "medium", "low"];
+// The values of the stream enums, written once here and used by the zod schemas in stream.ts.
+export const SSE_KINDS = ["normal", "low_confidence", "abstain", "error"] as const;
+export const CONFIDENCES = ["high", "medium", "low"] as const;
+const KINDS: readonly string[] = SSE_KINDS;
+const LEVELS: readonly string[] = CONFIDENCES;
 const CITATION_KEYS = ["marketId", "regionId", "productId", "label"] as const;
-// Same pattern as PeriodSchema.
-const PERIOD = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
@@ -16,7 +18,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
 function isCitation(v: unknown): boolean {
   if (!isRecord(v)) return false;
   const { period } = v;
-  if (period !== undefined && !(typeof period === "string" && PERIOD.test(period))) return false;
+  if (period !== undefined && !(typeof period === "string" && PERIOD_PATTERN.test(period))) return false;
   return CITATION_KEYS.every((k) => v[k] === undefined || typeof v[k] === "string");
 }
 
@@ -34,7 +36,7 @@ export function isSseEvent(value: unknown): value is SseEvent {
         typeof kind === "string" &&
         KINDS.includes(kind) &&
         typeof confidence === "string" &&
-        CONFIDENCES.includes(confidence) &&
+        LEVELS.includes(confidence) &&
         Array.isArray(citations) &&
         citations.every(isCitation)
       );

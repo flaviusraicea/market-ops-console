@@ -36,7 +36,7 @@ Lighthouse says whether a page is fast; the budget says why it will stay fast. `
 | Analyst scripts (with Overview's) | 350 KB | 324.6 KB (one bundle) | 339.1 KB |
 | Largest lazy chunk | 60 KB | none | 31.0 KB |
 | Fonts loaded | 110 KB | 166.6 KB | 97.1 KB |
-| CSS | 20 KB | 12.4 KB | 12.6 KB |
+| CSS | 20 KB | 12.4 KB | 12.7 KB |
 
 Lighthouse (desktop preset, median of 3, production build on one CI-class machine):
 
@@ -66,11 +66,11 @@ Two pieces load on first use rather than with the page: the answer card (sources
 {"level":"error","source":"boundary","name":"TypeError","message":"…","stack":"…","widget":"heat-map","path":"/","at":"2026-11-03T06:00:00.000Z"}
 ```
 
-It goes to the console, and in production in the browser it is also beaconed to `/api/errors`, which writes the same line (with `"origin":"client"`) to the server log, where Vercel log search and drains can index it. Sources are `boundary` (a widget's error boundary), `window` (an uncaught error) and `promise` (an unhandled rejection). The same error is sent once per ten seconds and a page sends at most twenty.
+It goes to the console, and in production in the browser it is also beaconed to `/api/errors`, which writes the same line (with `"origin":"client"`) to the server log, where Vercel log search and drains can index it. Sources are `boundary` (a widget's error boundary), `window` (an uncaught error), `promise` (an unhandled rejection), `stream` (the assistant's answer stream failed or closed early) and `fetch` (a request or a lazy chunk failed). The last two carry a `route`, for example `/api/chat`, `/api/alerts`, `/api/session` or the geometry file. A refused alert edit (the Executive role) is expected and is not reported. The shape of a report is `ErrorReportSchema` in `src/domain/errors.ts`; the route validates with it and the browser imports only its type. The same error is sent once per ten seconds and a page sends at most twenty.
 
 ## Caching
 
 - `/geo/markets.<hash>.json`: `public, max-age=31536000, immutable`. The name carries a hash of the content, written by `pnpm build:geo`.
-- `/`: `public, max-age=0, must-revalidate`. The page is dynamic because the URL is the state.
+- `/`: `private, no-cache`. The page is dynamic because the URL is the state, and it is built for the signed-in role (a cookie), so a shared cache must not keep it.
 - `/api/*`: `no-store`.
 - `/_next/static/*`: immutable, by Next's default.

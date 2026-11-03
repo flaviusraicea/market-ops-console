@@ -4,7 +4,6 @@ import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
 import { line } from "@visx/shape";
 import {
-  memo,
   useCallback,
   useEffect,
   useId,
@@ -25,10 +24,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatMoneyAxis, formatMoneyCompact, formatMoneyFull, formatPct } from "@/lib/format";
+import { formatMoneyCompact, formatMoneyFull, formatPct } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame, type Margins } from "./Frame";
 import type { LegendItem } from "./Legend";
+import { LineGrid, LineSeries, type SeriesKey } from "./LineParts";
 
 export type LinePoint = {
   period: string;
@@ -82,142 +82,6 @@ type LineChartProps = {
 
 const HEIGHT = 260;
 const MARGIN: Margins = { top: 16, right: 16, bottom: 32, left: 48 };
-const X_LABELS = [0, 6, 12, 18, 23];
-
-type YScale = ReturnType<typeof scaleLinear<number>>;
-type SeriesKey = "actual" | "forecast" | "priorYear";
-const SERIES = [
-  { key: "actual", color: "var(--series-actual)", width: 2, dash: undefined },
-  { key: "forecast", color: "var(--series-forecast)", width: 2, dash: "6 4" },
-  { key: "priorYear", color: "var(--series-prior)", width: 1.5, dash: "2 3" },
-] as const;
-
-/**
- * The grid, tick labels and month labels. They depend on the data and the width only, so a tooltip or crosshair
- * move in the parent does not touch them.
- */
-const LineGrid = memo(function LineGrid({
-  ticks,
-  y,
-  x,
-  points,
-  innerW,
-  innerH,
-}: {
-  ticks: readonly number[];
-  y: YScale;
-  x: (i: number) => number;
-  points: readonly LinePoint[];
-  innerW: number;
-  innerH: number;
-}) {
-  return (
-    <>
-      {ticks.map((t) => (
-        <g key={t}>
-          <line x1={0} x2={innerW} y1={y(t)} y2={y(t)} stroke="var(--grid)" strokeWidth={1} />
-          <text
-            x={-8}
-            y={y(t)}
-            dy="0.32em"
-            textAnchor="end"
-            className="fill-ink-muted text-[length:var(--text-caption)]"
-          >
-            {formatMoneyAxis(t)}
-          </text>
-        </g>
-      ))}
-      {X_LABELS.map((i) => {
-        const p = points[i];
-        return p ? (
-          <text
-            key={i}
-            x={x(i)}
-            y={innerH + 20}
-            textAnchor="middle"
-            className="fill-ink-muted text-[length:var(--text-caption)]"
-          >
-            {p.label}
-          </text>
-        ) : null;
-      })}
-    </>
-  );
-});
-
-/** The three series paths and the anomaly labels: the marks. Re-rendered only when the data or the size change. */
-const LineSeries = memo(function LineSeries({
-  paths,
-  anomalies,
-  points,
-  x,
-  y,
-  innerW,
-}: {
-  paths: Record<SeriesKey, string>;
-  anomalies: readonly LineAnomaly[];
-  points: readonly LinePoint[];
-  x: (i: number) => number;
-  y: YScale;
-  innerW: number;
-}) {
-  return (
-    <>
-      {SERIES.map((s) => {
-        const d = paths[s.key];
-        return (
-          <path
-            key={s.key}
-            data-series={s.key}
-            className="tween-path"
-            d={d}
-            // The d attribute is the fallback; the CSS property is what transitions.
-            style={{ d: `path("${d}")` }}
-            fill="none"
-            stroke={s.color}
-            strokeWidth={s.width}
-            strokeLinejoin="round"
-            {...(s.dash ? { strokeDasharray: s.dash } : {})}
-          />
-        );
-      })}
-      {anomalies.map((a) => {
-        const p = points[a.index];
-        if (!p) return null;
-        const ax = x(a.index);
-        const ay = y(p.actual);
-        // The label sits 28px above and 8px beside the marker, opening to the right; near the right
-        // edge it opens to the left so it is never clipped.
-        const dir = ax + 100 > innerW ? -1 : 1;
-        return (
-          <g key={a.period} aria-hidden>
-            <line
-              x1={ax + dir * 2}
-              y1={ay - 4}
-              x2={ax + dir * 8}
-              y2={ay - 26}
-              stroke="var(--bad-mark)"
-              strokeWidth={1}
-            />
-            <text
-              data-slot="anomaly-label"
-              x={ax + dir * 8}
-              y={ay - 28}
-              textAnchor={dir === 1 ? "start" : "end"}
-              fill="var(--bad-text)"
-              stroke="var(--surface)"
-              strokeWidth={3}
-              paintOrder="stroke"
-              className="text-[length:var(--text-label)] font-medium"
-            >
-              {a.label}
-            </text>
-          </g>
-        );
-      })}
-    </>
-  );
-});
 
 function LineSvg({
   width,

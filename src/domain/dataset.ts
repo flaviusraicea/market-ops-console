@@ -1,11 +1,9 @@
 import { z } from "zod";
 
+import { PERIOD_PATTERN } from "./periods";
 import { REGION_IDS } from "./regions";
 
-export const PeriodSchema = z
-  .string()
-  .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
-  .brand<"Period">();
+export const PeriodSchema = z.string().regex(PERIOD_PATTERN).brand<"Period">();
 export type Period = z.infer<typeof PeriodSchema>;
 
 export const RegionIdSchema = z.enum(REGION_IDS);

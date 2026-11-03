@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { FACTS_VIEWPORT_H } from "./factsViewport";
+import { Sheet } from "./Sheet";
 
 /**
  * The rendered height of each lazy Analyst section at 1440 wide, in px. A section whose height depends on the
@@ -29,10 +30,10 @@ export type Reserve = keyof typeof RESERVE;
 export function reserveStyle(gridRows: number, marketInView: boolean): CSSProperties {
   return {
     "--reserve-grid": `${114 + gridRows * 33}px`,
-    "--reserve-kpi": marketInView ? "88px" : "72px",
+    "--reserve-kpi": marketInView ? `${RESERVE.kpi}px` : "72px",
     "--reserve-radar": marketInView ? "472px" : "490px",
     "--reserve-heat": marketInView ? "472px" : "490px",
-  } as CSSProperties;
+  } as CSSProperties; // CSSProperties has no index for custom properties
 }
 
 /**
@@ -85,10 +86,7 @@ export function AnalystSkeleton({
     <div className="flex flex-col" aria-busy="true" data-slot="analyst-skeleton">
       <span className="sr-only">Loading dashboard</span>
       <ToolbarSkeleton />
-      <div
-        style={style}
-        className="flex min-w-0 flex-col divide-y divide-border rounded-card border border-border bg-surface"
-      >
+      <Sheet style={style}>
         <SectionSkeleton label="key figures" reserve="kpi" />
         <SectionSkeleton label="market grid" reserve="grid" />
         {facts ? <SectionSkeleton label="all facts" reserve="facts" /> : null}
@@ -99,7 +97,7 @@ export function AnalystSkeleton({
           <SectionSkeleton label="heat map" reserve="heat" />
         </div>
         <SectionSkeleton label="alerts" reserve="alerts" />
-      </div>
+      </Sheet>
     </div>
   );
 }

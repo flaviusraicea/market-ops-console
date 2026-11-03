@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import type { Context as Cx, Dataset as Ds } from "@/domain";
 import type { LiveEngine as Engine } from "@/features/live/engine";
 import { useLiveVM } from "@/features/live/LiveProvider";
+import { map, regionBars, tiles } from "@/features/live/selectors";
 import type { OverviewVM, RegionBarsVM } from "@/features/overview/viewModel";
 import { SectionSkeleton, ToolbarSkeleton } from "./AnalystSkeletons";
 import type { AnalystVM } from "./viewModel";
@@ -44,13 +45,10 @@ export const ConnectedAlertsSection = dynamic(
   { loading: () => <SectionSkeleton label="alerts" reserve="alerts" /> },
 );
 
-const tiles = (e: Engine, ds: Ds, cx: Cx) => e.overview(ds, cx).tiles;
 export function LiveKpiStrip({ tiles: initial }: { tiles: OverviewVM["tiles"] }) {
   return <KpiStrip tiles={useLiveVM(initial, tiles)} />;
 }
 
-const map = (e: Engine, ds: Ds, cx: Cx) => e.overview(ds, cx).map;
-const regionBars = (e: Engine, ds: Ds, cx: Cx) => e.regionBars(ds, cx);
 export function LiveMapSection({
   map: initialMap,
   regions,

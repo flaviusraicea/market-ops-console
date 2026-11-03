@@ -6,7 +6,7 @@ import { Eyebrow } from "@/components/Eyebrow";
 import { ArrowUp, ICON_STROKE, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { preloadAnswerCard } from "./AnswerCardLazy";
+import { warmAnswerCard } from "./AnswerCardLazy";
 
 const MAX_ROWS = 4;
 
@@ -97,7 +97,7 @@ export function Composer({
           placeholder="Ask about markets, products or periods…"
           onChange={(e) => {
             // The first keystroke is the cue that an answer is coming.
-            void preloadAnswerCard();
+            warmAnswerCard();
             onChange(e.target.value);
           }}
           onKeyDown={(e) => {

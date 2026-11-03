@@ -30,6 +30,20 @@ describe("reportError", () => {
     expect(report.message).toBe("boom");
   });
 
+  it("records the request a stream or fetch failure came from", () => {
+    const report = reportError(new Error("closed"), { source: "stream", route: "/api/chat" });
+    expect(report).toMatchObject({ source: "stream", route: "/api/chat" });
+    expect(JSON.parse(String(consoleError.mock.calls[0]?.[0]))).toMatchObject({
+      source: "stream",
+      route: "/api/chat",
+    });
+  });
+
+  it("cuts fields to the limits the endpoint accepts, so a long message is still delivered", () => {
+    const report = reportError("x".repeat(900), { source: "fetch", route: "/api/alerts" });
+    expect(report.message).toHaveLength(500);
+  });
+
   it("keeps the report in the event log", () => {
     reportError("plain text failure", { source: "window" });
     const last = getEventLog().at(-1);

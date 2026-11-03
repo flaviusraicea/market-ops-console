@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { open } from "./helpers";
+
 const VERDICT =
   "Portfolio is on track at 100.4% of forecast, up 7.3% on last year. Six markets need attention.";
 
@@ -237,7 +239,7 @@ test("tile provenance sits in a tooltip on the info button", async ({ page }) =>
 test("region revenue shows two decimals on both views", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("region", { name: "By region" })).toContainText("$7.06M");
-  await page.goto("/?mode=analyst");
+  await open(page, "/?mode=analyst");
   await expect(page.getByText("$7.06M").first()).toBeVisible();
 });
 
@@ -273,7 +275,7 @@ test("the info button names the figure in sentence case", async ({ page }) => {
 });
 
 test("Analyst shows tile provenance as visible text", async ({ page }) => {
-  await page.goto("/?mode=analyst");
+  await open(page, "/?mode=analyst");
   const tile = page.getByRole("group", { name: "FORECAST ATTAINMENT" });
   await expect(tile.getByText("Derived · sum of series")).toBeVisible();
   await expect(tile.locator("[title]")).toHaveCount(0);

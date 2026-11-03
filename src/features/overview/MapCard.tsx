@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Metric } from "@/domain";
+import { reportError } from "@/lib/events";
 import { GEO_URL } from "@/lib/geoAsset";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import type { OverviewVM } from "./viewModel";
@@ -57,6 +58,7 @@ function loadGeo(): Promise<MapGeo> {
     })
     .catch((err: unknown) => {
       geoCache = null; // allow a later mount to retry
+      reportError(err, { source: "fetch", route: GEO_URL });
       throw err;
     });
   return geoCache;

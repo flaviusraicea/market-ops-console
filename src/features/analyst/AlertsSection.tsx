@@ -29,9 +29,7 @@ function summaryOf(rules: { metric: keyof typeof METRIC_LABEL }[]): string {
   return `${rules.length} ${rules.length === 1 ? "rule" : "rules"} · ${names(unique)}`;
 }
 
-/**
- * Alerts folded away at the end of the sheet; opening shows the form and the saved rules.
- */
+/** Alerts folded away at the end of the sheet; opening shows the form and the saved rules. */
 export function AlertsSection({
   readOnly = false,
   onSwitchToAnalyst,
