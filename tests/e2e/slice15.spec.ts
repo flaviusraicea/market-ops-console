@@ -141,7 +141,7 @@ test("the revenue tile carries a 24-month trend", async ({ page }) => {
 test("a market shows its products and hides the strip", async ({ page }) => {
   await page.goto("/?market=de");
   await expect(page.getByRole("group", { name: "Market status by region" })).toHaveCount(0);
-  const products = page.getByRole("region", { name: "Products" });
+  const products = page.getByRole("region", { name: "Products", exact: true });
   await expect(products.getByRole("row")).toHaveCount(6);
   await expect(products).toContainText("Veltrix");
 });

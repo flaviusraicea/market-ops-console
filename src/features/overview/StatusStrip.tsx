@@ -62,6 +62,9 @@ export function StatusStrip({
               className={cn(
                 "grid gap-1.5",
                 group.count <= 2 ? "grid-cols-1" : "grid-cols-[repeat(3,max-content)]",
+                // A phone has no room for three across: two across, so each group is narrower than the screen and
+                // snaps into view whole.
+                "max-md:grid-cols-[repeat(2,max-content)]",
               )}
             >
               {group.markets.map((market) => (

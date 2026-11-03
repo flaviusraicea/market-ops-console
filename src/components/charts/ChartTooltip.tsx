@@ -95,7 +95,7 @@ export function useChartTooltip() {
   };
 }
 
-/** Design-system 6.8: surface box, title in ink, rows with right-aligned values. Sits above the point with a caret. */
+/** Design-system 6.8: surface box, title in ink, rows with right-aligned values. Sits above the point with a caret, or below it when there is no room above. */
 export function ChartTooltip({
   title,
   rows,
@@ -103,7 +103,17 @@ export function ChartTooltip({
   left,
   top,
   onHover,
-}: TooltipContent & { left: number; top: number; onHover?: (inside: boolean) => void }) {
+  keepInside = false,
+}: TooltipContent & {
+  left: number;
+  top: number;
+  onHover?: (inside: boolean) => void;
+  /**
+   * For a chart whose anchor is a point and whose frame clips: the box drops below the point, or is held
+   * inside the frame. Off for cells, where the anchor is the cell's top edge and below would cover the cell.
+   */
+  keepInside?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   // Near either edge of the chart the box slides inward to stay whole (a phone's plot is narrow); the caret
   // keeps pointing at the mark.
@@ -117,6 +127,19 @@ export function ChartTooltip({
     const shift = Math.min(Math.max(left, lo), hi) - left;
     el.style.marginLeft = `${shift}px`;
     el.style.setProperty("--caret-shift", `${-shift}px`);
+    // Too near the top for the box to sit above the mark: it drops below the mark when there is more room
+    // there, and in a short chart that fits neither side it is held inside the chart rather than clipped.
+    if (!keepInside) return;
+    const h = el.offsetHeight;
+    const above = top - 8 - h;
+    const below = top + 8;
+    const flip = above < 0 && parent.clientHeight - below > top - 8;
+    const placed = Math.min(
+      Math.max(flip ? below : above, 0),
+      Math.max(parent.clientHeight - h, 0),
+    );
+    el.dataset.flip = String(flip);
+    el.style.marginTop = `${placed - above}px`;
   });
   return (
     <div
@@ -128,8 +151,9 @@ export function ChartTooltip({
         action ? "pointer-events-auto" : "pointer-events-none",
         // The transparent strip under an actionable tooltip bridges the gap to the mark, so the pointer
         // reaches the action without crossing a neighbour.
-        action && "after:absolute after:top-full after:left-0 after:h-2 after:w-full",
-        "absolute z-10 min-w-40 -translate-x-1/2 -translate-y-full rounded-control border border-border bg-surface px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] shadow-popover",
+        action &&
+          "after:absolute after:top-full after:left-0 after:h-2 after:w-full data-[flip=true]:after:top-auto data-[flip=true]:after:bottom-full",
+        "group/tip absolute z-10 min-w-40 -translate-x-1/2 -translate-y-full rounded-control border border-border bg-surface px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] shadow-popover",
       )}
       style={{ left, top: top - 8 }}
     >
@@ -163,7 +187,7 @@ export function ChartTooltip({
       ) : null}
       <span
         aria-hidden
-        className="absolute top-full left-[calc(50%+var(--caret-shift,0px))] -mt-[4px] size-[8px] -translate-x-1/2 rotate-45 border-r border-b border-border bg-surface"
+        className="absolute top-full left-[calc(50%+var(--caret-shift,0px))] -mt-[4px] size-[8px] -translate-x-1/2 rotate-45 border-r border-b border-border bg-surface group-data-[flip=true]/tip:top-auto group-data-[flip=true]/tip:bottom-full group-data-[flip=true]/tip:-mt-0 group-data-[flip=true]/tip:-mb-[4px] group-data-[flip=true]/tip:border-t group-data-[flip=true]/tip:border-l group-data-[flip=true]/tip:border-r-0 group-data-[flip=true]/tip:border-b-0"
       />
     </div>
   );

@@ -235,7 +235,13 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
             {attention.caption}
           </p>
         </div>
-        <div className="overflow-x-auto">
+        {/* A scroller must be reachable by keyboard and named, or a keyboard user cannot see its overflow. */}
+        <div
+          role="region"
+          aria-label="Products table, scrollable"
+          tabIndex={0}
+          className="overflow-x-auto rounded-control"
+        >
           <ProductsTable rows={attention.rows} />
         </div>
       </section>
