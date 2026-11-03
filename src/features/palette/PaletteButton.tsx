@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePalette } from "./PaletteProvider";
 
 /** The only visible way in besides the keyboard: it lives in the assistant panel header, not the page header. */
-export function PaletteButton() {
+export function PaletteButton({ side }: { side?: "left" }) {
   const { openPalette } = usePalette();
   return (
     <TooltipProvider>
@@ -22,7 +22,7 @@ export function PaletteButton() {
             <Search aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>⌘K / Ctrl+K</TooltipContent>
+        <TooltipContent {...(side ? { side } : {})}>⌘K / Ctrl+K</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

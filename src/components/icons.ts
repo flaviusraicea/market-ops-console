@@ -9,6 +9,8 @@ export {
   ArrowUpRight,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   CircleAlert,
   Link2,
   CirclePause,

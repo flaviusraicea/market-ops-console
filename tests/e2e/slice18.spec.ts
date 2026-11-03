@@ -35,6 +35,19 @@ test("the assistant header button opens it, and Escape returns focus to the butt
   await expect(opener(page)).toBeFocused();
 });
 
+test("the rail icon on Analyst opens it, and Escape returns focus to the icon", async ({
+  page,
+}) => {
+  await page.goto("/?mode=analyst");
+  await page.waitForLoadState("networkidle");
+  await expect(page.locator("#assistant-panel")).toBeHidden();
+  await opener(page).click();
+  await expect(input(page)).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(palette(page)).toBeHidden();
+  await expect(opener(page)).toBeFocused();
+});
+
 test("Ask: Which markets are at risk? sends the question and focuses the composer", async ({
   page,
 }) => {

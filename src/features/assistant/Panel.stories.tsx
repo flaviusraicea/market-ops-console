@@ -3,10 +3,11 @@ import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { portfolioMay, withDataset } from "../../../.storybook/decorators";
 import data from "@/data/data.json";
-import { parseDataset } from "@/domain";
+import { parseDataset, type Period } from "@/domain";
 import { panelContextVM } from "@/features/overview/viewModel";
 import type { AskStream } from "@/lib/stream/chatClient";
 import { Panel } from "./Panel";
+import { AskWhyProvider, useAskWhy } from "./askWhy";
 
 // A stream that never answers, so stories do not touch the network.
 const quiet: AskStream = () => new Promise(() => {});
@@ -134,5 +135,44 @@ export const FailsAfterTwoTokens: Story = {
     await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
     await expect(canvas.queryByRole("img", { name: /confidence/i })).toBeNull();
     await expect(canvasElement.querySelector(".caret")).toBeNull();
+  },
+};
+
+function Row() {
+  const { ask } = useAskWhy();
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        ask("Why did Germany's revenue dip?", {
+          entity: { kind: "market", marketId: "de" },
+          period: "2026-05" as Period,
+          label: "Germany \u00b7 May 2026",
+        })
+      }
+    >
+      Ask why Germany
+    </button>
+  );
+}
+
+/** A row's Ask why sends through the panel: focus lands in the composer and the echo names where it was asked. */
+export const OpenFromRow: Story = {
+  decorators: [
+    (Story) => (
+      <AskWhyProvider>
+        <Row />
+        <Story />
+      </AskWhyProvider>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: "Ask why Germany" }));
+    await waitFor(() =>
+      expect(canvas.getByRole("textbox", { name: "Ask the assistant" })).toHaveFocus(),
+    );
+    await expect(await canvas.findByText("Germany \u00b7 May 2026")).toBeInTheDocument();
+    await expect(canvasElement.querySelector('[data-slot="question-echo"]')).not.toBeNull();
   },
 };
