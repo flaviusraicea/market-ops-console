@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { LineChart, LineChartTable, type LineAnomaly, type LinePoint } from "./LineChart";
@@ -313,62 +312,5 @@ export const ViewAsTableState: Story = {
     await userEvent.click(canvas.getByRole("button", { name: "View as table" }));
     await expect(canvas.getAllByRole("row")).toHaveLength(25);
     await expect(canvas.getByText("Anomaly")).toBeInTheDocument();
-  },
-};
-
-/** Stands in for a basis change: the same chart gets new numbers (MAT sums are larger) and must patch, not re-mount. */
-function Retargetable() {
-  const [mat, setMat] = useState(false);
-  const shown = mat
-    ? points.map((p) => ({
-        ...p,
-        actual: p.actual * 3,
-        forecast: p.forecast * 3,
-        priorYear: p.priorYear * 3,
-      }))
-    : points;
-  return (
-    <>
-      <button type="button" onClick={() => setMat(true)}>
-        Basis MAT
-      </button>
-      <LineChart
-        points={shown}
-        anomalies={anomalies}
-        selectedPeriod="2026-05"
-        title={title}
-        desc={desc}
-        onPeriod={() => undefined}
-      />
-    </>
-  );
-}
-
-export const Retarget: Story = {
-  render: () => <Retargetable />,
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const svg = await canvas.findByRole("group", { name: title });
-    const actual = () => svg.querySelector<SVGPathElement>('path[data-series="actual"]');
-    const before = actual();
-    const dBefore = before?.getAttribute("d");
-    await expect(getComputedStyle(before!).transitionProperty).toBe("d");
-    await expect(getComputedStyle(before!).transitionDuration).toBe("0.24s");
-
-    await userEvent.click(canvas.getByRole("button", { name: "Basis MAT" }));
-    await waitFor(() => expect(actual()?.getAttribute("d")).not.toBe(dBefore));
-    // Patched in place: the same node, so the browser has something to interpolate.
-    await expect(actual()).toBe(before);
-  },
-};
-
-export const RetargetReducedMotion: Story = {
-  ...Retarget,
-  globals: { reducedMotion: "on" },
-  play: async ({ canvasElement }) => {
-    const svg = await within(canvasElement).findByRole("group", { name: title });
-    await expect(
-      getComputedStyle(svg.querySelector('path[data-series="actual"]')!).transitionDuration,
-    ).toBe("0s");
   },
 };

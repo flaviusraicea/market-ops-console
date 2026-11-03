@@ -164,8 +164,8 @@ html[data-reduced-motion="true"] .caret {
   text-decoration-style: solid;
 }
 
-/* Slice 17, the only motion besides the rail width and the disclosures: the page turns, marks interpolate,
-   a landed citation's ring fades in, holds, and fades out. The duration tokens are 0ms under reduced motion. */
+/* Motion: the page turns, marks interpolate, a landed citation's ring fades in, holds and fades out.
+   The duration tokens are 0ms under reduced motion, so every rule here becomes an instant swap. */
 [data-slot="dashboard"] {
   transition: opacity var(--dur-base) var(--ease);
 }
@@ -174,29 +174,37 @@ html[data-reduced-motion="true"] .caret {
   transition-duration: var(--dur-fast);
 }
 
-/* Line paths tween `d` (Chromium, Firefox; Safari swaps instantly), cells and map shapes tween their fill. */
-.tween-path {
+/* Marks interpolate only for a context change (DashboardColumn sets data-tween while it is pending and just
+   after), never on a resize or a theme switch. Line paths tween `d` (Chromium, Firefox; Safari swaps
+   instantly), cells and map shapes tween their fill. */
+[data-slot="dashboard"][data-tween="true"] .tween-path {
   transition: d var(--dur-chart) var(--ease);
 }
-.tween-fill {
+[data-slot="dashboard"][data-tween="true"] .tween-fill {
   transition:
     fill var(--dur-chart) var(--ease),
     background-color var(--dur-chart) var(--ease);
 }
 
 /* A followed citation landed on this widget (slice 6): the ring fades in, holds while data-landed is set
-   (two seconds, useLanding), then fades out when it is removed. */
-[data-landing-target] {
+   (two seconds, useLanding), then fades out when it is removed. A focused target keeps the global focus
+   ring, and forced-colors mode draws no ring until it lands. */
+[data-landing-target]:not(:focus-visible) {
   outline: 2px solid transparent;
   outline-offset: -2px;
   transition: outline-color var(--dur-base) var(--ease);
 }
-[data-landing-target][data-landed] {
+[data-landing-target][data-landed]:not(:focus-visible) {
   outline-color: var(--accent);
   transition-duration: var(--dur-fast);
 }
 @starting-style {
-  [data-landing-target][data-landed] {
+  [data-landing-target][data-landed]:not(:focus-visible) {
     outline-color: transparent;
+  }
+}
+@media (forced-colors: active) {
+  [data-landing-target]:not([data-landed]):not(:focus-visible) {
+    outline-style: none;
   }
 }

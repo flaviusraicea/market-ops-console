@@ -1,4 +1,5 @@
 import { cn } from "@/components/cn";
+import { pageHeadingProps } from "@/lib/motion";
 import { Eyebrow } from "@/components/Eyebrow";
 import { InfoTip } from "@/components/InfoTip";
 import type { VerdictVM } from "./viewModel";
@@ -25,8 +26,7 @@ export function Verdict({ verdict }: { verdict: VerdictVM }) {
       </div>
       <h2
         id="verdict-h"
-        data-page-heading=""
-        tabIndex={-1}
+        {...pageHeadingProps}
         className="num font-display text-[length:var(--text-display)] leading-[var(--text-display-lh)] font-semibold tracking-[var(--text-display-ls)] text-balance text-ink"
       >
         {verdict.segments.map((segment, i) => (

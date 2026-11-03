@@ -1,5 +1,12 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 
+type MotionLog = { animations: number; transitions: Set<string> };
+declare global {
+  interface Window {
+    __motion?: MotionLog;
+  }
+}
+
 const dashboard = (page: Page) => page.getByRole("region", { name: "Dashboard" });
 const opacity = (page: Page) =>
   dashboard(page).evaluate((el) => Number(getComputedStyle(el).opacity));
@@ -46,7 +53,26 @@ test("a keyboard drill moves focus to the new page heading, a mouse drill leaves
   await page.goto("/");
   await chip().click();
   await expect(page).toHaveURL(/market=de/);
+  await expect(dashboard(page)).toHaveAttribute("data-pending", "false");
   await expect(page.locator("#verdict-h")).not.toBeFocused();
+});
+
+test("a focused grid row keeps a visible focus ring, and so does a landing target", async ({
+  page,
+}) => {
+  await page.goto("/?mode=analyst&region=eu&market=de");
+  const target = page.locator("tr[data-landing-target]").first();
+  await target.focus();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await expect(target).toBeFocused();
+  const ring = await target.evaluate((el) => {
+    const { outlineStyle, outlineWidth, outlineColor } = getComputedStyle(el);
+    return { outlineStyle, outlineWidth, outlineColor };
+  });
+  expect(ring.outlineStyle).toBe("solid");
+  expect(ring.outlineWidth).toBe("2px");
+  expect(ring.outlineColor).not.toBe("rgba(0, 0, 0, 0)");
 });
 
 test.describe("reduced motion", () => {
@@ -58,8 +84,8 @@ test.describe("reduced motion", () => {
 
     // Sample every frame from now until the drill settles.
     await page.evaluate(() => {
-      const seen = { animations: 0, transitions: new Set<string>() };
-      Object.assign(window, { __motion: seen });
+      const seen: MotionLog = { animations: 0, transitions: new Set<string>() };
+      window.__motion = seen;
       const selectors = [
         '[data-slot="dashboard"]',
         'path[data-series="actual"]',
@@ -85,12 +111,10 @@ test.describe("reduced motion", () => {
     await expect(page).toHaveURL(/basis=mat/);
     await expect(dashboard(page)).toHaveAttribute("data-pending", "false");
 
-    const seen = await page.evaluate(() => {
-      const { animations, transitions } = (
-        window as unknown as { __motion: { animations: number; transitions: Set<string> } }
-      ).__motion;
-      return { animations, transitions: [...transitions] };
-    });
+    const seen = await page.evaluate(() => ({
+      animations: window.__motion?.animations,
+      transitions: [...(window.__motion?.transitions ?? [])],
+    }));
     expect(seen).toEqual({ animations: 0, transitions: [] });
   });
 });

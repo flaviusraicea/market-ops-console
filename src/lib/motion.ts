@@ -29,3 +29,8 @@ export function setReducedMotionOverride(on: boolean): void {
 export function reducedMotionOverrideOn(): boolean {
   return document.documentElement.getAttribute("data-reduced-motion") === "true";
 }
+
+/** The element that a keyboard drill lands on: the page's own heading, marked by the view that renders it. */
+export const PAGE_HEADING_ATTR = "data-page-heading";
+/** Spread onto the heading that a keyboard drill should focus (DashboardColumn finds it by the attribute). */
+export const pageHeadingProps = { [PAGE_HEADING_ATTR]: "", tabIndex: -1 } as const;

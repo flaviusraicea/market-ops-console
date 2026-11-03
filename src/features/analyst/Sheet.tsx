@@ -2,6 +2,7 @@ import { useId, type ReactNode, type Ref } from "react";
 
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
+import { pageHeadingProps } from "@/lib/motion";
 
 /** The Analyst ledger: one bordered surface whose sections are separated by rules, not cards. */
 export function Sheet({ children, className }: { children: ReactNode; className?: string }) {
@@ -58,7 +59,7 @@ export function SheetSection({
         className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1"
       >
         <h3
-          {...(pageHeading ? { "data-page-heading": "", tabIndex: -1 } : {})}
+          {...(pageHeading ? pageHeadingProps : {})}
           className="flex min-w-0 flex-wrap items-baseline gap-x-3"
         >
           <Eyebrow id={id} className="text-ink">
