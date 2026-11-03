@@ -5,9 +5,10 @@ import dynamic from "next/dynamic";
 import type { Context as Cx, Dataset as Ds } from "@/domain";
 import type { LiveEngine as Engine } from "@/features/live/engine";
 import { useLiveVM } from "@/features/live/LiveProvider";
-import { map, regionBars, tiles } from "@/features/live/selectors";
+import { map, regionBars, tiles, tilesProvenance } from "@/features/live/selectors";
 import type { OverviewVM, RegionBarsVM } from "@/features/overview/viewModel";
-import { SectionSkeleton, ToolbarSkeleton } from "./AnalystSkeletons";
+import { PageToolbarSkeleton } from "@/features/shell/PageToolbarSkeleton";
+import { SectionSkeleton } from "./AnalystSkeletons";
 import type { AnalystVM } from "./viewModel";
 
 /**
@@ -18,7 +19,7 @@ import type { AnalystVM } from "./viewModel";
  */
 
 const AnalystToolbar = dynamic(() => import("./AnalystToolbar").then((m) => m.AnalystToolbar), {
-  loading: () => <ToolbarSkeleton />,
+  loading: () => <PageToolbarSkeleton label="Loading analyst controls" />,
 });
 export { AnalystToolbar };
 
@@ -45,8 +46,19 @@ export const ConnectedAlertsSection = dynamic(
   { loading: () => <SectionSkeleton label="alerts" reserve="alerts" /> },
 );
 
-export function LiveKpiStrip({ tiles: initial }: { tiles: OverviewVM["tiles"] }) {
-  return <KpiStrip tiles={useLiveVM(initial, tiles)} />;
+export function LiveKpiStrip({
+  tiles: initial,
+  provenance,
+}: {
+  tiles: OverviewVM["tiles"];
+  provenance: string;
+}) {
+  return (
+    <KpiStrip
+      tiles={useLiveVM(initial, tiles)}
+      provenance={useLiveVM(provenance, tilesProvenance)}
+    />
+  );
 }
 
 export function LiveMapSection({

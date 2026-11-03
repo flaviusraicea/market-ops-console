@@ -22,8 +22,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Portfolio: Story = {
-  args: { tiles: overviewVM(ds, { ...portfolioMay, mode: "analyst" }).tiles },
+  args: {
+    tiles: overviewVM(ds, { ...portfolioMay, mode: "analyst" }).tiles,
+    provenance: overviewVM(ds, { ...portfolioMay, mode: "analyst" }).tilesProvenance,
+  },
   play: async ({ canvasElement }) => {
     await expect(canvasElement.querySelectorAll('[data-slot="kpi-headline"]')).toHaveLength(4);
+    await expect(
+      canvasElement.querySelector('[data-slot="kpi-provenance-line"]'),
+    ).toHaveTextContent("Derived · sum of series · Source data.json");
   },
 };

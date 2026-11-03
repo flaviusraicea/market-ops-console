@@ -1,19 +1,17 @@
 import { cn } from "@/components/cn";
-import { StatusGlyph } from "@/components/StatusGlyph";
+import { StatusGlyph, type GlyphStatus } from "@/components/StatusGlyph";
 
-type Status = "on_track" | "at_risk" | "off_track";
-
-const TONE: Record<Status, string> = {
+const TONE: Record<GlyphStatus, string> = {
   on_track: "text-ink",
   at_risk: "bg-warn-bg text-warn-text",
   off_track: "bg-bad-bg text-bad-text",
 };
 
-// sm sits in table and list rows; md in tiles, the attention list and tooltips (height is --chip-h).
+// sm sits in table and list rows; md in tiles, the attention list and tooltips (24 px; a badge is not a control, so the touch target size does not apply).
 const SIZE = {
   sm: { box: "h-5 text-[11px] leading-[14px]", glyph: "size-2" },
   md: {
-    box: "h-[var(--chip-h)] text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
+    box: "h-6 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
     glyph: "size-2.5",
   },
 } as const;
@@ -30,7 +28,7 @@ export function StatusBadge({
   size = "md",
   className,
 }: {
-  status: Status;
+  status: GlyphStatus;
   label: string;
   size?: keyof typeof SIZE;
   className?: string;

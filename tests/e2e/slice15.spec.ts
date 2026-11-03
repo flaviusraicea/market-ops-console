@@ -332,6 +332,8 @@ test("at product level the cards that show all products say so and their Analyst
   // The status tile is the shared badge with a one-line caption.
   const status = page.getByRole("group", { name: "STATUS" });
   await expect(status.locator('[data-slot="status-badge"]')).toBeVisible();
+  // The badge is 24 px tall in both densities; it is not a control, so touch does not enlarge it.
+  expect((await status.locator('[data-slot="status-badge"]').boundingBox())!.height).toBe(24);
   const box = await status.locator('[data-slot="kpi-delta"]').boundingBox();
   expect(box!.height).toBeLessThan(20);
 });

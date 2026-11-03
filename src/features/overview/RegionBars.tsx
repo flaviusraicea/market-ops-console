@@ -58,7 +58,7 @@ export function RegionBars({
         title="By region"
         titleId="regions-h"
         caption={bars.caption}
-        subtitle={`Attainment vs forecast${bars.scoped ? " · All products" : ""} · 100% at centre`}
+        subtitle={bars.subtitle}
       />
       <ul>
         {bars.rows.map((row) => (

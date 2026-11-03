@@ -1,6 +1,6 @@
 import { cn } from "@/components/cn";
 
-type GlyphStatus = "on_track" | "at_risk" | "off_track";
+export type GlyphStatus = "on_track" | "at_risk" | "off_track";
 
 const SHAPE: Record<GlyphStatus, { className: string; points?: string }> = {
   on_track: { className: "fill-ok-mark" },

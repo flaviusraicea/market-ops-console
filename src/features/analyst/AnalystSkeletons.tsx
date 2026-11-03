@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
-import { cn } from "@/components/cn";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageToolbarSkeleton } from "@/features/shell/PageToolbarSkeleton";
 import { FACTS_VIEWPORT_H } from "./factsViewport";
 import { Sheet } from "./Sheet";
 
@@ -57,23 +57,6 @@ export function SectionSkeleton({ label, reserve }: { label: string; reserve: Re
   );
 }
 
-/** The sticky toolbar's height (h-10), so the sheet does not jump under it. */
-export function ToolbarSkeleton({ className }: { className?: string }) {
-  return (
-    <div
-      role="status"
-      aria-busy="true"
-      className={cn(
-        "sticky top-[var(--header-h)] z-20 mb-[var(--gap-section)] flex h-10 items-center border-b border-border bg-bg shadow-toolbar",
-        className,
-      )}
-    >
-      <span className="sr-only">Loading analyst controls</span>
-      <Skeleton aria-hidden className="h-4 w-64" />
-    </div>
-  );
-}
-
 /**
  * Stands in for the whole Analyst view while the server streams it: same toolbar, same sheet, each section held
  * at its real height, so the swap to the real view moves nothing. Overview has its own (OverviewSkeleton).
@@ -89,7 +72,7 @@ export function AnalystSkeleton({
   return (
     <div className="flex flex-col" aria-busy="true" data-slot="analyst-skeleton">
       <span className="sr-only">Loading dashboard</span>
-      <ToolbarSkeleton />
+      <PageToolbarSkeleton label="Loading analyst controls" />
       <Sheet style={style}>
         <SectionSkeleton label="key figures" reserve="kpi" />
         <SectionSkeleton label="market grid" reserve="grid" />

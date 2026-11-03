@@ -31,8 +31,8 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
   return (
     <SheetSection
       eyebrow="Map"
-      scoped={map.scoped}
-      subtitle={`Markets by ${metricLabel.toLowerCase()}${map.scoped ? " · All products" : ""} · ${map.periodLabel}`}
+      allProducts={map.allProducts}
+      subtitle={map.sheetSubtitle}
       actions={
         <>
           <SegmentedControl<Metric>

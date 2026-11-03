@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { ToolbarSkeleton } from "@/features/analyst/AnalystSkeletons";
+import { PageToolbarSkeleton } from "@/features/shell/PageToolbarSkeleton";
 import { cn } from "@/components/cn";
 
 function Tile() {
@@ -19,7 +19,7 @@ function Tile() {
 export function OverviewSkeleton({ busy = true }: { busy?: boolean }) {
   return (
     <>
-      {busy ? <ToolbarSkeleton className="max-md:hidden" /> : null}
+      {busy ? <PageToolbarSkeleton label="Loading controls" className="max-md:hidden" /> : null}
       <div
         {...(busy ? { "aria-busy": true } : {})}
         className={cn("flex flex-col gap-[var(--gap)]")}

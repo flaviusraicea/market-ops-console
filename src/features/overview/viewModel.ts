@@ -2,6 +2,7 @@ import {
   STATUS_LABEL,
   askWhyPrompt,
   attentionCount,
+  SOURCE_CONTINUED,
   derivedLabel,
   sourceLabel,
   statusForDerived,
@@ -42,8 +43,8 @@ export type KpiTileVM = {
   provenance: string;
   /** Accessible name of the info button, in sentence case, for example "About Germany revenue". */
   infoLabel: string;
-  /** The status tile shows this badge in place of a figure. */
-  status?: { status: Status; label: string };
+  /** The status tile shows this status as a badge, labelled with `headline`, in place of a figure. */
+  status?: Status;
   trend?: { actual: number[]; forecast: number[]; label: string };
 };
 
@@ -73,14 +74,20 @@ export type OverviewVM = {
   title: string;
   caption: string;
   tiles: KpiTileVM[];
+  /** One line for the whole KPI strip: where its four figures come from. */
+  tilesProvenance: string;
   map: {
     metric: Metric;
     selected: string | undefined;
     /** Markets drawn at full strength; everything else is dimmed. Undefined at portfolio level. */
     focus: string[] | undefined;
     periodLabel: string;
-    /** A product is selected but the map still shows every product, so its title says so. */
-    scoped: boolean;
+    /** A product is selected but the map still shows every product. */
+    allProducts: boolean;
+    /** The Executive card's subtitle, scope included. */
+    subtitle: string;
+    /** The Analyst section's subtitle, scope included. */
+    sheetSubtitle: string;
     /** Where the figures come from, for the table caption. */
     provenance: string;
     maxRevenue: number;
@@ -128,7 +135,10 @@ function revenueTrend(
   };
 }
 
-function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
+/** The scope a card states when a product is selected and the card still shows every product. */
+export const ALL_PRODUCTS = "All products";
+
+function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: string } {
   const entity = entityOf(ctx);
   const basis = basisFor(ds, ctx);
   const k = kpiFor(ds, entity, ctx.period, basis);
@@ -184,7 +194,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
     attention = {
       label: "STATUS",
       headline: STATUS_LABEL[only.kpis.status],
-      status: { status: only.kpis.status, label: STATUS_LABEL[only.kpis.status] },
+      status: only.kpis.status,
       delta: {
         direction: "flat",
         value: `Attainment ${formatPct(k.attainmentPct, { sign: false })} · Growth ${formatPct(k.growthPct, { sign: true })}`,
@@ -207,13 +217,17 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
       infoLabel: "About markets needing attention",
     };
   }
-  return [revenue, attainment, growth, attention];
+  const given = sourceLabel(ds, latest);
+  // The three figures are sums (or given, at a single market); the fourth is always the file's own count.
+  const line = revenue.provenance === given ? given : `${revenue.provenance} · ${SOURCE_CONTINUED}`;
+  return { tiles: [revenue, attainment, growth, attention], provenance: line };
 }
 
 export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
   const basis = basisFor(ds, ctx);
   const matFallback = ctx.mode === "analyst" && ctx.basis === "mat" && basis === "month";
   const regionName = new Map(ds.regions.map((r) => [r.id, r.name]));
+  const strip = tilesFor(ds, ctx);
 
   const entries = ds.markets.map((m) => {
     const k = kpiFor(ds, { kind: "market", marketId: m.id }, ctx.period, basis);
@@ -222,6 +236,8 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
 
   // Only Analyst has a metric control, so the executive map always reads attainment.
   const metric = ctx.mode === "analyst" ? ctx.metric : "attainment";
+  const suffix =
+    metric === "attainment" ? "attainment" : metric === "revenue" ? "revenue" : "growth";
   const values: OverviewVM["map"]["values"] = {};
   for (const { m, k } of entries) {
     const display =
@@ -236,8 +252,6 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
         : metric === "revenue"
           ? k.totals.actual
           : k.growthPct;
-    const suffix =
-      metric === "attainment" ? "attainment" : metric === "revenue" ? "revenue" : "growth";
     values[m.id] = {
       name: m.name,
       value,
@@ -270,13 +284,16 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
   return {
     title: entityName(ds, entityOf(ctx)),
     caption: `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]}${matFallback ? " · MAT unavailable, showing Month" : ""}`,
-    tiles: tilesFor(ds, ctx),
+    tiles: strip.tiles,
+    tilesProvenance: strip.provenance,
     map: {
       metric,
       selected: ctx.market,
       focus,
       periodLabel: formatPeriod(ctx.period),
-      scoped: Boolean(ctx.product),
+      allProducts: Boolean(ctx.product),
+      subtitle: `${ctx.product ? `${ALL_PRODUCTS} · ` : ""}${formatPeriod(ctx.period)} · click a market to drill`,
+      sheetSubtitle: `Markets by ${suffix} · ${ctx.product ? `${ALL_PRODUCTS} · ` : ""}${formatPeriod(ctx.period)}`,
       provenance: sourceLabel(ds, atLatest(ds, ctx)),
       maxRevenue: Math.max(...entries.map((e) => e.k.totals.actual)),
       values,
@@ -610,7 +627,7 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
 
   return {
     kind: "markets",
-    caption: `Off track first, then at risk · ${
+    caption: `Off track first, then at risk by attainment · ${
       ctx.region
         ? `${entityName(ds, { kind: "region", regionId: ctx.region })} markets`
         : "All markets"
@@ -637,7 +654,8 @@ export type RegionBarsVM = {
   sentence: { lead: string; rest: string };
   caption: string;
   /** A product is selected but the regions are shown across all products. */
-  scoped: boolean;
+  allProducts: boolean;
+  subtitle: string;
 };
 
 /** Revenue and attainment per region, with one derived sentence about the weakest (or leading) region. */
@@ -678,7 +696,10 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
     rows,
     sentence,
     caption: derivedLabel(ds, atLatest(ds, ctx)),
-    scoped: Boolean(ctx.product),
+    allProducts: Boolean(ctx.product),
+    subtitle: ctx.product
+      ? `${ALL_PRODUCTS} · vs forecast, 100% at centre`
+      : "Attainment vs forecast · 100% at centre",
   };
 }
 

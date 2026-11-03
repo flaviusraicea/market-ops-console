@@ -405,12 +405,12 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
 [data-slot="select-content"][data-state="open"],
 [data-slot="tooltip-content"][data-state="delayed-open"],
 [data-slot="tooltip-content"][data-state="instant-open"] {
-  animation: popover-in var(--dur-fast) var(--ease-out);
+  animation: popover-in var(--dur-press) var(--ease-out);
 }
 [data-slot="dropdown-menu-content"][data-state="closed"],
 [data-slot="select-content"][data-state="closed"],
 [data-slot="tooltip-content"][data-state="closed"] {
-  animation: popover-out var(--dur-fast) var(--ease-in) forwards;
+  animation: popover-out var(--dur-press) var(--ease-in) forwards;
 }
 [data-slot="dialog-overlay"][data-state="open"],
 [data-slot="bottom-sheet-scrim"][data-state="open"] {
@@ -443,7 +443,7 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   animation: panel-in var(--dur-enter) var(--spring-smooth);
 }
 
-/* Reduced motion: overlays cross-fade over a fixed 200 ms (popovers 150 ms) and do not move. Opacity is not
+/* Reduced motion: overlays cross-fade over a fixed 200 ms (popovers 100 ms) and do not move. Opacity is not
    motion, so these durations are literal: the duration tokens are 0 under reduced motion. The selectors are more
    specific than the blanket rule above and carry !important to beat its 0.01ms. */
 @media (prefers-reduced-motion: reduce) {
@@ -460,7 +460,7 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   [data-slot="select-content"][data-state],
   [data-slot="tooltip-content"][data-state] {
     animation-name: scrim-in;
-    animation-duration: 150ms !important;
+    animation-duration: 100ms !important;
     animation-timing-function: var(--ease-out);
     transform: none;
   }
@@ -480,6 +480,7 @@ html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state],
 html[data-reduced-motion="true"] .panel-enter {
   animation-name: scrim-in;
   animation-duration: 200ms !important;
+  animation-timing-function: var(--ease-out);
   transform: none;
 }
 html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state="closed"],
@@ -491,7 +492,8 @@ html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state]
 html[data-reduced-motion="true"] [data-slot="select-content"][data-state],
 html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state] {
   animation-name: scrim-in;
-  animation-duration: 150ms !important;
+  animation-duration: 100ms !important;
+  animation-timing-function: var(--ease-out);
   transform: none;
 }
 html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state="closed"],

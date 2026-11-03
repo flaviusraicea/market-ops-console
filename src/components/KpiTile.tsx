@@ -3,6 +3,7 @@ import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { InfoTip } from "@/components/InfoTip";
 import { StatusBadge } from "@/components/StatusBadge";
+import type { GlyphStatus } from "@/components/StatusGlyph";
 import { Sparkline } from "@/components/charts/Sparkline";
 
 export type Direction = "up" | "down" | "flat";
@@ -20,8 +21,8 @@ export type KpiTileProps = {
   infoLabel?: string;
   /** Monthly actuals with the forecast beside them, drawn as a small line under the headline. */
   trend?: { actual: readonly number[]; forecast: readonly number[]; label: string } | undefined;
-  /** The status tile shows the status badge in place of a figure; `headline` still holds its text. */
-  status?: { status: "on_track" | "at_risk" | "off_track"; label: string };
+  /** The status tile shows the status badge, labelled with `headline`, in place of a figure. */
+  status?: GlyphStatus;
   /** `strip` is the Analyst ledger cell: the same content as the tile, without its own card. */
   variant?: "tile" | "strip";
   className?: string;
@@ -78,7 +79,7 @@ export function KpiTile({
       <div className="-mr-1.5 flex min-h-[var(--text-kpi-lh)] items-center justify-between gap-1">
         {status ? (
           <p data-slot="kpi-headline" className="min-w-0">
-            <StatusBadge status={status.status} label={status.label} size="md" />
+            <StatusBadge status={status} label={headline} size="md" />
           </p>
         ) : (
           <p
@@ -103,17 +104,17 @@ export function KpiTile({
           status ? "min-w-0" : "flex-wrap",
         )}
       >
-        <span
-          className={cn("inline-flex min-w-0 gap-x-1", status ? "items-center" : "items-start")}
-        >
-          <Icon
-            aria-hidden
-            className={cn(
-              "mt-[calc((1lh-0.875rem)/2)] size-3.5 shrink-0",
-              DELTA_STYLE[delta.direction],
-            )}
-            strokeWidth={ICON_STROKE}
-          />
+        <span className="inline-flex min-w-0 items-start gap-x-1">
+          {status ? null : (
+            <Icon
+              aria-hidden
+              className={cn(
+                "mt-[calc((1lh-0.875rem)/2)] size-3.5 shrink-0",
+                DELTA_STYLE[delta.direction],
+              )}
+              strokeWidth={ICON_STROKE}
+            />
+          )}
           <span className={cn("font-medium", DELTA_STYLE[delta.direction], status && "truncate")}>
             {delta.value}
           </span>

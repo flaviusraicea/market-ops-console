@@ -124,7 +124,7 @@ export const Status: Story = {
   args: {
     label: "STATUS",
     headline: "Off track",
-    status: { status: "off_track", label: "Off track" },
+    status: "off_track",
     delta: { direction: "flat", value: "Attainment 92.0% · Growth -1.2%", comparison: "" },
     provenance: "Source · data.json",
   },

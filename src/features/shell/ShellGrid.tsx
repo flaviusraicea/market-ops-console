@@ -11,10 +11,11 @@ import { DashboardColumn } from "./DashboardColumn";
 import { useAssistantRail } from "./railState";
 
 /**
- * The page grid. The columns switch at once (animating them would reflow the dashboard and re-measure every chart
- * on each frame); the panel itself enters with a short slide and fade. From 1280 px the assistant column is 380 px when open and 48 px when collapsed; between 1024 and
- * 1279 px the column stays 48 px and the open panel overlays the dashboard with a scrim. Below 1024 px there is
- * no column and no rail: the assistant is a bottom bar that opens a sheet.
+ * The page grid. The columns switch at once (animating them would reflow the dashboard and re-measure every
+ * chart on each frame); the panel itself enters with a short slide and fade. From 1280 px the assistant column is
+ * 380 px when open and 48 px when collapsed; between 1024 and 1279 px the column stays 48 px and the open panel
+ * overlays the dashboard with a scrim. Below 1024 px there is no column and no rail: the assistant is a bottom
+ * bar that opens a sheet.
  */
 export function ShellGrid({
   dashboard,
