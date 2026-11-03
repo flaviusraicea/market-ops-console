@@ -75,7 +75,7 @@ export function StatusStrip({
                     data-chip
                     onClick={() => select(market.id)}
                     className={cn(
-                      "inline-flex h-7 w-full items-center gap-1.5 rounded-control border px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] font-medium whitespace-nowrap text-ink transition-colors duration-[var(--dur-fast)]",
+                      "lift press inline-flex h-7 w-full items-center gap-1.5 rounded-control border px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] font-medium whitespace-nowrap text-ink transition-colors duration-[var(--dur-fast)]",
                       market.status === "on_track" && "border-border bg-surface hover:bg-surface-2",
                       market.status === "at_risk" &&
                         "border-transparent bg-warn-bg hover:border-warn-mark",
@@ -83,7 +83,7 @@ export function StatusStrip({
                         "border-transparent bg-bad-bg hover:border-bad-mark",
                     )}
                   >
-                    <StatusGlyph status={market.status} />
+                    <StatusGlyph status={market.status} className="size-2" />
                     {market.name}
                   </button>
                 </li>

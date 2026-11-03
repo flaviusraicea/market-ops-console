@@ -19,8 +19,7 @@ import {
   ViewAsTableToggle,
   useTableFirstOnPhone,
 } from "@/components/charts/ViewAsTable";
-import { StatusGlyph } from "@/components/StatusGlyph";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import {
   Table,
   TableBody,
@@ -134,10 +133,7 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
               {r.region}
             </TableCell>
             <TableCell className="max-md:px-2">
-              <Badge variant={r.status}>
-                <StatusGlyph status={r.status} />
-                {r.statusLabel}
-              </Badge>
+              <StatusBadge status={r.status} label={r.statusLabel} size="sm" />
             </TableCell>
             <TableCell className="text-right">{r.attainment}</TableCell>
             <TableCell className="text-right">{r.revenue}</TableCell>
@@ -221,7 +217,7 @@ export function MapCard({
       <CardHeader
         title={byStatus ? "Markets by status" : `Markets by ${metricLabel.toLowerCase()}`}
         titleId="map-h"
-        subtitle={`${map.periodLabel} · click a market to drill`}
+        subtitle={map.subtitle}
         actions={
           <>
             {metricControl}

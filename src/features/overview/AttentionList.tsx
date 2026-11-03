@@ -4,9 +4,8 @@ import { cn } from "@/components/cn";
 import { CardHeader } from "@/components/CardHeader";
 import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
-import { StatusGlyph } from "@/components/StatusGlyph";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Sparkline } from "@/components/charts/Sparkline";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAskWhy, type AskContext } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
@@ -67,10 +66,7 @@ function MarketRow({
       </td>
       <MarketCell row={row} select={select} />
       <td role="cell" className={cn(CELL, "max-md:p-0 max-md:[grid-area:status]")}>
-        <Badge variant={row.status}>
-          <StatusGlyph status={row.status} />
-          {row.statusLabel}
-        </Badge>
+        <StatusBadge status={row.status} label={row.statusLabel} size="md" />
       </td>
       <MetricCells row={row} />
       <td
@@ -97,16 +93,34 @@ function MarketRow({
   );
 }
 
+/** The market's name as the button that drills into it. */
+function MarketButton({
+  row,
+  select,
+  className,
+}: {
+  row: AttentionRowVM;
+  select: (id: string) => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => select(row.id)}
+      className={cn(
+        "rounded-control text-left font-medium text-ink underline-offset-4 hover:underline",
+        className,
+      )}
+    >
+      {row.name}
+    </button>
+  );
+}
+
 function MarketCell({ row, select }: { row: AttentionRowVM; select: (id: string) => void }) {
   return (
     <td role="cell" className={cn(CELL, "max-md:p-0 max-md:[grid-area:market]")}>
-      <button
-        type="button"
-        onClick={() => select(row.id)}
-        className="block rounded-control text-left font-medium text-ink underline-offset-4 hover:underline"
-      >
-        {row.name}
-      </button>
+      <MarketButton row={row} select={select} className="block" />
       <span className="block text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted max-md:hidden">
         {row.region}
       </span>
@@ -157,7 +171,7 @@ function MoverColumn({
 }) {
   return (
     <section aria-labelledby={id} className="flex min-w-0 flex-col">
-      <Eyebrow as="h4" id={id} className="flex items-center gap-1.5 pb-1">
+      <Eyebrow as="h5" id={id} className="flex items-center gap-1.5 pb-1">
         {rising ? (
           <ArrowUpRight aria-hidden className="size-4 text-ok-text" strokeWidth={ICON_STROKE} />
         ) : (
@@ -165,24 +179,24 @@ function MoverColumn({
         )}
         {title}
       </Eyebrow>
+      {rows.length === 0 ? (
+        <p className="py-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink-2">
+          {rising ? "No market is up on last year." : "No market is down on last year."}
+        </p>
+      ) : null}
       <ul className="flex flex-col">
         {rows.map((row) => (
           <li
             key={row.id}
             className="flex items-center gap-3 border-b border-grid last:border-b-0 md:h-[var(--row-h)] max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']"
           >
-            <button
-              type="button"
-              onClick={() => select(row.id)}
-              className="min-w-0 flex-1 truncate rounded-control text-left font-medium text-ink underline-offset-4 hover:underline max-md:min-h-11 max-md:[grid-area:name]"
-            >
-              {row.name}
-            </button>
+            <MarketButton
+              row={row}
+              select={select}
+              className="min-w-0 flex-1 break-words max-md:min-h-11 max-md:[grid-area:name]"
+            />
             <span className="flex md:w-24 max-md:justify-self-end max-md:[grid-area:status]">
-              <Badge variant={row.status}>
-                <StatusGlyph status={row.status} />
-                {row.statusLabel}
-              </Badge>
+              <StatusBadge status={row.status} label={row.statusLabel} size="md" />
             </span>
             <span className="num w-16 text-right max-md:w-auto max-md:text-left max-md:[grid-area:growth]">
               <Growth pct={row.growthPct} rising={rising}>
@@ -304,53 +318,65 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
           All markets are on track.
         </p>
       ) : null}
-      <table
-        role="table"
-        aria-labelledby="attention-h"
-        className="w-full text-[length:var(--text-body)] max-md:block"
-      >
-        <thead className="max-md:sr-only">
-          <tr role="row" className="border-b border-border">
-            <th role="columnheader" scope="col" className={HEAD}>
-              <span className="sr-only">Rank</span>
-              <span aria-hidden>#</span>
-            </th>
-            <th role="columnheader" scope="col" className={HEAD}>
-              Market
-            </th>
-            <th role="columnheader" scope="col" className={HEAD}>
-              Status
-            </th>
-            <th role="columnheader" scope="col" className={cn(HEAD, "text-right")}>
-              Attain.
-            </th>
-            <th role="columnheader" scope="col" className={cn(HEAD, "text-right")}>
-              YoY
-            </th>
-            <th role="columnheader" scope="col" className={HEAD}>
-              12 months
-            </th>
-            <th role="columnheader" scope="col" className={HEAD}>
-              <span className="sr-only">Ask why</span>
-            </th>
-          </tr>
-        </thead>
-        {attention.rows.length > 0 ? (
+      {attention.rows.length > 0 ? (
+        <table
+          role="table"
+          aria-labelledby="attention-h"
+          className="w-full text-[length:var(--text-body)] max-md:block"
+        >
+          <thead className="max-md:sr-only">
+            <tr role="row" className="border-b border-border">
+              <th role="columnheader" scope="col" className={HEAD}>
+                <span className="sr-only">Rank</span>
+                <span aria-hidden>#</span>
+              </th>
+              <th role="columnheader" scope="col" className={HEAD}>
+                Market
+              </th>
+              <th role="columnheader" scope="col" className={HEAD}>
+                Status
+              </th>
+              <th role="columnheader" scope="col" className={cn(HEAD, "text-right")}>
+                Attain.
+              </th>
+              <th role="columnheader" scope="col" className={cn(HEAD, "text-right")}>
+                YoY
+              </th>
+              <th role="columnheader" scope="col" className={HEAD}>
+                12 months
+              </th>
+              <th role="columnheader" scope="col" className={HEAD}>
+                <span className="sr-only">Ask why</span>
+              </th>
+            </tr>
+          </thead>
           <tbody className="max-md:block">
             {attention.rows.map((row) => (
               <MarketRow key={row.id} row={row} select={select} ask={ask} />
             ))}
           </tbody>
-        ) : null}
-      </table>
-      <div className="flex flex-col gap-1 border-t border-border pt-3">
-        <p className="px-3 text-right text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-          {attention.sparkCaption}
-        </p>
+        </table>
+      ) : null}
+      <div
+        role="group"
+        aria-labelledby="movers-h"
+        className={cn(
+          "flex flex-col gap-2",
+          attention.rows.length > 0 && "border-t border-border pt-3",
+        )}
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 px-3">
+          <Eyebrow as="h4" id="movers-h">
+            Top movers
+          </Eyebrow>
+          <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+            {attention.sparkCaption}
+          </p>
+        </div>
         <div className="grid gap-x-8 gap-y-4 px-3 md:grid-cols-2">
           <MoverColumn
             id="movers-rising-h"
-            title="Top movers · rising"
+            title="Rising"
             rows={attention.rising}
             rising
             select={select}

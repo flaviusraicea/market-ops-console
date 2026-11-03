@@ -14,6 +14,7 @@ test("the first h2 is the verdict", async ({ page }) => {
 test("the status strip has 13 chips in order and Germany drills", async ({ page }) => {
   await page.goto("/");
   const strip = page.getByRole("group", { name: "Market status by region" });
+  await expect(strip.locator("ul button")).toHaveCount(13);
   const names = await strip
     .locator("ul button")
     .evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")?.split(",")[0]));
@@ -58,14 +59,19 @@ test("the attention list ranks the flagged markets and Ask why sends", async ({ 
     await expect(row).toContainText(market!);
     await expect(row).toContainText(status!);
   }
-  const rising = list.getByRole("region", { name: "Top movers · rising" }).getByRole("listitem");
-  const falling = list.getByRole("region", { name: "Falling" }).getByRole("listitem");
+  const rising = list
+    .getByRole("group", { name: "Top movers" })
+    .getByRole("region", { name: "Rising" })
+    .getByRole("listitem");
+  const falling = list
+    .getByRole("group", { name: "Top movers" })
+    .getByRole("region", { name: "Falling" })
+    .getByRole("listitem");
   await expect(rising).toHaveCount(3);
   await expect(falling).toHaveCount(2);
   await expect(rising.nth(0)).toContainText("China");
   await expect(falling.nth(0)).toContainText("Germany");
   await expect(list.getByText("12 months · Jun 2025 – May 2026")).toBeVisible();
-  await expect(list.getByText("Top movers · rising")).toBeVisible();
 
   await list.getByRole("button", { name: "Ask why Germany dipped" }).click();
   const composer = page.getByRole("textbox", { name: "Ask the assistant" });
@@ -162,7 +168,7 @@ test("the map table and the legend still work at the new position", async ({ pag
 test("tab order from the skip link", async ({ page }) => {
   await page.goto("/");
   const seen: string[] = [];
-  for (let i = 0; i < 11; i++) {
+  for (let i = 0; i < 13; i++) {
     await page.keyboard.press("Tab");
     seen.push(
       await page.evaluate(() => {
@@ -171,17 +177,18 @@ test("tab order from the skip link", async ({ page }) => {
       }),
     );
   }
-  expect(seen.slice(0, 7)).toEqual([
+  expect(seen.slice(0, 8)).toEqual([
     "Skip to content",
-    "Period",
     "Live",
     "Paused",
     "Executive",
     "Switch to dark theme",
     "Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu",
+    "Period",
+    "Product. Select a market first.",
   ]);
-  expect(seen[7]).toBe("About this verdict");
-  expect(seen.slice(8, 11)).toEqual([
+  expect(seen[8]).toBe("About this verdict");
+  expect(seen.slice(9, 12)).toEqual([
     "Drill into North America · 2",
     "United States, on track",
     "Canada, on track",
@@ -207,6 +214,16 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     await page.getByRole("region", { name: "Needs attention" }).waitFor();
+    // Measure once the enter animations have settled, not mid-slide.
+    // Looping animations (skeleton shimmer) never finish and are not what moves the layout.
+    await page.evaluate(() =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+    );
     const overflow = await page.evaluate(() => {
       // The header's own overflow at phone width belongs to the mobile slice.
       const main = document.getElementById("main")!;
@@ -278,11 +295,14 @@ test("the info button names the figure in sentence case", async ({ page }) => {
   await expect(page.getByRole("button", { name: "About Germany revenue" })).toBeVisible();
 });
 
-test("Analyst shows tile provenance as visible text", async ({ page }) => {
+test("Analyst says the strip provenance once, as visible text", async ({ page }) => {
   await open(page, "/?mode=analyst");
+  const line = page.locator('[data-slot="kpi-provenance-line"]');
+  await expect(line).toHaveText("Derived · sum of series · Source data.json");
+  await expect(line).toBeVisible();
+  // Said once for the strip: the tiles carry no caption of their own.
   const tile = page.getByRole("group", { name: "FORECAST ATTAINMENT" });
-  await expect(tile.getByText("Derived · sum of series")).toBeVisible();
-  await expect(tile.locator("[title]")).toHaveCount(0);
+  await expect(tile.getByText("Derived · sum of series")).toHaveCount(0);
 });
 
 test.describe("on a touch screen", () => {
@@ -304,4 +324,45 @@ test("the verdict's provenance sits in a tooltip on the Overview", async ({ page
   const info = page.getByRole("button", { name: "About this verdict" });
   await info.focus();
   await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
+});
+
+test("at product level the cards that show all products say so and their Analyst titles step back", async ({
+  page,
+}) => {
+  await open(page, "/?mode=analyst&region=eu&market=de&product=veltrix&period=2026-03");
+  const compare = page.getByRole("region", { name: /^Compare/ });
+  await expect(compare).toContainText("Europe markets · All products");
+  await expect(compare.getByText("Compare", { exact: true })).toHaveCSS(
+    "color",
+    await page.evaluate(() => {
+      const probe = document.createElement("span");
+      probe.className = "text-ink-2";
+      document.body.append(probe);
+      const colour = getComputedStyle(probe).color;
+      probe.remove();
+      return colour;
+    }),
+  );
+  await expect(page.getByRole("region", { name: /^Map/ })).toContainText(
+    "Markets by attainment · All products · March 2026",
+  );
+  await expect(page.getByRole("region", { name: /^Attainment by month/ })).toContainText(
+    "Europe markets · All products",
+  );
+  // The status tile is the shared badge with a one-line caption.
+  const status = page.getByRole("group", { name: "STATUS" });
+  await expect(status.locator('[data-slot="status-badge"]')).toBeVisible();
+  // The badge is 24 px tall in both densities; it is not a control, so touch does not enlarge it.
+  expect((await status.locator('[data-slot="status-badge"]').boundingBox())!.height).toBe(24);
+  const box = await status.locator('[data-slot="kpi-delta"]').boundingBox();
+  expect(box!.height).toBeLessThan(20);
+});
+
+test("the Executive view carries the same four-tile grammar and the scope in the card subtitles", async ({
+  page,
+}) => {
+  await page.goto("/?region=eu&market=de&product=veltrix");
+  await expect(page.getByRole("group", { name: "STATUS" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "By region" })).toContainText("All products");
+  await expect(page.getByRole("region", { name: /^Markets by/ })).toContainText("All products");
 });

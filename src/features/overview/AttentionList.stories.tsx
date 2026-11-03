@@ -47,7 +47,7 @@ export const Empty: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByText("All markets are on track.")).toBeVisible();
     await expect(canvas.queryAllByRole("button", { name: /^Ask why/ })).toHaveLength(0);
-    await expect(canvas.getByRole("region", { name: "Top movers · rising" })).toBeVisible();
+    await expect(canvas.getByRole("region", { name: "Rising" })).toBeVisible();
   },
 };
 

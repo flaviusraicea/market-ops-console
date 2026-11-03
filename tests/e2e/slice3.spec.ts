@@ -72,14 +72,17 @@ test("the Portfolio breadcrumb clears the drill and keeps mode", async ({ page }
   await expect(page).not.toHaveURL(/market=|region=/);
 });
 
-test("the period chip appears off the latest period and clears back to it", async ({ page }) => {
+test("the page toolbar carries Period and Product in Executive and there is no period chip", async ({
+  page,
+}) => {
   await page.goto("/");
+  const toolbar = page.getByRole("toolbar", { name: "Executive controls" });
+  await expect(toolbar.getByRole("combobox", { name: "Period" })).toBeVisible();
+  await expect(toolbar.getByRole("combobox", { name: "Product" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Clear period" })).toHaveCount(0);
-  await page.getByRole("combobox", { name: "Period" }).click();
+  await toolbar.getByRole("combobox", { name: "Period" }).click();
   await page.getByRole("option", { name: "March 2026" }).click();
   await expect(page).toHaveURL(/period=2026-03/);
-  await page.getByRole("button", { name: "Clear period" }).click();
-  await expect(page).not.toHaveURL(/period=/);
   await expect(page.getByRole("button", { name: "Clear period" })).toHaveCount(0);
 });
 
@@ -100,18 +103,23 @@ test("the header keeps one row and the same height from portfolio to Germany · 
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const height = async () => (await page.locator("header").boundingBox())!.height;
+  const toolbarTop = async () =>
+    (await page.getByRole("toolbar", { name: "Executive controls" }).boundingBox())!.y;
 
   await page.goto("/");
   const portfolio = await height();
+  const toolbar = await toolbarTop();
   await page.goto("/?region=eu&market=de&product=veltrix&period=2026-03");
-  await expect(page.getByRole("combobox", { name: "Product" })).toBeVisible();
+  const product = page.getByRole("toolbar", { name: "Executive controls" }).getByRole("combobox", {
+    name: "Product",
+  });
+  await expect(product).toBeEnabled();
   expect(await height()).toBe(portfolio);
+  expect(await toolbarTop()).toBe(toolbar);
 
-  // Every control sits on the same row, and the breadcrumb still ends in the current crumb.
+  // The header's controls share one row, and the breadcrumb still ends in the current crumb.
   const tops = await Promise.all(
     [
-      page.getByRole("combobox", { name: "Product" }),
-      page.getByRole("combobox", { name: "Period" }),
       page.getByRole("radiogroup", { name: "View" }),
       page.getByRole("button", { name: /Switch to (dark|light) theme/ }),
     ].map(async (l) => {

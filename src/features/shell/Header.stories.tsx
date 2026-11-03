@@ -39,10 +39,6 @@ export const Portfolio: Story = {
   args: { trail: breadcrumbTrail(ds, portfolio) },
   parameters: { nuqs: { searchParams: "", onUrlUpdate: fn() } },
   play: async ({ canvasElement }) => {
-    // At the latest period there is no period chip to clear.
-    await expect(
-      within(canvasElement).queryByRole("button", { name: "Clear period" }),
-    ).not.toBeInTheDocument();
     // The only crumb is never truncated.
     const nav = within(canvasElement).getByRole("navigation", { name: "Drill path" });
     const crumb = within(nav).getByText("Portfolio");
@@ -51,24 +47,16 @@ export const Portfolio: Story = {
   },
 };
 
-export const EarlierPeriod: Story = {
-  args: { trail: breadcrumbTrail(ds, portfolio), period: "2026-03" },
-  parameters: { nuqs: { searchParams: "?period=2026-03", onUrlUpdate: fn() } },
+/** From 768 px the period and product selects live in the page toolbar, so the header carries none. */
+export const SelectsLiveInToolbar: Story = {
+  name: "Header has no period or product select on desktop",
+  args: { trail: breadcrumbTrail(ds, germany), period: "2026-03" },
+  parameters: { nuqs: { searchParams: "?region=eu&market=de&period=2026-03", onUrlUpdate: fn() } },
   play: async ({ canvasElement }) => {
-    await expect(
-      within(canvasElement).getByRole("button", { name: "Clear period" }),
-    ).toBeInTheDocument();
-  },
-};
-
-export const NoMarketNoProductSelect: Story = {
-  name: "Portfolio has no product select",
-  args: { trail: breadcrumbTrail(ds, portfolio) },
-  parameters: { nuqs: { searchParams: "", onUrlUpdate: fn() } },
-  play: async ({ canvasElement }) => {
-    await expect(
-      within(canvasElement).queryByRole("combobox", { name: "Product" }),
-    ).not.toBeInTheDocument();
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole("combobox", { name: "Period" })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("combobox", { name: "Product" })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("button", { name: "Clear period" })).not.toBeInTheDocument();
   },
 };
 
@@ -87,9 +75,6 @@ export const Germany: Story = {
     await expect(europeLink).toHaveAttribute("href", "/?region=eu&mode=executive");
     const last = items[2]!;
     await expect(within(last).getByText("Germany")).toHaveAttribute("aria-current", "page");
-
-    // A market is selected, so the product selector is offered.
-    await expect(canvas.getByRole("combobox", { name: "Product" })).toBeInTheDocument();
 
     await expect(canvas.getByText(/data through may 2026/i)).toBeInTheDocument();
 

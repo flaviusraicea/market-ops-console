@@ -6,7 +6,7 @@ import { cn } from "@/components/cn";
 import { InfoTip } from "@/components/InfoTip";
 import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { Sparkline } from "@/components/charts/Sparkline";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -32,12 +32,6 @@ import type {
   SortKey,
   SortValues,
 } from "./viewModel";
-
-const DOT: Record<string, string> = {
-  on_track: "bg-ok-mark",
-  at_risk: "bg-warn-mark",
-  off_track: "bg-bad-mark",
-};
 
 const SORT_LABEL: Record<SortKey, string> = {
   name: "name",
@@ -177,10 +171,7 @@ function MarketRows({
               )}
             </TableCell>
             <TableCell className="max-md:px-2">
-              <Badge variant={r.status}>
-                <span aria-hidden className={cn("size-2 rounded-pill", DOT[r.status])} />
-                {r.statusLabel}
-              </Badge>
+              <StatusBadge status={r.status} label={r.statusLabel} size="sm" />
             </TableCell>
             <TableCell className="text-right num">{r.revenue}</TableCell>
             <TableCell className="text-right num">{r.forecast}</TableCell>

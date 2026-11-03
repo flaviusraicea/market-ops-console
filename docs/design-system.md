@@ -263,6 +263,8 @@ Analyst adds the ledger chrome (slice 14): sections are not cards but one sheet 
 
 - Nothing flashes, pulses, bounces or loops, with two exceptions: the streaming caret (section 6.5) and the skeleton shimmer (section 6.7).
 - `@media (prefers-reduced-motion: reduce)` and the page's reduced-motion checkbox both set every `--dur-*` to `0ms` and stop the caret and shimmer (caret becomes static, shimmer becomes flat `--surface-2`).
+- Recipes: `.lift` (hover raises a card 1 px and swaps in `--shadow-raised`), `.press` (active scales to 0.98 over `--dur-press`), both flat under reduced motion. Overlays (dialog, palette, bottom sheet) enter with a spring and exit over `--dur-base`; menus, selects and tooltips fade and rise 4 px over `--dur-fast`. The shimmer animates a transform, not a background position. The assistant panel slides 16 px and fades in; the page columns switch at once. The chart tooltip and the saved badge fade in.
+- Reduced motion keeps a plain opacity cross-fade for overlays (200 ms; 150 ms for menus, selects and tooltips) and no transform, since opacity is not movement.
 - Hover never reveals anything that is not also reachable by keyboard. Hover only changes background or underline.
 
 ## 6. Components
@@ -271,20 +273,24 @@ Every component gets a visible heading in the preview and a story in Storybook i
 
 ### 6.1 Header (app chrome)
 
-Full-width bar, background `--surface`, bottom border, height 56 px (Overview) / 48 px (Analyst), content centred to the 1280 px column.
+Full-width bar, background `--surface`, bottom border, height 56 px in both modes, pinned to the top of the page in both modes, content centred to the 1280 px column.
 
 The header is one fixed row from 1024 px up and never changes height with the drill. The wordmark and the controls on the right never shrink or wrap; the breadcrumb takes the remaining width and truncates with an ellipsis, each crumb exposing its full name as a `title`.
 
 Left to right:
 1. Wordmark: "Market Ops" in `--font-display` 18 px 600, colour `--ink`. Then a 1 px vertical rule 20 px tall in `--border`, 16 px margins.
 2. Breadcrumbs: `Portfolio › Europe › Germany`. Each crumb is a link in `--text-label` weight 500 colour `--ink-2`, underline on hover and focus; the current crumb (Germany) is `--ink` weight 600 and not a link. Separator is the `›` character in `--ink-muted` with 8 px margins. Wrap in `<nav aria-label="Drill path">` with an `<ol>`; current crumb has `aria-current="page"`.
-3. Active-context chip immediately after the crumbs: `Period: May 2026 ×`, shown only when the period is not the latest. There is no product chip; the Product select and the last crumb carry it. Chip style: height `--chip-h`, radius pill, background `--surface-2`, border `--border`, text `--text-label` `--ink-2`, the `×` is a 16 px button with `aria-label="Clear period"`. Keyboard focusable.
+3. There is no period chip. The period and the product live in the page toolbar (6.1a), so the period is stated once. Under 768 px, where the toolbar steps aside for Executive, the header's second row carries the two selects.
 4. Spacer (`flex: 1`).
 5. Data stamp: caption text `DATA THROUGH MAY 2026` in `--ink-muted`, with a 6 px `--ok-mark` dot before it (decorative, `aria-hidden`). Wrap: `<span>` with `title="Source: data.json, latest period 2026-05"`.
 6. Mode switch: segmented control with two options `Overview` | `Analyst`. Height `--control-h`, radius pill, background `--surface-2`, 2 px inner padding. Selected segment: background `--surface`, text `--ink` 600, border `--border`. Unselected: text `--ink-2`. Implement as `<div role="radiogroup" aria-label="View mode">` with two `<button role="radio" aria-checked>`; arrow keys move selection. This control is wired to `html[data-density]` in the preview.
 7. Theme toggle: an icon button 36 × 36 (28 in Analyst), `aria-label="Switch to dark theme"` / `"Switch to light theme"`. Icons: lucide `sun` and `moon`, 18 px, stroke 1.75, `currentColor` = `--ink-2`. (Copy the SVG paths from lucide.dev; do not draw your own.)
 
 Focus ring on every interactive element: `outline: 2px solid var(--focus); outline-offset: 2px;` via `:focus-visible`.
+
+### 6.1a Page toolbar
+
+One component (`PageToolbar`) for both modes, sticky under the header at `top: var(--header-h)`. It carries Period and Product always; Product is disabled with the tooltip "Select a market first" until a market is chosen. Analyst adds Basis, Status rule, the phone live toggle and the All facts button through the `extra`, `trailing` and `end` slots. Background `--bg`, bottom border `--border`, `--shadow-toolbar`, no top border (the header's border is the only edge between them). Role `toolbar`, named "Executive controls" or "Analyst controls".
 
 ### 6.2 KPI tile (Overview mode content)
 
@@ -294,13 +300,15 @@ Anatomy, top to bottom, 4 px gaps:
 1. Eyebrow: caption text in `--ink-muted` (the KPI name).
 2. Headline: `--text-kpi`, colour `--ink`, never coloured by direction.
 3. Delta row: `--text-label`. A direction icon (lucide `arrow-up-right` / `arrow-down-right` / `minus`, 14 px) then the delta value then the comparison label in `--ink-muted`. Delta colour: positive `--ok-text`, negative `--bad-text`, flat `--ink-2`. The icon is never the only signal; the sign character (+ or −, use the real minus U+2212) is always present.
-4. Provenance line: caption in `--ink-muted`: `Source · data.json` or `Derived · sum of series` exactly as listed in section 9.
+4. Provenance sits in the info button's tooltip on the Executive tile. The Analyst strip says it once, below the row, right-aligned in caption size and `--ink-muted`: `Derived · sum of series · Source data.json` (or one source when all four share it). Tiles carry no caption of their own.
+
+One tile component serves both modes: Executive draws each tile as a card; Analyst draws the same content as four cells of one ruled strip, with the info icons and the revenue sparkline. The fourth tile is `NEEDS ATTENTION` above market level and `STATUS` at market and product level: the shared status badge (md) with a one-line caption that truncates with an ellipsis (full text in `title`).
 
 Tiles to show, in this order, with the exact numbers in section 9.1.
 
 ### 6.3 Status badge
 
-Pill, height 22 px, padding 0 10px, `--text-label` weight 500, 6 px gap between dot and text. Dot is 8 px, `--*-mark`. Background `--*-bg`, text `--*-text`. Text labels are exactly: `On track`, `At risk`, `Off track`. The badge contains the dot and the text only, no icon. The text is the non-colour signal. Add `<span class="sr-only">Status: </span>` inside for screen readers.
+One component (`StatusBadge`) everywhere a status appears: pill, glyph that differs by shape (dot, triangle, diamond) then the text. Tinted background and `--*-text` only for at risk and off track; on track is plain `--ink` text. Sizes: `md` (height `--chip-h`) in tiles, the attention list and tooltips, `sm` (20 px, 11 px text) in table and list rows. Text labels are exactly: `On track`, `At risk`, `Off track`. The text is the non-colour signal. In forced colours the pill keeps a 1 px `CanvasText` border.
 
 Show the three badges side by side with a caption under each stating the token names used.
 

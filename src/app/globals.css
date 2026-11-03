@@ -115,9 +115,10 @@ body {
   outline-offset: 2px;
 }
 
-/* The palette's search field fills the dialog's top row, so the focus ring sits inside it (WCAG 2.4.7). */
+/* The palette's search field fills the dialog's top row and the dialog is already the visible frame, so the field
+   draws no ring of its own; the option rows keep theirs. */
 [cmdk-input]:focus-visible {
-  outline-offset: -2px;
+  outline: none;
 }
 
 /* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */
@@ -134,37 +135,38 @@ body {
   white-space: nowrap;
 }
 
-/* Skeleton shimmer (design-system.md 6.7): flat under reduced motion. */
+/* Skeleton shimmer (design-system.md 6.7): a highlight band that slides across on the compositor (transform only,
+   no repaint of the box). The box keeps its final size, so nothing shifts when content arrives. Flat under reduced
+   motion. */
 .skeleton {
-  background-image: linear-gradient(
-    90deg,
-    var(--surface-2) 0%,
-    var(--shimmer) 50%,
-    var(--surface-2) 100%
-  );
-  background-size: 200% 100%;
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent 0%, var(--shimmer) 50%, transparent 100%);
+  transform: translateX(-100%);
   animation: shimmer 1.4s linear infinite;
 }
 
 @keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
   to {
-    background-position: -200% 0;
+    transform: translateX(100%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton {
+  .skeleton::after {
     animation: none;
-    background-image: none;
+    display: none;
   }
 }
 
-html[data-reduced-motion="true"] .skeleton {
+html[data-reduced-motion="true"] .skeleton::after {
   animation: none;
-  background-image: none;
+  display: none;
 }
 
 /* Reduced motion, blanket rule (slice 11): stops every animation and transition, including third-party enter and
@@ -309,6 +311,202 @@ tr[data-landing-target][data-landed]:not(:focus-visible) {
   tr[data-landing-target]:not([data-landed]):not(:focus-visible) {
     outline-style: none;
   }
+}
+
+/* Interaction recipes (motion rules: only transform and opacity move, brief, interruptible).
+   .lift  a clickable card rises 1 px and takes the raised shadow on hover.
+   .press any button sinks to 98 % on pointer-down.
+   Reduced motion keeps the shadow change and drops the movement. */
+.lift {
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.lift:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-raised);
+}
+.press {
+  transition-property: color, background-color, border-color, transform, box-shadow;
+}
+.press:active:not(:disabled) {
+  transform: scale(0.98);
+  transition-duration: var(--dur-press);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lift:hover,
+  .press:active:not(:disabled) {
+    transform: none;
+  }
+}
+html[data-reduced-motion="true"] .lift:hover,
+html[data-reduced-motion="true"] .press:active:not(:disabled) {
+  transform: none;
+}
+
+/* Overlay enter and exit. Radix keeps an element mounted while its exit animation runs, so these are keyframe
+   animations keyed on data-state. Enter eases on a spring (400 ms), exit is a short ease-in (200 ms). The dialog,
+   palette and sheet use `transform`, the positioning utilities use `translate`, so the two never fight. */
+@keyframes overlay-in {
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+@keyframes overlay-out {
+  to {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+@keyframes popover-in {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+}
+@keyframes popover-out {
+  to {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+}
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes scrim-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+[data-slot="dialog-content"][data-state="open"] {
+  animation:
+    overlay-in var(--dur-enter) var(--spring-smooth),
+    scrim-in var(--dur-base) var(--ease-out);
+}
+[data-slot="command-dialog"][data-state="open"] {
+  animation:
+    overlay-in var(--dur-enter) var(--spring-snappy),
+    scrim-in var(--dur-base) var(--ease-out);
+}
+[data-slot="dialog-content"][data-state="closed"],
+[data-slot="command-dialog"][data-state="closed"] {
+  animation: overlay-out var(--dur-base) var(--ease-in) forwards;
+}
+[data-slot="dropdown-menu-content"][data-state="open"],
+[data-slot="select-content"][data-state="open"],
+[data-slot="tooltip-content"][data-state="delayed-open"],
+[data-slot="tooltip-content"][data-state="instant-open"] {
+  animation: popover-in var(--dur-press) var(--ease-out);
+}
+[data-slot="dropdown-menu-content"][data-state="closed"],
+[data-slot="select-content"][data-state="closed"],
+[data-slot="tooltip-content"][data-state="closed"] {
+  animation: popover-out var(--dur-press) var(--ease-in) forwards;
+}
+[data-slot="dialog-overlay"][data-state="open"],
+[data-slot="bottom-sheet-scrim"][data-state="open"] {
+  animation: scrim-in var(--dur-base) var(--ease-out);
+}
+[data-slot="dialog-overlay"][data-state="closed"],
+[data-slot="bottom-sheet-scrim"][data-state="closed"] {
+  animation: scrim-out var(--dur-base) var(--ease-in) forwards;
+}
+[data-slot="bottom-sheet-content"][data-state="open"] {
+  animation: sheet-in var(--dur-enter) var(--spring-smooth);
+}
+[data-slot="bottom-sheet-content"][data-state="closed"] {
+  animation: sheet-out var(--dur-base) var(--ease-in) forwards;
+}
+
+/* Mount fade for things that appear without an exit: the chart tooltip (100 ms) and the saved badge (150 ms). */
+.fade-in {
+  animation: scrim-in var(--fade-dur, var(--dur-fast)) var(--ease-out);
+}
+
+/* The assistant panel slides 16 px in and fades as it opens. The columns around it switch at once. */
+@keyframes panel-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+}
+.panel-enter {
+  animation: panel-in var(--dur-enter) var(--spring-smooth);
+}
+
+/* Reduced motion: overlays cross-fade over a fixed 200 ms (popovers 100 ms) and do not move. Opacity is not
+   motion, so these durations are literal: the duration tokens are 0 under reduced motion. The selectors are more
+   specific than the blanket rule above and carry !important to beat its 0.01ms. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="dialog-content"][data-state],
+  [data-slot="command-dialog"][data-state],
+  [data-slot="bottom-sheet-content"][data-state],
+  .panel-enter {
+    animation-name: scrim-in;
+    animation-duration: 200ms !important;
+    animation-timing-function: var(--ease-out);
+    transform: none;
+  }
+  [data-slot="dropdown-menu-content"][data-state],
+  [data-slot="select-content"][data-state],
+  [data-slot="tooltip-content"][data-state] {
+    animation-name: scrim-in;
+    animation-duration: 100ms !important;
+    animation-timing-function: var(--ease-out);
+    transform: none;
+  }
+  [data-slot="dialog-content"][data-state="closed"],
+  [data-slot="command-dialog"][data-state="closed"],
+  [data-slot="bottom-sheet-content"][data-state="closed"],
+  [data-slot="dropdown-menu-content"][data-state="closed"],
+  [data-slot="select-content"][data-state="closed"],
+  [data-slot="tooltip-content"][data-state="closed"] {
+    animation-name: scrim-out;
+    animation-timing-function: var(--ease-in);
+  }
+}
+html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state],
+html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state],
+html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state],
+html[data-reduced-motion="true"] .panel-enter {
+  animation-name: scrim-in;
+  animation-duration: 200ms !important;
+  animation-timing-function: var(--ease-out);
+  transform: none;
+}
+html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state="closed"] {
+  animation-name: scrim-out;
+}
+html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state],
+html[data-reduced-motion="true"] [data-slot="select-content"][data-state],
+html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state] {
+  animation-name: scrim-in;
+  animation-duration: 100ms !important;
+  animation-timing-function: var(--ease-out);
+  transform: none;
+}
+html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="select-content"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="closed"] {
+  animation-name: scrim-out;
 }
 
 /*

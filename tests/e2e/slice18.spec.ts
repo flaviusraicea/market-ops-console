@@ -113,6 +113,8 @@ test.describe("phone", () => {
     await page.goto("/");
     // Dispatched, not clicked: below 1024 px the map still overflows the page until slice 20.
     await opener(page).dispatchEvent("click");
+    // The sheet enters with a short scale and rise; measure it once it has settled.
+    await palette(page).evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
     const box = await palette(page).boundingBox();
     expect(box?.x).toBe(0);
     expect(box?.y).toBe(0);

@@ -40,6 +40,7 @@ export function SheetSection({
   children,
   landed = false,
   pageHeading = false,
+  allProducts = false,
   sectionRef,
 }: {
   eyebrow: string;
@@ -52,6 +53,8 @@ export function SheetSection({
   landed?: boolean;
   /** This heading is where focus goes after a keyboard drill (see DashboardColumn). */
   pageHeading?: boolean;
+  /** A product is selected but this section still shows all products, so its title steps back. */
+  allProducts?: boolean;
   sectionRef?: Ref<HTMLElement>;
 }) {
   const id = useId();
@@ -71,7 +74,7 @@ export function SheetSection({
           {...(pageHeading ? pageHeadingProps : {})}
           className="flex min-w-0 flex-wrap items-baseline gap-x-3"
         >
-          <Eyebrow id={id} className="text-ink">
+          <Eyebrow id={id} className={allProducts ? "text-ink-2" : "text-ink"}>
             {eyebrow}
           </Eyebrow>
           {subtitle ? (
