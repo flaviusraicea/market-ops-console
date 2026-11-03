@@ -1,6 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Minus } from "@/components/icons";
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
+import { InfoTip } from "@/components/InfoTip";
 import { Sparkline } from "@/components/charts/Sparkline";
 
 export type Direction = "up" | "down" | "flat";
@@ -83,12 +84,15 @@ export function KpiTile({
       )}
     >
       <Eyebrow as="p">{label}</Eyebrow>
-      <p
-        data-slot="kpi-headline"
-        className="num font-[family-name:var(--font-display)] text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-semibold tracking-[var(--text-kpi-ls)]"
-      >
-        {headline}
-      </p>
+      <div className="-mr-1.5 flex items-center justify-between gap-1">
+        <p
+          data-slot="kpi-headline"
+          className="num font-[family-name:var(--font-display)] text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-semibold tracking-[var(--text-kpi-ls)]"
+        >
+          {headline}
+        </p>
+        <InfoTip label={`About ${label.toLowerCase()}`}>{provenance}</InfoTip>
+      </div>
       {trend ? (
         <Sparkline values={trend.actual} secondary={trend.forecast} label={trend.label} />
       ) : null}
@@ -110,12 +114,9 @@ export function KpiTile({
           </>
         ) : null}
       </p>
-      <p
-        data-slot="kpi-provenance"
-        className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
-      >
+      <span data-slot="kpi-provenance" className="sr-only">
         {provenance}
-      </p>
+      </span>
     </div>
   );
 }

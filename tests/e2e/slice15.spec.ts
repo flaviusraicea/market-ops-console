@@ -143,7 +143,7 @@ test("a market shows its products and hides the strip", async ({ page }) => {
 test("the map table and the legend still work at the new position", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  const map = page.getByRole("region", { name: "Markets by attainment" });
+  const map = page.getByRole("region", { name: "Markets by status" });
   await expect(map.getByRole("list", { name: /colour scale/ })).toBeVisible();
   await map.getByRole("button", { name: "View as table" }).click();
   await expect(map.getByRole("table").locator("tbody tr")).toHaveCount(13);
@@ -201,3 +201,34 @@ for (const width of [390, 768, 1024, 1440]) {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 }
+
+test("the map is coloured by status with a three-item legend and no metric control", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const map = page.getByRole("region", { name: "Markets by status" });
+  await expect(map.getByRole("radiogroup", { name: "Map metric" })).toHaveCount(0);
+  await expect(
+    map.getByRole("list", { name: "Status colour scale" }).getByRole("listitem"),
+  ).toHaveText(["On track", "At risk", "Off track"]);
+  const fill = (name: RegExp) =>
+    map.getByRole("button", { name }).evaluate((el) => el.getAttribute("fill"));
+  expect(await fill(/^Germany,/)).toBe("var(--bad-mark)");
+  expect(await fill(/^Italy,/)).toBe("var(--warn-mark)");
+  expect(await fill(/^China,/)).toBe("var(--ok-mark)");
+});
+
+test("tile provenance moves into a tooltip on the info button", async ({ page }) => {
+  await page.goto("/");
+  const tile = page.getByRole("group", { name: "FORECAST ATTAINMENT" });
+  await expect(tile.locator('[data-slot="kpi-provenance"]')).toHaveClass(/sr-only/);
+  await tile.getByRole("button", { name: "About forecast attainment" }).focus();
+  await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
+});
+
+test("region revenue shows two decimals on both views", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("region", { name: "By region" })).toContainText("$7.06M");
+  await page.goto("/?mode=analyst");
+  await expect(page.getByText("$7.06M").first()).toBeVisible();
+});

@@ -60,7 +60,7 @@ test("View as table swaps the map for a 13-row table and back", async ({ page })
 });
 
 test("the metric select recolours the map and renames the card", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?mode=analyst");
   await page
     .getByRole("radiogroup", { name: "Map metric" })
     .getByRole("radio", { name: "Revenue" })
@@ -105,7 +105,7 @@ for (const scheme of ["light", "dark"] as const) {
 test("the growth map colours Italy (+0.3%) positive and Germany (-9.7%) deepest negative", async ({
   page,
 }) => {
-  await page.goto("/?metric=growth");
+  await page.goto("/?mode=analyst&metric=growth");
   const fill = (name: RegExp) =>
     page
       .getByRole("region", { name: /Markets by/ })

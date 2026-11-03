@@ -137,6 +137,20 @@ export const Portfolio: Story = {
   },
 };
 
+export const ByStatus: Story = {
+  args: { geo: realGeo, values: all, scheme: "status" },
+  play: async ({ canvasElement }) => {
+    const svg = await within(canvasElement).findByRole("group", { name: "Markets by status" });
+    await expect(svg.querySelector("desc")).toHaveTextContent("coloured by status for May 2026.");
+    const fills = within(canvasElement)
+      .getAllByRole("button")
+      .map((b) => b.getAttribute("fill"));
+    await expect(new Set(fills)).toEqual(
+      new Set(["var(--ok-mark)", "var(--warn-mark)", "var(--bad-mark)"]),
+    );
+  },
+};
+
 export const Unavailable: Story = {
   render: () => (
     <div className="flex flex-col gap-3">

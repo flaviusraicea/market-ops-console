@@ -23,7 +23,6 @@ import type { PanelContext } from "@/features/assistant/EmptyState";
 import {
   formatCount,
   formatMonthName,
-  formatMoneyBrief,
   formatMoneyCompact,
   formatMoneyFull,
   formatPct,
@@ -602,7 +601,7 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
     return {
       id: r.id,
       name: r.name,
-      revenue: formatMoneyBrief(k.totals.actual),
+      revenue: formatMoneyCompact(k.totals.actual),
       attainmentPct: k.attainmentPct,
       attainment: formatPct(k.attainmentPct, { sign: false }),
       status,

@@ -308,10 +308,10 @@ describe("region bars", () => {
   it("lists the four regions with revenue and attainment", () => {
     const vm = regionBarsVM(ds, base);
     expect(vm.rows.map((r) => [r.name, r.revenue, r.attainment])).toEqual([
-      ["North America", "$4.4M", "101.0%"],
-      ["Europe", "$7.1M", "95.4%"],
-      ["APAC", "$9.5M", "104.9%"],
-      ["LATAM", "$1.9M", "98.0%"],
+      ["North America", "$4.38M", "101.0%"],
+      ["Europe", "$7.06M", "95.4%"],
+      ["APAC", "$9.49M", "104.9%"],
+      ["LATAM", "$1.92M", "98.0%"],
     ]);
     expect(vm.caption).toBe("Derived · sum of series");
   });

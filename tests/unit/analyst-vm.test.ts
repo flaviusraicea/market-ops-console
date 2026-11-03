@@ -246,10 +246,10 @@ describe("ledger grid (slice 14a)", () => {
   it("region bars: four regions in dataset order and the Europe sentence", () => {
     const bars = regionBarsVM(ds, { ...base, period: "2026-05" as Period });
     expect(bars.rows.map((r) => [r.name, r.revenue, r.attainment])).toEqual([
-      ["North America", "$4.4M", "101.0%"],
-      ["Europe", "$7.1M", "95.4%"],
-      ["APAC", "$9.5M", "104.9%"],
-      ["LATAM", "$1.9M", "98.0%"],
+      ["North America", "$4.38M", "101.0%"],
+      ["Europe", "$7.06M", "95.4%"],
+      ["APAC", "$9.49M", "104.9%"],
+      ["LATAM", "$1.92M", "98.0%"],
     ]);
     expect(bars.sentence.lead).toBe("Europe is the drag.");
     expect(bars.sentence.rest).toBe(

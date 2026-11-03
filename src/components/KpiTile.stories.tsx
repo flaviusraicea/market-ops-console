@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { expect, within } from "storybook/test";
+import { expect, userEvent, within } from "storybook/test";
 
 import { KpiTile } from "./KpiTile";
 
@@ -92,7 +92,12 @@ export const Derived: Story = {
     provenance: "Derived · sum of series",
   },
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByText("Derived · sum of series")).toBeVisible();
+    const c = within(canvasElement);
+    await userEvent.tab();
+    await expect(c.getByRole("button", { name: "About forecast attainment" })).toHaveFocus();
+    await expect(await within(document.body).findByRole("tooltip")).toHaveTextContent(
+      "Derived · sum of series",
+    );
   },
 };
 
