@@ -32,3 +32,20 @@ export function renderWithCitations(
     );
   });
 }
+
+/** Splits rendered answer nodes where the text has a blank line. A paragraph is never empty, but there is always one. */
+export function splitParagraphs(nodes: ReactNode[]): ReactNode[][] {
+  const paragraphs: ReactNode[][] = [[]];
+  for (const node of nodes) {
+    if (typeof node !== "string") {
+      paragraphs[paragraphs.length - 1]?.push(node);
+      continue;
+    }
+    node.split(/\n{2,}/).forEach((part, i) => {
+      if (i > 0) paragraphs.push([]);
+      if (part !== "") paragraphs[paragraphs.length - 1]?.push(part);
+    });
+  }
+  const filled = paragraphs.filter((p) => p.length > 0);
+  return filled.length > 0 ? filled : [[]];
+}

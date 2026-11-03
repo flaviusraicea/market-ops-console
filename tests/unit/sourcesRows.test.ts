@@ -40,9 +40,9 @@ const GERMANY_DIP = metaFor("germany-dip");
 const FORECAST_MISS = metaFor("forecast-miss");
 
 describe("sourcesRows", () => {
-  it("at-risk answer: four rows, Germany row disagrees with the source", () => {
+  it("at-risk answer: seven rows, only the Germany row disagrees with the source", () => {
     const { rows, caption } = sourcesRows(ds, resolved("at-risk").citations, AT_RISK);
-    expect(rows).toHaveLength(4);
+    expect(rows).toHaveLength(7);
     expect(rows[0]).toMatchObject({
       claim: "Germany at risk",
       entity: "Germany",
@@ -53,12 +53,13 @@ describe("sourcesRows", () => {
     });
     expect(rows[1]!.sourceValue).toContain("−27% vs Feb");
     expect(rows[1]!.assistant).toBe("Sharp dip");
-    expect(rows[2]).toMatchObject({
-      entity: "Italy",
-      sourceValue: "At risk · 93.0% attainment",
-      disagreement: false,
-    });
-    expect(rows[3]!.sourceValue).toBe("At risk · 96.0% attainment");
+    expect(rows.slice(2).map((r) => [r.entity, r.sourceValue, r.disagreement])).toEqual([
+      ["Spain", "Off track · 104.5% attainment", false],
+      ["Italy", "At risk · 93.0% attainment", false],
+      ["United Kingdom", "At risk · 94.3% attainment", false],
+      ["France", "At risk · 96.4% attainment", false],
+      ["Brazil", "At risk · 96.0% attainment", false],
+    ]);
     expect(caption).toBe("Sources · data.json · attainment as given · derived");
   });
 
@@ -91,13 +92,14 @@ describe("sourcesRows", () => {
     expect(caption).toBe("Sources · data.json · attainment as given · derived");
   });
 
-  it("forecast-miss answer: three rows with revenue", () => {
-    const { rows, caption } = sourcesRows(ds, resolved("forecast-miss").citations, FORECAST_MISS);
-    expect(caption).toBe("Sources · data.json · attainment as given");
+  it("forecast-miss answer: the portfolio row first, then the markets furthest under plan", () => {
+    const { rows } = sourcesRows(ds, resolved("forecast-miss").citations, FORECAST_MISS);
     expect(rows.map((r) => [r.entity, r.sourceValue, r.assistant])).toEqual([
-      ["Germany", "Off track · 92.0% attainment · $1.68M", "Under plan"],
-      ["Italy", "At risk · 93.0% attainment · $0.94M", "Under plan"],
-      ["Brazil", "At risk · 96.0% attainment · $1.12M", "Smaller drag"],
+      ["Portfolio", "$22.85M actual · 100.4% of forecast", "100.4% of forecast"],
+      ["Germany", "Off track · 92.0% attainment · $1.68M", "92.0%"],
+      ["Italy", "At risk · 93.0% attainment · $0.94M", "93.0%"],
+      ["United Kingdom", "At risk · 94.3% attainment · $2.07M", "94.3%"],
+      ["APAC", "$9.49M actual · 104.9% of forecast", "104.9%"],
     ]);
   });
 
@@ -106,7 +108,7 @@ describe("sourcesRows", () => {
       citation: { marketId: "xx", label: "Atlantis" },
       resolution: resolveCitation(ds, { marketId: "xx", label: "Atlantis" }),
     };
-    const { rows } = sourcesRows(ds, [...resolved("forecast-miss").citations.slice(0, 1), bad], {
+    const { rows } = sourcesRows(ds, [...resolved("forecast-miss").citations.slice(1, 2), bad], {
       items: [],
     });
     expect(rows[0]!.claim).toBe("Germany");
@@ -146,7 +148,7 @@ describe("claimTextFor", () => {
       const r = resolveCitation(ds, citation, claimTextFor(fx.answer.text, fx.answer.citations, i));
       return r.ok && r.disagreement !== undefined;
     });
-    expect(flagged).toEqual([true, false, false, false]);
+    expect(flagged).toEqual([true, false, false, false, false, false, false]);
   });
   it("falls back to the whole text without a mapped claim", () => {
     expect(claimTextFor("A. B.", [{ label: "x" }], 0)).toBe("A. B.");

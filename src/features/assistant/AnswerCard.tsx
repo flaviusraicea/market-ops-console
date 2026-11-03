@@ -22,7 +22,7 @@ import { SUGGESTIONS } from "./Suggestions";
 import { CitationRow } from "./CitationRow";
 import { SourcesTable } from "./SourcesTable";
 import { useSourcesRows } from "./useSourcesRows";
-import { renderWithCitations } from "./renderWithCitations";
+import { renderWithCitations, splitParagraphs } from "./renderWithCitations";
 import type { Answer } from "./useAnswerMachine";
 import type { ConfidenceLevel } from "@/components/ConfidenceMeter";
 
@@ -65,13 +65,18 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
           {text ? (
             <Card>
               <CardHeader />
-              <AnswerText>
-                {text}{" "}
-                <span className={`${PILL} align-middle`}>
-                  <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-                  Failed · partial answer
-                </span>
-              </AnswerText>
+              <AnswerText
+                body={[text]}
+                trailing={
+                  <>
+                    {" "}
+                    <span className={`${PILL} align-middle`}>
+                      <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+                      Failed · partial answer
+                    </span>
+                  </>
+                }
+              />
             </Card>
           ) : null}
           <Notice
@@ -92,19 +97,25 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
               status === "done" && answer.kind !== "abstain" ? answer.confidence : undefined
             }
           />
-          <AnswerText>
-            {status === "done" ? renderWithCitations(text, answer.citations, answer.id) : text}
-            {status === "streaming" ? <span aria-hidden className="caret" /> : null}
-            {status === "stopped" ? (
+          <AnswerText
+            body={
+              status === "done" ? renderWithCitations(text, answer.citations, answer.id) : [text]
+            }
+            trailing={
               <>
-                {" "}
-                <span className={`${PILL} align-middle`}>
-                  <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-                  Stopped · partial answer
-                </span>
+                {status === "streaming" ? <span aria-hidden className="caret" /> : null}
+                {status === "stopped" ? (
+                  <>
+                    {" "}
+                    <span className={`${PILL} align-middle`}>
+                      <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+                      Stopped · partial answer
+                    </span>
+                  </>
+                ) : null}
               </>
-            ) : null}
-          </AnswerText>
+            }
+          />
           {status === "done" && answer.kind !== "abstain" ? (
             <ChipArea answer={answer} isLatest={isLatest} />
           ) : null}
@@ -172,11 +183,22 @@ function ChipArea({
   );
 }
 
-function AnswerText({ children }: { children: ReactNode }) {
+/** The answer in paragraphs (a blank line in the text starts one); `trailing` stays at the end of the last. */
+function AnswerText({ body, trailing }: { body: ReactNode[]; trailing: ReactNode }) {
+  const paragraphs = splitParagraphs(body);
+  const last = paragraphs.length - 1;
   return (
-    <p className="font-display text-[length:var(--text-answer)] leading-[var(--text-answer-lh)] font-[var(--text-answer-weight)] text-ink">
-      {children}
-    </p>
+    <div className="flex flex-col gap-3">
+      {paragraphs.map((nodes, i) => (
+        <p
+          key={i}
+          className="font-display text-[length:var(--text-answer)] leading-[var(--text-answer-lh)] font-[var(--text-answer-weight)] text-ink"
+        >
+          {nodes}
+          {i === last ? trailing : null}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -244,7 +266,8 @@ function Footer({ answer, onStop, onRetry }: AnswerCardProps) {
     );
   }
   if (answer.status === "done") {
-    return <SourcesDisclosure answer={answer} />;
+    // A fallback answer cites nothing, so there is nothing to disclose.
+    return answer.citations.length > 0 ? <SourcesDisclosure answer={answer} /> : null;
   }
   if (answer.status === "streaming" || answer.status === "stopped") {
     // One button for both states, so focus stays on it when Stop turns into Retry.

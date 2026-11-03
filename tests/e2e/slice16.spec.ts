@@ -24,9 +24,9 @@ test("the differs note leads the chip area and the sources table is open", async
   const note = area.getByRole("note");
   await expect(note).toHaveText("Differs from source: at risk here, off track in data.json");
   await expect(area.locator(":scope > *").first()).toHaveAttribute("role", "note");
-  await expect(area.getByRole("list", { name: "Citations" }).getByRole("button")).toHaveCount(4);
+  await expect(area.getByRole("list", { name: "Citations" }).getByRole("button")).toHaveCount(7);
 
-  await expect(page.getByRole("button", { name: /Hide sources \(4\)/ })).toHaveAttribute(
+  await expect(page.getByRole("button", { name: /Hide sources \(7\)/ })).toHaveAttribute(
     "aria-expanded",
     "true",
   );

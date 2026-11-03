@@ -12,15 +12,56 @@
   "fixtures": [
     {
       "id": "at-risk",
-      "keywords": ["at risk", "at-risk", "risk this quarter", "which markets", "markets to watch"],
+      "keywords": [
+        "at risk",
+        "at-risk",
+        "risk this quarter",
+        "markets to watch",
+        "off track",
+        "off-track",
+        "worry about",
+        "falling behind",
+        "behind plan"
+      ],
       "kind": "normal",
       "answer": {
-        "text": "Three markets stand out as at risk. Germany is the clearest concern: it's below forecast and down year on year, with a sharp dip in March. Italy is tracking under its forecast on softening demand, and Brazil's growth has stalled near flat. The rest of the portfolio is on or near plan.",
+        "text": "Six markets are flagged in the data. Germany is the clearest concern: it's at risk, below forecast and down year on year, with a sharp dip in March. Spain is off track, and Italy, the United Kingdom, France and Brazil are at risk. The other seven markets are on track.",
         "citations": [
-          { "marketId": "de", "period": "2026-05", "label": "Germany, latest period" },
-          { "marketId": "de", "period": "2026-03", "label": "Germany, March dip" },
-          { "marketId": "it", "period": "2026-05", "label": "Italy, latest period" },
-          { "marketId": "br", "period": "2026-05", "label": "Brazil, latest period" }
+          {
+            "marketId": "de",
+            "period": "2026-05",
+            "label": "Germany, latest period"
+          },
+          {
+            "marketId": "de",
+            "period": "2026-03",
+            "label": "Germany, March dip"
+          },
+          {
+            "marketId": "es",
+            "period": "2026-05",
+            "label": "Spain, latest period"
+          },
+          {
+            "marketId": "it",
+            "period": "2026-05",
+            "label": "Italy, latest period"
+          },
+          {
+            "marketId": "gb",
+            "period": "2026-05",
+            "label": "United Kingdom, latest period"
+          },
+          {
+            "marketId": "fr",
+            "period": "2026-05",
+            "label": "France, latest period"
+          },
+          {
+            "marketId": "br",
+            "period": "2026-05",
+            "label": "Brazil, latest period"
+          }
         ],
         "confidence": "high"
       }
@@ -31,8 +72,12 @@
         "at risk",
         "at-risk",
         "risk this quarter",
-        "which markets",
-        "markets to watch"
+        "markets to watch",
+        "off track",
+        "off-track",
+        "worry about",
+        "falling behind",
+        "behind plan"
       ],
       "scope": {
         "entity": "region",
@@ -96,13 +141,24 @@
     },
     {
       "id": "germany-dip",
-      "keywords": ["germany", "german"],
+      "keywords": [
+        "germany",
+        "german"
+      ],
       "kind": "normal",
       "answer": {
         "text": "Germany's revenue fell in early 2026, with the steepest drop in March. The decline runs across the product portfolio there, and actuals came in well under forecast for those months, which is what pulled the market into off-track territory. It has steadied since, but is still tracking below the prior year.",
         "citations": [
-          { "marketId": "de", "period": "2026-02", "label": "Germany, Feb 2026" },
-          { "marketId": "de", "period": "2026-03", "label": "Germany, Mar 2026 (largest dip)" },
+          {
+            "marketId": "de",
+            "period": "2026-02",
+            "label": "Germany, Feb 2026"
+          },
+          {
+            "marketId": "de",
+            "period": "2026-03",
+            "label": "Germany, Mar 2026 (largest dip)"
+          },
           {
             "marketId": "de",
             "productId": "veltrix",
@@ -111,50 +167,121 @@
           }
         ],
         "confidence": "high"
-      }
+      },
+      "marketId": "de",
+      "periods": [
+        "2026-01",
+        "2026-02",
+        "2026-03"
+      ]
     },
     {
       "id": "apac-vs-europe",
-      "keywords": ["apac", "compare apac", "apac and europe", "europe and apac", "europe vs"],
       "kind": "normal",
       "answer": {
-        "text": "APAC is outgrowing Europe this period. APAC's larger markets, China and Japan, are running ahead of forecast and posting strong year-on-year growth, while Europe is dragged down by Germany and Italy tracking under plan. On forecast attainment, APAC sits comfortably above 100% in aggregate; Europe is hovering just below.",
+        "text": "APAC is outgrowing Europe in May 2026. Its revenue is up 11.5% year on year and sits at 104.9% of forecast, against 1.7% growth and 95.4% for Europe. China and Japan lead APAC, while Germany and Italy are furthest under plan in Europe.",
         "citations": [
-          { "regionId": "apac", "period": "2026-05", "label": "APAC, latest period" },
-          { "marketId": "cn", "period": "2026-05", "label": "China" },
-          { "marketId": "jp", "period": "2026-05", "label": "Japan" },
-          { "regionId": "eu", "period": "2026-05", "label": "Europe, latest period" }
+          {
+            "regionId": "apac",
+            "period": "2026-05",
+            "label": "APAC, latest period"
+          },
+          {
+            "regionId": "eu",
+            "period": "2026-05",
+            "label": "Europe, latest period"
+          },
+          {
+            "marketId": "cn",
+            "period": "2026-05",
+            "label": "China"
+          },
+          {
+            "marketId": "jp",
+            "period": "2026-05",
+            "label": "Japan"
+          },
+          {
+            "marketId": "de",
+            "period": "2026-05",
+            "label": "Germany"
+          },
+          {
+            "marketId": "it",
+            "period": "2026-05",
+            "label": "Italy"
+          }
         ],
         "confidence": "medium"
-      }
+      },
+      "allOf": [
+        [
+          "apac",
+          "asia"
+        ],
+        [
+          "europe"
+        ]
+      ]
     },
     {
       "id": "forecast-miss",
       "keywords": [
         "forecast miss",
-        "driving the",
         "missing forecast",
         "under forecast",
+        "below forecast",
         "forecast gap",
-        "portfolio's forecast"
+        "portfolio's forecast",
+        "missing plan",
+        "miss plan",
+        "shortfall"
       ],
       "kind": "low_confidence",
       "answer": {
-        "text": "The shortfall against forecast is concentrated in a few markets rather than being broad-based. Germany and Italy are the largest contributors, both running under plan, with Brazil adding a smaller drag. I can't fully attribute the gap from this data alone, since it doesn't break out the drivers behind each market's forecast, so treat this as directional.",
+        "text": "The portfolio is not missing forecast: it is at 100.4% of forecast in May 2026. The shortfall is in individual markets. Germany (92.0%), Italy (93.0%) and the United Kingdom (94.3%) are furthest under plan, while APAC runs ahead at 104.9%. I can't attribute the gaps further from this data alone, since it doesn't break out the drivers behind each market's forecast, so treat this as directional.",
         "citations": [
-          { "marketId": "de", "period": "2026-05", "label": "Germany" },
-          { "marketId": "it", "period": "2026-05", "label": "Italy" },
-          { "marketId": "br", "period": "2026-05", "label": "Brazil" }
+          {
+            "period": "2026-05",
+            "label": "Portfolio, May 2026"
+          },
+          {
+            "marketId": "de",
+            "period": "2026-05",
+            "label": "Germany"
+          },
+          {
+            "marketId": "it",
+            "period": "2026-05",
+            "label": "Italy"
+          },
+          {
+            "marketId": "gb",
+            "period": "2026-05",
+            "label": "United Kingdom"
+          },
+          {
+            "regionId": "apac",
+            "period": "2026-05",
+            "label": "APAC"
+          }
         ],
         "confidence": "low"
       }
     },
     {
       "id": "next-year",
-      "keywords": ["next year", "will sales", "predict", "2027", "forecast for next", "beyond the"],
+      "keywords": [
+        "next year",
+        "will sales",
+        "predict",
+        "2027",
+        "forecast for next",
+        "beyond the"
+      ],
       "kind": "abstain",
       "answer": {
-        "text": "I can't answer that. The dataset only covers actuals and forecasts through the current horizon, which ends 2026-05, so I have no basis for projecting next year. If forward forecast data is loaded, I can summarise it.",
+        "text": "I can't answer that. The dataset only covers actuals and forecasts through the current horizon, which ends 2026-05, so I have no basis for projecting past it. If forward forecast data is loaded, I can summarise it.",
         "citations": [],
         "confidence": "low"
       }
@@ -173,21 +300,53 @@
       "answer": {
         "text": "Here's the portfolio at a glance.\n\nOverall the book is mixed but broadly stable. Total revenue in the latest period is up against the prior year, carried by APAC and North America. North America remains the anchor: the United States is the single largest market and is tracking on plan, with Canada steady behind it.\n\nAPAC is the growth story. China and Japan are both well ahead of forecast and growing strongly year on year, and India is improving off a smaller base. Australia is roughly flat but on plan.\n\nEurope is the soft spot. Germany fell sharply in early 2026, worst in March, and is still below the prior year despite steadying; Italy is tracking under forecast; the United Kingdom, France, and Spain are close to plan. LATAM is split, with Mexico steady and Brazil's growth stalled.\n\nIn short: APAC and North America are doing the work, Europe is the drag, and the markets to watch are Germany, Italy, and Brazil. Ask me about any of them for the detail behind these numbers.",
         "citations": [
-          { "regionId": "na", "period": "2026-05", "label": "North America" },
-          { "regionId": "apac", "period": "2026-05", "label": "APAC" },
-          { "regionId": "eu", "period": "2026-05", "label": "Europe" },
-          { "marketId": "us", "period": "2026-05", "label": "United States" },
-          { "marketId": "cn", "period": "2026-05", "label": "China" },
-          { "marketId": "de", "period": "2026-03", "label": "Germany, March dip" }
+          {
+            "regionId": "na",
+            "period": "2026-05",
+            "label": "North America"
+          },
+          {
+            "regionId": "apac",
+            "period": "2026-05",
+            "label": "APAC"
+          },
+          {
+            "regionId": "eu",
+            "period": "2026-05",
+            "label": "Europe"
+          },
+          {
+            "marketId": "us",
+            "period": "2026-05",
+            "label": "United States"
+          },
+          {
+            "marketId": "cn",
+            "period": "2026-05",
+            "label": "China"
+          },
+          {
+            "marketId": "de",
+            "period": "2026-03",
+            "label": "Germany, March dip"
+          }
         ],
         "confidence": "medium"
       }
     },
     {
       "id": "error",
-      "keywords": ["force error", "__error__", "trigger error"],
+      "keywords": [
+        "force error",
+        "__error__",
+        "trigger error"
+      ],
       "kind": "error",
-      "answer": { "text": "", "citations": [], "confidence": "low" },
+      "answer": {
+        "text": "",
+        "citations": [],
+        "confidence": "low"
+      },
       "error": "Simulated upstream failure: the model service timed out. Ask anything containing the phrase 'force error' to exercise your error state."
     }
   ]

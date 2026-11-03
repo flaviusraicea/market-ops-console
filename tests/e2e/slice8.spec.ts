@@ -15,7 +15,7 @@ test("the forecast-miss question shows the Low meter with its meaning", async ({
     name: "Low confidence: directional only, verify before acting",
   });
   await expect(meter).toBeVisible({ timeout: 8000 });
-  await expect(page.getByRole("list", { name: "Citations" }).getByRole("listitem")).toHaveCount(3);
+  await expect(page.getByRole("list", { name: "Citations" }).getByRole("listitem")).toHaveCount(5);
 });
 
 test("an out-of-scope question abstains, and Try fills the composer without sending", async ({
