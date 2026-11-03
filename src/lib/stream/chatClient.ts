@@ -1,4 +1,4 @@
-import { parseSseLine, type SseEvent } from "@/domain";
+import { parseSseLine, type ChatContext, type ChatRequest, type SseEvent } from "@/domain";
 
 /** Events the client emits: the wire contract plus one internal event for a user abort. */
 export type StreamEvent = SseEvent | { type: "aborted" };
@@ -20,6 +20,8 @@ export class ChatProtocolError extends Error {
 }
 
 export type AskStreamOptions = {
+  /** The view the question is about; the assistant answers about it. */
+  context?: ChatContext;
   signal?: AbortSignal;
   onEvent: (event: StreamEvent) => void;
 };
@@ -72,12 +74,13 @@ function isAbort(err: unknown): boolean {
  * POSTs the question to /api/chat and reads the event stream.
  * Resolves when the stream ends, or quietly (after an `aborted` event) when `signal` aborts.
  */
-export const askStream: AskStream = async (question, { signal, onEvent }) => {
+export const askStream: AskStream = async (question, { context, signal, onEvent }) => {
   try {
+    const request: ChatRequest = { question, ...(context ? { context } : {}) };
     const init: RequestInit = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify(request),
     };
     if (signal) init.signal = signal;
     const res = await fetch("/api/chat", init);

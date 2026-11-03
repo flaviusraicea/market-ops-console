@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { ChatContextSchema } from "@/domain";
 import { askStream, ChatHttpError, type StreamEvent } from "@/lib/stream/chatClient";
 
 const enc = new TextEncoder();
@@ -34,6 +35,14 @@ describe("askStream", () => {
     expect(url).toBe("/api/chat");
     expect(init?.method).toBe("POST");
     expect(init?.body).toBe(JSON.stringify({ question: "q" }));
+  });
+
+  it("sends the view the question is about, when there is one", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(streamOf([]), { status: 200 })));
+    const context = { entity: { kind: "market", marketId: "de" }, period: "2026-03" } as const;
+    await askStream("q", { context: ChatContextSchema.parse(context), onEvent: () => {} });
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    expect(init?.body).toBe(JSON.stringify({ question: "q", context }));
   });
 
   it("resolves and emits `aborted` when aborted mid-stream", async () => {

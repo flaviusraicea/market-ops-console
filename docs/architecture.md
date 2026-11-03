@@ -39,7 +39,7 @@ src/
     layout.tsx               html[data-theme], fonts, tokens.css, providers, nuqs adapter, skip link
     page.tsx                 server: loads data, reads searchParams, renders the shell + regions
     providers.tsx            QueryClientProvider, NuqsAdapter
-    api/chat/route.ts        the reference SSE handler, typed with domain/stream
+    api/chat/route.ts        the reference SSE handler, typed with domain/stream; picks the fixture for the view (lib/stream/pickFixture.ts)
     api/alerts/route.ts      GET list, POST upsert, DELETE; in-memory store; ?fail=1 switch
     api/vitals/route.ts      204 sink for web vitals
     tokens.css               every CSS variable, light + dark (from design-system.md)

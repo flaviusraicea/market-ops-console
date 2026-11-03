@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 
 import raw from "@/data/data.json";
-import { AlertRuleSchema, parseDataset, parseSseLine } from "@/domain";
+import fixtures from "@/data/fixtures.json";
+import {
+  AlertRuleSchema,
+  ChatRequestSchema,
+  FixturesFileSchema,
+  parseDataset,
+  parseSseLine,
+} from "@/domain";
 
 const clone = () => structuredClone(raw) as unknown as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -74,5 +81,46 @@ describe("AlertRuleSchema", () => {
   it("accepts the boundaries", () => {
     expect(AlertRuleSchema.safeParse(rule("growth", -100)).success).toBe(true);
     expect(AlertRuleSchema.safeParse(rule("attainment", 0)).success).toBe(true);
+  });
+});
+
+describe("ChatRequestSchema", () => {
+  it("accepts the starter shape, a question alone", () => {
+    expect(ChatRequestSchema.parse({ question: "Which markets are at risk?" })).toEqual({
+      question: "Which markets are at risk?",
+    });
+  });
+
+  it("accepts a question with the view it was asked from", () => {
+    const body = {
+      question: "Why did revenue dip?",
+      context: { entity: { kind: "market", marketId: "de" }, period: "2026-03" },
+    };
+    expect(ChatRequestSchema.parse(body)).toEqual(body);
+  });
+
+  it("rejects an unknown region, a bad month and a missing question", () => {
+    const entity = { kind: "region", regionId: "mars" };
+    expect(() =>
+      ChatRequestSchema.parse({ question: "q", context: { entity, period: "2026-03" } }),
+    ).toThrow();
+    expect(() =>
+      ChatRequestSchema.parse({
+        question: "q",
+        context: { entity: { kind: "portfolio" }, period: "March" },
+      }),
+    ).toThrow();
+    expect(() => ChatRequestSchema.parse({})).toThrow();
+  });
+});
+
+describe("fixtures.json", () => {
+  it("matches FixturesFileSchema, scopes and templates included", () => {
+    const file = FixturesFileSchema.parse(fixtures);
+    expect(file.fixtures.find((f) => f.id === "at-risk-europe")?.scope).toEqual({
+      entity: "region",
+      regionId: "eu",
+    });
+    expect(file.fixtures.find((f) => f.id === "dip-any-market")?.template).toBe("market-month");
   });
 });

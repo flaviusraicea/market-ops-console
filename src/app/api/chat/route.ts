@@ -8,29 +8,27 @@
 // Place this at: app/api/chat/route.ts
 // Adjust the import below to wherever you put fixtures.json.
 
-import fixtures from "@/data/fixtures.json";
-import { SseEventSchema } from "@/domain";
+import raw from "@/data/fixtures.json";
+import { ChatRequestSchema, FixturesFileSchema, SseEventSchema } from "@/domain";
+import { getDataset } from "@/lib/dataset";
+import { pickFixture, resolveFixture } from "@/lib/stream/pickFixture";
 
 export const runtime = "nodejs";
 
-type Fixture = {
-  id: string;
-  keywords?: string[];
-  kind: "normal" | "low_confidence" | "abstain" | "error";
-  answer: { text: string; citations: unknown[]; confidence: string };
-  error?: string;
-};
-
-function pickFixture(question: string): Fixture {
-  const q = question.toLowerCase();
-  const list = fixtures.fixtures as Fixture[];
-  const hit = list.find((f) => (f.keywords ?? []).some((k) => q.includes(k)));
-  return hit ?? (fixtures.default as Fixture);
-}
+const fixtures = FixturesFileSchema.parse(raw);
 
 export async function POST(req: Request) {
-  const { question = "" } = (await req.json()) as { question?: string };
-  const fixture = pickFixture(question);
+  const body: unknown = await req.json().catch(() => null);
+  const parsed = ChatRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return Response.json(
+      { message: "Invalid chat request", issues: parsed.error.issues },
+      { status: 400 },
+    );
+  }
+  const { question, context } = parsed.data;
+  const ds = getDataset();
+  const fixture = resolveFixture(ds, pickFixture(fixtures, ds, question, context), context);
   const encoder = new TextEncoder();
   const send = (obj: unknown) => {
     // In development, assert every outgoing event matches the contract before it is enqueued.

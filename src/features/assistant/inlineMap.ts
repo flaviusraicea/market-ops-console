@@ -19,6 +19,14 @@ export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
     { phrase: "Italy", citationIndex: 2 },
     { phrase: "Brazil", citationIndex: 3 },
   ],
+  "Germany, latest period|Spain, latest period|Italy, latest period|United Kingdom, latest period|France, latest period":
+    [
+      { phrase: "Germany", citationIndex: 0 },
+      { phrase: "Spain", citationIndex: 1 },
+      { phrase: "Italy", citationIndex: 2 },
+      { phrase: "United Kingdom", citationIndex: 3 },
+      { phrase: "France", citationIndex: 4 },
+    ],
   "Germany|Italy|Brazil": [
     { phrase: "Germany", citationIndex: 0 },
     { phrase: "Italy", citationIndex: 1 },
@@ -46,6 +54,16 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
       { claim: "Brazil at risk", assistantWord: "At risk" },
     ],
   },
+  "Germany, latest period|Spain, latest period|Italy, latest period|United Kingdom, latest period|France, latest period":
+    {
+      items: [
+        { claim: "Germany off track", assistantWord: "Off track" },
+        { claim: "Spain off track", assistantWord: "Off track" },
+        { claim: "Italy at risk", assistantWord: "At risk" },
+        { claim: "United Kingdom at risk", assistantWord: "At risk" },
+        { claim: "France at risk", assistantWord: "At risk" },
+      ],
+    },
   "Germany|Italy|Brazil": {
     withRevenue: true,
     items: [

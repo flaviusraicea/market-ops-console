@@ -5,12 +5,14 @@ import { useCallback, useEffect, useReducer, useRef } from "react";
 import {
   resolveCitation,
   type Citation,
+  type ChatContext,
   type Confidence,
   type Dataset,
   type Kind,
   type Resolution,
 } from "@/domain";
 import { claimTextFor } from "./inlineMap";
+import type { AskContext } from "./askWhy";
 import { useDataset } from "@/lib/context/dataset";
 import { askStream, type AskStream } from "@/lib/stream/chatClient";
 
@@ -149,6 +151,8 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   const answersRef = useRef<readonly Answer[]>(answers);
   const flushers = useRef(new Map<string, () => void>());
   const seq = useRef(0);
+  // The view each answer was asked about, so a retry asks about the same view and not the one on screen now.
+  const contexts = useRef(new Map<string, ChatContext>());
 
   useEffect(() => {
     answersRef.current = answers;
@@ -186,7 +190,9 @@ export function useAnswerMachine(stream: AskStream = askStream) {
       };
 
       try {
+        const context = contexts.current.get(id);
         await stream(question, {
+          ...(context ? { context } : {}),
           signal: controller.signal,
           onEvent(event) {
             if (settled) return;
@@ -227,12 +233,19 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   );
 
   const ask = useCallback(
-    (question: string, about?: string) => {
+    (question: string, about?: AskContext) => {
       const id = `a${++seq.current}`;
       const controller = new AbortController();
+      if (about?.period) contexts.current.set(id, { entity: about.entity, period: about.period });
       dispatch({
         id,
-        action: { type: "ASK", id, question, ...(about ? { about } : {}), controller },
+        action: {
+          type: "ASK",
+          id,
+          question,
+          ...(about ? { about: about.label } : {}),
+          controller,
+        },
       });
       void run(id, question, controller);
     },
@@ -253,6 +266,8 @@ export function useAnswerMachine(stream: AskStream = askStream) {
       if (!source || source.status === "streaming") return;
       const id = `a${++seq.current}`;
       const controller = new AbortController();
+      const context = contexts.current.get(fromId);
+      if (context) contexts.current.set(id, context);
       dispatch({ id: fromId, action: { type: "RETRY", id, controller } });
       void run(id, source.question, controller);
     },
