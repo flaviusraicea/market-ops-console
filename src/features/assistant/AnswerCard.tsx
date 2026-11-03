@@ -93,9 +93,12 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
       ) : (
         <Card>
           <CardHeader
+            status={status}
             confidence={
               status === "done" && answer.kind !== "abstain" ? answer.confidence : undefined
             }
+            onStop={onStop}
+            onRetry={onRetry}
           />
           <AnswerText
             body={
@@ -120,7 +123,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
             <ChipArea answer={answer} isLatest={isLatest} />
           ) : null}
           {status === "done" && answer.kind === "abstain" ? <AbstainNote onTry={onTry} /> : null}
-          <Footer answer={answer} onStop={onStop} onRetry={onRetry} onTry={onTry} />
+          <Footer answer={answer} />
         </Card>
       )}
     </div>
@@ -135,18 +138,56 @@ function Card({ children }: { children: ReactNode }) {
   );
 }
 
-/** First row of the card: the AI label on the left, how far to trust it on the right (done answers only). */
-function CardHeader({ confidence }: { confidence?: ConfidenceLevel | undefined }) {
+/**
+ * First row of the card, 24 px high in every state so nothing under it moves when the state changes. The AI label
+ * is on the left (with a caption while streaming or after a stop); on the right Stop, then the confidence meter,
+ * or Retry, swap in place. One button serves Stop and Retry, so focus stays on it when Stop turns into Retry.
+ */
+function CardHeader({
+  status,
+  confidence,
+  onStop,
+  onRetry,
+}: {
+  status?: Answer["status"];
+  confidence?: ConfidenceLevel | undefined;
+  onStop?: () => void;
+  onRetry?: () => void;
+}) {
+  const streaming = status === "streaming";
+  const stopped = status === "stopped";
   return (
     <div
       data-slot="card-header"
-      className="flex flex-wrap items-center justify-between gap-x-1.5 gap-y-1"
+      className="flex min-h-[var(--chip-h)] items-center justify-between gap-x-1.5"
     >
-      <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
-        <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
-        AI-generated
-      </Eyebrow>
-      {confidence ? <ConfidenceMeter level={confidence} compact /> : null}
+      <div className="flex min-w-0 items-center gap-x-2.5">
+        <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
+          <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
+          AI-generated
+        </Eyebrow>
+        {streaming ? <span className={CAPTION}>STREAMING…</span> : null}
+        {stopped ? (
+          <>
+            <span className={CAPTION}>PARTIAL</span>
+            <span className="sr-only">No sources attached</span>
+          </>
+        ) : null}
+      </div>
+      {streaming || stopped ? (
+        <Button type="button" size="sm" variant="ghost" onClick={streaming ? onStop : onRetry}>
+          {streaming ? (
+            <>
+              <Square aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+              Stop
+            </>
+          ) : (
+            "Retry"
+          )}
+        </Button>
+      ) : confidence ? (
+        <ConfidenceMeter level={confidence} compact />
+      ) : null}
     </div>
   );
 }
@@ -267,7 +308,7 @@ function SourcesDisclosure({ answer }: { answer: Extract<Answer, { status: "done
   );
 }
 
-function Footer({ answer, onStop, onRetry }: AnswerCardProps) {
+function Footer({ answer }: Pick<AnswerCardProps, "answer">) {
   if (answer.status === "done" && answer.kind === "abstain") {
     return (
       <div className="flex">
@@ -281,31 +322,6 @@ function Footer({ answer, onStop, onRetry }: AnswerCardProps) {
   if (answer.status === "done") {
     // A fallback answer cites nothing, so there is nothing to disclose.
     return answer.citations.length > 0 ? <SourcesDisclosure answer={answer} /> : null;
-  }
-  if (answer.status === "streaming" || answer.status === "stopped") {
-    // One button for both states, so focus stays on it when Stop turns into Retry.
-    const streaming = answer.status === "streaming";
-    return (
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <span className={CAPTION}>
-          {streaming ? "STREAMING…" : "PARTIAL · NO SOURCES ATTACHED"}
-        </span>
-        <Button
-          type="button"
-          variant={streaming ? "secondary" : "ghost"}
-          onClick={streaming ? onStop : onRetry}
-        >
-          {streaming ? (
-            <>
-              <Square aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-              Stop
-            </>
-          ) : (
-            "Retry"
-          )}
-        </Button>
-      </div>
-    );
   }
   return null;
 }

@@ -125,11 +125,15 @@ export function ChartTooltip({
     const lo = half;
     const hi = Math.max(parent.clientWidth - half, lo);
     const shift = Math.min(Math.max(left, lo), hi) - left;
-    el.style.marginLeft = `${shift}px`;
     el.style.setProperty("--caret-shift", `${-shift}px`);
+    // The box is placed with a transform, never left/top/margin: the pointer moves it on every hover, and a
+    // transform moves it without a layout pass (and without counting as a layout shift).
     // Too near the top for the box to sit above the mark: it drops below the mark when there is more room
     // there, and in a short chart that fits neither side it is held inside the chart rather than clipped.
-    if (!keepInside) return;
+    if (!keepInside) {
+      el.style.transform = `translate(${left + shift}px, ${top - 8}px)`;
+      return;
+    }
     const h = el.offsetHeight;
     const above = top - 8 - h;
     const below = top + 8;
@@ -139,7 +143,7 @@ export function ChartTooltip({
       Math.max(parent.clientHeight - h, 0),
     );
     el.dataset.flip = String(flip);
-    el.style.marginTop = `${placed - above}px`;
+    el.style.transform = `translate(${left + shift}px, ${top - 8 + placed - above}px)`;
   });
   return (
     <div
@@ -153,9 +157,9 @@ export function ChartTooltip({
         // reaches the action without crossing a neighbour.
         action &&
           "after:absolute after:top-full after:left-0 after:h-2 after:w-full data-[flip=true]:after:top-auto data-[flip=true]:after:bottom-full",
-        "group/tip fade-in absolute z-10 [--fade-dur:var(--dur-press)] min-w-40 -translate-x-1/2 -translate-y-full rounded-control layer-overlay px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
+        "group/tip fade-in absolute top-0 left-0 z-10 [--fade-dur:var(--dur-press)] min-w-40 -translate-x-1/2 -translate-y-full rounded-control layer-overlay px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
       )}
-      style={{ left, top: top - 8 }}
+      style={{ transform: `translate(${left}px, ${top - 8}px)` }}
     >
       <p className="font-semibold text-ink">{title}</p>
       <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">

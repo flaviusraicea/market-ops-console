@@ -21,10 +21,10 @@ import { isMotionOverrideOn, toggleMotionOverride } from "@/lib/motion";
 import { useTheme } from "@/lib/theme";
 import type { PaletteAction } from "./items";
 
-// The palette and cmdk stay out of the first bundle; the chunk loads on first open.
-const CommandPalette = dynamic(() => import("./CommandPalette").then((m) => m.CommandPalette), {
-  ssr: false,
-});
+// The palette and cmdk stay out of the first bundle. The chunk loads once the page is idle, so the first open
+// is not a network wait and a long frame.
+const loadPalette = () => import("./CommandPalette").then((m) => m.CommandPalette);
+const CommandPalette = dynamic(loadPalette, { ssr: false });
 
 const PaletteContext = createContext<{ openPalette: () => void }>({ openPalette: () => {} });
 
@@ -64,6 +64,20 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
     setEverOpened(true);
     changeOpen(true);
   }, [changeOpen]);
+
+  // Warm the palette when the browser is idle: fetch its chunk and mount it closed.
+  useEffect(() => {
+    const warm = () => {
+      void loadPalette();
+      setEverOpened(true);
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(warm, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(warm, 2000);
+    return () => window.clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
