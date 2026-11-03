@@ -6,11 +6,13 @@ import { ArrowDown, ICON_STROKE } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { prefersReducedMotion } from "@/lib/motion";
 import { AnswerCard } from "./AnswerCard";
-import { EmptyState } from "./EmptyState";
+import { EmptyState, type PanelContext } from "./EmptyState";
 import type { Answer } from "./useAnswerMachine";
 
 type AnswerListProps = {
   answers: readonly Answer[];
+  /** What the empty state says about the current view. */
+  context: PanelContext;
   onPick: (text: string) => void;
   onStop: (id: string) => void;
   onRetry: (id: string) => void;
@@ -34,6 +36,7 @@ const ANNOUNCEMENT: Partial<Record<Answer["status"], string>> = {
  */
 export function AnswerList({
   answers,
+  context,
   onPick,
   onStop,
   onRetry,
@@ -179,7 +182,7 @@ export function AnswerList({
           <div ref={sentinelRef} aria-hidden className="h-px" />
         </div>
       ) : (
-        <EmptyState onPick={onPick} />
+        <EmptyState context={context} onPick={onPick} />
       )}
       {showNewText ? (
         <Button

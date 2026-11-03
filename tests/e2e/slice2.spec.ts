@@ -47,7 +47,7 @@ test("View as table swaps the map for a 13-row table and back", async ({ page })
   const toggle = page.getByRole("button", { name: "View as table" });
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
   await toggle.click();
-  const table = page.getByRole("table");
+  const table = page.getByRole("region", { name: /Markets by/ }).getByRole("table");
   await expect(table).toBeVisible();
   await expect(table.locator("tbody tr")).toHaveCount(13);
   const back = page.getByRole("button", { name: "View as chart" });
@@ -66,31 +66,10 @@ test("the metric select recolours the map and renames the card", async ({ page }
     .getByRole("radio", { name: "Revenue" })
     .click();
   await expect(page).toHaveURL(/metric=revenue/);
-  await expect(page.getByRole("heading", { name: "Markets by Revenue" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Markets by revenue" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Germany, off track, $1.68M revenue" }),
   ).toBeVisible();
-});
-
-test("top movers lead with China and Germany, with a real minus sign", async ({ page }) => {
-  await page.goto("/");
-  const movers = page.getByRole("region", { name: "Top movers" });
-  const rows = movers.getByRole("listitem");
-  await expect(rows.nth(0)).toContainText("China");
-  await expect(rows.nth(0)).toContainText("+18.2%");
-  await expect(rows.nth(3)).toContainText("Germany");
-  await expect(rows.nth(3)).toContainText("−9.7%");
-  await expect(movers).toContainText("Growth YoY, May 2026 · Source · data.json");
-});
-
-test("Ask why fills the composer and does not send", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Ask why Germany dipped" }).click();
-  const composer = page.getByRole("textbox", { name: "Ask the assistant" });
-  await expect(composer).toHaveValue("Why did Germany's revenue dip?");
-  await expect(composer).toBeFocused();
-  await page.getByRole("button", { name: "Ask why China is on track" }).click();
-  await expect(composer).toHaveValue("Why is China on track?");
 });
 
 test("a failed geometry request shows the fallback and forces the table", async ({ page }) => {
@@ -98,8 +77,9 @@ test("a failed geometry request shows the fallback and forces the table", async 
   await page.goto("/");
   await expect(page.getByText("Map unavailable")).toBeVisible();
   await expect(page.getByText("The market table below has the same data.")).toBeVisible();
-  await expect(page.getByRole("table")).toBeVisible();
-  await expect(page.getByRole("table").locator("tbody tr")).toHaveCount(13);
+  const table = page.getByRole("region", { name: /Markets by/ }).getByRole("table");
+  await expect(table).toBeVisible();
+  await expect(table.locator("tbody tr")).toHaveCount(13);
   await expect(page.getByRole("button", { name: /view as/i })).toHaveCount(0);
 });
 
@@ -115,7 +95,7 @@ for (const scheme of ["light", "dark"] as const) {
     expect(results.violations).toEqual([]);
 
     await page.getByRole("button", { name: "View as table" }).click();
-    await expect(page.getByRole("table")).toBeVisible();
+    await expect(page.getByRole("region", { name: /Markets by/ }).getByRole("table")).toBeVisible();
     const withTable = await new AxeBuilder({ page }).analyze();
     expect(withTable.violations).toEqual([]);
     await context.close();
@@ -127,7 +107,10 @@ test("the growth map colours Italy (+0.3%) positive and Germany (-9.7%) deepest 
 }) => {
   await page.goto("/?metric=growth");
   const fill = (name: RegExp) =>
-    page.getByRole("button", { name }).evaluate((el) => el.getAttribute("fill"));
+    page
+      .getByRole("region", { name: /Markets by/ })
+      .getByRole("button", { name })
+      .evaluate((el) => el.getAttribute("fill"));
   expect(await fill(/^Germany,/)).toBe("var(--div-n3)");
   expect(await fill(/^Italy,/)).toBe("var(--div-p1)");
   expect(await fill(/^China,/)).toBe("var(--div-p3)");

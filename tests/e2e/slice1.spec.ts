@@ -56,7 +56,7 @@ test("tab order on a drilled earlier period", async ({ page }) => {
 test("assistant stacks below the dashboard at 390 px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  const section = await page.locator('section[aria-labelledby="dashboard-h"]').boundingBox();
+  const section = await page.locator('section[aria-label="Dashboard"]').boundingBox();
   const aside = await page.locator('aside[aria-labelledby="assistant-h"]').boundingBox();
   expect(aside!.y).toBeGreaterThanOrEqual(section!.y + section!.height);
 });

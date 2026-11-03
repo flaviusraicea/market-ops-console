@@ -126,6 +126,20 @@
   }
 }
 
+@media (min-width: 1280px) {
+  :root {
+    --text-display: 36px;
+    --text-display-lh: 42px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --text-display: 26px;
+    --text-display-lh: 32px;
+  }
+}
+
 html[data-density="analyst"] {
   --space-unit: 4px;
   --gap: 8px;

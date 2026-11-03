@@ -1,6 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Minus } from "@/components/icons";
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
+import { Sparkline } from "@/components/charts/Sparkline";
 
 export type Direction = "up" | "down" | "flat";
 
@@ -11,6 +12,8 @@ export type KpiTileProps = {
   delta: { direction: Direction; value: string; comparison: string };
   /** For example "Source · data.json" or "Derived · sum of series". */
   provenance: string;
+  /** Monthly actuals with the forecast beside them, drawn as a small line under the headline. */
+  trend?: { actual: readonly number[]; forecast: readonly number[]; label: string } | undefined;
   /** `strip` is the Analyst ledger cell: no card, one line of eyebrow, headline and delta, provenance in a tooltip. */
   variant?: "tile" | "strip";
   className?: string;
@@ -30,6 +33,7 @@ export function KpiTile({
   headline,
   delta,
   provenance,
+  trend,
   variant = "tile",
   className,
 }: KpiTileProps) {
@@ -85,6 +89,9 @@ export function KpiTile({
       >
         {headline}
       </p>
+      {trend ? (
+        <Sparkline values={trend.actual} secondary={trend.forecast} label={trend.label} />
+      ) : null}
       <p
         data-slot="kpi-delta"
         data-direction={delta.direction}

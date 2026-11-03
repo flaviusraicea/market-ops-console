@@ -85,7 +85,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
           }
           table={<MarketsTable map={map} />}
         />
-        <RegionBars vm={regions} />
+        <RegionBars bars={regions} framed={false} />
       </div>
     </SheetSection>
   );

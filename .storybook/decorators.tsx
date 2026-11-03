@@ -4,7 +4,7 @@ import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import data from "../src/data/data.json";
-import { parseDataset, type Dataset } from "../src/domain";
+import { parseDataset, type Context, type Dataset, type Period } from "../src/domain";
 import { lightDataset, metaFromDataset } from "../src/lib/context/invariants";
 import { DatasetProvider } from "../src/lib/context/dataset";
 import { ConsoleMetaProvider } from "../src/lib/context/meta";
@@ -47,6 +47,14 @@ export function useStoryDataset(): Dataset {
 }
 
 const ds = parseDataset(data);
+
+/** The default URL context: the whole portfolio at the latest period, Overview mode. */
+export const portfolioMay: Context = {
+  period: "2026-05" as Period,
+  mode: "overview",
+  metric: "attainment",
+  basis: "month",
+};
 
 /** Per story file, for stories under features/. Exposes the dataset and the console meta. */
 export const withDataset: Decorator = (Story) => (

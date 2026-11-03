@@ -41,6 +41,8 @@ type ChoroplethProps = {
   /** Markets drawn at full strength; the rest are dimmed. Omit to dim none. */
   focus?: readonly string[] | undefined;
   onSelect: (marketId: string) => void;
+  /** Fixed height in px. Without it the map keeps a clamped aspect ratio. */
+  height?: number;
 };
 
 const HEIGHT_RATIO = 0.52;
@@ -204,7 +206,7 @@ function MapSvg({
 }
 
 /** World map with the portfolio's markets filled by a metric. Keyboard: Tab enters, arrows move, Enter selects. */
-export function Choropleth(props: ChoroplethProps) {
+export function Choropleth({ height: fixedHeight, ...props }: ChoroplethProps) {
   // ParentSize measures an absolutely positioned child, so the box needs its own height: a fixed
   // aspect ratio, clamped, which also keeps the map readable at phone width.
   return (
@@ -213,9 +215,9 @@ export function Choropleth(props: ChoroplethProps) {
         debounceTime={50}
         parentSizeStyles={{
           width: "100%",
-          aspectRatio: `1 / ${HEIGHT_RATIO}`,
-          minHeight: MIN_HEIGHT,
-          maxHeight: MAX_HEIGHT,
+          ...(fixedHeight
+            ? { height: fixedHeight }
+            : { aspectRatio: `1 / ${HEIGHT_RATIO}`, minHeight: MIN_HEIGHT, maxHeight: MAX_HEIGHT }),
         }}
       >
         {({ width, height }) =>

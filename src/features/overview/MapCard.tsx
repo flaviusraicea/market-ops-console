@@ -35,6 +35,8 @@ export const METRIC_LABEL: Record<Metric, string> = {
   growth: "Growth",
 };
 
+const MAP_HEIGHT = 320;
+
 const DOT: Record<string, string> = {
   on_track: "bg-ok-mark",
   at_risk: "bg-warn-mark",
@@ -90,7 +92,7 @@ export function legendFor(map: OverviewVM["map"]): LegendBin[] {
 
 export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
   return (
-    <Table>
+    <Table scrollLabel="Markets table">
       <TableCaption className="sr-only">
         Markets, {map.periodLabel}. Source · data.json
       </TableCaption>
@@ -166,6 +168,7 @@ export function MapCard({ map }: { map: OverviewVM["map"] }) {
         periodLabel={map.periodLabel}
         selected={map.selected}
         focus={map.focus}
+        height={MAP_HEIGHT}
         onSelect={(market) => setContext({ market })}
       />
     ) : (
@@ -184,12 +187,12 @@ export function MapCard({ map }: { map: OverviewVM["map"] }) {
   return (
     <section
       aria-labelledby="map-h"
-      className="flex flex-col gap-3 rounded-card border border-border bg-surface p-[var(--pad-card)]"
+      className="flex h-full flex-col gap-3 rounded-card border border-border bg-surface p-[var(--pad-card)]"
     >
       <CardHeader
-        title={`Markets by ${metricLabel}`}
+        title={`Markets by ${metricLabel.toLowerCase()}`}
         titleId="map-h"
-        caption={`${map.periodLabel} · ${map.provenance}`}
+        subtitle={`${map.periodLabel} · click a market to drill`}
         actions={
           <>
             {metricControl}

@@ -25,6 +25,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
   const overview = overviewVM(ds, ctx);
   return (
     <div className="flex flex-col">
+      <h2 className="sr-only">Analyst view</h2>
       <AnalystToolbar
         periods={ds.meta.periods}
         products={ds.products.map((p) => ({ id: p.id, name: p.name }))}
@@ -40,7 +41,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
           <MarketGrid grid={vm.grid} />
         </ErrorBoundary>
         <ErrorBoundary widget="map">
-          <MapSection map={overview.map} regions={regionBarsVM(ds, ctx.period)} />
+          <MapSection map={overview.map} regions={regionBarsVM(ds, ctx)} />
         </ErrorBoundary>
         <ErrorBoundary widget="time-series">
           <TimeSeriesCard vm={vm.timeSeries} />

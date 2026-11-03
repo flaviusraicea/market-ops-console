@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("Ask why on Germany fills the composer and focuses it, without sending", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?mode=analyst&region=eu");
   await page.getByRole("button", { name: "Ask why Germany dipped" }).click();
   const box = page.getByRole("textbox", { name: "Ask the assistant" });
   await expect(box).toHaveValue("Why did Germany's revenue dip?");
@@ -10,7 +10,7 @@ test("Ask why on Germany fills the composer and focuses it, without sending", as
 });
 
 test("Enter in the prefilled composer sends and the Germany answer arrives", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/?mode=analyst&region=eu");
   await page.getByRole("button", { name: "Ask why Germany dipped" }).click();
   await page.getByRole("textbox", { name: "Ask the assistant" }).press("Enter");
   await expect(page.getByText("Why did Germany's revenue dip?").first()).toBeVisible();
@@ -19,7 +19,7 @@ test("Enter in the prefilled composer sends and the Germany answer arrives", asy
 
 test("below 1024 px the panel scrolls into view", async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 700 });
-  await page.goto("/");
+  await page.goto("/?mode=analyst&region=eu");
   await page.getByRole("button", { name: "Ask why Germany dipped" }).click();
   const box = page.getByRole("textbox", { name: "Ask the assistant" });
   await expect(box).toBeFocused();

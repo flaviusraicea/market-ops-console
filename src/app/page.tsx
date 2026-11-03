@@ -7,6 +7,7 @@ import { Panel } from "@/features/assistant/Panel";
 import { Analyst } from "@/features/analyst/Analyst";
 import { Overview } from "@/features/overview/Overview";
 import { OverviewSkeleton } from "@/features/overview/OverviewSkeleton";
+import { panelContextVM } from "@/features/overview/viewModel";
 import { Header } from "@/features/shell/Header";
 import { Layout } from "@/features/shell/Layout";
 import { NavigationProvider } from "@/lib/context/navigation";
@@ -53,7 +54,7 @@ export default async function Page({ searchParams }: PageProps) {
           }
           assistant={
             <DatasetProvider dataset={lightDataset(ds)}>
-              <Panel />
+              <Panel context={panelContextVM(ds, ctx)} />
             </DatasetProvider>
           }
         />
