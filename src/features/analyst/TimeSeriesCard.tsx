@@ -31,16 +31,14 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
       subtitle={vm.subtitle}
       landed={landed}
       sectionRef={ref}
+      legend={<Legend items={SERIES_LEGEND} label="Series" />}
       actions={
-        <>
-          <Legend items={SERIES_LEGEND} label="Series" />
-          <ViewAsTableToggle
-            pressed={pressed}
-            controls={tableId}
-            onPressedChange={setPressed}
-            subject={`the ${vm.title} chart`}
-          />
-        </>
+        <ViewAsTableToggle
+          pressed={pressed}
+          controls={tableId}
+          onPressedChange={setPressed}
+          subject={`the ${vm.title} chart`}
+        />
       }
       {...(className ? { className } : {})}
     >

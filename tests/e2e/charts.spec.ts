@@ -96,3 +96,36 @@ test("the radar drops Units YoY in the first year of data and says why", async (
   await expect(radar.locator('[data-axis="Units YoY"]')).toHaveCount(0);
   await expect(radar.getByText("Units YoY unavailable before Jun 2025")).toBeVisible();
 });
+
+test("series legends sit on their own row under the title at every width, scale legends stay under the chart", async ({
+  page,
+}) => {
+  for (const width of [1280, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open(page, `${EUROPE}&market=de`);
+    for (const [name, label] of [
+      [/^Germany revenue/, "Series"],
+      [/^Compare/, "Radar series"],
+    ] as const) {
+      const region = card(page, name);
+      const legend = region.getByRole("list", { name: label });
+      const header = region.locator('[data-slot="card-header"]');
+      const chart = region.getByRole("group").first();
+      const h = await header.boundingBox();
+      const l = await legend.boundingBox();
+      const c = await chart.boundingBox();
+      if (!h || !l || !c) throw new Error(`${label} legend or chart not laid out at ${width}`);
+      // Below the header, above the chart, and not sharing the title row.
+      expect(l.y).toBeGreaterThanOrEqual(h.y + h.height - 1);
+      expect(l.y + l.height).toBeLessThanOrEqual(c.y + 1);
+    }
+    // The heat map's colour scale keys the grid, so it stays below it.
+    const heat = card(page, /Attainment by month/);
+    const scale = heat.getByRole("list").last();
+    const grid = heat.getByRole("grid");
+    const g = await grid.boundingBox();
+    const sc = await scale.boundingBox();
+    if (!g || !sc) throw new Error("heat map grid or scale not laid out");
+    expect(sc.y).toBeGreaterThanOrEqual(g.y + g.height - 1);
+  }
+});

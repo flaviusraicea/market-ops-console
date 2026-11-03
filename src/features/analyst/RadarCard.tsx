@@ -1,5 +1,6 @@
 "use client";
 
+import { Legend } from "@/components/charts/Legend";
 import { RadarChart, RadarChartTable } from "@/components/charts/RadarChart";
 import { ViewAsTable } from "@/components/charts/ViewAsTable";
 import { SheetSection } from "./Sheet";
@@ -13,6 +14,12 @@ export function RadarCard({ vm, rowLabel }: { vm: RadarVM; rowLabel: string }) {
       subtitle={vm.subtitle}
       caption={vm.caption}
       allProducts={vm.allProducts}
+      legend={
+        <Legend
+          label="Radar series"
+          items={vm.series.map((s) => ({ label: s.name, swatch: "line-solid", color: s.color }))}
+        />
+      }
     >
       <ViewAsTable
         subject="the compare radar chart"

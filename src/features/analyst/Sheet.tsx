@@ -36,6 +36,7 @@ export function SheetSection({
   subtitle,
   caption,
   actions,
+  legend,
   className,
   children,
   landed = false,
@@ -47,6 +48,8 @@ export function SheetSection({
   subtitle?: string;
   caption?: string;
   actions?: ReactNode;
+  /** A series legend: its own row under the title and subtitle, at every width. Scale legends stay under their chart. */
+  legend?: ReactNode;
   className?: string;
   children: ReactNode;
   /** A followed citation points at this section: show the landing ring. */
@@ -97,6 +100,7 @@ export function SheetSection({
           </div>
         ) : null}
       </div>
+      {legend}
       {children}
     </section>
   );
