@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId } from "react";
 
 import { Notice } from "@/components/Notice";
 import { SegmentedControl } from "@/components/SegmentedControl";
@@ -11,7 +11,6 @@ import {
   ViewAsTableToggle,
   useTableFirstOnPhone,
 } from "@/components/charts/ViewAsTable";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { Metric } from "@/domain";
 import { METRIC_LABEL, MarketsTable, legendFor, useGeo } from "@/features/overview/MapCard";
 import { RegionBars } from "@/features/overview/RegionBars";
