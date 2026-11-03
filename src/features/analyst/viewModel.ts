@@ -18,6 +18,7 @@ import {
   type Entity,
   type Market,
   type Period,
+  type RegionId,
   type Status,
 } from "@/domain";
 import {
@@ -65,16 +66,29 @@ export type SparkVM = {
 
 export type AskWhyVM = { aria: string; text: string };
 
+/** The grid columns a reader can sort by. */
+export type SortKey =
+  "name" | "revenue" | "forecast" | "priorYear" | "attainment" | "growth" | "share" | "units";
+
+/** Unformatted values behind each sortable column. */
+export type SortValues = Partial<Record<SortKey, number>>;
+
 export type MarketRowVM = {
   /** Unformatted revenue; the grid is sorted by it, largest first. */
   revenueValue: number;
   id: string;
   name: string;
   iso2: string;
+  regionId: RegionId;
+  regionName: string;
   status: Status;
   statusLabel: string;
   revenue: string;
+  forecast: string;
+  priorYear: string;
   attainment: string;
+  units: string;
+  sort: SortValues;
   growth: string;
   growthDirection: "up" | "down" | "flat";
   share: string;
@@ -90,29 +104,51 @@ export type ProductRowVM = {
   id: string;
   name: string;
   revenue: string;
+  forecast: string;
+  priorYear: string;
   attainment: string;
   growth: string;
   growthDirection: "up" | "down" | "flat";
   units: string;
+  sort: SortValues;
   trend: SparkVM;
   selected: boolean;
 };
 
+/** The total row under the grid: the entity in view, summed or derived from its facts. */
+export type GridTotalVM = {
+  label: string;
+  revenue: string;
+  forecast: string;
+  priorYear: string;
+  attainment: string;
+  growth: string;
+  growthDirection: "up" | "down" | "flat";
+  units: string;
+};
+
+type GridBase = {
+  /** The section's eyebrow, e.g. `Markets` or `Markets · Europe`. */
+  title: string;
+  /** Count and period, e.g. `13 markets · May 2026`; the grid appends the sort and the note. */
+  summary: string;
+  /** What the latest month alone gives, e.g. `Status and share are latest month only`. */
+  note: string;
+  caption: string;
+  total: GridTotalVM;
+};
+
 export type GridVM =
-  | {
+  | (GridBase & {
       kind: "markets";
-      title: string;
-      caption: string;
       statusRule: string;
       rows: MarketRowVM[];
-    }
-  | {
+    })
+  | (GridBase & {
       kind: "products";
-      title: string;
-      caption: string;
       marketId: string;
       rows: ProductRowVM[];
-    };
+    });
 
 export type SeriesPoint = {
   period: Period;
@@ -137,11 +173,11 @@ export type AnomalyVM = {
 };
 
 export type TimeSeriesVM = {
+  /** The section eyebrow, e.g. `Portfolio revenue`. */
   title: string;
   subtitle: string;
   /** The full sentence, for the chart's accessible name and the table caption. */
   chartTitle: string;
-  caption: string;
   desc: string;
   selectedPeriod: Period;
   points: SeriesPoint[];
@@ -161,7 +197,9 @@ export type RadarSeriesVM = {
 };
 
 export type RadarVM = {
+  /** The chart's accessible title and the table caption. */
   title: string;
+  subtitle: string;
   caption: string;
   axes: readonly string[];
   series: RadarSeriesVM[];
@@ -177,7 +215,9 @@ export type HeatCellVM = {
 };
 export type HeatRowVM = { id: string; name: string; cells: HeatCellVM[] };
 export type HeatMapVM = {
+  /** The chart's accessible name and the table caption. */
   title: string;
+  subtitle: string;
   caption: string;
   periods: Period[];
   rows: HeatRowVM[];
@@ -185,6 +225,7 @@ export type HeatMapVM = {
 };
 
 export type AnalystVM = {
+  statusRule: string;
   basis: Context["basis"];
   matDisabled: boolean;
   grid: GridVM;
@@ -225,6 +266,21 @@ function sparkFor(ds: Dataset, entity: Entity, anomalyPeriod?: string): SparkVM 
   };
 }
 
+function totalFor(ds: Dataset, entity: Entity, period: Period, label: string): GridTotalVM {
+  const t = totals(factsFor(ds, { entity, periods: [period] }));
+  const growth = growthPct(t);
+  return {
+    label,
+    revenue: formatMoneyCompact(t.actual),
+    forecast: formatMoneyCompact(t.forecast),
+    priorYear: formatMoneyCompact(t.priorYear),
+    attainment: formatPct(attainmentPct(t), { sign: false }),
+    growth: formatPct(growth, { sign: true }),
+    growthDirection: direction(growth),
+    units: formatInt(t.units),
+  };
+}
+
 function gridVM(ds: Dataset, ctx: Context): GridVM {
   if (ctx.market) {
     const market = ds.markets.find((m) => m.id === ctx.market);
@@ -235,32 +291,48 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
         const entity: Entity = { kind: "product", marketId, productId: p.id };
         const t = totals(factsFor(ds, { entity, periods: [ctx.period] }));
         const growth = growthPct(t);
+        const attainment = attainmentPct(t);
         return {
           revenueValue: t.actual,
           id: p.id,
           name: p.name,
           revenue: formatMoneyCompact(t.actual),
-          attainment: formatPct(attainmentPct(t), { sign: false }),
+          forecast: formatMoneyCompact(t.forecast),
+          priorYear: formatMoneyCompact(t.priorYear),
+          attainment: formatPct(attainment, { sign: false }),
           growth: formatPct(growth, { sign: true }),
           growthDirection: direction(growth),
           units: formatInt(t.units),
+          sort: {
+            revenue: t.actual,
+            forecast: t.forecast,
+            priorYear: t.priorYear,
+            attainment,
+            growth,
+            units: t.units,
+          },
           trend: sparkFor(ds, entity),
           selected: ctx.product === p.id,
         };
       })
       .sort((a, b) => b.revenueValue - a.revenueValue);
+    const name = market?.name ?? marketId;
     return {
       kind: "products",
-      title: `Products · ${market?.name ?? marketId}`,
-      caption: `${rows.length} products · ${periodLabel} · Sorted by revenue · ${DERIVED}`,
+      title: `Products · ${name}`,
+      summary: `${rows.length} products · ${periodLabel}`,
+      note: "",
+      caption: DERIVED,
       marketId,
       rows,
+      total: totalFor(ds, { kind: "market", marketId }, ctx.period, name),
     };
   }
 
   const entity = entityOf(ctx);
   const markets = marketsIn(ds, entity);
   const atLatest = ctx.period === ds.meta.latestPeriod;
+  const regionName = new Map(ds.regions.map((r) => [r.id, r.name]));
   // Values follow the selected period. Status, share and the anomaly list are given only for the latest month.
   const rows: MarketRowVM[] = marketsByRevenue(ds, markets, ctx.period).map(({ m, k }) => {
     const attainment = formatPct(k.attainmentPct, { sign: false });
@@ -271,10 +343,24 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
       id: m.id,
       name: m.name,
       iso2: m.iso2.toUpperCase(),
+      regionId: m.regionId,
+      regionName: regionName.get(m.regionId) ?? m.regionId,
       status: m.kpis.status,
       statusLabel: STATUS_LABEL[m.kpis.status],
       revenue: formatMoneyCompact(k.totals.actual),
+      forecast: formatMoneyCompact(k.totals.forecast),
+      priorYear: formatMoneyCompact(k.totals.priorYear),
       attainment,
+      units: formatInt(k.totals.units),
+      sort: {
+        revenue: k.totals.actual,
+        forecast: k.totals.forecast,
+        priorYear: k.totals.priorYear,
+        attainment: k.attainmentPct,
+        growth: k.growthPct,
+        share: m.kpis.sharePct,
+        units: k.totals.units,
+      },
       growth,
       growthDirection: direction(k.growthPct),
       share: formatPct(m.kpis.sharePct, { sign: false }),
@@ -285,10 +371,13 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
   });
   return {
     kind: "markets",
-    title: `Markets · ${entityName(ds, entity)}`,
-    caption: `${rows.length} markets · ${formatPeriod(ctx.period)} · Sorted by revenue · ${atLatest ? SOURCE : DERIVED}`,
+    title: entity.kind === "portfolio" ? "Markets" : `Markets · ${entityName(ds, entity)}`,
+    summary: `${rows.length} markets · ${formatPeriod(ctx.period)}`,
+    note: "Status and share are latest month only",
+    caption: atLatest ? SOURCE : DERIVED,
     statusRule: STATUS_RULE_TEXT,
     rows,
+    total: totalFor(ds, entity, ctx.period, entityName(ds, entity)),
   };
 }
 
@@ -355,10 +444,9 @@ function timeSeriesVM(ds: Dataset, ctx: Context): TimeSeriesVM {
   const desc = `Line chart of ${name} monthly revenue from ${formatPeriod(first)} to ${formatPeriod(last)}. Actual ${direct} of ${points.length} months${anomalyText}. Table available via View as table.`;
 
   return {
-    title: name,
-    subtitle: `Revenue vs forecast vs prior year · ${formatPeriodAbbr(first)} – ${formatPeriodAbbr(last)} · USD`,
+    title: `${name} revenue`,
+    subtitle: `Actual vs forecast vs prior year · ${formatPeriod(first)} – ${formatPeriod(last)} · USD · Derived`,
     chartTitle: `${name} · Revenue vs forecast vs prior year`,
-    caption: DERIVED,
     desc,
     selectedPeriod: ctx.period,
     points,
@@ -437,8 +525,12 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
   const scope = atPortfolio
     ? "Regions"
     : `Markets · ${entityName(ds, { kind: "region", regionId: ctx.region! })}`;
+  const peers = byName.length;
   return {
     title: `${scope} compared`,
+    subtitle: atPortfolio
+      ? `Regions · five axes, scaled across all ${peers} regions`
+      : `${entityName(ds, { kind: "region", regionId: ctx.region! })} · five axes, scaled across all ${peers} markets`,
     caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? DERIVED : "Attainment and growth derived · share given"}`,
     axes: atPortfolio ? RADAR_AXES_DERIVED : RADAR_AXES_GIVEN,
     series,
@@ -467,7 +559,8 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
   const scope = ctx.region ? entityName(ds, { kind: "region", regionId: ctx.region }) : "Portfolio";
   return {
     title: `Attainment by month · ${scope}`,
-    caption: `${formatPeriodAbbr(periods[0] ?? "")} – ${formatPeriodAbbr(periods[periods.length - 1] ?? "")} · % of forecast · Sorted by revenue · ${DERIVED}`,
+    subtitle: `${ctx.region ? scope : "All markets"} · ${formatPeriod(periods[0] ?? "")} – ${formatPeriod(periods[periods.length - 1] ?? "")} · % of forecast`,
+    caption: `Sorted by revenue · ${DERIVED}`,
     periods,
     rows,
     selected: ctx.market ? { market: ctx.market, period: ctx.period } : undefined,
@@ -476,6 +569,7 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
 
 export function analystVM(ds: Dataset, ctx: Context): AnalystVM {
   return {
+    statusRule: STATUS_RULE_TEXT,
     basis: effectiveBasis(ds, ctx.basis, ctx.period),
     matDisabled: periodIndex(ds, ctx.period) < 11,
     grid: gridVM(ds, ctx),

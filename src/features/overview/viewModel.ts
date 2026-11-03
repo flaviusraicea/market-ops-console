@@ -12,6 +12,7 @@ import {
   type Dataset,
   type Metric,
   type Period,
+  type RegionId,
   type Status,
 } from "@/domain";
 import {
@@ -251,4 +252,70 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
     },
     movers: { period: formatPeriod(ctx.period), rising, falling },
   };
+}
+
+export type RegionBarVM = {
+  id: RegionId;
+  name: string;
+  /** Compact money, e.g. `$7.1M`. */
+  revenue: string;
+  attainment: string;
+  /** Unformatted attainment percent, for the bar. */
+  attainmentValue: number;
+};
+
+export type RegionBarsVM = {
+  rows: RegionBarVM[];
+  /** The one derived sentence under the bars: who drags, or who leads. */
+  sentence: { region: string; after: string };
+  caption: string;
+};
+
+const REGION_ADJECTIVE: Record<string, string> = {
+  na: "North American",
+  eu: "European",
+  apac: "APAC",
+  latam: "LATAM",
+};
+const NUMBER_WORD = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** Attainment per region in dataset order, plus the sentence that names the drag (or the leader). */
+export function regionBarsVM(ds: Dataset, period: Period): RegionBarsVM {
+  const rows = ds.regions.map((r) => {
+    const k = kpiFor(ds, { kind: "region", regionId: r.id }, period, "month");
+    return {
+      id: r.id,
+      name: r.name,
+      revenue: formatMoneyCompact(k.totals.actual),
+      attainment: formatPct(k.attainmentPct, { sign: false }),
+      attainmentValue: k.attainmentPct,
+    };
+  });
+  const lowest = rows.reduce((a, b) => (b.attainmentValue < a.attainmentValue ? b : a));
+  const highest = rows.reduce((a, b) => (b.attainmentValue > a.attainmentValue ? b : a));
+  let sentence: RegionBarsVM["sentence"];
+  if (lowest.attainmentValue < 100) {
+    const inRegion = ds.markets.filter((m) => m.regionId === lowest.id);
+    const flagged = inRegion.filter((m) => m.kpis.status !== "on_track").length;
+    const total = inRegion.length;
+    const count =
+      flagged === total
+        ? `All ${NUMBER_WORD[total] ?? total}`
+        : flagged === 0
+          ? `None of the ${NUMBER_WORD[total] ?? total}`
+          : `${capitalise(NUMBER_WORD[flagged] ?? String(flagged))} of ${NUMBER_WORD[total] ?? total}`;
+    const adjective = REGION_ADJECTIVE[lowest.id] ?? lowest.name;
+    const gap = Math.round((100 - lowest.attainmentValue) * 10) / 10;
+    sentence = {
+      region: lowest.name,
+      after: ` is the drag. ${count} ${adjective} markets are flagged, and its attainment is ${gap.toFixed(1)} points under forecast.`,
+    };
+  } else {
+    sentence = {
+      region: highest.name,
+      after: ` leads at ${highest.attainment} of forecast.`,
+    };
+  }
+  return { rows, sentence, caption: DERIVED };
 }

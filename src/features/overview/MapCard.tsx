@@ -29,7 +29,7 @@ import type { Metric } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import type { OverviewVM } from "./viewModel";
 
-const METRIC_LABEL: Record<Metric, string> = {
+export const METRIC_LABEL: Record<Metric, string> = {
   attainment: "Attainment",
   revenue: "Revenue",
   growth: "Growth",
@@ -41,7 +41,8 @@ const DOT: Record<string, string> = {
   off_track: "bg-bad-mark",
 };
 
-type GeoState = { status: "loading" } | { status: "error" } | { status: "ready"; geo: MapGeo };
+export type GeoState =
+  { status: "loading" } | { status: "error" } | { status: "ready"; geo: MapGeo };
 
 let geoCache: Promise<MapGeo> | null = null;
 let geoLoaded: MapGeo | null = null;
@@ -63,7 +64,7 @@ function loadGeo(): Promise<MapGeo> {
   return geoCache;
 }
 
-function useGeo(): GeoState {
+export function useGeo(): GeoState {
   const [state, setState] = useState<GeoState>(
     geoLoaded ? { status: "ready", geo: geoLoaded } : { status: "loading" },
   );
@@ -81,13 +82,13 @@ function useGeo(): GeoState {
   return state;
 }
 
-function legendFor(map: OverviewVM["map"]): LegendBin[] {
+export function legendFor(map: OverviewVM["map"]): LegendBin[] {
   if (map.metric === "attainment") return ATTAINMENT_LEGEND;
   if (map.metric === "growth") return GROWTH_LEGEND;
   return revenueLegend(map.maxRevenue);
 }
 
-function MarketsTable({ map }: { map: OverviewVM["map"] }) {
+export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
   return (
     <Table>
       <TableCaption className="sr-only">
