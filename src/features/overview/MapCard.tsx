@@ -211,7 +211,7 @@ export function MapCard({
       <CardHeader
         title={byStatus ? "Markets by status" : `Markets by ${metricLabel.toLowerCase()}`}
         titleId="map-h"
-        subtitle={`${map.periodLabel} · click a market to drill`}
+        subtitle={`${map.scoped ? "All products · " : ""}${map.periodLabel} · click a market to drill`}
         actions={
           <>
             {metricControl}

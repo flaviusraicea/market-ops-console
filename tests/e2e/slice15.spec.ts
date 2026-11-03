@@ -304,3 +304,42 @@ test("the verdict's provenance sits in a tooltip on the Overview", async ({ page
   await info.focus();
   await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
 });
+
+test("at product level the cards that show all products say so and their Analyst titles step back", async ({
+  page,
+}) => {
+  await open(page, "/?mode=analyst&region=eu&market=de&product=veltrix&period=2026-03");
+  const compare = page.getByRole("region", { name: /^Compare/ });
+  await expect(compare).toContainText("Europe markets · All products");
+  await expect(compare.getByText("Compare", { exact: true })).toHaveCSS(
+    "color",
+    await page.evaluate(() => {
+      const probe = document.createElement("span");
+      probe.className = "text-ink-2";
+      document.body.append(probe);
+      const colour = getComputedStyle(probe).color;
+      probe.remove();
+      return colour;
+    }),
+  );
+  await expect(page.getByRole("region", { name: /^Map/ })).toContainText(
+    "Markets by attainment · All products · March 2026",
+  );
+  await expect(page.getByRole("region", { name: /^Attainment by month/ })).toContainText(
+    "Europe markets · All products",
+  );
+  // The status tile is the shared badge with a one-line caption.
+  const status = page.getByRole("group", { name: "STATUS" });
+  await expect(status.locator('[data-slot="status-badge"]')).toBeVisible();
+  const box = await status.locator('[data-slot="kpi-delta"]').boundingBox();
+  expect(box!.height).toBeLessThan(20);
+});
+
+test("the Executive view carries the same four-tile grammar and the scope in the card subtitles", async ({
+  page,
+}) => {
+  await page.goto("/?region=eu&market=de&product=veltrix");
+  await expect(page.getByRole("group", { name: "STATUS" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "By region" })).toContainText("All products");
+  await expect(page.getByRole("region", { name: /^Markets by/ })).toContainText("All products");
+});

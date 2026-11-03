@@ -19,6 +19,7 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
       eyebrow="Attainment by month"
       subtitle={vm.subtitle}
       caption={vm.caption}
+      scoped={vm.scoped}
       {...(className ? { className } : {})}
     >
       <ViewAsTable

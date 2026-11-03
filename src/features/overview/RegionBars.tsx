@@ -57,7 +57,8 @@ export function RegionBars({
       <CardHeader
         title="By region"
         titleId="regions-h"
-        subtitle="Attainment vs forecast · 100% at centre"
+        caption={bars.caption}
+        subtitle={`Attainment vs forecast${bars.scoped ? " · All products" : ""} · 100% at centre`}
       />
       <ul>
         {bars.rows.map((row) => (
@@ -92,9 +93,6 @@ export function RegionBars({
       <p className="border-t border-border pt-3 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink-2">
         <strong className="font-semibold text-ink">{bars.sentence.lead}</strong>
         {bars.sentence.rest}
-      </p>
-      <p className="mt-auto text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
-        {bars.caption}
       </p>
     </section>
   );

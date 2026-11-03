@@ -244,7 +244,7 @@ describe("attention list", () => {
       ["France", "+11.6%"],
       ["Canada", "+10.7%"],
     ]);
-    expect(vm.caption).toBe("Off track first, then at risk by attainment · May 2026");
+    expect(vm.caption).toBe("Off track first, then at risk · All markets · May 2026");
   });
 
   it("carries twelve months of revenue and the Ask why prompt", () => {

@@ -79,6 +79,8 @@ export type OverviewVM = {
     /** Markets drawn at full strength; everything else is dimmed. Undefined at portfolio level. */
     focus: string[] | undefined;
     periodLabel: string;
+    /** A product is selected but the map still shows every product, so its title says so. */
+    scoped: boolean;
     /** Where the figures come from, for the table caption. */
     provenance: string;
     maxRevenue: number;
@@ -274,6 +276,7 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
       selected: ctx.market,
       focus,
       periodLabel: formatPeriod(ctx.period),
+      scoped: Boolean(ctx.product),
       provenance: sourceLabel(ds, atLatest(ds, ctx)),
       maxRevenue: Math.max(...entries.map((e) => e.k.totals.actual)),
       values,
@@ -607,7 +610,11 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
 
   return {
     kind: "markets",
-    caption: `Off track first, then at risk by attainment · ${period}`,
+    caption: `Off track first, then at risk · ${
+      ctx.region
+        ? `${entityName(ds, { kind: "region", regionId: ctx.region })} markets`
+        : "All markets"
+    } · ${period}`,
     provenance: sourceLabel(ds, atLatest(ds, ctx)),
     rows,
     rising,
@@ -629,6 +636,8 @@ export type RegionBarsVM = {
   /** `lead` is set in bold, `rest` follows it. Together they read as one sentence. */
   sentence: { lead: string; rest: string };
   caption: string;
+  /** A product is selected but the regions are shown across all products. */
+  scoped: boolean;
 };
 
 /** Revenue and attainment per region, with one derived sentence about the weakest (or leading) region. */
@@ -665,7 +674,12 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
     const best = rows.reduce((a, b) => (b.attainmentPct > a.attainmentPct ? b : a));
     sentence = { lead: `${best.name} leads`, rest: ` at ${best.attainment} of forecast.` };
   }
-  return { rows, sentence, caption: derivedLabel(ds, atLatest(ds, ctx)) };
+  return {
+    rows,
+    sentence,
+    caption: derivedLabel(ds, atLatest(ds, ctx)),
+    scoped: Boolean(ctx.product),
+  };
 }
 
 /** The market in scope furthest from plan, as one sentence for the panel's empty state. */

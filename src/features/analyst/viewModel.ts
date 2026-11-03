@@ -206,6 +206,8 @@ export type RadarVM = {
   title: string;
   subtitle: string;
   caption: string;
+  /** A product is selected but the markets are compared across all products. */
+  scoped: boolean;
   axes: readonly string[];
   series: RadarSeriesVM[];
 };
@@ -226,6 +228,8 @@ export type HeatMapVM = {
   title: string;
   subtitle: string;
   caption: string;
+  /** A product is selected but the heat map shows every product. */
+  scoped: boolean;
   periods: Period[];
   rows: HeatRowVM[];
   selected: { market: string; period: Period } | undefined;
@@ -545,9 +549,10 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
   return {
     title: `${scope} compared`,
     subtitle: atPortfolio
-      ? `Regions · five axes, scaled across all ${peers} regions`
-      : `${entityName(ds, { kind: "region", regionId: ctx.region! })} · five axes, scaled across all ${peers} markets`,
+      ? `Regions${ctx.product ? " · All products" : ""} · five axes, scaled across all ${peers} regions`
+      : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? " markets · All products" : ""} · five axes, scaled across all ${peers} markets`,
     caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod) : "Attainment and growth derived · share given"}`,
+    scoped: Boolean(ctx.product),
     axes: atPortfolio ? RADAR_AXES_DERIVED : RADAR_AXES_GIVEN,
     series,
   };
@@ -581,8 +586,9 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
   const picked = rows.find((r) => r.id === selected?.market);
   return {
     title: `Attainment by month · ${scope}`,
-    subtitle: `${ctx.region ? scope : "All markets"} · ${formatPeriod(periods[0] ?? "")} – ${formatPeriod(periods[periods.length - 1] ?? "")} · % of forecast`,
+    subtitle: `${ctx.region ? (ctx.product ? `${scope} markets` : scope) : "All markets"}${ctx.product ? " · All products" : ""} · ${formatPeriod(periods[0] ?? "")} – ${formatPeriod(periods[periods.length - 1] ?? "")} · % of forecast`,
     caption: `Sorted by revenue · ${derivedLabel(ds)}`,
+    scoped: Boolean(ctx.product),
     periods,
     rows,
     selected,

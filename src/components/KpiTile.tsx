@@ -3,7 +3,6 @@ import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { InfoTip } from "@/components/InfoTip";
 import { StatusBadge } from "@/components/StatusBadge";
-import type { Status } from "@/domain";
 import { Sparkline } from "@/components/charts/Sparkline";
 
 export type Direction = "up" | "down" | "flat";
@@ -22,7 +21,7 @@ export type KpiTileProps = {
   /** Monthly actuals with the forecast beside them, drawn as a small line under the headline. */
   trend?: { actual: readonly number[]; forecast: readonly number[]; label: string } | undefined;
   /** The status tile shows the status badge in place of a figure; `headline` still holds its text. */
-  status?: { status: Status; label: string };
+  status?: { status: "on_track" | "at_risk" | "off_track"; label: string };
   /** `strip` is the Analyst ledger cell: the same content as the tile, without its own card. */
   variant?: "tile" | "strip";
   className?: string;
