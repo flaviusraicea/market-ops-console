@@ -39,6 +39,18 @@ describe("DatasetSchema", () => {
     bad.series[idx].priorYear += 1;
     expect(() => parseDataset(bad)).toThrow(/priorYear/);
   });
+
+  it("rejects periods that are not consecutive months in ascending order", () => {
+    const bad = clone();
+    [bad.meta.periods[3], bad.meta.periods[4]] = [bad.meta.periods[4], bad.meta.periods[3]];
+    expect(() => parseDataset(bad)).toThrow(/consecutive months/);
+  });
+
+  it("rejects a prior-year figure of zero, which growth divides by", () => {
+    const bad = clone();
+    bad.series[0].priorYear = 0;
+    expect(() => parseDataset(bad)).toThrow();
+  });
 });
 
 describe("parseSseLine", () => {

@@ -2,8 +2,9 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
+import { THEME_KEY } from "./themeKey";
+
 export type Theme = "light" | "dark" | "system";
-export const THEME_KEY = "mo.theme";
 
 // The <html data-theme> attribute is the store. The pre-paint script in layout.tsx sets it from
 // localStorage; this hook reads it, so server and first client render agree ("system").

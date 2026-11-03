@@ -51,7 +51,7 @@ describe("ask and prefill requests", () => {
     return renderHook(
       () => {
         useRegisterAskSender(() => canSend);
-        return { ...useAskWhy(), request: useAskWhyRequest() };
+        return { ...useAskWhy(), ...useAskWhyRequest() };
       },
       { wrapper },
     );
@@ -78,6 +78,16 @@ describe("ask and prefill requests", () => {
     const { result } = setup(false);
     act(() => result.current.ask("Why?", germany));
     expect(result.current.request).toMatchObject({ fill: true, ctx: germany });
+  });
+
+  it("a request is consumed once, so a remounted panel does not replay it", () => {
+    const { result } = setup(true);
+    act(() => result.current.prefill("a"));
+    const nonce = result.current.request?.nonce ?? 0;
+    expect(result.current.consume(nonce)).toBe(true);
+    expect(result.current.consume(nonce)).toBe(false);
+    act(() => result.current.prefill("b"));
+    expect(result.current.consume(nonce + 1)).toBe(true);
   });
 
   it("each request has a new nonce", () => {

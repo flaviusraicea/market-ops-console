@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { BottomSheet, BottomSheetContent, BottomSheetTrigger } from "@/components/ui/bottom-sheet";
 import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { PaletteButton } from "@/features/palette/PaletteButton";
 import { useAssistantRail } from "@/features/shell/railState";
 import { COARSE_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
-import { useAskWhyRequest } from "./askWhy";
 import { PanelPlacement } from "./Panel";
 
 /**
@@ -15,18 +14,10 @@ import { PanelPlacement } from "./Panel";
  */
 export function MobileAssistant({ panel }: { panel: ReactNode }) {
   const { sheet, openSheet, closeSheet, unread } = useAssistantRail();
-  const request = useAskWhyRequest();
   // Tapping "Ask the assistant" puts the cursor in the composer. An Ask why button or a citation does not, on a
   // touch screen, because that would raise the keyboard over the answer.
   const coarse = useMediaQuery(COARSE_QUERY);
   const focusComposer = sheet.via === "bar" || !coarse;
-  // Frozen when the sheet opens: a prefill that arrives later still applies, an earlier one does not replay.
-  const [base, setBase] = useState({ n: -1, skip: 0 });
-  if (sheet.open && base.n !== sheet.n) {
-    const nonce = request?.nonce ?? 0;
-    setBase({ n: sheet.n, skip: sheet.via === "bar" ? nonce : Math.max(nonce - 1, 0) });
-  }
-
   return (
     <BottomSheet
       open={sheet.open}
@@ -59,15 +50,7 @@ export function MobileAssistant({ panel }: { panel: ReactNode }) {
         }}
       >
         <div className="flex min-h-0 flex-1 flex-col">
-          <PanelPlacement
-            value={{
-              variant: "sheet",
-              focusComposer,
-              skipRequestsUpTo: base.n === sheet.n ? base.skip : 0,
-            }}
-          >
-            {panel}
-          </PanelPlacement>
+          <PanelPlacement value={{ variant: "sheet", focusComposer }}>{panel}</PanelPlacement>
         </div>
       </BottomSheetContent>
     </BottomSheet>

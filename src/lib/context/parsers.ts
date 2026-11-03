@@ -69,8 +69,7 @@ export function parseContextFromSearchParams(
     metric: first(searchParams.metric),
     basis: first(searchParams.basis),
     cite: cite !== undefined && /^\d+$/.test(cite) ? Number(cite) : undefined,
-    facts:
-      first(searchParams.facts) === "true" || first(searchParams.facts) === "1" ? true : undefined,
+    facts: first(searchParams.facts) === "1" ? true : undefined,
   };
   return normalizeContext(metaFromDataset(ds, defaultMode), raw);
 }

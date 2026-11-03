@@ -18,7 +18,8 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
 function isCitation(v: unknown): boolean {
   if (!isRecord(v)) return false;
   const { period } = v;
-  if (period !== undefined && !(typeof period === "string" && PERIOD_PATTERN.test(period))) return false;
+  if (period !== undefined && !(typeof period === "string" && PERIOD_PATTERN.test(period)))
+    return false;
   return CITATION_KEYS.every((k) => v[k] === undefined || typeof v[k] === "string");
 }
 

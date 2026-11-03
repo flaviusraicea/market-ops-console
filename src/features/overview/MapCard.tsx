@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/table";
 import type { Metric } from "@/domain";
 import { reportError } from "@/lib/events";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { GEO_URL } from "@/lib/geoAsset";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import type { OverviewVM } from "./viewModel";
@@ -68,12 +69,19 @@ function loadGeo(): Promise<MapGeo> {
   return geoCache;
 }
 
-export function useGeo(): GeoState {
+/**
+ * The map geometry, fetched once. With `holdOnPhone` (nobody has chosen a view yet) a phone skips the fetch,
+ * because it shows the table first; the geometry loads when the person asks for the map.
+ */
+export function useGeo(holdOnPhone = false): GeoState {
+  // Read so the effect runs again when the width crosses 768 px: a phone that is widened must load the map.
+  const phone = useMediaQuery(PHONE_QUERY);
   const [state, setState] = useState<GeoState>(
     geoLoaded ? { status: "ready", geo: geoLoaded } : { status: "loading" },
   );
   useEffect(() => {
     if (geoLoaded) return;
+    if (holdOnPhone && window.matchMedia(PHONE_QUERY).matches) return;
     let live = true;
     loadGeo().then(
       (geo) => live && setState({ status: "ready", geo }),
@@ -82,7 +90,7 @@ export function useGeo(): GeoState {
     return () => {
       live = false;
     };
-  }, []);
+  }, [holdOnPhone, phone]);
   return state;
 }
 
@@ -150,9 +158,9 @@ export function MapCard({
   scheme?: "metric" | "status";
 }) {
   const { setContext } = useConsoleContext();
-  const geoState = useGeo();
-  const tableId = useId();
   const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
+  const geoState = useGeo(auto);
+  const tableId = useId();
   const metricLabel = METRIC_LABEL[map.metric];
 
   const byStatus = scheme === "status";

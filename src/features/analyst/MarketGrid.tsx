@@ -322,6 +322,11 @@ function ProductRows({
 
 /** Design-system 6.4. A plain table (no grid role): rows are focusable and select on Enter or Space. */
 export function MarketGrid({ grid }: { grid: GridVM }): ReactNode {
+  // Product rows have no share column, so a sort chosen on markets must not carry over (and back).
+  return <MarketGridBody key={grid.kind} grid={grid} />;
+}
+
+function MarketGridBody({ grid }: { grid: GridVM }): ReactNode {
   const landing = useLanding();
   const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
   const kind = landing.target?.entity.kind;

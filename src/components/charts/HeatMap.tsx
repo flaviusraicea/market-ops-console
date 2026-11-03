@@ -181,7 +181,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
 
   return (
     <div ref={wrapRef} className="relative">
-      <div ref={scrollRef} className="overflow-x-auto [scrollbar-gutter:stable]">
+      <div ref={scrollRef} className="overflow-x-auto">
         <div
           role="grid"
           aria-label={label}
@@ -287,7 +287,7 @@ export function HeatMapTable({
           <TableRow key={row.id}>
             <TableHead
               scope="row"
-              className="sticky left-0 bg-surface text-[length:var(--text-body-dense)] font-medium tracking-normal text-ink normal-case"
+              className="sticky left-0 bg-surface text-[length:var(--text-body)] font-medium tracking-normal text-ink normal-case"
             >
               {row.name}
             </TableHead>

@@ -33,7 +33,7 @@ function BottomSheetContent({
         aria-describedby={undefined}
         tabIndex={-1}
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 flex h-[90dvh] flex-col rounded-t-[12px] border-t border-border bg-surface shadow-popover outline-none",
+          "fixed inset-x-0 bottom-0 z-50 flex h-[90dvh] flex-col rounded-t-sheet border-t border-border bg-surface shadow-popover outline-none",
           className,
         )}
         {...props}

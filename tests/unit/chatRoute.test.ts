@@ -109,6 +109,14 @@ describe("/api/chat follows the view the question was asked from", () => {
     expect(text).toBe(fixtures.default.answer.text);
   });
 
+  it("answers a question that names a region from a market view with the region fixture, not the market template", async () => {
+    const { text } = await ask({
+      question: "Why is APAC outgrowing Europe?",
+      context: { entity: { kind: "market", marketId: "fr" }, period: "2026-05" },
+    });
+    expect(text).toMatch(/^APAC is outgrowing Europe/);
+  });
+
   it("answers a heat map cell question about the market in view, not the default", async () => {
     const view = (marketId: string, period: string) => ({
       entity: { kind: "market", marketId },

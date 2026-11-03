@@ -7,6 +7,7 @@ import { preload } from "react-dom";
 import { GEO_URL } from "@/lib/geoAsset";
 import { REDUCED_MOTION_KEY } from "@/lib/motion";
 import { readRole } from "@/lib/roles.server";
+import { THEME_KEY } from "@/lib/themeKey";
 import { WebVitals } from "@/lib/vitals";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
 };
 
 // Applies a stored theme before first paint so there is no flash.
-const THEME_SCRIPT = `try{var t=localStorage.getItem("mo.theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+const THEME_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
 // Same for the console's Reduce motion switch.
 const MOTION_SCRIPT = `try{if(localStorage.getItem("${REDUCED_MOTION_KEY}")==="true")document.documentElement.setAttribute("data-reduced-motion","true")}catch(e){}`;
 
@@ -56,7 +57,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en" className={`${display.variable} ${ui.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + MOTION_SCRIPT + densityScript(role) }} />
+        <script
+          dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + MOTION_SCRIPT + densityScript(role) }}
+        />
       </head>
       <body>
         <Providers role={role}>

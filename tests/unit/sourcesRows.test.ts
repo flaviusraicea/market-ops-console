@@ -1,5 +1,5 @@
 import { lightDataset } from "@/lib/context/invariants";
-import { loadFullDataset } from "@/features/assistant/useSourcesRows";
+import { loadFullDataset } from "@/lib/fullDataset";
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
@@ -161,7 +161,7 @@ describe("lazy series", () => {
   });
 
   it("resolves a non-latest row once the full dataset chunk has loaded", async () => {
-    const full = await loadFullDataset();
+    const full = loadFullDataset();
     expect(full.series.length).toBeGreaterThan(0);
     const { rows } = sourcesRows(full, resolved("germany-dip").citations, GERMANY_DIP);
     expect(rows[0]!.sourceValue).toBe("$1.66M actual · 91.1% of forecast");

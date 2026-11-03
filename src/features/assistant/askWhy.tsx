@@ -39,6 +39,8 @@ type AskWhyValue = {
   prefill: Prefill;
   ask: Ask;
   request: AskWhyRequest | null;
+  /** True once per request: the first panel to apply it wins, so a remounted panel never replays it. */
+  consume: (nonce: number) => boolean;
   registerSender: (sender: Sender) => () => void;
 };
 
@@ -46,6 +48,7 @@ const NOOP: AskWhyValue = {
   prefill: () => {},
   ask: () => {},
   request: null,
+  consume: () => false,
   registerSender: () => () => {},
 };
 const AskWhyContext = createContext<AskWhyValue>(NOOP);
@@ -54,6 +57,7 @@ const AskWhyContext = createContext<AskWhyValue>(NOOP);
 export function AskWhyProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<AskWhyRequest | null>(null);
   const sender = useRef<Sender | null>(null);
+  const consumed = useRef(0);
   const { openForEntry: openRail } = useAssistantRail();
 
   const publish = useCallback(
@@ -85,9 +89,15 @@ export function AskWhyProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const consume = useCallback((nonce: number) => {
+    if (nonce <= consumed.current) return false;
+    consumed.current = nonce;
+    return true;
+  }, []);
+
   const value = useMemo(
-    () => ({ prefill, ask, request, registerSender }),
-    [prefill, ask, request, registerSender],
+    () => ({ prefill, ask, request, consume, registerSender }),
+    [prefill, ask, request, consume, registerSender],
   );
   return <AskWhyContext.Provider value={value}>{children}</AskWhyContext.Provider>;
 }
@@ -101,9 +111,13 @@ export function useAskWhy(): { prefill: Prefill; ask: Ask } {
   return { prefill, ask };
 }
 
-/** For the panel: the latest request, or null. Each request has a new nonce, so repeats re-apply. */
-export function useAskWhyRequest(): AskWhyRequest | null {
-  return useContext(AskWhyContext).request;
+/** For the panel: the latest request, or null, and `consume`, which says whether this panel should apply it. */
+export function useAskWhyRequest(): {
+  request: AskWhyRequest | null;
+  consume: (nonce: number) => boolean;
+} {
+  const { request, consume } = useContext(AskWhyContext);
+  return { request, consume };
 }
 
 /** For the panel: tells `ask` how to send. The latest `send` is always the one used. */

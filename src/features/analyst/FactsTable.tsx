@@ -100,6 +100,8 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rows = useMemo(() => sortRows(facts.rows, sort), [facts.rows, sort]);
 
+  // TanStack Virtual returns functions the React Compiler cannot memoise; nothing here relies on that.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
@@ -151,7 +153,7 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
         {/* A bare table: the Table wrapper's own scroll box would break the sticky header. */}
         <table
           aria-rowcount={rows.length + 1}
-          className="w-full text-[length:var(--text-body-dense)] leading-[18px]"
+          className="w-full text-[length:var(--text-body)] leading-[18px]"
         >
           <caption className="sr-only">{count}</caption>
           <TableHeader>

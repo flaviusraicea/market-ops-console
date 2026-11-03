@@ -21,9 +21,9 @@ import { SheetSection } from "./Sheet";
 /** The Analyst map section: the choropleth at 7/12 with the By region bars at 5/12 and the legend under the map. */
 export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: RegionBarsVM }) {
   const { setContext } = useConsoleContext();
-  const geoState = useGeo();
-  const tableId = useId();
   const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
+  const geoState = useGeo(auto);
+  const tableId = useId();
   const metricLabel = METRIC_LABEL[map.metric];
   const forced = geoState.status === "error";
   const showTable = forced || pressed;

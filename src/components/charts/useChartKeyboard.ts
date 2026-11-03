@@ -73,5 +73,6 @@ export function useChartKeyboard({
     [activeIndex, columns, count, move, onActivate],
   );
 
-  return { activeIndex, setActiveIndex, onKeyDown };
+  // The data can shrink under a remembered index (a smaller radar after a drill); never leave no stop.
+  return { activeIndex: Math.min(activeIndex, Math.max(count - 1, 0)), setActiveIndex, onKeyDown };
 }

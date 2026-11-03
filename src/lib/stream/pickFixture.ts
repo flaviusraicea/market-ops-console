@@ -97,7 +97,10 @@ function templateSuits(
   const curated = hits.some(
     (h) => h.scope === undefined && (h.keywords ?? []).some((k) => name.includes(k)),
   );
-  return !namesOther && !curated;
+  // A question about a region or the whole portfolio is not about the market in view.
+  const namesBroader =
+    q.includes("portfolio") || ds.regions.some((r) => q.includes(r.name.toLowerCase()));
+  return !namesOther && !curated && !namesBroader;
 }
 
 /**

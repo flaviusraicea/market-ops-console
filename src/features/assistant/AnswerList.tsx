@@ -29,8 +29,8 @@ const FOLLOW_MS = 500;
 const SCROLL_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]);
 
 /**
- * The session's answers, newest at the bottom. From 1024 px the panel caps its height, so the list is the only
- * scrolling part; below that nothing caps it and the page scrolls. It follows the stream only while the reader is at the bottom.
+ * The session's answers, newest at the bottom. The panel caps its height (a sticky column from 1024 px, a bottom
+ * sheet below), so the list is the only scrolling part. It follows the stream only while the reader is at the bottom.
  */
 export function AnswerList({
   answers,
