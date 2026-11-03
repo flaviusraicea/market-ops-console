@@ -18,7 +18,7 @@
     "check:contrast": "tsx scripts/check-contrast.ts",
     "docs:a11y": "tsx scripts/gen-a11y-docs.ts",
     "build:geo": "tsx scripts/build-geo.ts",
-    "ci": "pnpm lint && pnpm typecheck && pnpm check:contrast && pnpm test && pnpm build && pnpm build-storybook"
+    "ci": "pnpm lint && pnpm typecheck && pnpm check:contrast && pnpm docs:a11y --check && pnpm test && pnpm build && pnpm build-storybook"
   },
   "dependencies": {
     "@tailwindcss/postcss": "4.3.3",

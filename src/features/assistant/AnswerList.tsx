@@ -103,11 +103,14 @@ export function AnswerList({
   // The reader's own scroll input ends the follow window at once, so a reader who scrolls up right after asking is not
   // pulled back down (WCAG 2.2.2: the user stays in control of auto-moving content).
   useEffect(() => {
+    if (!hasAnswers) return;
     const stopFollowing = () => {
       followUntil.current = 0;
     };
     const onKey = (e: KeyboardEvent) => {
-      if (SCROLL_KEYS.has(e.key)) stopFollowing();
+      // Space and arrows typed into the composer are not scrolling.
+      const typing = e.target instanceof HTMLElement && e.target.matches("input, textarea, [contenteditable]");
+      if (!typing && SCROLL_KEYS.has(e.key)) stopFollowing();
     };
     window.addEventListener("wheel", stopFollowing, { passive: true });
     window.addEventListener("touchmove", stopFollowing, { passive: true });
@@ -117,7 +120,7 @@ export function AnswerList({
       window.removeEventListener("touchmove", stopFollowing);
       window.removeEventListener("keydown", onKey);
     };
-  }, []);
+  }, [hasAnswers]);
 
   function scrollToEnd(smooth: boolean) {
     if (smooth) followUntil.current = performance.now() + FOLLOW_MS;

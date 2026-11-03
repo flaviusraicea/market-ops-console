@@ -9,11 +9,13 @@ type Options = {
   onActivate: (index: number) => void;
   /** Called after the active mark changes, so the caller can move DOM focus. */
   onMove?: (index: number) => void;
+  /** The mark that holds the single tab stop before anything is focused; defaults to the first. */
+  initialIndex?: number;
 };
 
 /** Roving focus over a list of marks: one tab stop, arrows move, Enter or Space activates. */
-export function useChartKeyboard({ count, columns, onActivate, onMove }: Options) {
-  const [activeIndex, setActiveIndex] = useState(0);
+export function useChartKeyboard({ count, columns, onActivate, onMove, initialIndex = 0 }: Options) {
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
 
   const move = useCallback(
     (next: number) => {

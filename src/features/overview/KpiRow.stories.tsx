@@ -1,13 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, within } from "storybook/test";
 
-import data from "@/data/data.json";
-import { parseDataset } from "@/domain";
-import { portfolioMay } from "../../../.storybook/decorators";
+import { dataset as ds, portfolioMay } from "../../../.storybook/decorators";
 import { KpiRow } from "./KpiRow";
 import { overviewVM } from "./viewModel";
 
-const ds = parseDataset(data);
 
 const meta = {
   title: "features/overview/KpiRow",

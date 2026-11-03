@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { ask, boxOf, open } from "./helpers";
 import { TAB_ORDERS } from "./tabOrder";
 
 const OVERVIEW = "/";
@@ -8,20 +9,6 @@ const ANALYST = "/?mode=analyst&region=eu&market=de";
 const THEMES = ["light", "dark"] as const;
 const WIDTHS = [390, 768, 1024, 1280, 1440] as const;
 const WCAG = ["wcag2a", "wcag2aa", "wcag21aa"];
-
-/** Clicks before hydration do nothing; wait for the page to settle first. */
-async function open(page: Page, url: string) {
-  await page.goto(url);
-  await page.waitForLoadState("networkidle");
-  await page.getByRole("main").waitFor();
-  if (url.includes("analyst")) await page.getByRole("gridcell").first().waitFor();
-}
-
-async function ask(page: Page, question: string) {
-  const box = page.getByRole("textbox", { name: "Ask the assistant" });
-  await box.fill(question);
-  await box.press("Enter");
-}
 
 /** Resolves once every animation on the page has finished. */
 const settled = (page: Page) =>
@@ -69,7 +56,7 @@ test.describe("density", () => {
         target.first().evaluate((el, p) => parseFloat(getComputedStyle(el)[p]), prop);
       const px = (selector: string, prop: "height" | "fontSize") =>
         measure(page.locator(selector), prop);
-      const headerRow = () => measure(page.getByRole("banner").locator(":scope > div.mx-auto"), "height");
+      const headerRow = () => measure(page.locator('[data-slot="header-row"]'), "height");
       const token = (name: string) =>
         page.evaluate(
           (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim(),
@@ -115,7 +102,11 @@ test.describe("reduced motion", () => {
 
   test("the console's own override stops transitions and enter animations too", async ({ page }) => {
     await open(page, OVERVIEW);
-    await page.evaluate(() => document.documentElement.setAttribute("data-reduced-motion", "true"));
+    // The user path: the palette's reduce-motion command.
+    await page.keyboard.press("Control+k");
+    await page.getByRole("dialog", { name: "Command palette" }).getByRole("combobox").fill("reduce motion");
+    await page.keyboard.press("Enter");
+    await expect(page.locator("html")).toHaveAttribute("data-reduced-motion", "true");
     await page.keyboard.press("Control+k");
     await expect(page.getByRole("dialog", { name: "Command palette" })).toBeVisible();
     await settled(page);
@@ -195,9 +186,9 @@ test.describe("responsive", () => {
     test(`at ${width} px the panel sits under the dashboard`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await open(page, OVERVIEW);
-      const dash = await page.getByRole("region", { name: "Dashboard" }).boundingBox();
-      const aside = await page.locator("#assistant-panel").boundingBox();
-      expect(aside!.y).toBeGreaterThanOrEqual(dash!.y + dash!.height - 1);
+      const dash = await boxOf(page.getByRole("region", { name: "Dashboard" }));
+      const aside = await boxOf(page.locator("#assistant-panel"));
+      expect(aside.y).toBeGreaterThanOrEqual(dash.y + dash.height - 1);
     });
   }
 });
@@ -207,12 +198,16 @@ test.describe("keyboard", () => {
     page.evaluate(() => {
       const el = document.activeElement;
       if (!el || el === document.body) return "";
+      // textContent, not innerText: the CSS uppercase of eyebrows is not part of the name.
+      // A table row has no name of its own: its cells, spaced.
+      const cells = el instanceof HTMLTableRowElement ? [...el.cells].map((c) => c.textContent).join(" ") : "";
       const text =
         el.getAttribute("aria-label") ||
-        (el as HTMLElement).innerText ||
+        cells ||
+        el.textContent ||
         el.getAttribute("placeholder") ||
         "";
-      return text.trim().replace(/\s+/g, " ").slice(0, 48);
+      return text.trim().replace(/\s+/g, " ").slice(0, 60);
     });
 
   for (const { title, url, stops } of TAB_ORDERS) {
@@ -246,10 +241,10 @@ test("a reader who scrolls up right after asking is not pulled back down (WCAG 2
     });
   }
   const region = page.getByRole("region", { name: "Conversation" });
-  const box = await region.boundingBox();
+  const box = await boxOf(region);
   await ask(page, "Give me a full summary");
   // Wheel input lands inside the 500 ms follow window of the smooth scroll to the new card.
-  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.wheel(0, -5000);
   await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBe(0);
   await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(4, { timeout: 20_000 });

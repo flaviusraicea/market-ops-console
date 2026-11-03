@@ -1,31 +1,27 @@
 // Regenerates the generated parts of docs/accessibility.md: the Tab order (from tests/e2e/tabOrder.ts, the list the
 // E2E asserts) and the contrast table (from `check:contrast`). `--check` fails instead of writing when the file is stale.
-import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { renderTabOrders } from "../tests/e2e/tabOrder";
+import { rows } from "./contrast";
 
 const root = path.join(__dirname, "..");
 const docPath = path.join(root, "docs", "accessibility.md");
 
-type Row = { kind: string; pair: string; needs: string; ratio: Partial<Record<"light" | "dark", string>> };
-
 /** One row per token pair, with the light and dark ratios side by side. */
 function contrastTable(): string {
-  const output = execFileSync("pnpm", ["--silent", "check:contrast"], { cwd: root, encoding: "utf8" });
-  const rows = new Map<string, Row>();
-  for (const line of output.split("\n")) {
-    const m = /^(PASS|FAIL)\s+(light|dark)\s+(text|graphic|non-text|decorative)\s+(\S+)\s+([\d.]+:1)\s*(?:>=\s*([\d.]+))?/.exec(line);
-    if (!m) continue;
-    const [, result, theme, kind, pair, ratio, needs] = m as unknown as [string, string, "light" | "dark", string, string, string, string | undefined];
-    const row = rows.get(`${kind}|${pair}`) ?? { kind, pair, needs: needs ?? "none", ratio: {} };
-    row.ratio[theme] = result === "FAIL" ? `${ratio} (FAIL)` : ratio;
-    rows.set(`${kind}|${pair}`, row);
+  const pairs = new Map<string, { kind: string; pair: string; min: number | null; ratio: Partial<Record<string, string>> }>();
+  for (const r of rows) {
+    if (r.kind === "monotonic" || r.kind === "parity") continue;
+    const entry = pairs.get(`${r.kind}|${r.pair}`) ?? { kind: r.kind, pair: r.pair, min: r.min, ratio: {} };
+    entry.ratio[r.theme] = `${r.ratio.toFixed(2)}:1${r.pass ? "" : " (FAIL)"}`;
+    pairs.set(`${r.kind}|${r.pair}`, entry);
   }
+  if (pairs.size === 0) throw new Error("No contrast pairs to publish");
   const lines = ["| Pair (foreground/background) | Kind | Needs | Light | Dark |", "| --- | --- | --- | --- | --- |"];
-  for (const r of rows.values()) {
-    lines.push(`| \`${r.pair}\` | ${r.kind} | ${r.needs === "none" ? "none" : `${r.needs}:1`} | ${r.ratio.light ?? ""} | ${r.ratio.dark ?? ""} |`);
+  for (const e of pairs.values()) {
+    lines.push(`| \`${e.pair}\` | ${e.kind} | ${e.min === null ? "none" : `${e.min}:1`} | ${e.ratio["light"] ?? ""} | ${e.ratio["dark"] ?? ""} |`);
   }
   return lines.join("\n");
 }

@@ -1,15 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, userEvent, within } from "storybook/test";
 
-import data from "@/data/data.json";
-import { parseDataset, type Context, type Period } from "@/domain";
-import { withDataset } from "../../../.storybook/decorators";
+import { dataset as ds, portfolioMay, withDataset } from "../../../.storybook/decorators";
 
 import { HeatMapCard } from "./HeatMapCard";
 import { analystVM } from "./viewModel";
 
-const ds = parseDataset(data);
-const europe: Context = { period: "2026-05" as Period, mode: "analyst", metric: "attainment", basis: "month", region: "eu" };
+const europe = { ...portfolioMay, mode: "analyst", region: "eu" } as const;
 
 const meta = {
   title: "features/analyst/HeatMapCard",

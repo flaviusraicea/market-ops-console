@@ -16,10 +16,10 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 3. Overview
 4. Switch to dark theme
 5. About this verdict
-6. Drill into NORTH AMERICA · 2
+6. Drill into North America · 2
 7. United States, on track
 8. Canada, on track
-9. Drill into EUROPE · 5
+9. Drill into Europe · 5
 10. Germany, off track
 11. Spain, off track
 12. Italy, at risk
@@ -78,13 +78,13 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 8. Month
 9. Status rule
 10. Products · Germany, scrollable
-11. PRODUCT
-12. REVENUE
-13. FORECAST
-14. PRIOR YEAR
-15. ATTAINMENT
-16. GROWTH YOY
-17. UNITS
+11. Product
+12. Revenue
+13. Forecast
+14. Prior year
+15. Attainment
+16. Growth YoY
+17. Units
 18. Veltrix $0.57M $0.62M $0.64M 92.7% −10.1% 3,431
 19. Nuvora $0.40M $0.44M $0.44M 91.1% −8.7% 1,120
 20. Orbispan $0.32M $0.35M $0.35M 91.9% −9.3% 1,157
@@ -92,19 +92,19 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 22. Zephyra $0.15M $0.16M $0.16M 92.6% −10.0% 1,052
 23. Attainment
 24. View as table
-25. Australia, on track, 101.8% attainment
+25. Germany, off track, 92.0% attainment
 26. Drill into North America
 27. Drill into Europe
 28. Drill into APAC
 29. Drill into LATAM
 30. View as table
 31. Month
-32. Anomaly: March 2026 revenue fell 27 percent vers
+32. Anomaly: March 2026 revenue fell 27 percent versus February
 33. View as table
 34. France, Attainment: 96.4%
 35. View as table
 36. Germany, May 2026, 92.2% of forecast
-37. ALERTS 0 rules · Growth below · Attainment below
+37. Alerts0 rules · Growth below · Attainment below
 38. Open assistant
 39. Open command palette
 <!-- tab-order:end -->

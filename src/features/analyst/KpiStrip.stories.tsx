@@ -1,18 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect } from "storybook/test";
 
-import data from "@/data/data.json";
-import { parseDataset } from "@/domain";
-import { portfolioMay } from "../../../.storybook/decorators";
+import { dataset as ds, portfolioMay } from "../../../.storybook/decorators";
 import { overviewVM } from "@/features/overview/viewModel";
 import { KpiStrip } from "./KpiStrip";
 
-const ds = parseDataset(data);
 
 const meta = {
   title: "features/analyst/KpiStrip",
   component: KpiStrip,
-  parameters: { globals: { density: "analyst" } },
   globals: { density: "analyst" },
   decorators: [
     (Story) => (

@@ -169,16 +169,6 @@ html[data-reduced-motion="true"] *::after {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .caret {
-    animation: none;
-  }
-}
-
-html[data-reduced-motion="true"] .caret {
-  animation: none;
-}
-
 /* Inline citation (design-system.md 6.5): accent text, dotted underline, solid on hover and focus. */
 .cite-inline {
   color: var(--accent);
