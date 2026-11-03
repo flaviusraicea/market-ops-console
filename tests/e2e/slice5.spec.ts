@@ -106,7 +106,7 @@ test("desktop: the panel is sticky, only the list scrolls, and New text appears 
 }) => {
   await page.setViewportSize({ width: 1280, height: 640 });
   await page.goto("/");
-  const panel = page.locator('aside[aria-labelledby="assistant-h"] > div');
+  const panel = page.locator("#assistant-panel");
   const box = page.getByRole("textbox", { name: "Ask the assistant" });
   for (let i = 0; i < 3; i++) {
     await ask(page, "Give me a full summary");
@@ -117,8 +117,7 @@ test("desktop: the panel is sticky, only the list scrolls, and New text appears 
   const region = page.getByRole("region", { name: "Conversation" });
   const overflow = await region.evaluate((el) => ({
     scrolls: el.scrollHeight > el.clientHeight,
-    panelH: el.closest("aside")!.firstElementChild!.nextElementSibling!.getBoundingClientRect()
-      .height,
+    panelH: document.getElementById("assistant-panel")!.getBoundingClientRect().height,
   }));
   expect(overflow.scrolls).toBe(true);
   expect(overflow.panelH).toBeLessThanOrEqual(640 - 56 - 32 + 1);

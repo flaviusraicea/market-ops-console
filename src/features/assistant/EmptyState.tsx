@@ -2,7 +2,11 @@ import { Eyebrow } from "@/components/Eyebrow";
 import { Suggestions } from "./Suggestions";
 
 /** What the empty state says about the view the user is looking at. All of it is derived from the data. */
-export type PanelContext = { about: string; whatChanged: string };
+export type PanelContext = {
+  /** The lilac Context line. Null while a prefilled question names its own subject, so the panel never names two. */
+  about: string | null;
+  whatChanged: string;
+};
 
 /**
  * Shown until the first answer. The lilac block only says what the assistant will be asked about; the
@@ -17,13 +21,15 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div
-        data-ai
-        className="flex flex-col gap-1 rounded-card border border-ai-border bg-ai-bg p-3"
-      >
-        <Eyebrow className="text-ai-label">Context</Eyebrow>
-        <p className="font-medium text-ink">{context.about}</p>
-      </div>
+      {context.about ? (
+        <div
+          data-ai
+          className="flex flex-col gap-1 rounded-card border border-ai-border bg-ai-bg p-3"
+        >
+          <Eyebrow className="text-ai-label">Context</Eyebrow>
+          <p className="font-medium text-ink">{context.about}</p>
+        </div>
+      ) : null}
       <div className="flex flex-col gap-1 border-l-2 border-border pl-3">
         <p className="flex items-baseline gap-2">
           <Eyebrow>What changed</Eyebrow>

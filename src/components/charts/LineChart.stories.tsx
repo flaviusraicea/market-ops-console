@@ -227,6 +227,7 @@ const anomalies: LineAnomaly[] = [
   {
     period: "2026-03",
     index: 21,
+    momPct: -27.2,
     label: "−27% vs Feb",
     ariaLabel: "Anomaly: March 2026 revenue fell 27 percent versus February",
   },

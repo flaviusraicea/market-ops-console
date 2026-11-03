@@ -10,6 +10,7 @@ import {
   growthPct,
   kpiFor,
   marketsIn,
+  changePct,
   momChangePct,
   periodIndex,
   totals,
@@ -166,6 +167,8 @@ export type SeriesPoint = {
 export type AnomalyVM = {
   period: Period;
   index: number;
+  /** Month-on-month change in revenue, percent with one decimal. */
+  momPct: number | undefined;
   /** "−27% vs Feb" */
   label: string;
   /** "Anomaly: March 2026 revenue fell 27 percent versus February" */
@@ -182,6 +185,8 @@ export type TimeSeriesVM = {
   selectedPeriod: Period;
   points: SeriesPoint[];
   anomalies: AnomalyVM[];
+  /** The entity the chart shows; an anomaly's "Ask about" names it. */
+  subject: { entity: Entity; name: string };
 };
 
 export type RadarSeriesVM = {
@@ -207,6 +212,8 @@ export type RadarVM = {
 
 export type HeatCellVM = {
   period: Period;
+  /** Month-on-month change in revenue; undefined for the first month. */
+  momPct: number | undefined;
   /** Attainment, percent with one decimal. */
   value: number;
   display: string;
@@ -222,6 +229,8 @@ export type HeatMapVM = {
   periods: Period[];
   rows: HeatRowVM[];
   selected: { market: string; period: Period } | undefined;
+  /** The line under the chart: which cell is outlined and how to ask about one. */
+  hint: string;
 };
 
 export type AnalystVM = {
@@ -393,6 +402,7 @@ function anomalyLabel(ds: Dataset, entity: Entity, period: Period): AnomalyVM | 
   return {
     period,
     index,
+    momPct: changePct(cur, prev),
     label: `${change < 0 ? MINUS : "+"}${abs}% vs ${formatMonthShort(prevPeriod)}`,
     ariaLabel: `Anomaly: ${formatMonthName(period)} ${period.slice(0, 4)} revenue ${word} ${abs} percent versus ${formatMonthName(prevPeriod)}`,
   };
@@ -451,6 +461,7 @@ function timeSeriesVM(ds: Dataset, ctx: Context): TimeSeriesVM {
     selectedPeriod: ctx.period,
     points,
     anomalies,
+    subject: { entity, name },
   };
 }
 
@@ -541,13 +552,17 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
   const markets = marketsByRevenue(ds, peerMarkets(ds, ctx), ctx.period).map(({ m }) => m);
   const periods = ds.meta.periods as Period[];
   const rows: HeatRowVM[] = markets.map((m) => {
+    let before: number | undefined;
     const cells = periods.map((period) => {
       const t = totals(
         factsFor(ds, { entity: { kind: "market", marketId: m.id }, periods: [period] }),
       );
       const value = attainmentPct(t);
+      const momPct = before ? changePct(t.actual, before) : undefined;
+      before = t.actual;
       return {
         period,
+        momPct,
         value,
         display: formatPct(value, { sign: false }),
         actual: t.actual,
@@ -557,13 +572,16 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
     return { id: m.id, name: m.name, cells };
   });
   const scope = ctx.region ? entityName(ds, { kind: "region", regionId: ctx.region }) : "Portfolio";
+  const selected = ctx.market ? { market: ctx.market, period: ctx.period } : undefined;
+  const picked = rows.find((r) => r.id === selected?.market);
   return {
     title: `Attainment by month · ${scope}`,
     subtitle: `${ctx.region ? scope : "All markets"} · ${formatPeriod(periods[0] ?? "")} – ${formatPeriod(periods[periods.length - 1] ?? "")} · % of forecast`,
     caption: `Sorted by revenue · ${DERIVED}`,
     periods,
     rows,
-    selected: ctx.market ? { market: ctx.market, period: ctx.period } : undefined,
+    selected,
+    hint: `${picked && selected ? `${formatPeriodAbbr(selected.period)} is the outlined cell in the ${picked.name} row. ` : ""}Shift+Enter on a focused cell asks about it.`,
   };
 }
 
