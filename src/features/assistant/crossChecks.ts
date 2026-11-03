@@ -7,6 +7,8 @@ import {
   type Entity,
   type Market,
 } from "@/domain";
+import { readQuestion } from "@/lib/stream/horizon";
+import { ANSWER_KEYS } from "./inlineMap";
 import { formatPct, formatPeriod } from "@/lib/format";
 
 /**
@@ -14,12 +16,7 @@ import { formatPct, formatPeriod } from "@/lib/format";
  * flags it in the same words as the status check ("Differs from source"), computed from the dataset, never typed in.
  * Keyed like INLINE_MAP, by the answer's citation labels.
  */
-const KEYS = {
-  atRisk: "Germany, latest period|Germany, March dip|Italy, latest period|Brazil, latest period",
-  forecastMiss: "Germany|Italy|Brazil",
-  apacVsEurope: "APAC, latest period|China|Japan|Europe, latest period",
-  summary: "North America|APAC|Europe|United States|China|Germany, March dip",
-} as const;
+const KEYS = ANSWER_KEYS;
 
 const COUNT = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
@@ -46,15 +43,27 @@ function attainment(ds: Dataset, entity: Entity): number | undefined {
   return t.forecast === 0 ? undefined : attainmentPct(t);
 }
 
+/** "Just below 100%" is within a point under it; any other figure contradicts the claim. */
+export const isJustBelow = (attainment: number) => attainment >= 99 && attainment < 100;
+
 const pct = (n: number) => formatPct(n, { sign: false });
 
 /** The lines to show under an answer, each starting "Differs from source:". Empty for any other answer. */
-export function crossChecks(ds: Dataset, key: string): string[] {
+export function crossChecks(ds: Dataset, key: string, question = ""): string[] {
   const month = ds.meta.latestPeriod;
   const monthName = formatPeriod(month);
   switch (key) {
-    case KEYS.atRisk:
-      return [`Differs from source: the answer names three markets; ${flagSentence(ds)}.`];
+    case KEYS.atRisk: {
+      const lines = [`Differs from source: the answer names three markets; ${flagSentence(ds)}.`];
+      // data.json gives a status only for the latest month, so a question about another period gets this answer as is.
+      const other = readQuestion(ds, question).span.some((p) => p !== month);
+      if (other) {
+        lines.unshift(
+          `Status is only given for ${monthName}: this answer describes that month, not the period asked about.`,
+        );
+      }
+      return lines;
+    }
     case KEYS.forecastMiss: {
       const portfolio = attainment(ds, { kind: "portfolio" });
       return portfolio !== undefined && portfolio >= 100
@@ -66,7 +75,7 @@ export function crossChecks(ds: Dataset, key: string): string[] {
     case KEYS.apacVsEurope: {
       const eu = attainment(ds, { kind: "region", regionId: "eu" });
       const apac = attainment(ds, { kind: "region", regionId: "apac" });
-      return eu !== undefined && apac !== undefined
+      return eu !== undefined && apac !== undefined && !isJustBelow(eu)
         ? [
             `Differs from source: Europe is at ${pct(eu)} of forecast in ${monthName} and APAC at ${pct(apac)}; the answer says Europe is "just below" 100%.`,
           ]

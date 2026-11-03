@@ -5,7 +5,7 @@ import fixturesRaw from "@/data/fixtures.json";
 import { attainmentPct, factsFor, toPeriod, totals } from "@/domain";
 import { parseDataset } from "@/domain/dataset";
 import { FixturesFileSchema } from "@/domain/stream";
-import { crossChecks } from "@/features/assistant/crossChecks";
+import { crossChecks, isJustBelow } from "@/features/assistant/crossChecks";
 import { INLINE_MAP, inlineKey } from "@/features/assistant/inlineMap";
 import starter from "../fixtures/starter-fixtures.json";
 import { pickFixture } from "@/lib/stream/pickFixture";
@@ -180,6 +180,30 @@ describe("the starter pack's answers are shown as given and checked against data
     expect(crossChecks(ds, keyOf("apac-vs-europe"))).toEqual([
       `Differs from source: Europe is at ${pct(region("eu"))} of forecast in May 2026 and APAC at ${pct(region("apac"))}; the answer says Europe is "just below" 100%.`,
     ]);
+  });
+
+  it("treats only 99.0 to just under 100 as 'just below'", () => {
+    expect([98.9, 99, 99.5, 99.9, 100, 104.9, 95.4].map(isJustBelow)).toEqual([
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+    ]);
+  });
+
+  it("says a past-period at-risk question got the latest month's status", () => {
+    const [note, flag] = crossChecks(ds, keyOf("at-risk"), "Which markets were at risk in 2025?");
+    expect(note).toBe(
+      "Status is only given for May 2026: this answer describes that month, not the period asked about.",
+    );
+    expect(flag).toContain("data.json flags six");
+    expect(
+      crossChecks(ds, keyOf("at-risk"), "Which markets are at risk in May 2026?"),
+    ).toHaveLength(1);
+    expect(crossChecks(ds, keyOf("at-risk"), "Which markets are at risk?")).toHaveLength(1);
   });
 
   it("flags the summary's 'close to plan' markets and its short watch list", () => {

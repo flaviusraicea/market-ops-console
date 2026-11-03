@@ -30,7 +30,7 @@ function loadFull(): Promise<Dataset> {
 export type SourcesState =
   { status: "loading" } | { status: "ready"; rows: SourceRow[]; caption: string; checks: string[] };
 
-export function useSourcesRows(citations: readonly Resolved[]): SourcesState {
+export function useSourcesRows(citations: readonly Resolved[], question = ""): SourcesState {
   const light = useDataset();
   const [fullDs, setFullDs] = useState<Dataset | undefined>();
   useEffect(() => {
@@ -49,6 +49,6 @@ export function useSourcesRows(citations: readonly Resolved[]): SourcesState {
   return {
     status: "ready",
     ...sourcesRows(fullDs, citations, SOURCES_META[key] ?? DEFAULT_SOURCES_META),
-    checks: crossChecks(fullDs, key),
+    checks: crossChecks(fullDs, key, question),
   };
 }

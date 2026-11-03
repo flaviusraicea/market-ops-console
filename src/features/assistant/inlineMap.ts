@@ -12,13 +12,27 @@ const EUROPE_AT_RISK = ["Germany", "Spain", "Italy", "United Kingdom", "France"]
   .map((n) => `${n}, latest period`)
   .join("|");
 
+/** The pack answers' citation-label keys, shared with the cross-checks so the two cannot drift apart. */
+export const ANSWER_KEYS = {
+  atRisk: "Germany, latest period|Germany, March dip|Italy, latest period|Brazil, latest period",
+  forecastMiss: "Germany|Italy|Brazil",
+  apacVsEurope: "APAC, latest period|China|Japan|Europe, latest period",
+  summary: "North America|APAC|Europe|United States|China|Germany, March dip",
+} as const;
+
 export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
   "Germany, Feb 2026|Germany, Mar 2026 (largest dip)|Veltrix in Germany, Mar 2026": [
     { phrase: "early 2026", citationIndex: 0 },
     { phrase: "steepest drop in March", citationIndex: 1 },
     { phrase: "across the product portfolio", citationIndex: 2 },
   ],
-  "Germany, latest period|Germany, March dip|Italy, latest period|Brazil, latest period": [
+  [ANSWER_KEYS.apacVsEurope]: [
+    { phrase: "APAC sits comfortably above 100%", citationIndex: 0 },
+    { phrase: "China", citationIndex: 1 },
+    { phrase: "Japan", citationIndex: 2 },
+    { phrase: "Europe is hovering just below", citationIndex: 3 },
+  ],
+  [ANSWER_KEYS.atRisk]: [
     { phrase: "Germany", citationIndex: 0 },
     { phrase: "sharp dip in March", citationIndex: 1 },
     { phrase: "Italy", citationIndex: 2 },
@@ -31,7 +45,7 @@ export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
     { phrase: "United Kingdom", citationIndex: 3 },
     { phrase: "France", citationIndex: 4 },
   ],
-  "Germany|Italy|Brazil": [
+  [ANSWER_KEYS.forecastMiss]: [
     { phrase: "Germany", citationIndex: 0 },
     { phrase: "Italy", citationIndex: 1 },
     { phrase: "Brazil", citationIndex: 2 },
@@ -50,7 +64,15 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
       { claim: "Decline across the portfolio", assistantWord: "Across products" },
     ],
   },
-  "Germany, latest period|Germany, March dip|Italy, latest period|Brazil, latest period": {
+  [ANSWER_KEYS.apacVsEurope]: {
+    items: [
+      { claim: "APAC attainment", assistantWord: "Above 100%" },
+      { claim: "China ahead of forecast", assistantWord: "Ahead of plan" },
+      { claim: "Japan ahead of forecast", assistantWord: "Ahead of plan" },
+      { claim: "Europe attainment", assistantWord: "Just below 100%" },
+    ],
+  },
+  [ANSWER_KEYS.atRisk]: {
     items: [
       { claim: "Germany at risk", assistantWord: "At risk" },
       { claim: "March dip", assistantWord: "Sharp dip" },
@@ -67,7 +89,7 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
       { claim: "France at risk", assistantWord: "At risk" },
     ],
   },
-  "Germany|Italy|Brazil": {
+  [ANSWER_KEYS.forecastMiss]: {
     withRevenue: true,
     items: [
       { claim: "Largest contributor", assistantWord: "Under plan" },

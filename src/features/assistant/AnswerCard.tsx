@@ -163,7 +163,7 @@ function ChipArea({
     c.resolution.ok && c.resolution.disagreement ? [c.resolution.disagreement] : [],
   );
   const first = diffs[0];
-  const sources = useSourcesRows(answer.citations);
+  const sources = useSourcesRows(answer.citations, answer.question);
   const checks = sources.status === "ready" ? sources.checks : [];
   return (
     <div data-slot="chip-area" className="flex flex-col items-start gap-1.5">
@@ -183,7 +183,6 @@ function ChipArea({
   );
 }
 
-/** The answer in paragraphs (a blank line in the text starts one); `trailing` stays at the end of the last. */
 /** One "Differs from source" line: the answer says one thing, data.json another. */
 function DiffersNote({ children, long }: { children: ReactNode; long?: boolean }) {
   return (
@@ -197,6 +196,7 @@ function DiffersNote({ children, long }: { children: ReactNode; long?: boolean }
   );
 }
 
+/** The answer in paragraphs (a blank line in the text starts one); `trailing` stays at the end of the last. */
 function AnswerText({ body, trailing }: { body: ReactNode[]; trailing: ReactNode }) {
   const paragraphs = splitParagraphs(body);
   const last = paragraphs.length - 1;
