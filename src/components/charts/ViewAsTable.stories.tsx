@@ -41,7 +41,7 @@ export const Toggle: Story = {
     const toggle = c.getByRole("button", { name: "View as table of revenue by market" });
     await expect(toggle).toHaveAttribute("aria-pressed", "false");
     await userEvent.click(toggle);
-    await expect(c.getByRole("button", { name: "View as chart" })).toHaveAttribute("aria-pressed", "true");
+    await expect(c.getByRole("button", { name: /^View as chart of revenue by market/ })).toHaveAttribute("aria-pressed", "true");
     await expect(c.getByRole("table")).toBeVisible();
   },
 };

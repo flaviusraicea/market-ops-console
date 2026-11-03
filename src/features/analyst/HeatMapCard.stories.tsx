@@ -24,7 +24,7 @@ export const Europe: Story = {
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
     await expect(c.getByRole("list", { name: "Attainment colour scale" })).toBeVisible();
-    await userEvent.click(c.getByRole("button", { name: "View as table" }));
+    await userEvent.click(c.getByRole("button", { name: /^View as table/ }));
     await expect(c.getByRole("table")).toBeVisible();
   },
 };

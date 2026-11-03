@@ -1045,8 +1045,8 @@ export const ViewAsTableState: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("button", { name: "View as table" }));
-    await expect(canvas.getByRole("button", { name: "View as chart" })).toHaveAttribute(
+    await userEvent.click(canvas.getByRole("button", { name: /^View as table/ }));
+    await expect(canvas.getByRole("button", { name: /^View as chart/ })).toHaveAttribute(
       "aria-pressed",
       "true",
     );

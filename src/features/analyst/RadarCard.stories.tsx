@@ -22,7 +22,7 @@ export const Europe: Story = {
   args: { vm: analystVM(ds, europe).radar, rowLabel: "Market" },
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
-    await userEvent.click(c.getByRole("button", { name: "View as table" }));
+    await userEvent.click(c.getByRole("button", { name: /^View as table/ }));
     await expect(c.getByRole("table")).toBeVisible();
   },
 };
