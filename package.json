@@ -16,6 +16,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "check:contrast": "tsx scripts/check-contrast.ts",
+    "docs:a11y": "tsx scripts/gen-a11y-docs.ts",
     "build:geo": "tsx scripts/build-geo.ts",
     "ci": "pnpm lint && pnpm typecheck && pnpm check:contrast && pnpm test && pnpm build && pnpm build-storybook"
   },
