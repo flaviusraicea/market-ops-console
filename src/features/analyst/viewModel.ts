@@ -1,5 +1,7 @@
 import {
   STATUS_LABEL,
+  derivedLabel,
+  sourceLabel,
   STATUS_RULE_TEXT,
   askWhyPrompt,
   attainmentPct,
@@ -33,8 +35,6 @@ import {
   formatPeriodShort,
 } from "@/lib/format";
 
-const SOURCE = "Source · data.json";
-const DERIVED = "Derived · sum of series";
 const MINUS = "−";
 
 export const RADAR_AXES_GIVEN = [
@@ -331,7 +331,7 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
       title: `Products · ${name}`,
       summary: `${rows.length} products · ${periodLabel}`,
       note: "",
-      caption: DERIVED,
+      caption: derivedLabel(ds, ctx.period === ds.meta.latestPeriod),
       marketId,
       rows,
       total: totalFor(ds, { kind: "market", marketId }, ctx.period, name),
@@ -383,7 +383,7 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
     title: entity.kind === "portfolio" ? "Markets" : `Markets · ${entityName(ds, entity)}`,
     summary: `${rows.length} markets · ${formatPeriod(ctx.period)}`,
     note: "Status and share are latest month only",
-    caption: atLatest ? SOURCE : DERIVED,
+    caption: atLatest ? sourceLabel(ds) : derivedLabel(ds, false),
     statusRule: STATUS_RULE_TEXT,
     rows,
     total: totalFor(ds, entity, ctx.period, entityName(ds, entity)),
@@ -542,7 +542,7 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
     subtitle: atPortfolio
       ? `Regions · five axes, scaled across all ${peers} regions`
       : `${entityName(ds, { kind: "region", regionId: ctx.region! })} · five axes, scaled across all ${peers} markets`,
-    caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? DERIVED : "Attainment and growth derived · share given"}`,
+    caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod) : "Attainment and growth derived · share given"}`,
     axes: atPortfolio ? RADAR_AXES_DERIVED : RADAR_AXES_GIVEN,
     series,
   };
@@ -577,7 +577,7 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
   return {
     title: `Attainment by month · ${scope}`,
     subtitle: `${ctx.region ? scope : "All markets"} · ${formatPeriod(periods[0] ?? "")} – ${formatPeriod(periods[periods.length - 1] ?? "")} · % of forecast`,
-    caption: `Sorted by revenue · ${DERIVED}`,
+    caption: `Sorted by revenue · ${derivedLabel(ds)}`,
     periods,
     rows,
     selected,

@@ -41,6 +41,8 @@ export const MetaSchema = z.object({
   periods: z.array(PeriodSchema).min(1),
   latestPeriod: PeriodSchema,
   generatedAt: z.string().optional(),
+  /** Set only by live mode: the latest month holds simulated figures, not the saved ones. */
+  simulated: z.boolean().optional(),
 });
 
 function shiftMonths(period: string, delta: number): string {

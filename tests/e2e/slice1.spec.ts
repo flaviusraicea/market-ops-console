@@ -33,6 +33,8 @@ test("tab order at the latest period skips the wordmark and has no period chip",
   await tabThrough(page, [
     { role: "link", name: "Skip to content" },
     { role: "combobox", name: "Period" },
+    { role: "button", name: "Live" },
+    { role: "button", name: "Paused" },
     { role: "radio", name: "Overview" },
     { role: "button", name: "Switch to dark theme" },
   ]);
@@ -48,6 +50,8 @@ test("tab order on a drilled earlier period", async ({ page }) => {
     { role: "button", name: "Clear period" },
     { role: "combobox", name: "Product" },
     { role: "combobox", name: "Period" },
+    { role: "button", name: "Live" },
+    { role: "button", name: "Paused" },
     { role: "radio", name: "Overview" },
     { role: "button", name: "Switch to dark theme" },
   ]);

@@ -4,6 +4,7 @@ import { Eyebrow } from "@/components/Eyebrow";
 import { ICON_STROKE, Info, TableIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ConnectedLiveToggle } from "@/features/live/LiveToggle";
 import { PeriodSelect } from "@/features/shell/PeriodSelect";
 import { ProductSelect, type ProductOption } from "@/features/shell/ProductSelect";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
@@ -92,6 +93,10 @@ export function AnalystToolbar({
               <TooltipContent className="max-w-72">{statusRule}</TooltipContent>
             </Tooltip>
           </div>
+        </div>
+        {/* The header carries the toggle from 768 px; below that it lives here. */}
+        <div className="shrink-0 md:hidden">
+          <ConnectedLiveToggle />
         </div>
         <div data-slot="toolbar-end" className="shrink-0">
           <Button

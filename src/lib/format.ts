@@ -10,6 +10,13 @@ const one = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFr
 const monthLong = new Intl.DateTimeFormat("en-US", { month: "long", timeZone: "UTC" });
 const monthShort = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" });
 
+const clock = new Intl.DateTimeFormat("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
 function parts(period: string): { y: number; m: number } {
   const [y, m] = period.split("-").map(Number) as [number, number];
   return { y, m };
@@ -79,4 +86,9 @@ export function formatInt(n: number): string {
 
 export function formatCount(a: number, b: number): string {
   return `${a} of ${b}`;
+}
+
+/** A wall-clock time as 24-hour hours, minutes and seconds in the viewer's time zone, e.g. "12:04:05". */
+export function formatClock(d: Date): string {
+  return clock.format(d);
 }

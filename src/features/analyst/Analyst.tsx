@@ -6,14 +6,16 @@ import { DatasetProvider } from "@/lib/context/dataset";
 import { lightDataset } from "@/lib/context/invariants";
 import { getDataset } from "@/lib/dataset";
 import { AnalystToolbar } from "./AnalystToolbar";
-import { HeatMapCard } from "./HeatMapCard";
+import {
+  LiveHeatMapCard,
+  LiveKpiStrip,
+  LiveMapSection,
+  LiveMarketGrid,
+  LiveRadarCard,
+  LiveTimeSeriesCard,
+} from "@/features/live/LiveIslands";
 import { LazyFactsTable } from "./LazyFactsTable";
-import { KpiStrip } from "./KpiStrip";
-import { MapSection } from "./MapSection";
-import { MarketGrid } from "./MarketGrid";
-import { RadarCard } from "./RadarCard";
 import { Sheet } from "./Sheet";
-import { TimeSeriesCard } from "./TimeSeriesCard";
 import { analystVM, factsVM } from "./viewModel";
 
 /**
@@ -36,10 +38,10 @@ export function Analyst({ ctx }: { ctx: Context }) {
       />
       <Sheet>
         <ErrorBoundary widget="kpi-strip">
-          <KpiStrip tiles={overview.tiles} />
+          <LiveKpiStrip tiles={overview.tiles} />
         </ErrorBoundary>
         <ErrorBoundary widget="market-grid">
-          <MarketGrid grid={vm.grid} />
+          <LiveMarketGrid grid={vm.grid} />
         </ErrorBoundary>
         {ctx.facts ? (
           <ErrorBoundary widget="facts-table">
@@ -47,17 +49,17 @@ export function Analyst({ ctx }: { ctx: Context }) {
           </ErrorBoundary>
         ) : null}
         <ErrorBoundary widget="map">
-          <MapSection map={overview.map} regions={regionBarsVM(ds, ctx)} />
+          <LiveMapSection map={overview.map} regions={regionBarsVM(ds, ctx)} />
         </ErrorBoundary>
         <ErrorBoundary widget="time-series">
-          <TimeSeriesCard vm={vm.timeSeries} />
+          <LiveTimeSeriesCard vm={vm.timeSeries} />
         </ErrorBoundary>
         <div className="grid min-[1024px]:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] min-[1024px]:divide-x min-[1024px]:divide-border max-[1023px]:divide-y max-[1023px]:divide-border">
           <ErrorBoundary widget="radar">
-            <RadarCard vm={vm.radar} rowLabel={ctx.region ? "Market" : "Region"} />
+            <LiveRadarCard vm={vm.radar} rowLabel={ctx.region ? "Market" : "Region"} />
           </ErrorBoundary>
           <ErrorBoundary widget="heat-map">
-            <HeatMapCard vm={vm.heatMap} />
+            <LiveHeatMapCard vm={vm.heatMap} />
           </ErrorBoundary>
         </div>
         <ErrorBoundary widget="alerts">

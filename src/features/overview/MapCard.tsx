@@ -89,7 +89,7 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
   return (
     <Table scrollLabel="Markets table">
       <TableCaption className="sr-only">
-        Markets, {map.periodLabel}. Source · data.json
+        Markets, {map.periodLabel}. {map.provenance}
       </TableCaption>
       <TableHeader>
         <TableRow>
