@@ -83,36 +83,37 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 10. Product
 11. Month
 12. Status rule
-13. Products · Germany, scrollable
-14. Product
-15. Revenue
-16. Forecast
-17. Prior year
-18. Attainment
-19. Growth YoY
-20. Units
-21. Veltrix $0.57M $0.62M $0.64M 92.7% −10.1% 3,431
-22. Nuvora $0.40M $0.44M $0.44M 91.1% −8.7% 1,120
-23. Orbispan $0.32M $0.35M $0.35M 91.9% −9.3% 1,157
-24. Calyx $0.23M $0.24M $0.26M 93.4% −10.9% 858
-25. Zephyra $0.15M $0.16M $0.16M 92.6% −10.0% 1,052
-26. Attainment
-27. View as table of the markets map
-28. Germany, off track, 92.0% attainment
-29. Drill into North America
-30. Drill into Europe
-31. Drill into APAC
-32. Drill into LATAM
-33. View as table of the Germany revenue chart
-34. Month
-35. Anomaly: March 2026 revenue fell 27 percent versus February
-36. View as table of the compare radar chart
-37. France, Attainment: 96.4%
-38. View as table of the attainment by month heat map
-39. Germany, May 2026, 92.2% of forecast
-40. Alerts0 rules · Growth below · Attainment below
-41. Open assistant
-42. Open command palette
+13. All facts
+14. Products · Germany, scrollable
+15. Product
+16. Revenue
+17. Forecast
+18. Prior year
+19. Attainment
+20. Growth YoY
+21. Units
+22. Veltrix $0.57M $0.62M $0.64M 92.7% −10.1% 3,431
+23. Nuvora $0.40M $0.44M $0.44M 91.1% −8.7% 1,120
+24. Orbispan $0.32M $0.35M $0.35M 91.9% −9.3% 1,157
+25. Calyx $0.23M $0.24M $0.26M 93.4% −10.9% 858
+26. Zephyra $0.15M $0.16M $0.16M 92.6% −10.0% 1,052
+27. Attainment
+28. View as table of the markets map
+29. Germany, off track, 92.0% attainment
+30. Drill into North America
+31. Drill into Europe
+32. Drill into APAC
+33. Drill into LATAM
+34. View as table of the Germany revenue chart
+35. Month
+36. Anomaly: March 2026 revenue fell 27 percent versus February
+37. View as table of the compare radar chart
+38. France, Attainment: 96.4%
+39. View as table of the attainment by month heat map
+40. Germany, May 2026, 92.2% of forecast
+41. Alerts0 rules · Growth below · Attainment below
+42. Open assistant
+43. Open command palette
 <!-- tab-order:end -->
 
 ### Shortcuts

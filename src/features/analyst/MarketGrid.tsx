@@ -4,7 +4,7 @@ import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
 import { InfoTip } from "@/components/InfoTip";
-import { ArrowDown, ArrowUp, ICON_STROKE, Sparkles } from "@/components/icons";
+import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import {
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
+import { SortHead } from "./SortHead";
 import { useLanding } from "./useLanding";
 import { SheetSection } from "./Sheet";
 import type {
@@ -89,51 +90,6 @@ function sortRows<T extends { name: string; sort: SortValues }>(rows: T[], sort:
   });
 }
 
-/** A column header that sorts: numbers start largest first, names start A to Z. */
-function SortHead({
-  label,
-  column,
-  sort,
-  onSort,
-  align = "right",
-  className,
-}: {
-  label: string;
-  column: SortKey;
-  sort: Sort;
-  onSort: (next: Sort) => void;
-  align?: "left" | "right";
-  className?: string;
-}) {
-  const active = sort.key === column;
-  const Icon = sort.dir === "asc" ? ArrowUp : ArrowDown;
-  return (
-    <TableHead
-      scope="col"
-      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
-      className={cn(align === "right" && "text-right", className)}
-    >
-      <button
-        type="button"
-        onClick={() =>
-          onSort(
-            active
-              ? { key: column, dir: sort.dir === "asc" ? "desc" : "asc" }
-              : { key: column, dir: column === "name" ? "asc" : "desc" },
-          )
-        }
-        className={cn(
-          "inline-flex items-center gap-1 rounded-control uppercase hover:text-ink",
-          active && "text-ink",
-        )}
-      >
-        {label}
-        {active ? <Icon aria-hidden className="size-3" strokeWidth={ICON_STROKE} /> : null}
-      </button>
-    </TableHead>
-  );
-}
-
 function AskWhyButton({ label, onAsk }: { label: string; onAsk: () => void }) {
   return (
     <Button
@@ -176,6 +132,7 @@ function MarketRows({
           <SortHead
             label="Market"
             column="name"
+            firstDir="asc"
             align="left"
             sort={sort}
             onSort={onSort}
@@ -322,6 +279,7 @@ function ProductRows({
           <SortHead
             label="Product"
             column="name"
+            firstDir="asc"
             align="left"
             sort={sort}
             onSort={onSort}

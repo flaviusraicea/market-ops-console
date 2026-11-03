@@ -14,8 +14,9 @@ import {
   LiveRadarCard,
   LiveTimeSeriesCard,
 } from "@/features/live/LiveIslands";
+import { LazyFactsTable } from "./LazyFactsTable";
 import { Sheet } from "./Sheet";
-import { analystVM } from "./viewModel";
+import { analystVM, factsVM } from "./viewModel";
 
 /**
  * Analyst mode: a sticky toolbar over one ruled sheet. KPI strip, the grid first, then the map, the time
@@ -42,6 +43,11 @@ export function Analyst({ ctx }: { ctx: Context }) {
         <ErrorBoundary widget="market-grid">
           <LiveMarketGrid grid={vm.grid} />
         </ErrorBoundary>
+        {ctx.facts ? (
+          <ErrorBoundary widget="facts-table">
+            <LazyFactsTable facts={factsVM(ds, ctx)} />
+          </ErrorBoundary>
+        ) : null}
         <ErrorBoundary widget="map">
           <LiveMapSection map={overview.map} regions={regionBarsVM(ds, ctx)} />
         </ErrorBoundary>

@@ -89,6 +89,7 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "Product",
       "Month",
       "Status rule",
+      "All facts",
       "Products · Germany, scrollable",
       "Product",
       "Revenue",
