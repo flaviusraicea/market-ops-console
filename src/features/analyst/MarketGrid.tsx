@@ -152,11 +152,11 @@ function MarketRows({
           <TableRow key={r.id} {...rowProps(false, () => setContext({ market: r.id }))}>
             <TableCell className={cn(STICKY_CELL, "font-medium text-ink")}>
               {r.name}{" "}
-              <span className="text-[length:var(--text-caption)] font-normal text-ink-muted">
+              <span className="text-[length:var(--text-caption)] font-normal text-ink-muted max-md:hidden">
                 {r.iso2}
               </span>
             </TableCell>
-            <TableCell>
+            <TableCell className="max-md:px-2">
               {ctx.region === r.regionId ? (
                 <span className="text-ink-2">{r.regionName}</span>
               ) : (
@@ -170,7 +170,7 @@ function MarketRows({
                 </button>
               )}
             </TableCell>
-            <TableCell>
+            <TableCell className="max-md:px-2">
               <StatusBadge status={r.status} label={r.statusLabel} size="sm" />
             </TableCell>
             <TableCell className="text-right num">{r.revenue}</TableCell>

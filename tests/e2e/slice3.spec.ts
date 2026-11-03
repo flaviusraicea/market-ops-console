@@ -51,7 +51,7 @@ test("Back twice returns to the original state and Forward re-applies it", async
   await page.goBack();
   await expect(page).not.toHaveURL(/product=/);
   await page.goBack();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/\?mode=executive$/);
   await expect(
     page.getByRole("navigation", { name: "Drill path" }).locator("[aria-current=page]"),
   ).toHaveText("Portfolio");

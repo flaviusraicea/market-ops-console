@@ -30,7 +30,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-fit items-center justify-between gap-2 rounded-control border border-border bg-surface px-2.5 text-[length:var(--text-body)] leading-[var(--text-body-lh)] whitespace-nowrap text-ink transition-colors duration-[var(--dur-fast)] outline-none hover:bg-surface-2 disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-ink-disabled aria-invalid:border-bad-mark data-[placeholder]:text-ink-muted data-[size=default]:h-[var(--control-h)] data-[size=sm]:h-[var(--control-h)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-ink-2",
+        "flex w-fit items-center justify-between gap-2 rounded-control border border-border-control bg-surface px-2.5 text-[length:var(--text-body)] leading-[var(--text-body-lh)] whitespace-nowrap text-ink transition-colors duration-[var(--dur-fast)] outline-none hover:bg-surface-2 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-2 disabled:text-ink-disabled aria-invalid:border-bad-mark data-[placeholder]:text-ink-muted data-[size=default]:h-[var(--control-h)] data-[size=sm]:h-[var(--control-h)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-ink-2",
         className,
       )}
       {...props}

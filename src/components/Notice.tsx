@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 
 import { CircleAlert, Info, ICON_STROKE } from "@/components/icons";
 import { cn } from "@/components/cn";
@@ -11,17 +11,22 @@ export function Notice({
   actions,
   tone = "bad",
   className,
+  noticeRef,
 }: {
   title: string;
   children?: ReactNode;
   actions?: ReactNode;
   tone?: "bad" | "neutral";
   className?: string;
+  /** For a notice that takes focus when it appears (a failed save): it becomes focusable by script, not by Tab. */
+  noticeRef?: Ref<HTMLDivElement>;
 }) {
   const neutral = tone === "neutral";
   const Icon = neutral ? Info : CircleAlert;
   return (
     <div
+      ref={noticeRef}
+      tabIndex={noticeRef ? -1 : undefined}
       role={neutral ? "note" : "alert"}
       className={cn(
         "flex gap-3 rounded-card border p-[var(--pad-card)]",

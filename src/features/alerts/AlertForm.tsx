@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
 
 import { Check, ICON_STROKE } from "@/components/icons";
@@ -173,7 +173,10 @@ export function AlertForm({
   const { reset, getValues } = form;
   const saving = status === "saving";
 
-  // A failed save puts the inputs back to the last saved values.
+  const noticeRef = useRef<HTMLDivElement>(null);
+
+  // A failed save puts the inputs back to the last saved values, then moves focus to the notice so the next Tab lands
+  // on its recovery action instead of the top of the page (WCAG 2.4.3, 3.3.1).
   useEffect(() => {
     if (!failure) return;
     reset({
@@ -181,6 +184,7 @@ export function AlertForm({
       growth: String(failure.restored.growth),
       attainment: String(failure.restored.attainment),
     });
+    noticeRef.current?.focus();
   }, [failure, reset, getValues]);
 
   function onSubmit(values: Values) {
@@ -280,6 +284,7 @@ export function AlertForm({
 
         {failure ? (
           <Notice
+            noticeRef={noticeRef}
             title={failure.readOnly ? "Rules are read-only for Executives." : "Couldn't save"}
             actions={
               <>

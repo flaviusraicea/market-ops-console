@@ -16,7 +16,7 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 3. Paused
 4. Executive
 5. Switch to dark theme
-6. Signed in as Dana Whitfield, Executive. Account menu
+6. Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu
 7. Period
 8. Product. Select a market first.
 9. About this verdict
@@ -56,19 +56,21 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 43. China
 44. France
 45. Canada
-46. View as table of the markets map
-47. Australia, on track, 101.8% attainment
-48. Drill into North America
-49. Drill into Europe
-50. Drill into APAC
-51. Drill into LATAM
-52. Collapse assistant
-53. Ask about a market or period…
-54. Send
-55. Open command palette
-56. Which markets are at risk?
-57. Why did Germany dip?
-58. Compare APAC and Europe
+46. Germany
+47. Spain
+48. View as table of the markets map
+49. Australia, on track, 101.8% attainment
+50. Drill into North America
+51. Drill into Europe
+52. Drill into APAC
+53. Drill into LATAM
+54. Collapse assistant
+55. Ask about a market or period…
+56. Send
+57. Open command palette
+58. Which markets are at risk?
+59. Why did Germany dip?
+60. Compare APAC and Europe
 
 #### Analyst, Germany (`/?mode=analyst&region=eu&market=de`)
 
@@ -79,7 +81,7 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 5. Paused
 6. Analyst
 7. Switch to dark theme
-8. Signed in as Dana Whitfield, Executive. Account menu
+8. Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu
 9. Period
 10. Product
 11. Month
@@ -230,6 +232,13 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 | `cat-5/surface` | graphic | 3:1 | 5.25:1 | 4.73:1 |
 | `cat-6/surface` | graphic | 3:1 | 4.20:1 | 5.41:1 |
 | `ai-border/ai-bg` | decorative | none | 2.91:1 |  |
+| `border-control/surface` | non-text | 3:1 | 4.32:1 | 4.47:1 |
+| `border-control/bg` | non-text | 3:1 | 3.31:1 | 4.87:1 |
+| `border-control/surface-2` | non-text | 3:1 | 3.38:1 | 3.98:1 |
+| `border-control/ai-bg` | non-text | 3:1 | 3.66:1 | 4.14:1 |
+| `border-control/accent-soft` | non-text | 3:1 | 3.60:1 | 3.78:1 |
+| `border-control/surface-raised` | non-text | 3:1 | 4.32:1 | 3.98:1 |
+| `border-control/surface-overlay` | non-text | 3:1 | 4.32:1 | 3.68:1 |
 | `map-land/surface` | non-text | 1.15:1 | 1.28:1 | 1.18:1 |
 | `border/surface` | decorative | none | 1.70:1 | 1.48:1 |
 | `border/bg` | decorative | none | 1.30:1 | 1.61:1 |

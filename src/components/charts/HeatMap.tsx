@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/components/cn";
-import { formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
+import { formatMonthShort, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { HeatCellView, type CellHandlers } from "./HeatCellView";
 import { heatCellTooltip } from "./heatMapTooltip";
@@ -208,7 +208,9 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
                 <span className="sr-only">{formatPeriodAbbr(p)}</span>
                 {i % 3 === 0 ? (
                   <span aria-hidden className="absolute bottom-0 left-0 whitespace-nowrap">
-                    {formatPeriodShort(p)}
+                    {/* A phone has columns about 20 px wide: the month alone keeps neighbouring labels apart. */}
+                    <span className="max-md:hidden">{formatPeriodShort(p)}</span>
+                    <span className="md:hidden">{formatMonthShort(p)}</span>
                   </span>
                 ) : null}
               </div>

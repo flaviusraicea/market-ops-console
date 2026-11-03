@@ -2,7 +2,7 @@
 
 import { cn } from "@/components/cn";
 import { CardHeader } from "@/components/CardHeader";
-import { ArrowUpRight, ICON_STROKE, Sparkles } from "@/components/icons";
+import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Sparkline } from "@/components/charts/Sparkline";
@@ -93,16 +93,34 @@ function MarketRow({
   );
 }
 
+/** The market's name as the button that drills into it. */
+function MarketButton({
+  row,
+  select,
+  className,
+}: {
+  row: AttentionRowVM;
+  select: (id: string) => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => select(row.id)}
+      className={cn(
+        "rounded-control text-left font-medium text-ink underline-offset-4 hover:underline",
+        className,
+      )}
+    >
+      {row.name}
+    </button>
+  );
+}
+
 function MarketCell({ row, select }: { row: AttentionRowVM; select: (id: string) => void }) {
   return (
     <td role="cell" className={cn(CELL, "max-md:p-0 max-md:[grid-area:market]")}>
-      <button
-        type="button"
-        onClick={() => select(row.id)}
-        className="block rounded-control text-left font-medium text-ink underline-offset-4 hover:underline"
-      >
-        {row.name}
-      </button>
+      <MarketButton row={row} select={select} className="block" />
       <span className="block text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted max-md:hidden">
         {row.region}
       </span>
@@ -110,7 +128,7 @@ function MarketCell({ row, select }: { row: AttentionRowVM; select: (id: string)
   );
 }
 
-function MetricCells({ row, rising }: { row: AttentionRowVM; rising?: boolean }) {
+function MetricCells({ row }: { row: AttentionRowVM }) {
   return (
     <>
       <td
@@ -126,9 +144,7 @@ function MetricCells({ row, rising }: { row: AttentionRowVM; rising?: boolean })
         role="cell"
         className={cn(CELL, "text-right max-md:p-0 max-md:text-left max-md:[grid-area:yoy]")}
       >
-        <Growth pct={row.growthPct} rising={rising ?? false}>
-          {row.growth}
-        </Growth>
+        <Growth pct={row.growthPct}>{row.growth}</Growth>
       </td>
       <td
         role="cell"
@@ -140,19 +156,64 @@ function MetricCells({ row, rising }: { row: AttentionRowVM; rising?: boolean })
   );
 }
 
-function RisingRow({ row, select }: { row: AttentionRowVM; select: (id: string) => void }) {
+function MoverColumn({
+  title,
+  id,
+  rows,
+  rising,
+  select,
+}: {
+  title: string;
+  id: string;
+  rows: AttentionRowVM[];
+  rising: boolean;
+  select: (marketId: string) => void;
+}) {
   return (
-    <tr role="row" className={cn(ROW, MOBILE_ROW)}>
-      <td role="cell" className={cn(CELL, "text-ok-text max-md:p-0 max-md:[grid-area:rank]")}>
-        <ArrowUpRight aria-hidden className="size-4" strokeWidth={ICON_STROKE} />
-      </td>
-      <MarketCell row={row} select={select} />
-      <td role="cell" className={cn(CELL, "max-md:p-0 max-md:[grid-area:status]")}>
-        <StatusBadge status={row.status} label={row.statusLabel} size="md" />
-      </td>
-      <MetricCells row={row} rising />
-      <td role="cell" className="max-md:hidden" />
-    </tr>
+    <section aria-labelledby={id} className="flex min-w-0 flex-col">
+      <Eyebrow as="h5" id={id} className="flex items-center gap-1.5 pb-1">
+        {rising ? (
+          <ArrowUpRight aria-hidden className="size-4 text-ok-text" strokeWidth={ICON_STROKE} />
+        ) : (
+          <ArrowDownRight aria-hidden className="size-4 text-bad-text" strokeWidth={ICON_STROKE} />
+        )}
+        {title}
+      </Eyebrow>
+      {rows.length === 0 ? (
+        <p className="py-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink-2">
+          {rising ? "No market is up on last year." : "No market is down on last year."}
+        </p>
+      ) : null}
+      <ul className="flex flex-col">
+        {rows.map((row) => (
+          <li
+            key={row.id}
+            className="flex items-center gap-3 border-b border-grid last:border-b-0 md:h-[var(--row-h)] max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']"
+          >
+            <MarketButton
+              row={row}
+              select={select}
+              className="min-w-0 flex-1 break-words max-md:min-h-11 max-md:[grid-area:name]"
+            />
+            <span className="flex md:w-24 max-md:justify-self-end max-md:[grid-area:status]">
+              <StatusBadge status={row.status} label={row.statusLabel} size="md" />
+            </span>
+            <span className="num w-16 text-right max-md:w-auto max-md:text-left max-md:[grid-area:growth]">
+              <Growth pct={row.growthPct} rising={rising}>
+                {row.growth}
+              </Growth>
+            </span>
+            <span className="max-md:justify-self-end max-md:[grid-area:spark]">
+              <Sparkline
+                values={row.spark}
+                label={row.sparkLabel}
+                color={SPARK_COLOR[row.status]}
+              />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -257,62 +318,78 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
           All markets are on track.
         </p>
       ) : null}
-      <table
-        role="table"
-        aria-labelledby="attention-h"
-        className="w-full text-[length:var(--text-body)] max-md:block"
-      >
-        <thead className="max-md:sr-only">
-          <tr role="row" className="border-b border-border">
-            <th role="columnheader" scope="col" className={HEAD}>
-              <span className="sr-only">Rank</span>
-              <span aria-hidden>#</span>
-            </th>
-            <th role="columnheader" scope="col" className={HEAD}>
-              Market
-            </th>
-            <th role="columnheader" scope="col" className={HEAD}>
-              Status
-            </th>
-            <th role="columnheader" scope="col" className={cn(HEAD, "text-right")}>
-              Attain.
-            </th>
-            <th role="columnheader" scope="col" className={cn(HEAD, "text-right")}>
-              YoY
-            </th>
-            <th role="columnheader" scope="col" className={HEAD}>
-              12 months
-            </th>
-            <th role="columnheader" scope="col" className={HEAD}>
-              <span className="sr-only">Ask why</span>
-            </th>
-          </tr>
-        </thead>
-        {attention.rows.length > 0 ? (
+      {attention.rows.length > 0 ? (
+        <table
+          role="table"
+          aria-labelledby="attention-h"
+          className="w-full text-[length:var(--text-body)] max-md:block"
+        >
+          <thead className="max-md:sr-only">
+            <tr role="row" className="border-b border-border">
+              <th role="columnheader" scope="col" className={HEAD}>
+                <span className="sr-only">Rank</span>
+                <span aria-hidden>#</span>
+              </th>
+              <th role="columnheader" scope="col" className={HEAD}>
+                Market
+              </th>
+              <th role="columnheader" scope="col" className={HEAD}>
+                Status
+              </th>
+              <th role="columnheader" scope="col" className={cn(HEAD, "text-right")}>
+                Attain.
+              </th>
+              <th role="columnheader" scope="col" className={cn(HEAD, "text-right")}>
+                YoY
+              </th>
+              <th role="columnheader" scope="col" className={HEAD}>
+                12 months
+              </th>
+              <th role="columnheader" scope="col" className={HEAD}>
+                <span className="sr-only">Ask why</span>
+              </th>
+            </tr>
+          </thead>
           <tbody className="max-md:block">
             {attention.rows.map((row) => (
               <MarketRow key={row.id} row={row} select={select} ask={ask} />
             ))}
           </tbody>
-        ) : null}
-        {attention.rising.length > 0 ? (
-          <tbody className="border-t border-border max-md:block">
-            <tr role="row">
-              <th
-                role="rowheader"
-                scope="rowgroup"
-                colSpan={7}
-                className="px-3 pt-3 pb-1 text-left"
-              >
-                <Eyebrow>Top movers · rising</Eyebrow>
-              </th>
-            </tr>
-            {attention.rising.map((row) => (
-              <RisingRow key={row.id} row={row} select={select} />
-            ))}
-          </tbody>
-        ) : null}
-      </table>
+        </table>
+      ) : null}
+      <div
+        role="group"
+        aria-labelledby="movers-h"
+        className={cn(
+          "flex flex-col gap-2",
+          attention.rows.length > 0 && "border-t border-border pt-3",
+        )}
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 px-3">
+          <Eyebrow as="h4" id="movers-h">
+            Top movers
+          </Eyebrow>
+          <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+            {attention.sparkCaption}
+          </p>
+        </div>
+        <div className="grid gap-x-8 gap-y-4 px-3 md:grid-cols-2">
+          <MoverColumn
+            id="movers-rising-h"
+            title="Rising"
+            rows={attention.rising}
+            rising
+            select={select}
+          />
+          <MoverColumn
+            id="movers-falling-h"
+            title="Falling"
+            rows={attention.falling}
+            rising={false}
+            select={select}
+          />
+        </div>
+      </div>
     </section>
   );
 }

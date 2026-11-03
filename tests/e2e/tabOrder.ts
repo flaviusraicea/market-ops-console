@@ -1,7 +1,7 @@
 /**
  * The real keyboard order, one Tab at a time from the skip link, at 1440 px with the rail in its default state.
  * `tests/e2e/slice11.spec.ts` asserts it; `docs/accessibility.md` is generated from it (`pnpm docs:a11y`).
- * A label is the focused element's aria-label, or else its text, cut to 60 characters.
+ * A label is the focused element's aria-label, or else its text, cut to 80 characters.
  */
 export type TabOrder = {
   readonly title: string;
@@ -19,7 +19,7 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "Paused",
       "Executive",
       "Switch to dark theme",
-      "Signed in as Dana Whitfield, Executive. Account menu",
+      "Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu",
       "Period",
       "Product. Select a market first.",
       "About this verdict",
@@ -59,6 +59,8 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "China",
       "France",
       "Canada",
+      "Germany",
+      "Spain",
       "View as table of the markets map",
       "Australia, on track, 101.8% attainment",
       "Drill into North America",
@@ -85,7 +87,7 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "Paused",
       "Analyst",
       "Switch to dark theme",
-      "Signed in as Dana Whitfield, Executive. Account menu",
+      "Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu",
       "Period",
       "Product",
       "Month",

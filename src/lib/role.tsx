@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 import {
   createContext,
   startTransition,
@@ -10,8 +11,9 @@ import {
   type ReactNode,
 } from "react";
 
+import { parseAsMode } from "./context/parsers";
 import { reportError } from "./events";
-import { PERSONAS, type Persona, type Role } from "./roles";
+import { PERSONAS, defaultModeFor, type Persona, type Role } from "./roles";
 
 export type RoleValue = {
   role: Role;
@@ -48,14 +50,19 @@ async function send(method: "POST" | "DELETE", role?: Role): Promise<boolean> {
 /** The role the server rendered with. Changing it writes the cookie, then asks the server for a fresh render. */
 export function RoleProvider({ role, children }: { role: Role; children: ReactNode }) {
   const router = useRouter();
+  const [, setMode] = useQueryState("mode", parseAsMode("executive"));
 
   const switchRole = useCallback(
     (next: Role) => {
       void send("POST", next).then((ok) => {
-        if (ok) router.refresh();
+        if (!ok) return;
+        // The address always names the view, so it has to move to the new role's view with the cookie.
+        void setMode(defaultModeFor(next), { history: "replace", shallow: true }).then(() =>
+          router.refresh(),
+        );
       });
     },
-    [router],
+    [router, setMode],
   );
 
   const signIn = useCallback(
