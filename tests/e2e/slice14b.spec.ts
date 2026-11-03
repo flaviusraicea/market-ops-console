@@ -93,6 +93,46 @@ test("the cell tooltip stays open while the pointer travels to its action", asyn
   await expect(composer(page)).toHaveValue("Why did Germany's revenue change in Apr 2026?");
 });
 
+test("a slow pointer reaches the tooltip action without the tooltip jumping to another cell", async ({
+  page,
+}) => {
+  await open(page);
+  const cell = page.getByRole("gridcell", { name: /^Germany, Mar 2026/ });
+  await cell.scrollIntoViewIfNeeded();
+  const box = (await cell.boundingBox())!;
+  const x = box.x + box.width / 2;
+  await page.mouse.move(x - 20, box.y + box.height / 2);
+  await page.mouse.move(x, box.y + box.height / 2, { steps: 5 });
+  const action = page.getByRole("button", { name: "Ask about Germany, Mar 2026" });
+  await expect(action).toBeVisible();
+  const target = (await action.boundingBox())!;
+  // Straight up from the cell, in small steps, across the rows above.
+  await page.mouse.move(x, target.y + target.height / 2, { steps: 25 });
+  await expect(page.getByRole("tooltip")).toContainText("Germany · Mar 2026");
+  await action.click();
+  await expect(composer(page)).toHaveValue("Why did Germany's revenue dip in Mar 2026?");
+});
+
+test("a sent Ask why leaves a prefilled draft and its context alone", async ({ page }) => {
+  await open(page);
+  await page.getByRole("gridcell", { name: /^Germany, Mar 2026/ }).focus();
+  await page.keyboard.press("Shift+Enter");
+  await expect(composer(page)).toHaveValue("Why did Germany's revenue dip in Mar 2026?");
+  await page.getByRole("button", { name: "Ask why Spain is off track" }).click();
+  await expect(page.getByText("You asked, about Spain · May 2026:")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Clear context Germany · Mar 2026" }),
+  ).toBeVisible();
+});
+
+test("a suggestion is not labelled with a pending cell context", async ({ page }) => {
+  await open(page);
+  await page.getByRole("gridcell", { name: /^Germany, Mar 2026/ }).focus();
+  await page.keyboard.press("Shift+Enter");
+  await page.getByRole("button", { name: "Which markets are at risk?" }).click();
+  await expect(page.getByText("You asked, about Portfolio · May 2026:")).toBeVisible();
+});
+
 test("a collapsed panel keeps streaming and badges the finished answer", async ({ page }) => {
   await open(page);
   await toggle(page).click();

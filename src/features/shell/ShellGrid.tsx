@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
 import { ConnectedAssistantRail } from "./AssistantRail";
@@ -19,11 +19,26 @@ export function ShellGrid({
   assistant: ReactNode;
 }) {
   const { open, collapse, setLiveHost } = useAssistantRail();
+  // The stored choice lands right after hydration; the width transition starts only once it has, so a
+  // reload does not animate from the default.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => setReady(true));
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, []);
   return (
     <main
       id="main"
       className={cn(
-        "grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_48px] lg:transition-[grid-template-columns] lg:duration-[var(--dur-base)] lg:ease-[var(--ease)]",
+        "grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_48px]",
+        ready &&
+          "lg:transition-[grid-template-columns] lg:duration-[var(--dur-base)] lg:ease-[var(--ease)]",
         open && "xl:grid-cols-[minmax(0,1fr)_var(--assistant-w)]",
       )}
     >

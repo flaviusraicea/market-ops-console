@@ -10,7 +10,8 @@ import {
   useRegisterAskSender,
   type AskContext,
 } from "@/features/assistant/askWhy";
-import { askContext, askLabel, cellQuestion, momPct } from "@/features/assistant/questions";
+import { askContext, askLabel, cellQuestion } from "@/features/assistant/questions";
+import { momPct } from "@/lib/change";
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <AskWhyProvider>{children}</AskWhyProvider>

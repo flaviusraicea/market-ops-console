@@ -11,11 +11,18 @@ test("Ask why on Germany opens the panel, sends the question and keeps focus in 
   await expect(page.getByText("Why did Germany's revenue dip?").first()).toBeVisible();
 });
 
-test("Enter in the prefilled composer sends and the Germany answer arrives", async ({ page }) => {
-  await page.goto("/?mode=analyst&region=eu");
-  await page.getByRole("button", { name: "Ask why Germany dipped" }).click();
-  await page.getByRole("textbox", { name: "Ask the assistant" }).press("Enter");
-  await expect(page.getByText("Why did Germany's revenue dip?").first()).toBeVisible();
+test("Enter in a prefilled composer sends it, labelled with where it was filled from", async ({
+  page,
+}) => {
+  await page.goto("/?mode=analyst");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("gridcell", { name: /^Germany, Mar 2026/ }).focus();
+  await page.keyboard.press("Shift+Enter");
+  const box = page.getByRole("textbox", { name: "Ask the assistant" });
+  await expect(box).toHaveValue("Why did Germany's revenue dip in Mar 2026?");
+  await expect(page.getByText("You asked")).toHaveCount(0);
+  await box.press("Enter");
+  await expect(page.getByText("You asked, about Germany · Mar 2026:")).toBeVisible();
   await expect(page.getByRole("list", { name: "Citations" })).toBeVisible({ timeout: 8000 });
 });
 

@@ -25,12 +25,18 @@ export function useChartTooltip() {
     useTooltip<TooltipContent>();
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hovering = useRef(false);
+  const grace = useRef(false);
 
-  const cancelHide = useCallback(() => clearTimeout(timer.current), []);
+  const cancelHide = useCallback(() => {
+    clearTimeout(timer.current);
+    grace.current = false;
+  }, []);
 
   const show = useCallback(
     (content: TooltipContent, left: number, top: number) => {
       cancelHide();
+      // A tooltip without an action has nothing to hover, so a stale flag must not hold it open.
+      if (!content.action) hovering.current = false;
       showTooltip({ tooltipData: content, tooltipLeft: left, tooltipTop: top });
     },
     [cancelHide, showTooltip],
@@ -46,7 +52,9 @@ export function useChartTooltip() {
   // rests on the tooltip it stays open.
   const hideSoon = useCallback(() => {
     cancelHide();
+    grace.current = true;
     timer.current = setTimeout(() => {
+      grace.current = false;
       if (!hovering.current) hideTooltip();
     }, HIDE_GRACE_MS);
   }, [cancelHide, hideTooltip]);
@@ -59,6 +67,9 @@ export function useChartTooltip() {
     },
     [cancelHide, hideSoon],
   );
+
+  /** True while the pointer is on the tooltip or travelling to it: other marks must not take it over. */
+  const locked = useCallback(() => hovering.current || grace.current, []);
 
   useEffect(() => cancelHide, [cancelHide]);
 
@@ -80,6 +91,7 @@ export function useChartTooltip() {
     hide,
     hideSoon,
     hover,
+    locked,
   };
 }
 
@@ -99,6 +111,9 @@ export function ChartTooltip({
       onMouseLeave={action ? () => onHover?.(false) : undefined}
       className={cn(
         action ? "pointer-events-auto" : "pointer-events-none",
+        // The transparent strip under an actionable tooltip bridges the gap to the mark, so the pointer
+        // reaches the action without crossing a neighbour.
+        action && "after:absolute after:top-full after:left-0 after:h-2 after:w-full",
         "absolute z-10 min-w-40 -translate-x-1/2 -translate-y-full rounded-control border border-border bg-surface px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] shadow-popover",
       )}
       style={{ left, top: top - 8 }}

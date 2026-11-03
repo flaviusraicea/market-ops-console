@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatMoneyAxis, formatMoneyCompact, formatMoneyFull, formatPct } from "@/lib/format";
+import { momPct } from "@/lib/change";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame, type Margins } from "./Frame";
 import type { LegendItem } from "./Legend";
@@ -107,11 +108,7 @@ function LineSvg({
   function askAbout(index: number) {
     const p = points[index];
     if (!p || !onAsk) return;
-    const prev = points[index - 1]?.actual;
-    onAsk({
-      period: p.period,
-      momPct: prev && prev > 0 ? (p.actual / prev - 1) * 100 : null,
-    });
+    onAsk({ period: p.period, momPct: momPct(p.actual, points[index - 1]?.actual) });
   }
 
   function reveal(index: number, anchorY?: number, asking = false) {

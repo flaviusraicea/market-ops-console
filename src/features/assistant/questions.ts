@@ -16,11 +16,6 @@ export function cellQuestion(name: string, period: string, momPct: number | null
   return `Why did ${name}'s revenue ${word} in ${formatPeriodAbbr(period)}?`;
 }
 
-/** Month-on-month change in percent, or null when there is no earlier month. */
-export function momPct(actual: number, previous: number | undefined): number | null {
-  return previous && previous > 0 ? (actual / previous - 1) * 100 : null;
-}
-
 /** The ask context for a question about one entity in one month. */
 export function askContext(entity: Entity, name: string, period: Period): AskContext {
   return { entity, period, label: askLabel(name, period) };

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/components/cn";
 import { formatMoneyCompact, formatPct, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
+import { momPct } from "@/lib/change";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { attainmentDiverging } from "./scales";
 
@@ -56,6 +57,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const wrapRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
   const tip = useChartTooltip();
+  const shownRow = useRef(0);
   const nCols = periods.length;
 
   const [pos, setPos] = useState<{ r: number; c: number }>({
@@ -72,17 +74,17 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
 
   function askAbout(row: number, col: number) {
     const cell = rows[row]?.cells[col];
-    const prev = rows[row]?.cells[col - 1]?.actual;
     if (!cell || !onAsk) return;
     onAsk({
       market: rows[row]!.id,
       marketName: rows[row]!.name,
       period: cell.period,
-      momPct: prev && prev > 0 ? (cell.actual / prev - 1) * 100 : null,
+      momPct: momPct(cell.actual, rows[row]?.cells[col - 1]?.actual),
     });
   }
 
   function reveal(row: number, col: number, el: Element) {
+    shownRow.current = row;
     const cell = rows[row]?.cells[col];
     const wrap = wrapRef.current?.getBoundingClientRect();
     if (!cell || !wrap) return;
@@ -142,7 +144,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
       case "Enter":
       case " ": {
         e.preventDefault();
-        if (e.key === "Enter" && e.shiftKey) {
+        if (e.key === "Enter" && e.shiftKey && onAsk) {
           askAbout(row, col);
           return;
         }
@@ -225,9 +227,16 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
                       }}
                       onClick={() => onCell(row.id, cell.period)}
                       onKeyDown={(e) => onKeyDown(e, ri, ci)}
-                      onMouseEnter={(e: MouseEvent<HTMLDivElement>) =>
-                        reveal(ri, ci, e.currentTarget)
-                      }
+                      onMouseMove={(e: MouseEvent<HTMLDivElement>) => {
+                        // While the pointer travels up to the tooltip action, the rows above the open tooltip stay quiet.
+                        if (tip.locked() && ri < shownRow.current) return;
+                        if (
+                          tip.open &&
+                          tip.content?.title === `${row.name} · ${formatPeriodAbbr(cell.period)}`
+                        )
+                          return;
+                        reveal(ri, ci, e.currentTarget);
+                      }}
                       onMouseLeave={tip.hideSoon}
                       onFocus={(e: FocusEvent<HTMLDivElement>) => {
                         setPos({ r: ri, c: ci });

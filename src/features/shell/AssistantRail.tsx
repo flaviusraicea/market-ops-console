@@ -63,7 +63,7 @@ export function AssistantRail({
 
 /** The rail wired to the shell's state. Takes focus back when the panel collapses. */
 export function ConnectedAssistantRail() {
-  const { open, unread, openFromRail, focusRequest } = useAssistantRail();
+  const { open, unread, openFromRail, collapse, focusRequest } = useAssistantRail();
   const { ctx } = useConsoleContext();
   const ref = useRef<HTMLDivElement>(null);
   const handled = useRef(focusRequest?.nonce);
@@ -82,7 +82,7 @@ export function ConnectedAssistantRail() {
         open && "xl:hidden",
       )}
     >
-      <AssistantRail open={open} unread={unread} onToggle={openFromRail} />
+      <AssistantRail open={open} unread={unread} onToggle={open ? collapse : openFromRail} />
     </div>
   );
 }

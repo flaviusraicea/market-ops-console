@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import type { Mode } from "@/domain";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 
 const STORAGE_KEY = "market-ops:assistant:v1";
@@ -107,6 +108,8 @@ const RailContext = createContext<RailValue>(NOOP);
 export function AssistantRailProvider({ children }: { children: ReactNode }) {
   const { ctx } = useConsoleContext();
   const mode = ctx.mode;
+  // Below 1024 px the panel is always in the page: nothing is collapsed, so nothing is unread or remembered.
+  const desktop = useMediaQuery("(min-width: 1024px)");
   const raw = useSyncExternalStore(subscribe, readRaw, () => null);
   const open = parse(raw)[mode];
   const [unread, setUnread] = useState(0);
@@ -129,15 +132,22 @@ export function AssistantRailProvider({ children }: { children: ReactNode }) {
     setOpen(true);
     requestFocus("heading");
   }, [setOpen, requestFocus]);
-  const openForEntry = useCallback(() => setOpen(true), [setOpen]);
-  const openIn = useCallback((target: Mode) => write(target, true), []);
+  const openForEntry = useCallback(() => {
+    if (desktop) setOpen(true);
+  }, [desktop, setOpen]);
+  const openIn = useCallback(
+    (target: Mode) => {
+      if (desktop) write(target, true);
+    },
+    [desktop],
+  );
   const collapse = useCallback(() => {
     setOpen(false);
     requestFocus("rail");
   }, [setOpen, requestFocus]);
   const noteAnswerDone = useCallback(() => {
-    if (!open) setUnread((n) => n + 1);
-  }, [open]);
+    if (desktop && !open) setUnread((n) => n + 1);
+  }, [desktop, open]);
 
   const value = useMemo<RailValue>(
     () => ({

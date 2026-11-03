@@ -54,14 +54,19 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
   const { answers, ask, stop, retry, isStreaming } = useAnswerMachine(stream);
   usePublishAnswers(answers);
 
-  function submit(question: string, about?: AskContext) {
+  /** `about` comes from an entry point; `fromComposer` is true only for the draft a prefill produced. */
+  function submit(question: string, about?: AskContext, fromComposer = false) {
     logEvent({ type: "ask", question });
     onSubmit?.(question);
     // Typed with no entry point: the question is about the view in the URL.
     const entity = entityOf(ctx);
-    const where = about ?? pending?.ctx ?? askContext(entity, entityName(ds, entity), ctx.period);
+    const where =
+      about ??
+      (fromComposer ? pending?.ctx : undefined) ??
+      askContext(entity, entityName(ds, entity), ctx.period);
     ask(question, where.label);
-    setPending(null);
+    // Only sending the composer text uses up its context; a sent Ask why leaves the draft and chip alone.
+    if (fromComposer) setPending(null);
     setScrollSignal((n) => n + 1);
     // Focus stays in the textarea after Send (also when Send was clicked or a suggestion was picked).
     ref.current?.focus();
@@ -112,6 +117,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
   // The Try button on an abstain card fills the composer like "Ask why" does, and leaves sending to the user.
   function fill(text: string) {
     setDraft(text);
+    setPending(null);
     ref.current?.focus();
   }
 
@@ -195,7 +201,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
           // Editing the filled text drops the "Filled from" line; the About chip stays until sent or cleared.
           setPending((p) => (p?.note ? { ...p, note: null } : p));
         }}
-        onSubmit={(q) => submit(q)}
+        onSubmit={(q) => submit(q, undefined, true)}
         disabled={isStreaming}
         textareaRef={ref}
         about={pending?.ctx.label ?? null}
