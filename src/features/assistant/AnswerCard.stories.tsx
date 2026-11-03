@@ -67,8 +67,12 @@ export const StreamingReducedMotion: Story = {
   globals: { reducedMotion: "on" },
   play: async ({ canvasElement }) => {
     const caret = canvasElement.querySelector(".caret");
-    await expect(caret).not.toBeNull();
-    await expect(getComputedStyle(caret!).animationName).toBe("none");
+    if (!caret) throw new Error("No streaming caret rendered");
+    // The blanket reduced-motion rule leaves one 0.01 ms pass, which ends on the visible state: a static caret.
+    const style = getComputedStyle(caret);
+    await expect(style.animationIterationCount).toBe("1");
+    await expect(parseFloat(style.animationDuration)).toBeLessThan(0.001);
+    await expect(style.visibility).toBe("visible");
   },
 };
 

@@ -130,6 +130,28 @@ html[data-reduced-motion="true"] .skeleton {
   background-image: none;
 }
 
+/* Reduced motion, blanket rule (slice 11): stops every animation and transition, including third-party enter and
+   exit animations (Radix, shadcn) that the per-component rules above do not know about. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
 /* Streaming caret (design-system.md 6.5): a 2px bar, static under reduced motion. */
 .caret {
   display: inline-block;
@@ -145,16 +167,6 @@ html[data-reduced-motion="true"] .skeleton {
   to {
     visibility: hidden;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .caret {
-    animation: none;
-  }
-}
-
-html[data-reduced-motion="true"] .caret {
-  animation: none;
 }
 
 /* Inline citation (design-system.md 6.5): accent text, dotted underline, solid on hover and focus. */

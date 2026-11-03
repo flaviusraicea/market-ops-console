@@ -5,10 +5,16 @@ import { useId, useState, type ReactNode } from "react";
 import { ICON_STROKE, TableIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
-type ToggleProps = { pressed: boolean; controls: string; onPressedChange: (next: boolean) => void };
+type ToggleProps = {
+  pressed: boolean;
+  controls: string;
+  onPressedChange: (next: boolean) => void;
+  /** What the table is of, e.g. "the markets map". Part of the accessible name only, so several toggles on a page differ (WCAG 2.4.6). */
+  subject: string;
+};
 
 /** Ghost toggle (design-system 6.10). The label swaps to "View as chart" while the table is shown. */
-export function ViewAsTableToggle({ pressed, controls, onPressedChange }: ToggleProps) {
+export function ViewAsTableToggle({ pressed, controls, onPressedChange, subject }: ToggleProps) {
   return (
     <Button
       type="button"
@@ -19,6 +25,7 @@ export function ViewAsTableToggle({ pressed, controls, onPressedChange }: Toggle
     >
       <TableIcon aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
       {pressed ? "View as chart" : "View as table"}
+      <span className="sr-only"> of {subject}</span>
     </Button>
   );
 }
@@ -53,9 +60,11 @@ export function ViewAsTable({
   toolbar,
   chart,
   table,
+  subject,
   forced = false,
 }: {
   toolbar?: ReactNode;
+  subject: string;
   chart: ReactNode;
   table: ReactNode;
   forced?: boolean;
@@ -68,7 +77,12 @@ export function ViewAsTable({
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="min-w-0">{toolbar}</div>
         {forced ? null : (
-          <ViewAsTableToggle pressed={pressed} controls={tableId} onPressedChange={setPressed} />
+          <ViewAsTableToggle
+            pressed={pressed}
+            controls={tableId}
+            onPressedChange={setPressed}
+            subject={subject}
+          />
         )}
       </div>
       <TableView id={tableId} pressed={showTable} chart={forced ? null : chart} table={table} />

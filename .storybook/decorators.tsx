@@ -45,6 +45,8 @@ export function useStoryDataset(): Dataset {
 }
 
 const ds = parseDataset(data);
+/** The parsed fixture dataset, for stories that build their view models. */
+export const dataset: Dataset = ds;
 
 /** The default URL context: the whole portfolio at the latest period, Overview mode. */
 export const portfolioMay: Context = {

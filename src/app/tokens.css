@@ -146,7 +146,7 @@ html[data-density="analyst"] {
   --gap: 8px;
   --gap-section: 16px;
   --pad-card: 12px;
-  --pad-cell-y: 7px;
+  --pad-cell-y: 2px;
   --pad-cell-x: 12px;
   --row-h: 32px;
   --control-h: 28px;
