@@ -23,8 +23,8 @@ export type RadarSeries = {
   name: string;
   /** A CSS custom property such as `--cat-1`. */
   color: string;
-  /** Normalised 0..1 per axis. */
-  values: readonly number[];
+  /** Normalised per axis; null where the market has no value, so its polygon skips that axis. */
+  values: readonly (number | null)[];
   /** Formatted raw values, in axis order. */
   raw: readonly string[];
   selected?: boolean;
@@ -56,7 +56,7 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
   const point = useCallback((axis: number, r: number) => pointAt(geometry, axis, r), [geometry]);
 
   const vertices = useMemo(
-    () => series.flatMap((s, si) => s.values.map((_, a) => ({ si, a }))),
+    () => series.flatMap((s, si) => s.values.flatMap((v, a) => (v === null ? [] : [{ si, a }]))),
     [series],
   );
 
@@ -96,7 +96,7 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
         <RadarMarks axes={axes} series={series} geometry={geometry} />
         {vertices.map(({ si, a }, index) => {
           const s = series[si]!;
-          const [x, y] = point(a, s.values[a] ?? 0);
+          const [x, y] = point(a, s.values[a]!);
           return (
             <circle
               key={`${s.id}-${a}`}

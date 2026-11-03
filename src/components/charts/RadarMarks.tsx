@@ -31,9 +31,10 @@ export const pointAt = (
   cy + Math.sin(angleOf(axis, n)) * radius * r,
 ];
 
-export const polyAt = (g: Geometry, rs: readonly number[]) =>
+export const polyAt = (g: Geometry, rs: readonly (number | null)[]) =>
   svgPath(
-    rs.map((r, a) => pointAt(g, a, r)),
+    // A null value skips its axis: the outline runs from the previous vertex to the next.
+    rs.flatMap((r, a) => (r === null ? [] : [pointAt(g, a, r)])),
     true,
   );
 
@@ -52,6 +53,8 @@ export const RadarMarks = memo(function RadarMarks({
 }) {
   const { cx, cy, n } = geometry;
   const hasSelection = series.some((s) => s.selected);
+  // An axis some compared market has no value on stays drawn, quieter, with a dashed spoke.
+  const partial = axes.map((_, a) => series.some((s) => s.values[a] === null));
   return (
     <>
       {RINGS.map((r) => (
@@ -79,13 +82,21 @@ export const RadarMarks = memo(function RadarMarks({
         const dy = sin < -0.5 ? `${-0.2 - extra}em` : sin > 0.5 ? "0.9em" : `${0.32 - extra / 2}em`;
         return (
           <g key={label}>
-            <line x1={cx} y1={cy} x2={x} y2={y} stroke="var(--grid)" strokeWidth={1} />
+            <line
+              x1={cx}
+              y1={cy}
+              x2={x}
+              y2={y}
+              stroke="var(--grid)"
+              strokeWidth={1}
+              {...(partial[a] ? { strokeDasharray: "2 3" } : {})}
+            />
             <text
               data-axis={label}
               x={lx}
               y={ly}
               textAnchor={anchor}
-              className="fill-ink-2 text-[length:var(--text-label)] font-medium"
+              className={`${partial[a] ? "fill-ink-muted" : "fill-ink-2"} text-[length:var(--text-label)] font-medium`}
             >
               {lines.map((line, i) => (
                 <tspan key={line} x={lx} dy={i === 0 ? dy : "1.1em"}>

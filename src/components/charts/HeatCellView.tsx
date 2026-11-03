@@ -64,10 +64,9 @@ export const HeatCellView = memo(function HeatCellView({
         // The mark is decorative: the cell's name already says anomaly. A surface halo keeps it legible on any fill.
         <TriangleAlert
           aria-hidden
-          className="pointer-events-none absolute top-0.5 right-0.5 size-2.5 text-ink [paint-order:stroke]"
+          className="pointer-events-none absolute top-0.5 right-0.5 size-2.5 text-ink"
           strokeWidth={2.5}
           style={{
-            stroke: "currentColor",
             filter: "drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface))",
           }}
         />

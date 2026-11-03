@@ -4,28 +4,29 @@ import { expect, userEvent, within } from "storybook/test";
 import { RadarChart, RadarChartTable, type RadarSeries } from "./RadarChart";
 import { ViewAsTable } from "./ViewAsTable";
 
+/** Europe, May 2026, as the analyst view model computes it (values scaled with the 15% axis pad). */
 const series: RadarSeries[] = [
   {
     id: "fr",
     name: "France",
     color: "--cat-1",
-    values: [0.3520000000000005, 1, 0.8399999999999999, 0.7, 1],
-    raw: ["96.4%", "+11.6%", "25.7%", "+3.9%", "+6.2%"],
+    values: [0.3862, 0.8846, 0.7615, 0.6538, 0.8846],
+    raw: ["96.4%", "+11.6%", "25.7%", "+3.9%", "+10.8%"],
     selected: false,
   },
   {
     id: "de",
     name: "Germany",
     color: "--cat-2",
-    values: [0, 0, 0, 0, 0],
-    raw: ["92.0%", "−9.7%", "8.9%", "+1.1%", "−3.4%"],
+    values: [0.1154, 0.1154, 0.1154, 0.1154, 0.1154],
+    raw: ["92.0%", "−9.7%", "8.9%", "+1.1%", "−9.9%"],
     selected: false,
   },
   {
     id: "it",
     name: "Italy",
     color: "--cat-3",
-    values: [0.08, 0.46948356807511743, 1, 0.025, 0.2272727],
+    values: [0.1769, 0.4765, 0.8846, 0.1346, 0.513],
     raw: ["93.0%", "+0.3%", "28.9%", "+1.2%", "+0.8%"],
     selected: false,
   },
@@ -33,16 +34,16 @@ const series: RadarSeries[] = [
     id: "es",
     name: "Spain",
     color: "--cat-4",
-    values: [1, 0.2394366, 0.46, 0.075, 0.7954545],
-    raw: ["104.5%", "−4.6%", "18.1%", "+1.4%", "+2.1%"],
+    values: [0.8846, 0.2996, 0.4692, 0.1731, 0.3198],
+    raw: ["104.5%", "−4.6%", "18.1%", "+1.4%", "−4.4%"],
     selected: false,
   },
   {
     id: "gb",
     name: "United Kingdom",
     color: "--cat-5",
-    values: [0.184, 0.8685446, 0.255, 1, 0.5227273],
-    raw: ["94.3%", "+8.8%", "14.0%", "+5.1%", "+9.0%"],
+    values: [0.2569, 0.7835, 0.3115, 0.8846, 0.8066],
+    raw: ["94.3%", "+8.8%", "14.0%", "+5.1%", "+8.7%"],
     selected: false,
   },
 ];
@@ -77,6 +78,27 @@ export const Europe: Story = {
     await expect(within(svg as HTMLElement).queryByText("0.5")).toBeNull();
     // Each series polygon has five vertices.
     await expect(svg.querySelectorAll('circle[role="img"]')).toHaveLength(25);
+  },
+};
+
+/** A market with no Units YoY: its outline skips that axis, no dot is drawn, and the axis label and spoke go quiet. */
+export const MissingValue: Story = {
+  args: {
+    series: series.map((s) =>
+      s.id === "gb"
+        ? {
+            ...s,
+            values: s.values.map((v, a) => (a === 4 ? null : v)),
+            raw: s.raw.map((r, a) => (a === 4 ? "n/a" : r)),
+          }
+        : s,
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const svg = await within(canvasElement).findByRole("group", { name: title });
+    // Twenty-four dots: the United Kingdom has four.
+    await expect(svg.querySelectorAll('circle[role="img"]')).toHaveLength(24);
+    await expect(svg.querySelector('[data-axis="Units YoY"]')).toHaveClass("fill-ink-muted");
   },
 };
 

@@ -214,7 +214,11 @@ function MapSvg({
                 tip.hide();
               }}
               onClick={() => onSelect(id)}
-              onKeyDown={(e) => keyboard.onKeyDown(e, i)}
+              onKeyDown={(e) => {
+                // A key press is keyboard use: draw the ring even if the market was focused by a click.
+                setRingIndex(i);
+                keyboard.onKeyDown(e, i);
+              }}
             />
           );
         })}

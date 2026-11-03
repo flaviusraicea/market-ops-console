@@ -366,7 +366,7 @@ export function LineChartTable({
   const flagged = new Set(anomalies.map((a) => a.period));
   return (
     <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
-      <TableCaption className="sr-only">{caption} · USD</TableCaption>
+      <TableCaption className="sr-only">{caption} · USD, rounded</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead scope="col">Period</TableHead>
@@ -389,7 +389,9 @@ export function LineChartTable({
           <TableRow
             key={p.period}
             data-period={p.period}
-            {...(p.period === selectedPeriod ? { "data-state": "selected" } : {})}
+            {...(p.period === selectedPeriod
+              ? { "data-state": "selected", "aria-current": "true" as const }
+              : {})}
           >
             <TableCell className="font-medium">
               <span className="inline-flex items-center gap-1.5">

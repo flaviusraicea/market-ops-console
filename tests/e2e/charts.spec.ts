@@ -84,7 +84,15 @@ test("the time-series table shows compact dollars with the exact figure on hover
   const selected = table.locator('tr[data-state="selected"]');
   await expect(selected).toHaveCount(1);
   await expect(selected).toHaveAttribute("data-period", "2026-05");
+  await expect(selected).toHaveAttribute("aria-current", "true");
   const actual = selected.locator("td").nth(1);
   await expect(actual).toHaveText(/^\$\d\.\d{2}M$/);
   await expect(actual).toHaveAttribute("title", /^\$[\d,]+$/);
+});
+
+test("the radar drops Units YoY in the first year of data and says why", async ({ page }) => {
+  await open(page, `${EUROPE}&period=2025-03`);
+  const radar = card(page, /^Compare/);
+  await expect(radar.locator('[data-axis="Units YoY"]')).toHaveCount(0);
+  await expect(radar.getByText("Units YoY unavailable before Jun 2025")).toBeVisible();
 });

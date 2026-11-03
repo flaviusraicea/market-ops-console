@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from "react";
 import { cn } from "@/components/cn";
 import { Button } from "@/components/ui/button";
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { formatInt, formatMoneyFull, formatPct } from "@/lib/format";
+import { formatInt, formatMoneyExact, formatPct } from "@/lib/format";
 import { FACTS_VIEWPORT_H } from "./factsViewport";
 import { SheetSection } from "./Sheet";
 import { SortHead, type SortState } from "./SortHead";
@@ -26,7 +26,7 @@ type Column = {
 };
 
 const money = (key: "actual" | "forecast" | "priorYear") => (r: FactRowVM) =>
-  `$${formatMoneyFull(r[key])}`;
+  formatMoneyExact(r[key]);
 
 const COLUMNS: Column[] = [
   { key: "market", label: "Market", numeric: false, cell: (r) => r.market },

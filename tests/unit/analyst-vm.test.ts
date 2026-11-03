@@ -188,8 +188,28 @@ describe("analyst view model", () => {
     expect(radar.series).toHaveLength(4);
     expect(radar.axes).toEqual(RADAR_AXES_DERIVED);
     expect(radar.axes[2]).toBe("Revenue share (derived)");
-    const shares = radar.series.map((s) => Number.parseFloat(s.raw[2]));
+    const shares = radar.series.map((s) => Number.parseFloat(s.raw[2]!));
     expect(shares.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 0);
+  });
+
+  it("radarVM drops an axis nobody has a value for, and says so in the subtitle", () => {
+    // Units YoY needs the same month a year earlier, which the first twelve months lack.
+    const early = analystVM(ds, { ...europe, period: "2025-03" as Period }).radar;
+    expect(early.axes).toEqual(["Attainment", "Growth YoY", "Share (given)", "Month on month"]);
+    expect(early.subtitle).toContain("Units YoY unavailable before Jun 2025");
+    expect(
+      early.series.every((s) => s.values.length === 4 && s.values.every((v) => v !== null)),
+    ).toBe(true);
+    // From Jun 2025 the axis is back, with a value for every market.
+    const later = analystVM(ds, { ...europe, period: "2025-06" as Period }).radar;
+    expect(later.axes).toHaveLength(5);
+    expect(later.subtitle).not.toContain("unavailable");
+  });
+
+  it("radarVM market caption names units YoY as derived", () => {
+    expect(analystVM(ds, europe).radar.caption).toBe(
+      "May 2026 · Attainment, growth and units YoY derived · share from data.json",
+    );
   });
 
   it("MAT is disabled before there are 12 months, and Month is the basis in effect", () => {

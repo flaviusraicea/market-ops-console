@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatCount,
   formatMoneyCompact,
+  formatMoneyExact,
   formatMoneyFull,
   formatPct,
   formatPeriod,
@@ -19,6 +20,10 @@ describe("format", () => {
   });
   it("full money", () => {
     expect(formatMoneyFull(1676586)).toBe("1,676,586");
+  });
+  it("exact money", () => {
+    expect(formatMoneyExact(1962344)).toBe("$1,962,344");
+    expect(formatMoneyExact(-1500)).toBe("−$1,500");
   });
   it("percentages", () => {
     expect(formatPct(-9.7, { sign: true })).toBe("−9.7%");
