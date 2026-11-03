@@ -4,6 +4,8 @@
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-grid: var(--grid);
@@ -19,6 +21,9 @@
   --color-ok-text: var(--ok-text);
   --color-ok-bg: var(--ok-bg);
   --color-ok-mark: var(--ok-mark);
+  --color-ok-display: var(--ok-display);
+  --color-warn-display: var(--warn-display);
+  --color-bad-display: var(--bad-display);
   --color-warn-text: var(--warn-text);
   --color-warn-bg: var(--warn-bg);
   --color-warn-mark: var(--warn-mark);
@@ -61,7 +66,13 @@
   --radius-card: var(--radius-card);
   --radius-pill: var(--radius-pill);
   --radius-sheet: var(--radius-sheet);
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-overlay: var(--shadow-overlay);
   --shadow-popover: var(--shadow-popover);
+  --shadow-header: var(--shadow-header);
+  --shadow-toolbar: var(--shadow-toolbar);
+  --shadow-basin: var(--shadow-basin);
 }
 
 body {

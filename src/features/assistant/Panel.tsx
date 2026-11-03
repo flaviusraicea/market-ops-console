@@ -123,15 +123,15 @@ function PanelBody({
       {...(overlay ? { role: "dialog", "aria-modal": true, "aria-labelledby": "assistant-h" } : {})}
       onKeyDown={onKeyDown}
       className={cn(
-        "relative flex flex-col gap-4 bg-surface p-[var(--pad-card)]",
+        "relative flex flex-col gap-4 bg-surface-raised p-[var(--pad-card)]",
         sheet
           ? "h-full min-h-0"
           : [
-              "rounded-card border border-border",
+              "rounded-card border border-border shadow-raised",
               // From 1280 px the panel is sticky in its column; from 1024 to 1279 px it overlays the dashboard when open.
               "xl:sticky xl:max-h-[calc(100vh-var(--header-h)-32px)]",
               "xl:top-[var(--assistant-top)]",
-              "lg:max-xl:fixed lg:max-xl:top-[var(--below-header)] lg:max-xl:right-4 lg:max-xl:bottom-4 lg:max-xl:z-50 lg:max-xl:w-[var(--assistant-w)] lg:max-xl:shadow-popover",
+              "lg:max-xl:fixed lg:max-xl:top-[var(--below-header)] lg:max-xl:right-4 lg:max-xl:bottom-4 lg:max-xl:z-50 lg:max-xl:w-[var(--assistant-w)] lg:max-xl:shadow-overlay",
               !open && "lg:hidden",
             ],
       )}

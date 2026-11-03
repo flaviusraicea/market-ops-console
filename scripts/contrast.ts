@@ -51,15 +51,17 @@ const pairs = (list: string): Array<[string, string]> =>
   list.split(",").map((p) => p.trim().split("/") as [string, string]);
 
 const TEXT = pairs(
-  "ink/surface, ink/bg, ink-2/surface, ink-2/bg, ink-2/surface-2, ink-muted/surface, ink-muted/bg, ink-muted/surface-2, accent/surface, accent/bg, accent/accent-soft, on-accent/accent, ok-text/ok-bg, ok-text/surface, warn-text/warn-bg, warn-text/surface, warn-text/accent-soft, bad-text/bad-bg, bad-text/surface, ai-label/ai-bg, ink/ai-bg, ink/accent-soft, ink/bad-bg, ink-2/bad-bg, on-bad/bad-mark",
+  "ink/surface, ink/bg, ink-2/surface, ink-2/bg, ink-2/surface-2, ink-muted/surface, ink-muted/bg, ink-muted/surface-2, accent/surface, accent/bg, accent/accent-soft, on-accent/accent, ink/surface-raised, ink-2/surface-raised, ink-muted/surface-raised, accent/surface-raised, ink/surface-overlay, ink-2/surface-overlay, ink-muted/surface-overlay, accent/surface-overlay, ok-text/surface-raised, warn-text/surface-raised, bad-text/surface-raised, ai-label/surface-raised, ok-text/ok-bg, ok-text/surface, warn-text/warn-bg, warn-text/surface, warn-text/accent-soft, bad-text/bad-bg, bad-text/surface, ai-label/ai-bg, ink/ai-bg, ink/accent-soft, ink/bad-bg, ink-2/bad-bg, on-bad/bad-mark",
 );
 const GRAPHIC = pairs(
-  "ok-mark/surface, warn-mark/surface, bad-mark/surface, bad-mark/bad-bg, focus/surface, series-actual/surface, series-forecast/surface, series-prior/surface, cat-1/surface, cat-2/surface, cat-3/surface, cat-4/surface, cat-5/surface, cat-6/surface",
+  "ok-mark/surface, warn-mark/surface, bad-mark/surface, ok-mark/bg, warn-mark/bg, bad-mark/bg, bad-mark/bad-bg, focus/surface, focus/bg, focus/surface-raised, focus/surface-overlay, series-actual/surface, series-forecast/surface, series-prior/surface, cat-1/surface, cat-2/surface, cat-3/surface, cat-4/surface, cat-5/surface, cat-6/surface",
 );
+// Headline verdict words (Verdict.tsx) are large text on their tinted wash: WCAG asks 3:1 (1.4.3).
+const LARGE = pairs("ok-display/ok-bg, warn-display/warn-bg, bad-display/bad-bg");
 // Visibility, not WCAG text contrast: the land must read against the card (floor 1.15:1).
 const LAND = pairs("map-land/surface");
 const DECORATIVE = pairs(
-  "border/surface, grid/surface, surface-2/surface, ai-border/ai-bg, bg/surface",
+  "border/surface, border/bg, border/surface-raised, grid/surface, surface-2/surface, ai-border/ai-bg, bg/surface, surface-raised/surface, surface-overlay/surface",
 );
 
 export type Row = {
@@ -93,7 +95,10 @@ function check(theme: string, map: Map<string, string>) {
     }
   };
   run(TEXT, "text", 4.5);
+  run(LARGE, "large text", 3);
   run(GRAPHIC, "graphic", 3);
+  // Dark only: the AI surface border must stay a 3:1 boundary on its own fill (light is decorative; the label carries it).
+  if (theme === "dark") run(pairs("ai-border/ai-bg"), "graphic", 3);
   run(LAND, "non-text", 1.15);
   run(DECORATIVE, "decorative", null);
 

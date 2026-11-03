@@ -15,7 +15,7 @@ Approved by Flavius on 2026-11-02: Direction A "Ledger, sharpened" (light defaul
 
 - Focus ring always equals the accent: `--focus: #174A94` light, `#8FB4E6` dark.
 - Inset wells and table header rows use `--surface-2 #E8E3D8` (1.28:1 vs white cards). `--ink-muted` darkened to `#66615A` so captions on wells stay at 4.92:1.
-- `--bad-hover` and `--on-bad` are tokens. Dark `--on-bad` is `#161512`.
+- `--bad-hover` and `--on-bad` are tokens. Dark `--on-bad` is `#0F1318`.
 - Danger buttons exist for destructive confirms only (delete an alert). Never for Retry.
 - Chart viewBox follows the container width; strokes and type sizes are fixed pixels. Keep this approach.
 - The anomaly marker is a separate focusable SVG layer over the `role="img"` chart. Keep.
@@ -74,10 +74,10 @@ Every ratio below is WCAG 2.x contrast, computed and checked. Text tokens meet 4
 
 | Token | Hex | Role | Verified contrast |
 |---|---|---|---|
-| `--bg` | `#F1EDE4` | Page background, warm paper | 1.17:1 vs surface |
+| `--bg` | `#E6E1D3` | Page background, warm paper one step darker so white cards lift | see `docs/accessibility.md` |
 | `--surface` | `#FFFFFF` | Cards, table, header | — |
 | `--surface-2` | `#E8E3D8` | Inset wells, table header row, skeletons | 1.28:1 vs surface, 1.10:1 vs bg (decorative) |
-| `--border` | `#BFB8A8` | All 1 px borders | 1.97:1 vs surface |
+| `--border` | `#CFC6B3` | All 1 px borders; shadow is never the only edge | see `docs/accessibility.md` |
 | `--grid` | `#E3DED3` | Chart grid lines only | 1.34:1 vs surface (decorative) |
 | `--ink` | `#1C1A17` | Primary text, headline numbers, the "actual" line | 17.36:1 on surface, 14.9:1 on bg |
 | `--ink-2` | `#5B574F` | Secondary text | 7.19:1 on surface, 6.15:1 on bg, 5.62:1 on surface-2 |
@@ -103,7 +103,7 @@ Every ratio below is WCAG 2.x contrast, computed and checked. Text tokens meet 4
 | `--ok-mark` | `#2E8B57` | Dot, map fill, sparkline tint | 4.25:1 on surface |
 | `--warn-text` | `#7A4E00` | Badge text, "differs from source" marker | 6.30:1 on warn-bg, 7.20:1 on surface, 5.99:1 on accent-soft |
 | `--warn-bg` | `#FBEFD2` | Badge background | — |
-| `--warn-mark` | `#B57A00` | Dot, map fill | 3.09:1 on surface |
+| `--warn-mark` | `#9E6A00` | Dot, map fill (darker so it holds 3:1 on the new page) | see `docs/accessibility.md` |
 | `--bad-text` | `#A32D2D` | Badge text | 5.68:1 on bad-bg, 7.07:1 on surface |
 | `--bad-bg` | `#F9E1E1` | Badge background | — |
 | `--bad-mark` | `#C2362B` | Dot, map fill, anomaly marker, notice edge and rule, danger button | 5.45:1 on surface, 4.38:1 vs bad-bg |
@@ -138,54 +138,58 @@ Every ratio below is WCAG 2.x contrast, computed and checked. Text tokens meet 4
 
 `--div-n3 #B5552C` · `--div-n2 #D08A6B` · `--div-n1 #E9C4B2` · `--div-0 #D9D4C9` · `--div-p1 #B7C7DE` · `--div-p2 #7F9FC9` · `--div-p3 #2F5F9E`
 
+**Elevation and headline colours (direction A)**
+
+Three layers carry depth, and every surface keeps its 1 px border so a shadow is never the only edge: card (`--shadow-card`: KPI tiles, sections, the grid, the AI surface), raised (`--shadow-raised`, `--surface-raised`: the assistant panel), overlay (`--shadow-overlay`, `--surface-overlay`: dialog, palette, menus, tooltips, sheets). `--shadow-header`, `--shadow-toolbar` and `--shadow-basin` serve the header, the Analyst toolbar and the map. Dark adds a one pixel top highlight (`--hairline`). `--ok-display`, `--warn-display` and `--bad-display` colour the Overview headline's status words (large text, 3:1) on their `-bg` wash and nowhere else.
+
 ### 3.2 Dark theme
 
 **Neutrals**
 
 | Token | Hex | Verified contrast |
 |---|---|---|
-| `--bg` | `#161512` | — |
-| `--surface` | `#201E1A` | — |
-| `--surface-2` | `#2A2722` | 1.12:1 vs surface (decorative) |
-| `--border` | `#413D35` | 1.50:1 vs surface |
-| `--grid` | `#332F29` | decorative |
-| `--ink` | `#ECE8E0` | 13.62:1 on surface, 14.94:1 on bg |
-| `--ink-2` | `#B5AFA3` | 7.63:1 on surface |
-| `--ink-muted` | `#9A9488` | 5.52:1 on surface |
-| `--ink-disabled` | `#78726A` | disabled only |
+| `--bg` | `#0F1318` | — |
+| `--surface` | `#171C23` | — |
+| `--surface-2` | `#1F2630` | decorative |
+| `--border` | `#303A46` | hairline, decorative |
+| `--grid` | `#242C36` | decorative |
+| `--ink` | `#E6EAF0` | see `docs/accessibility.md` |
+| `--ink-2` | `#AEB6C2` | see `docs/accessibility.md` |
+| `--ink-muted` | `#8F98A6` | see `docs/accessibility.md` |
+| `--ink-disabled` | `#6B7482` | disabled only |
 
 **Accent**
 
 | Token | Hex | Verified contrast |
 |---|---|---|
-| `--accent` | `#8FB4E6` | 7.80:1 on surface |
-| `--accent-hover` | `#A9C6EE` | — (lighter, higher) |
-| `--on-accent` | `#161512` | 8.55:1 on accent |
-| `--accent-soft` | `#243040` | accent on it 6.26:1 |
-| `--focus` | `#8FB4E6` | 7.80:1 |
+| `--accent` | `#8DB4E8` | see `docs/accessibility.md` |
+| `--accent-hover` | `#A7C5EE` | — (lighter, higher) |
+| `--on-accent` | `#0F1318` | see `docs/accessibility.md` |
+| `--accent-soft` | `#1D2A3C` | see `docs/accessibility.md` |
+| `--focus` | `#8DB4E8` | see `docs/accessibility.md` |
 
 **Status**
 
 | Token | Hex | Verified contrast |
 |---|---|---|
 | `--ok-text` | `#8FD9A8` | 8.65:1 on ok-bg, 10.03:1 on surface |
-| `--ok-bg` | `#1C2E22` | — |
+| `--ok-bg` | `#15291F` | — |
 | `--ok-mark` | `#5FBF84` | 7.35:1 on surface |
 | `--warn-text` | `#F0C978` | 8.43:1 on warn-bg, 10.56:1 on surface |
-| `--warn-bg` | `#3A2E14` | — |
+| `--warn-bg` | `#2F2A14` | — |
 | `--warn-mark` | `#E0A93A` | 7.85:1 on surface |
 | `--bad-text` | `#F3A1A1` | 7.41:1 on bad-bg, 8.26:1 on surface |
-| `--bad-bg` | `#3A2020` | — |
+| `--bad-bg` | `#35201F` | — |
 | `--bad-mark` | `#E36B5F` | 5.18:1 on surface, 4.64:1 vs bad-bg |
-| `--on-bad` | `#161512` | 5.68:1 on bad-mark |
-| `--bad-hover` | `#F08A80` | 7.52:1 with #161512 |
+| `--on-bad` | `#0F1318` | see `docs/accessibility.md` |
+| `--bad-hover` | `#F08A80` | see `docs/accessibility.md` |
 
 **AI surface**
 
 | Token | Hex | Verified contrast |
 |---|---|---|
-| `--ai-bg` | `#272338` | ink on it 12.42:1 |
-| `--ai-border` | `#6E5BD9` | 3.01:1 vs ai-bg |
+| `--ai-bg` | `#1F2133` | see `docs/accessibility.md` |
+| `--ai-border` | `#7A68E0` | 3:1 vs ai-bg, asserted |
 | `--ai-label` | `#C3B6F5` | 8.19:1 on ai-bg |
 
 **Data series**

@@ -129,7 +129,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
 
 function Card({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 rounded-card border border-ai-border bg-ai-bg p-[var(--pad-card)]">
+    <div className="flex flex-col gap-3 rounded-card border border-ai-border bg-ai-bg shadow-card p-[var(--pad-card)]">
       {children}
     </div>
   );

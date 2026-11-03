@@ -198,7 +198,7 @@ export function AnswerList({
           variant="ghost"
           aria-label="Scroll to newest answer"
           onClick={() => scrollToEnd(true)}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 max-lg:right-3 max-lg:left-auto max-lg:translate-x-0 border border-border bg-surface shadow-[var(--shadow-popover)]"
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 max-lg:right-3 max-lg:left-auto max-lg:translate-x-0 border border-border bg-surface-overlay shadow-overlay"
         >
           New text
           <ArrowDown aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />

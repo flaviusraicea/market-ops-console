@@ -49,10 +49,7 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
 
   return (
     <header
-      className={cn(
-        "relative border-b border-border bg-surface",
-        mode === "analyst" && "sticky top-0 z-30",
-      )}
+      className={cn("relative bg-surface shadow-header", mode === "analyst" && "sticky top-0 z-30")}
     >
       <div
         aria-hidden

@@ -62,7 +62,7 @@ export function ToolbarSkeleton() {
     <div
       role="status"
       aria-busy="true"
-      className="sticky top-[var(--header-h)] z-20 mb-[var(--gap-section)] flex h-10 items-center border-b border-border bg-bg"
+      className="sticky top-[var(--header-h)] z-20 mb-[var(--gap-section)] flex h-10 items-center border-b border-border bg-bg shadow-toolbar"
     >
       <span className="sr-only">Loading analyst controls</span>
       <Skeleton aria-hidden className="h-4 w-64" />

@@ -37,7 +37,7 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 w-fit rounded-control border border-border bg-surface px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2 shadow-popover",
+          "z-50 w-fit rounded-control border border-border bg-surface-overlay px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2 shadow-overlay",
           className,
         )}
         {...props}

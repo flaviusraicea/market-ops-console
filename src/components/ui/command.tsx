@@ -33,7 +33,7 @@ function CommandDialog({
           data-slot="command-dialog"
           onCloseAutoFocus={onCloseAutoFocus}
           className={cn(
-            "fixed top-[104px] left-1/2 z-50 flex w-[600px] max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col overflow-hidden rounded-card border border-border bg-surface text-ink shadow-popover outline-none",
+            "fixed top-[104px] left-1/2 z-50 flex w-[600px] max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col overflow-hidden rounded-card border border-border bg-surface-overlay text-ink shadow-overlay outline-none",
             "max-lg:top-0 max-lg:left-0 max-lg:h-dvh max-lg:w-dvw max-lg:max-w-none max-lg:translate-x-0 max-lg:rounded-none max-lg:border-0",
           )}
         >

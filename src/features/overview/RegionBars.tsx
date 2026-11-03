@@ -53,7 +53,7 @@ export function RegionBars({
       className={cn(
         "flex h-full flex-col gap-3",
         framed
-          ? "rounded-card border border-border bg-surface p-[var(--pad-card)]"
+          ? "rounded-card border border-border bg-surface shadow-card p-[var(--pad-card)]"
           : "px-[var(--pad-card)] py-3",
       )}
     >
