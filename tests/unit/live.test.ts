@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { kpiFor, parseDataset } from "@/domain";
+import { kpiFor, parseDataset, type Context, type Period } from "@/domain";
+import { analystVM } from "@/features/analyst/viewModel";
+import { overviewVM } from "@/features/overview/viewModel";
 import { LIVE_BOUND, applyLiveOverlay, driftFactor } from "@/lib/live";
 
 const ds = parseDataset(raw);
@@ -26,6 +28,7 @@ describe("live overlay", () => {
     expect(next.series).toHaveLength(ds.series.length);
     let moved = 0;
     next.series.forEach((f, i) => {
+      // Same length as the input (asserted above), so the index is always in range.
       const was = ds.series[i]!;
       if (f.period === latest) {
         expect({ ...f, actual: 0, units: 0 }).toEqual({ ...was, actual: 0, units: 0 });
@@ -35,7 +38,7 @@ describe("live overlay", () => {
       }
     });
     expect(moved).toBeGreaterThan(0);
-    expect(next.meta).toEqual(ds.meta);
+    expect(next.meta).toEqual({ ...ds.meta, simulated: true });
     expect(next.regions).toEqual(ds.regions);
   });
 
@@ -64,7 +67,8 @@ describe("live overlay", () => {
     }
   });
 
-  it("recomputes status with the published rule: Spain flips to at risk once its growth is not negative", () => {
+  it("recomputes status with the published rule: Spain leaves off track once its growth is not negative", () => {
+    // Spain is in the fixture, so a missing market is a broken fixture and should fail loudly.
     const spain = (d: typeof ds) => d.markets.find((m) => m.id === "es")!;
     expect(spain(ds).kpis.status).toBe("off_track");
     let found: ReturnType<typeof applyLiveOverlay> | undefined;
@@ -73,19 +77,55 @@ describe("live overlay", () => {
       if (spain(candidate).kpis.growthPct >= 0) found = candidate;
     }
     expect(found, "Spain's growth reaches 0 within 400 ticks").toBeDefined();
+    // Spain sits above 92.5 % attainment, so with growth not negative the rule moves it to on track (above plan) or at risk.
     const k = spain(found!).kpis;
+    expect(k.forecastAttainmentPct).toBeGreaterThan(92.5);
     expect(k.status).toBe(k.forecastAttainmentPct < 100 ? "at_risk" : "on_track");
-    expect(k.status).not.toBe("off_track");
   });
 
-  it("derived figures follow the moved facts", () => {
-    const next = applyLiveOverlay(ds, 5);
-    for (const m of next.markets) {
-      const k = kpiFor(next, { kind: "market", marketId: m.id }, latest, "month");
-      expect(k.totals.actual).toBe(m.kpis.revenue);
+  it("scales the given figures instead of re-deriving them, so there is no jump at the first tick", () => {
+    const next = applyLiveOverlay(ds, 1);
+    for (const m of ds.markets) {
+      const was = m.kpis;
+      const now = next.markets.find((x) => x.id === m.id)?.kpis;
+      expect(now).toBeDefined();
+      if (!now) continue;
+      const factor = driftFactor(m.id, 1);
+      expect(now.revenue).toBe(Math.round(was.revenue * factor));
+      // One tick moves a market by at most 2 %, so given figures stay within a hair of that.
+      expect(Math.abs(now.forecastAttainmentPct - was.forecastAttainmentPct)).toBeLessThanOrEqual(
+        was.forecastAttainmentPct * 0.02 + 0.1,
+      );
     }
-    const share = next.markets.reduce((n, m) => n + m.kpis.sharePct, 0);
-    expect(share).toBeGreaterThan(99);
-    expect(share).toBeLessThan(101);
+  });
+
+  it("never touches sharePct: it is external market share, not a share of the portfolio", () => {
+    const next = applyLiveOverlay(ds, 25);
+    for (const m of ds.markets) {
+      expect(next.markets.find((x) => x.id === m.id)?.kpis.sharePct).toBe(m.kpis.sharePct);
+    }
+  });
+
+  it("marks the dataset simulated, and tick 0 is not", () => {
+    expect(applyLiveOverlay(ds, 2).meta.simulated).toBe(true);
+    expect(applyLiveOverlay(ds, 0).meta.simulated).toBeUndefined();
+  });
+
+  describe("captions", () => {
+    const base: Context = { period: latest, mode: "analyst", metric: "attainment", basis: "month" };
+    const live = applyLiveOverlay(ds, 3);
+
+    it("say Derived · live for views that include the latest month", () => {
+      expect(overviewVM(ds, base).tiles[0]?.provenance).toBe("Derived · sum of series");
+      expect(overviewVM(live, base).tiles[0]?.provenance).toBe("Derived · live");
+      expect(analystVM(live, base).heatMap.caption).toContain("Derived · live");
+    });
+
+    it("keep their saved labels for an earlier month, except the heat map, which always spans the latest", () => {
+      const earlier = { ...base, period: "2026-03" as Period };
+      expect(overviewVM(live, earlier).tiles[0]?.provenance).toBe("Derived · sum of series");
+      expect(analystVM(live, earlier).grid.caption).toBe("Derived · sum of series");
+      expect(analystVM(live, earlier).heatMap.caption).toContain("Derived · live");
+    });
   });
 });

@@ -1,13 +1,4 @@
-import {
-  attainmentPct,
-  factsFor,
-  growthPct,
-  statusForDerived,
-  totals,
-  type Dataset,
-  type Fact,
-  type Market,
-} from "@/domain";
+import { statusForDerived, type Dataset, type Fact, type Market } from "@/domain";
 
 /** Largest move one market makes in one tick: ±2 %. */
 export const LIVE_STEP = 0.02;
@@ -28,7 +19,10 @@ function unit(seed: string): number {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
-/** How far a market has drifted from its saved revenue after `tick` ticks. A pure function of both inputs. */
+/**
+ * How far a market has drifted from its saved revenue after `tick` ticks. A pure function of both inputs.
+ * It replays the walk from tick 1 each time: about 2 ms at tick 1000 (some 80 minutes of live), so no cache.
+ */
 export function driftFactor(marketId: string, tick: number): number {
   let factor = 1;
   for (let k = 1; k <= tick; k++) {
@@ -42,9 +36,13 @@ const round1 = (x: number) => Math.round(x * 10) / 10;
 
 /**
  * The dataset as it reads after `tick` ticks of simulated live data. Only the latest period's `actual` and
- * `units` move; everything else is the saved data. Tick 0 is the saved data itself. Each market's given
- * figures for the latest month (revenue, growth, attainment, share) and its status are recomputed from the
- * moved facts with the published rule, which is the only place the app derives a market's status.
+ * `units` move; everything else is the saved data. Tick 0 is the saved data itself.
+ *
+ * Each market's given figures for the latest month scale with its facts, so the first tick starts from what
+ * data.json says instead of jumping to a re-derived value: revenue and attainment move by the drift factor,
+ * growth follows from it. `sharePct` is external market share and never changes. Status is recomputed from
+ * the scaled figures with the published rule, the only place the app derives a market's status. The result is
+ * marked `meta.simulated` so captions can say so.
  */
 export function applyLiveOverlay(ds: Dataset, tick: number): Dataset {
   if (tick <= 0) return ds;
@@ -56,28 +54,21 @@ export function applyLiveOverlay(ds: Dataset, tick: number): Dataset {
     const factor = factors.get(f.marketId) ?? 1;
     return { ...f, actual: Math.round(f.actual * factor), units: Math.round(f.units * factor) };
   });
-  const moved: Dataset = { ...ds, series };
 
-  const sums = ds.markets.map((m) => ({
-    m,
-    t: totals(factsFor(moved, { entity: { kind: "market", marketId: m.id }, periods: [latest] })),
-  }));
-  const portfolio = sums.reduce((n, s) => n + s.t.actual, 0);
-
-  const markets: Market[] = sums.map(({ m, t }) => {
-    const attainment = attainmentPct(t);
-    const growth = growthPct(t);
+  const markets: Market[] = ds.markets.map((m) => {
+    const factor = factors.get(m.id) ?? 1;
+    const attainment = round1(m.kpis.forecastAttainmentPct * factor);
+    const growth = round1(((1 + m.kpis.growthPct / 100) * factor - 1) * 100);
     return {
       ...m,
       kpis: {
         ...m.kpis,
-        revenue: t.actual,
+        revenue: Math.round(m.kpis.revenue * factor),
         growthPct: growth,
         forecastAttainmentPct: attainment,
-        sharePct: round1((t.actual / portfolio) * 100),
         status: statusForDerived(attainment, growth),
       },
     };
   });
-  return { ...moved, markets };
+  return { ...ds, meta: { ...ds.meta, simulated: true }, series, markets };
 }

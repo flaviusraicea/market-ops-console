@@ -1,11 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { dataset as ds, portfolioMay, withDataset } from "../../../.storybook/decorators";
-import type { LiveEngine } from "@/features/live/engine";
 import { LiveKpiRow } from "@/features/live/LiveIslands";
-import { LiveStateProvider } from "@/features/live/LiveProvider";
+import { LiveProvider, useLiveState } from "@/features/live/LiveProvider";
 import { KpiRow } from "./KpiRow";
 import { overviewVM } from "./viewModel";
 
@@ -32,35 +31,25 @@ export const Portfolio: Story = {
   },
 };
 
-/** Drives the live tick by hand: the engine loads as it does on first activation, and the button is the timer. */
+/** Holds the live tick by hand: the provider loads the engine as it does on first activation, the button is the timer. */
 function ManualTicks({ children }: { children: ReactNode }) {
   const [tick, setTick] = useState(0);
-  const [engine, setEngine] = useState<LiveEngine | null>(null);
-  useEffect(() => {
-    void import("@/features/live/engine").then((m) => setEngine(m.engine));
-  }, []);
-  const dataset = useMemo(
-    () => (engine && tick > 0 ? engine.overlay(engine.full, tick) : null),
-    [engine, tick],
-  );
   return (
-    <LiveStateProvider
-      value={{
-        live: true,
-        tick,
-        updatedAt: null,
-        tweening: false,
-        dataset,
-        engine,
-        setLive: () => {},
-      }}
-    >
-      <button type="button" disabled={!engine} onClick={() => setTick((t) => t + 1)}>
-        Advance tick
-      </button>
+    <LiveProvider tick={tick}>
+      <EngineReady>
+        {(ready) => (
+          <button type="button" disabled={!ready} onClick={() => setTick((t) => t + 1)}>
+            Advance tick
+          </button>
+        )}
+      </EngineReady>
       {children}
-    </LiveStateProvider>
+    </LiveProvider>
   );
+}
+
+function EngineReady({ children }: { children: (ready: boolean) => ReactNode }) {
+  return <>{children(useLiveState().engine !== null)}</>;
 }
 
 export const Live: Story = {

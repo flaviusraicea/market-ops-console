@@ -14,10 +14,8 @@ import {
 import type { Context, Dataset } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { LIVE_INTERVAL_MS } from "@/lib/live";
+import { TWEEN_SETTLE_MS } from "@/lib/motion";
 import type { LiveEngine } from "./engine";
-
-/** How long marks keep their tween after a tick lands (a little over --dur-chart). */
-const TWEEN_SETTLE_MS = 300;
 
 export type LiveState = {
   /** The timer is running. */
@@ -46,28 +44,38 @@ const INERT: LiveState = {
 
 const LiveContext = createContext<LiveState>(INERT);
 
-/** Live state for tests and stories that drive the tick themselves. */
-export function LiveStateProvider({ value, children }: { value: LiveState; children: ReactNode }) {
-  return <LiveContext.Provider value={value}>{children}</LiveContext.Provider>;
-}
-
 /**
  * Holds live mode for the page. The data engine loads on first activation. A reload returns to the saved
  * data: nothing here is persisted or written to the URL. The timer is cleared on pause and on unmount, and
- * skips ticks while the tab is hidden.
+ * skips ticks while the tab is hidden. Pass `tick` to hold the tick yourself (stories and tests): Live is then
+ * on, the engine loads, and there is no timer.
  */
-export function LiveProvider({ children }: { children: ReactNode }) {
-  const [live, setLiveState] = useState(false);
-  const [tick, setTick] = useState(0);
+export function LiveProvider({
+  tick: controlled,
+  children,
+}: {
+  tick?: number;
+  children: ReactNode;
+}) {
+  const [liveState, setLiveState] = useState(false);
+  const [ticked, setTick] = useState(0);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [tweening, setTweening] = useState(false);
   const [engine, setEngine] = useState<LiveEngine | null>(null);
   const settle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const isControlled = controlled !== undefined;
+  const live = liveState || isControlled;
+  const tick = controlled ?? ticked;
 
-  const setLive = useCallback((on: boolean) => {
-    setLiveState(on);
-    if (on) setUpdatedAt(new Date());
-  }, []);
+  const setLive = useCallback(
+    (on: boolean) => {
+      // Pressing Live while it is already on changes nothing, so the stamp keeps its time.
+      if (on === live) return;
+      setLiveState(on);
+      if (on) setUpdatedAt(new Date());
+    },
+    [live],
+  );
 
   useEffect(() => {
     if (!live || engine) return;
@@ -81,7 +89,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   }, [live, engine]);
 
   useEffect(() => {
-    if (!live || !engine) return;
+    if (!live || !engine || isControlled) return;
     const timer = setInterval(() => {
       if (document.visibilityState === "hidden") return;
       setTick((t) => t + 1);
@@ -91,7 +99,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       settle.current = setTimeout(() => setTweening(false), TWEEN_SETTLE_MS);
     }, LIVE_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [live, engine]);
+  }, [live, engine, isControlled]);
 
   useEffect(() => () => clearTimeout(settle.current), []);
 
@@ -115,22 +123,6 @@ export function isSimulated(s: Pick<LiveState, "live" | "tick">): boolean {
   return s.live || s.tick > 0;
 }
 
-type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
-const SAVED_LABEL = /Source · data\.json|Derived · sum of series/g;
-
-/** Provenance captions say where a figure came from; once the figures move they read `Derived · live`. */
-function relabel<T>(value: T): T {
-  const walk = (v: Json): Json => {
-    if (typeof v === "string") return v.replace(SAVED_LABEL, "Derived · live");
-    if (Array.isArray(v)) return v.map(walk);
-    if (v && typeof v === "object") {
-      return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, walk(x)]));
-    }
-    return v;
-  };
-  return walk(value as Json) as T;
-}
-
 /**
  * A widget's view model: the one the server sent, or while live a fresh one computed in the browser with the
  * same function over the drifted dataset. `select` must be a module-level function so it is stable.
@@ -141,9 +133,8 @@ export function useLiveVM<T>(
 ): T {
   const { engine, dataset } = useLiveState();
   const { ctx } = useConsoleContext();
-  return useMemo(() => {
-    if (!engine || !dataset) return initial;
-    const next = select(engine, dataset, ctx);
-    return ctx.period === dataset.meta.latestPeriod ? relabel(next) : next;
-  }, [engine, dataset, ctx, initial, select]);
+  return useMemo(
+    () => (engine && dataset ? select(engine, dataset, ctx) : initial),
+    [engine, dataset, ctx, initial, select],
+  );
 }

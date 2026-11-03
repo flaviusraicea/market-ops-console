@@ -138,3 +138,18 @@ test.describe("axe, WCAG 2.1 AA, while live", () => {
     expect((await new AxeBuilder({ page }).withTags(WCAG).analyze()).violations).toEqual([]);
   });
 });
+
+test("an earlier month keeps its saved captions, while the heat map that spans the latest month says live", async ({
+  page,
+}) => {
+  await openWithClock(page, "/?mode=analyst&period=2026-03");
+  await liveButton(page).click();
+  const heat = () =>
+    page
+      .getByText(/^Sorted by revenue · Derived/)
+      .first()
+      .textContent();
+  await untilChanged(page, heat, await heat());
+  await expect(page.getByText(/^Sorted by revenue · Derived · live/)).toBeVisible();
+  await expect(page.getByText("Derived · sum of series").first()).toBeVisible();
+});

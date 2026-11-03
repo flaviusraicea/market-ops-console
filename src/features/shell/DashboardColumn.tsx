@@ -3,11 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useLiveState } from "@/features/live/LiveProvider";
-import { PAGE_HEADING_ATTR } from "@/lib/motion";
+import { PAGE_HEADING_ATTR, TWEEN_SETTLE_MS } from "@/lib/motion";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
-
-/** How long marks keep their tween after the new view commits (a little over --dur-chart). */
-const TWEEN_SETTLE_MS = 300;
 
 /**
  * The dashboard column. While a context change is in flight it carries `data-pending` (globals.css dims it);

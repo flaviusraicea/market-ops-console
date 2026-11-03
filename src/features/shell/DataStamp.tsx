@@ -2,7 +2,7 @@
 
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
-import { useLiveState } from "@/features/live/LiveProvider";
+import { isSimulated, useLiveState } from "@/features/live/LiveProvider";
 import { formatClock, formatPeriod } from "@/lib/format";
 
 /**
@@ -10,9 +10,10 @@ import { formatClock, formatPeriod } from "@/lib/format";
  * a tick it says the figures are simulated and when they stopped.
  */
 export function DataStamp({ latestPeriod }: { latestPeriod: string }) {
-  const { live, tick, updatedAt } = useLiveState();
+  const state = useLiveState();
+  const { live, updatedAt } = state;
   const clock = updatedAt ? formatClock(updatedAt) : null;
-  if (live || (tick > 0 && clock)) {
+  if (isSimulated(state) && clock) {
     return (
       <Eyebrow
         title="Simulated figures for the latest month. Reload to return to the saved data."

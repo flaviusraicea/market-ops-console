@@ -2,6 +2,8 @@ import {
   STATUS_LABEL,
   askWhyPrompt,
   attentionCount,
+  derivedLabel,
+  sourceLabel,
   statusForDerived,
   effectiveBasis,
   entityName,
@@ -83,8 +85,8 @@ export type OverviewVM = {
 
 const BASIS_LABEL = { month: "Month", ytd: "YTD", mat: "MAT" } as const;
 
-const SOURCE = "Source · data.json";
-const DERIVED = "Derived · sum of series";
+/** True when the view includes the latest month, the only one live mode moves. */
+const atLatest = (ds: Dataset, ctx: Context) => ctx.period === ds.meta.latestPeriod;
 
 const direction = (n: number): "up" | "down" | "flat" => (n > 0 ? "up" : n < 0 ? "down" : "flat");
 
@@ -125,7 +127,8 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
   const basis = basisFor(ds, ctx);
   const k = kpiFor(ds, entity, ctx.period, basis);
   const ytd = kpiFor(ds, entity, ctx.period, "ytd");
-  const provenance = k.provenance === "source" ? SOURCE : DERIVED;
+  const latest = atLatest(ds, ctx);
+  const provenance = k.provenance === "source" ? sourceLabel(ds, latest) : derivedLabel(ds, latest);
   const name = entityName(ds, entity).toUpperCase();
   const prior = formatPeriod(sameMonthLastYear(ctx.period));
   const year = Number(ctx.period.slice(0, 4));
@@ -177,7 +180,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
         value: `Attainment ${formatPct(k.attainmentPct, { sign: false })} · Growth ${formatPct(k.growthPct, { sign: true })}`,
         comparison: "",
       },
-      provenance: SOURCE,
+      provenance: sourceLabel(ds, latest),
       infoLabel: "About status",
     };
   } else {
@@ -190,7 +193,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
         value: `${c.at_risk} at risk · ${c.off_track} off track`,
         comparison: "",
       },
-      provenance: SOURCE,
+      provenance: sourceLabel(ds, latest),
       infoLabel: "About markets needing attention",
     };
   }
@@ -263,7 +266,7 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
       selected: ctx.market,
       focus,
       periodLabel: formatPeriod(ctx.period),
-      provenance: SOURCE,
+      provenance: sourceLabel(ds, atLatest(ds, ctx)),
       maxRevenue: Math.max(...entries.map((e) => e.k.totals.actual)),
       values,
       rows,
@@ -397,7 +400,7 @@ export function verdictVM(ds: Dataset, ctx: Context): VerdictVM {
   return {
     eyebrow:
       `${entityName(ds, entity)} · ${formatPeriod(ctx.period)} · ${BASIS_LABEL.month}`.toUpperCase(),
-    caption: market ? SOURCE : DERIVED,
+    caption: market ? sourceLabel(ds, atLatest(ds, ctx)) : derivedLabel(ds, atLatest(ds, ctx)),
     segments: joinSegments(parts),
     status,
     attention,
@@ -548,7 +551,7 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
         sparkLabel: `${p.name}, revenue, last 12 months`,
       };
     });
-    return { kind: "products", caption: `Derived · sum of series · ${period}`, rows };
+    return { kind: "products", caption: `${derivedLabel(ds, atLatest(ds, ctx))} · ${period}`, rows };
   }
 
   const scoped = marketsIn(ds, entityOf(ctx)).map((m) => {
@@ -590,7 +593,7 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
   return {
     kind: "markets",
     caption: `Off track first, then at risk by attainment · ${period}`,
-    provenance: SOURCE,
+    provenance: sourceLabel(ds, atLatest(ds, ctx)),
     rows,
     rising,
   };
@@ -647,7 +650,7 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
     const best = rows.reduce((a, b) => (b.attainmentPct > a.attainmentPct ? b : a));
     sentence = { lead: `${best.name} leads`, rest: ` at ${best.attainment} of forecast.` };
   }
-  return { rows, sentence, caption: DERIVED };
+  return { rows, sentence, caption: derivedLabel(ds, atLatest(ds, ctx)) };
 }
 
 /** The market in scope furthest from plan, as one sentence for the panel's empty state. */

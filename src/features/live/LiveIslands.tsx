@@ -28,7 +28,7 @@ import { useLiveVM } from "./LiveProvider";
  * One wrapper per widget that moves in live mode. Each takes the same props as the widget, hands the server's
  * view model to `useLiveVM`, and renders the widget with whichever model comes back. Until Live is turned on
  * the server's model is returned untouched and nothing else loads. The selectors are module-level so they
- * are stable for the hook.
+ * are stable for the hook. This file is a deliberate registry of those wrappers, one line of logic each.
  */
 
 const tiles = (e: Engine, ds: Ds, cx: Cx) => e.overview(ds, cx).tiles;
