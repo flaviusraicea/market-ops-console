@@ -8,6 +8,7 @@ import { applyContextChange } from "@/lib/context/invariants";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useDensity } from "@/lib/density";
 import type { ContextPatch } from "@/domain";
+import { ConnectedLiveToggle } from "@/features/live/LiveToggle";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { ContextChips } from "./ContextChips";
 import { DataStamp } from "./DataStamp";
@@ -89,6 +90,7 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
               onChange={(p) => setContext({ period: p as Period })}
             />
           ) : null}
+          <ConnectedLiveToggle className="max-md:hidden" />
           <DataStamp latestPeriod={latestPeriod} />
           <ModeSwitch mode={mode} onChange={(m) => setContext({ mode: m })} />
           <ThemeToggle />

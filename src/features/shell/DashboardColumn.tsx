@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import { useLiveState } from "@/features/live/LiveProvider";
 import { PAGE_HEADING_ATTR } from "@/lib/motion";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 
@@ -14,6 +15,7 @@ const TWEEN_SETTLE_MS = 300;
  */
 export function DashboardColumn({ children }: { children: ReactNode }) {
   const { ctx, isPending } = useConsoleContext();
+  const { tweening } = useLiveState();
   const ref = useRef<HTMLElement>(null);
   const scope = `${ctx.region ?? ""}|${ctx.market ?? ""}|${ctx.product ?? ""}`;
   // What was true when the navigation started: the drill scope, and whether the trigger showed a focus ring.
@@ -53,7 +55,7 @@ export function DashboardColumn({ children }: { children: ReactNode }) {
       aria-label="Dashboard"
       data-slot="dashboard"
       data-pending={isPending}
-      data-tween={isPending || settling}
+      data-tween={isPending || settling || tweening}
       className="min-w-0"
     >
       {children}

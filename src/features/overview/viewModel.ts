@@ -73,6 +73,8 @@ export type OverviewVM = {
     /** Markets drawn at full strength; everything else is dimmed. Undefined at portfolio level. */
     focus: string[] | undefined;
     periodLabel: string;
+    /** Where the figures come from, for the table caption. */
+    provenance: string;
     maxRevenue: number;
     values: Record<string, MapValueVM>;
     rows: MapRowVM[];
@@ -261,6 +263,7 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
       selected: ctx.market,
       focus,
       periodLabel: formatPeriod(ctx.period),
+      provenance: SOURCE,
       maxRevenue: Math.max(...entries.map((e) => e.k.totals.actual)),
       values,
       rows,
@@ -515,7 +518,13 @@ export type ProductRowVM = {
 };
 
 export type AttentionVM =
-  | { kind: "markets"; caption: string; rows: RankedRowVM[]; rising: AttentionRowVM[] }
+  | {
+      kind: "markets";
+      caption: string;
+      provenance: string;
+      rows: RankedRowVM[];
+      rising: AttentionRowVM[];
+    }
   | { kind: "products"; caption: string; rows: ProductRowVM[] };
 
 /** Markets that need attention, worst first, then the three fastest-growing markets of any status. */
@@ -581,6 +590,7 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
   return {
     kind: "markets",
     caption: `Off track first, then at risk by attainment · ${period}`,
+    provenance: SOURCE,
     rows,
     rising,
   };

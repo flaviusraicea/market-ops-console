@@ -251,7 +251,7 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
         title="Needs attention"
         titleId="attention-h"
         subtitle={attention.caption}
-        caption="Source · data.json"
+        caption={attention.provenance}
       />
       {attention.rows.length === 0 ? (
         <p className="text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink-2">

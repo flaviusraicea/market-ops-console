@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { entityName, entityOf } from "@/domain";
 import { cn } from "@/components/cn";
+import { isSimulated, useLiveState } from "@/features/live/LiveProvider";
 import { PaletteButton } from "@/features/palette/PaletteButton";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ChevronRight, ICON_STROKE, Sparkles } from "@/components/icons";
@@ -37,6 +38,7 @@ type PanelProps = {
  * below that it sits in the page flow.
  */
 export function Panel({ context, onSubmit, stream }: PanelProps) {
+  const live = useLiveState();
   const [draft, setDraft] = useState("");
   const [scrollSignal, setScrollSignal] = useState(0);
   // Where a prefilled question came from, until it is sent or cleared. `note` is the composer's helper line.
@@ -173,6 +175,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
         about={pending?.ctx.label ?? null}
         onClearAbout={() => setPending(null)}
         note={pending?.note ?? null}
+        simulated={isSimulated(live)}
       />
       {/* After the composer in the DOM so the composer stays first in tab order; placed top right. */}
       <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:right-[calc(var(--pad-card)+var(--control-h)+8px)]">

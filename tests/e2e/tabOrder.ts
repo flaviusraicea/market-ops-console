@@ -3,7 +3,11 @@
  * `tests/e2e/slice11.spec.ts` asserts it; `docs/accessibility.md` is generated from it (`pnpm docs:a11y`).
  * A label is the focused element's aria-label, or else its text, cut to 60 characters.
  */
-export type TabOrder = { readonly title: string; readonly url: string; readonly stops: readonly string[] };
+export type TabOrder = {
+  readonly title: string;
+  readonly url: string;
+  readonly stops: readonly string[];
+};
 
 export const TAB_ORDERS: readonly TabOrder[] = [
   {
@@ -12,6 +16,8 @@ export const TAB_ORDERS: readonly TabOrder[] = [
     stops: [
       "Skip to content",
       "Period",
+      "Live",
+      "Paused",
       "Overview",
       "Switch to dark theme",
       "About this verdict",
@@ -73,6 +79,8 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "Skip to content",
       "Portfolio",
       "Europe",
+      "Live",
+      "Paused",
       "Analyst",
       "Switch to dark theme",
       "Period",
@@ -116,9 +124,6 @@ export const TAB_ORDERS: readonly TabOrder[] = [
 /** Markdown for `docs/accessibility.md`, between the `tab-order` markers. */
 export function renderTabOrders(orders: readonly TabOrder[] = TAB_ORDERS): string {
   return orders
-    .map(
-      (o) =>
-        `#### ${o.title}\n\n${o.stops.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n`,
-    )
+    .map((o) => `#### ${o.title}\n\n${o.stops.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n`)
     .join("\n");
 }

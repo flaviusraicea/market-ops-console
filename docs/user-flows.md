@@ -276,7 +276,7 @@ Acceptance: `npm run storybook` builds; each component has a story per state lis
 
 ## Slice 13: Parked, future flows (short)
 
-- **Live mode:** a header toggle starts a timed mock feed that appends a new period every 10 s; tiles and charts update in place with the 240 ms transition; the stamp advances; a "Pause" control. Acceptance later: no layout shift, the URL period stays unless the user picks "follow latest".
+- **Live mode:** a `Live · Paused` toggle in the header starts a 5 s tick that drifts the latest month's revenue and units for each market (up to ±2 % per tick, never more than ±8 % from the saved data); tiles, status, map, grid, series, radar and heat map update in place with the 240 ms transition and the stamp reads `LIVE · UPDATED hh:mm:ss`. The URL, selection, open rail and conversation do not move, `Paused` freezes the figures, and a reload returns to the saved data.
 - **Context-aware assistant:** the assistant sends the current Context with the question so the answer defaults to the selected market and period; the question echo shows "About Germany · Mar 2026". Acceptance later: the request body contains the context and the fixture router can use it.
 
 ---
