@@ -1,4 +1,5 @@
 import type { Mode } from "@/domain";
+import { oneOf } from "@/lib/oneOf";
 
 /**
  * The mock identity layer. Nothing here is real authentication: the role is a cookie the proxy sets and a
@@ -44,7 +45,7 @@ export const ROLE_LABEL: Readonly<Record<Role, string>> = {
 };
 
 export function parseRole(value: string | null | undefined): Role | null {
-  return (ROLES as readonly string[]).includes(value ?? "") ? (value as Role) : null;
+  return oneOf(ROLES, value);
 }
 
 /** The view a role opens on when the URL names none. Modes and roles share their names. */
@@ -52,15 +53,6 @@ export const defaultModeFor = (role: Role): Mode => role;
 
 /** Only an Analyst manages alert rules. */
 export const canEditAlerts = (role: Role): boolean => role === "analyst";
-
-/** The role in a `Cookie` header; a missing or unknown value is the default persona, as in the proxy. */
-export function roleFromCookieHeader(header: string | null): Role {
-  for (const part of (header ?? "").split(";")) {
-    const [name, ...rest] = part.trim().split("=");
-    if (name === ROLE_COOKIE) return parseRole(rest.join("=")) ?? DEFAULT_ROLE;
-  }
-  return DEFAULT_ROLE;
-}
 
 /** The attributes of the role cookie, shared by the proxy (first visit) and the session route (switching). */
 export const roleCookie = (role: Role) =>

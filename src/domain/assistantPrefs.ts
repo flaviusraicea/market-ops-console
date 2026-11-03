@@ -19,7 +19,7 @@ export function parsePrefs(raw: string | null): AssistantPrefs {
     // Before the mode was renamed the Executive preference was stored as "overview".
     const migrated =
       stored && typeof stored === "object" && "overview" in stored && !("executive" in stored)
-        ? { ...stored, executive: (stored as { overview: unknown }).overview }
+        ? { ...stored, executive: stored.overview }
         : stored;
     const parsed = PrefsSchema.safeParse(migrated);
     return parsed.success ? parsed.data : DEFAULT_PREFS;

@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 
 import { DELETE as signOut, POST as signIn } from "@/app/api/session/route";
@@ -5,7 +6,7 @@ import { DELETE, POST } from "@/app/api/alerts/route";
 import raw from "@/data/data.json";
 import { parseDataset } from "@/domain";
 import { parseContextFromSearchParams } from "@/lib/context/parsers";
-import { ROLE_COOKIE, defaultModeFor, roleFromCookieHeader } from "@/lib/roles";
+import { ROLE_COOKIE, defaultModeFor } from "@/lib/roles";
 
 const ds = parseDataset(raw);
 
@@ -26,16 +27,6 @@ describe("default mode by role", () => {
     expect(parseContextFromSearchParams(ds, { mode: "overview" }, "analyst").mode).toBe(
       "executive",
     );
-  });
-});
-
-describe("roleFromCookieHeader", () => {
-  it("reads the role among other cookies", () => {
-    expect(roleFromCookieHeader(`a=b; ${ROLE_COOKIE}=analyst; c=d`)).toBe("analyst");
-  });
-  it("falls back to the default persona for a missing or unknown value", () => {
-    expect(roleFromCookieHeader(null)).toBe("executive");
-    expect(roleFromCookieHeader(`${ROLE_COOKIE}=admin`)).toBe("executive");
   });
 });
 
@@ -80,7 +71,7 @@ describe("/api/alerts is read-only for an Executive", () => {
 
   it("returns 403 read_only_role for POST and DELETE", async () => {
     const post = await POST(
-      new Request("http://test/api/alerts", {
+      new NextRequest("http://test/api/alerts", {
         method: "POST",
         headers: headers("executive"),
         body: JSON.stringify(rule),
@@ -89,7 +80,7 @@ describe("/api/alerts is read-only for an Executive", () => {
     expect(post.status).toBe(403);
     expect(await post.json()).toMatchObject({ error: "read_only_role" });
     const del = await DELETE(
-      new Request("http://test/api/alerts?id=x", {
+      new NextRequest("http://test/api/alerts?id=x", {
         method: "DELETE",
         headers: headers("executive"),
       }),
@@ -98,7 +89,7 @@ describe("/api/alerts is read-only for an Executive", () => {
   });
   it("treats a request with no cookie as the default persona, so it is read-only too", async () => {
     const res = await POST(
-      new Request("http://test/api/alerts", {
+      new NextRequest("http://test/api/alerts", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(rule),
@@ -108,7 +99,7 @@ describe("/api/alerts is read-only for an Executive", () => {
   });
   it("lets an Analyst save", async () => {
     const res = await POST(
-      new Request("http://test/api/alerts", {
+      new NextRequest("http://test/api/alerts", {
         method: "POST",
         headers: headers("analyst"),
         body: JSON.stringify(rule),

@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 
 import { breadcrumbTrail, entityName, entityOf } from "@/domain";
 import { Panel } from "@/features/assistant/Panel";
@@ -18,14 +17,14 @@ import { ConsoleMetaProvider } from "@/lib/context/meta";
 import { lightDataset, metaFromDataset } from "@/lib/context/invariants";
 import { parseContextFromSearchParams } from "@/lib/context/parsers";
 import { getDataset } from "@/lib/dataset";
-import { DEFAULT_ROLE, ROLE_COOKIE, defaultModeFor, parseRole } from "@/lib/roles";
+import { defaultModeFor } from "@/lib/roles";
+import { readRole } from "@/lib/roles.server";
 
 type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 /** The view a URL without `mode` opens on: the signed-in role's. */
 async function roleDefaultMode() {
-  const role = parseRole((await cookies()).get(ROLE_COOKIE)?.value) ?? DEFAULT_ROLE;
-  return defaultModeFor(role);
+  return defaultModeFor(await readRole());
 }
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {

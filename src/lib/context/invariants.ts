@@ -9,6 +9,7 @@ import type {
   RegionId,
 } from "@/domain";
 import { RegionIdSchema } from "@/domain";
+import { oneOf } from "@/lib/oneOf";
 
 /** The slice of the dataset the URL layer needs, safe to ship to the client. */
 export type ConsoleMeta = {
@@ -46,8 +47,7 @@ export const MODES = ["executive", "analyst"] as const;
 
 /** Mode as a URL value. Links written before the rename say `overview`; they mean `executive`. */
 export function parseMode(v: string | null | undefined): Mode | null {
-  if (v === "overview") return "executive";
-  return (MODES as readonly string[]).includes(v ?? "") ? (v as Mode) : null;
+  return oneOf(MODES, v === "overview" ? "executive" : v);
 }
 export const METRICS = ["attainment", "revenue", "growth"] as const;
 export const BASES = ["month", "ytd", "mat"] as const;
@@ -57,7 +57,7 @@ export function clampPeriodTo(meta: ConsoleMeta, p: string | null | undefined): 
 }
 
 const pick = <T extends string>(values: readonly T[], v: string | null | undefined, d: T): T =>
-  (values as readonly string[]).includes(v ?? "") ? (v as T) : d;
+  oneOf(values, v) ?? d;
 
 /** Turns whatever the URL held into a valid Context. Pure; shared by server and client. */
 export function normalizeContext(meta: ConsoleMeta, raw: RawContext): Context {

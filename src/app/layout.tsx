@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { REDUCED_MOTION_KEY } from "@/lib/motion";
-import { DEFAULT_ROLE, ROLE_COOKIE, parseRole } from "@/lib/roles";
+import { readRole } from "@/lib/roles.server";
 import { WebVitals } from "@/lib/vitals";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -39,7 +38,7 @@ const THEME_SCRIPT = `try{var t=localStorage.getItem("mo.theme");if(t==="light"|
 const MOTION_SCRIPT = `try{if(localStorage.getItem("${REDUCED_MOTION_KEY}")==="true")document.documentElement.setAttribute("data-reduced-motion","true")}catch(e){}`;
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const role = parseRole((await cookies()).get(ROLE_COOKIE)?.value) ?? DEFAULT_ROLE;
+  const role = await readRole();
   return (
     <html lang="en" className={`${display.variable} ${ui.variable}`} suppressHydrationWarning>
       <head>

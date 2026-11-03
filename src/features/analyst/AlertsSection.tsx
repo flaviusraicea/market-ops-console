@@ -83,12 +83,15 @@ export function AlertsSection({
               failure={alerts.failure}
               onRetry={alerts.retry}
               onDismiss={alerts.dismiss}
+              onSwitchToAnalyst={onSwitchToAnalyst}
             />
             <RuleList
               rules={alerts.rules}
               onDelete={alerts.remove}
               deleteFailed={alerts.deleteFailed}
               onDismissDeleteFailed={alerts.dismissDeleteFailed}
+              deleteReadOnly={alerts.deleteReadOnly}
+              onSwitchToAnalyst={onSwitchToAnalyst}
               readOnly={readOnly}
             />
           </div>

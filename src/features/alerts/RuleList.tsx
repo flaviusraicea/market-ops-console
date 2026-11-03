@@ -16,12 +16,17 @@ export function RuleList({
   onDelete,
   deleteFailed = false,
   onDismissDeleteFailed,
+  deleteReadOnly = false,
+  onSwitchToAnalyst,
   readOnly = false,
 }: {
   rules: RuleRow[];
   onDelete: (id: string) => void;
   deleteFailed?: boolean;
   onDismissDeleteFailed?: () => void;
+  /** The delete was refused for the role, so the rule was restored and retrying cannot work. */
+  deleteReadOnly?: boolean;
+  onSwitchToAnalyst?: (() => void) | undefined;
   /** Executives read the rules; Delete is not offered. */
   readOnly?: boolean;
 }) {
@@ -33,18 +38,27 @@ export function RuleList({
     <div ref={container} tabIndex={-1} className="flex flex-col gap-2 outline-none">
       {deleteFailed ? (
         <Notice
-          title="Couldn't delete"
+          title={deleteReadOnly ? "Rules are read-only for Executives." : "Couldn't delete"}
           actions={
-            <Button type="button" variant="ghost" onClick={() => onDismissDeleteFailed?.()}>
-              Dismiss
-            </Button>
+            <>
+              {deleteReadOnly ? (
+                <Button type="button" variant="secondary" onClick={() => onSwitchToAnalyst?.()}>
+                  Switch to Analyst
+                </Button>
+              ) : null}
+              <Button type="button" variant="ghost" onClick={() => onDismissDeleteFailed?.()}>
+                Dismiss
+              </Button>
+            </>
           }
         >
           The rule was restored.
         </Notice>
       ) : null}
       {rules.length === 0 ? (
-        <p className="text-ink-muted">No alert rules yet. Add one to watch a threshold.</p>
+        <p className="text-ink-muted">
+          {readOnly ? "No alert rules yet." : "No alert rules yet. Add one to watch a threshold."}
+        </p>
       ) : (
         <ul aria-label="Saved alert rules">
           {rules.map((rule) => {

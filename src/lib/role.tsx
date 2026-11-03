@@ -24,8 +24,10 @@ async function send(method: "POST" | "DELETE", role?: Role): Promise<boolean> {
         ? { headers: { "content-type": "application/json" }, body: JSON.stringify({ role }) }
         : {}),
     });
+    if (!res.ok) console.error("[session]", { method, role, status: res.status });
     return res.ok;
-  } catch {
+  } catch (error) {
+    console.error("[session]", { method, role, status: "network", error: String(error) });
     return false;
   }
 }
