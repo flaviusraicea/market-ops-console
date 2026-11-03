@@ -14,13 +14,13 @@ function Table({
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto [scrollbar-gutter:stable]"
+      className="relative w-full overflow-x-auto"
       {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
     >
       <table
         data-slot="table"
         className={cn(
-          "w-full caption-bottom text-[length:var(--text-body-dense)] leading-[18px]",
+          "w-full caption-bottom text-[length:var(--text-body)] leading-[18px]",
           // Where the table is wider than its card, the first column stays in view while the rest scrolls.
           stickyFirst &&
             "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-accent-soft [&_thead_tr>:first-child]:bg-surface-2",

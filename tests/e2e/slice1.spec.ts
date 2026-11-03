@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 async function tabThrough(page: Page, names: { role: string; name: string }[]) {
-  for (const { role, name } of names) {
+  for (const { name } of names) {
     await page.keyboard.press("Tab");
     const focused = page.locator(":focus-visible");
     await expect(focused).toHaveAccessibleName(name);

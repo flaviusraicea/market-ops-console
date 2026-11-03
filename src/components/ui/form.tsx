@@ -136,6 +136,7 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="form-message"
       id={formMessageId}
+      {...(error ? { role: "alert" } : {})}
       className={cn(
         "flex items-start gap-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-bad-text",
         className,

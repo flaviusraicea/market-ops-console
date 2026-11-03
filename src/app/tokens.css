@@ -110,6 +110,9 @@
   --radius-control: 6px;
   --radius-card: 8px;
   --radius-pill: 999px;
+  --radius-sheet: 12px;
+  /* The fixed assistant bar below 1024 px; the page reserves it so nothing hides behind it. */
+  --bar-h: 72px;
   --page-max: 1280px;
   --gutter: 16px;
   --assistant-w: 380px;
@@ -125,17 +128,6 @@
 @media (min-width: 1024px) {
   :root {
     --gutter: 24px;
-  }
-}
-
-/* Touch: 44 px controls and rows in both densities; a segmented track is 4 px taller than its 44 px buttons. */
-@media (pointer: coarse) {
-  :root,
-  html[data-density="analyst"] {
-    --control-h: 44px;
-    --track-h: 48px;
-    --chip-h: 36px;
-    --row-h: 44px;
   }
 }
 
@@ -171,6 +163,17 @@ html[data-density="analyst"] {
   --text-kpi: 20px;
   --text-kpi-lh: 24px;
   --grid-cols: 3;
+}
+
+/* Touch: 44 px controls and rows in both densities; a segmented track is 4 px taller than its 44 px buttons. */
+@media (pointer: coarse) {
+  :root,
+  html[data-density="analyst"] {
+    --control-h: 44px;
+    --track-h: 48px;
+    --chip-h: 36px;
+    --row-h: 44px;
+  }
 }
 
 /* Colour: dark theme (section 3.2), explicit choice */

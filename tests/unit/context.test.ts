@@ -19,6 +19,12 @@ describe("parseContextFromSearchParams", () => {
     expect(ctx.period).toBe("2026-05");
     expect(ctx.product).toBeUndefined();
   });
+  it("reads facts only as the flag the client writes, facts=1", () => {
+    expect(parseContextFromSearchParams(ds, { mode: "analyst", facts: "1" }).facts).toBe(true);
+    expect(
+      parseContextFromSearchParams(ds, { mode: "analyst", facts: "true" }).facts,
+    ).toBeUndefined();
+  });
   it("round-trips a full drill state", () => {
     const ctx = parseContextFromSearchParams(ds, {
       region: "eu",

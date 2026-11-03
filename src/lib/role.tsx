@@ -1,7 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  startTransition,
+  useCallback,
+  useContext,
+  useMemo,
+  type ReactNode,
+} from "react";
 
 import { reportError } from "./events";
 import { PERSONAS, type Persona, type Role } from "./roles";
@@ -54,7 +61,12 @@ export function RoleProvider({ role, children }: { role: Role; children: ReactNo
   const signIn = useCallback(
     (next: Role) => {
       void send("POST", next).then((ok) => {
-        if (ok) router.push("/");
+        if (!ok) return;
+        // The root layout survives a client navigation, so it must render again to pick up the new cookie.
+        startTransition(() => {
+          router.push("/");
+          router.refresh();
+        });
       });
     },
     [router],

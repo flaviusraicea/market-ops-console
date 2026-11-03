@@ -43,7 +43,10 @@ export function RegionBars({
   onSelect?: (regionId: string) => void;
 }) {
   const { setContext } = useConsoleContext();
-  const select = onSelect ?? ((region: string) => setContext({ region: region as RegionId }));
+  const select =
+    onSelect ??
+    ((region: string) =>
+      setContext({ region: region as RegionId, market: undefined, product: undefined }));
   return (
     <section
       aria-labelledby="regions-h"

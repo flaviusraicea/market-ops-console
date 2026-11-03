@@ -11,17 +11,30 @@ const docPath = path.join(root, "docs", "accessibility.md");
 
 /** One row per token pair, with the light and dark ratios side by side. */
 function contrastTable(): string {
-  const pairs = new Map<string, { kind: string; pair: string; min: number | null; ratio: Partial<Record<string, string>> }>();
+  const pairs = new Map<
+    string,
+    { kind: string; pair: string; min: number | null; ratio: Partial<Record<string, string>> }
+  >();
   for (const r of rows) {
     if (r.kind === "monotonic" || r.kind === "parity") continue;
-    const entry = pairs.get(`${r.kind}|${r.pair}`) ?? { kind: r.kind, pair: r.pair, min: r.min, ratio: {} };
+    const entry = pairs.get(`${r.kind}|${r.pair}`) ?? {
+      kind: r.kind,
+      pair: r.pair,
+      min: r.min,
+      ratio: {},
+    };
     entry.ratio[r.theme] = `${r.ratio.toFixed(2)}:1${r.pass ? "" : " (FAIL)"}`;
     pairs.set(`${r.kind}|${r.pair}`, entry);
   }
   if (pairs.size === 0) throw new Error("No contrast pairs to publish");
-  const lines = ["| Pair (foreground/background) | Kind | Needs | Light | Dark |", "| --- | --- | --- | --- | --- |"];
+  const lines = [
+    "| Pair (foreground/background) | Kind | Needs | Light | Dark |",
+    "| --- | --- | --- | --- | --- |",
+  ];
   for (const e of pairs.values()) {
-    lines.push(`| \`${e.pair}\` | ${e.kind} | ${e.min === null ? "none" : `${e.min}:1`} | ${e.ratio["light"] ?? ""} | ${e.ratio["dark"] ?? ""} |`);
+    lines.push(
+      `| \`${e.pair}\` | ${e.kind} | ${e.min === null ? "none" : `${e.min}:1`} | ${e.ratio["light"] ?? ""} | ${e.ratio["dark"] ?? ""} |`,
+    );
   }
   return lines.join("\n");
 }
@@ -36,7 +49,11 @@ function replaceBlock(doc: string, name: string, body: string): string {
 }
 
 const current = readFileSync(docPath, "utf8");
-const next = replaceBlock(replaceBlock(current, "tab-order", renderTabOrders()), "contrast", contrastTable());
+const next = replaceBlock(
+  replaceBlock(current, "tab-order", renderTabOrders()),
+  "contrast",
+  contrastTable(),
+);
 if (process.argv.includes("--check")) {
   if (next !== current) {
     console.error("docs/accessibility.md is stale: run `pnpm docs:a11y`.");

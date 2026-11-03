@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
 import { isSimulated, useLiveState } from "@/features/live/LiveProvider";
@@ -24,9 +24,8 @@ type PanelProps = {
 };
 
 /**
- * Owns the answer machine. The composer sits at the top, under the header row, so it is the first thing
- * to reach with the keyboard. From 1024 px the panel is sticky and only the answer list scrolls;
- * below that it sits in the page flow.
+ * The assistant panel: composer at the top, then the answers. It reads the session's answer machine, so closing
+ * or remounting it never loses a stream. From 1024 px it is a sticky column; below that it fills a bottom sheet.
  */
 type Placement = {
   /** `sheet` is the phone layout: the panel fills the bottom sheet instead of sitting in a column. */
@@ -36,13 +35,10 @@ type Placement = {
    * it does not when an Ask why button or a citation opened it, because that would raise the keyboard.
    */
   focusComposer: boolean;
-  /** The last prefill the sheet had already shown, so reopening it does not replay that one. */
-  skipRequestsUpTo: number;
 };
 const PlacementContext = createContext<Placement>({
   variant: "column",
   focusComposer: true,
-  skipRequestsUpTo: 0,
 });
 
 /** Wraps the panel where it is not in the desktop column. */
@@ -62,7 +58,7 @@ function PanelBody({
   onSubmit,
   machine,
 }: PanelProps & { machine: NonNullable<ReturnType<typeof useAnswerMachineContext>> }) {
-  const { variant, focusComposer, skipRequestsUpTo } = useContext(PlacementContext);
+  const { variant, focusComposer } = useContext(PlacementContext);
   const sheet = variant === "sheet";
   const live = useLiveState();
   // The draft and where a prefilled question came from live in the machine's provider, so closing the phone
@@ -70,7 +66,7 @@ function PanelBody({
   const { draft, setDraft, pending, setPending } = machine;
   const ref = useRef<HTMLTextAreaElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const request = useAskWhyRequest();
+  const { request, consume } = useAskWhyRequest();
   const { open, collapse } = useAssistantRail();
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const overlay = useMediaQuery(OVERLAY_QUERY) && open;
@@ -90,9 +86,8 @@ function PanelBody({
   }
 
   // An "Ask why" button elsewhere either fills the composer or has sent its question already (see AnswerMachine).
-  const [applied, setApplied] = useState(skipRequestsUpTo);
-  if (request && request.nonce !== applied) {
-    setApplied(request.nonce);
+  useEffect(() => {
+    if (!request || !consume(request.nonce)) return;
     if (request.fill) {
       setDraft(request.text);
       setPending(
@@ -104,12 +99,8 @@ function PanelBody({
           : null,
       );
     }
-  }
-  useEffect(() => {
-    if (!request || request.nonce <= skipRequestsUpTo) return;
-    if (sheet && !focusComposer) return;
-    ref.current?.focus();
-  }, [request, skipRequestsUpTo, sheet, focusComposer]);
+    if (!(sheet && !focusComposer)) ref.current?.focus();
+  }, [request, consume, setDraft, setPending, sheet, focusComposer]);
   // The sheet opened by "Ask the assistant" puts the cursor in the composer.
   useEffect(() => {
     if (sheet && focusComposer) ref.current?.focus();

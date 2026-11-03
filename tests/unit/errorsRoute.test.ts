@@ -27,12 +27,18 @@ describe("POST /api/errors", () => {
     });
   });
 
-  it.each(["stream", "fetch"])("accepts a %s failure with the route it came from", async (source) => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const res = await post(JSON.stringify(report({ source, route: "/api/chat" })));
-    expect(res.status).toBe(204);
-    expect(JSON.parse(String(spy.mock.calls[0]?.[0]))).toMatchObject({ source, route: "/api/chat" });
-  });
+  it.each(["stream", "fetch"])(
+    "accepts a %s failure with the route it came from",
+    async (source) => {
+      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const res = await post(JSON.stringify(report({ source, route: "/api/chat" })));
+      expect(res.status).toBe(204);
+      expect(JSON.parse(String(spy.mock.calls[0]?.[0]))).toMatchObject({
+        source,
+        route: "/api/chat",
+      });
+    },
+  );
 
   it("refuses a body over the cap without reading it", async () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -43,6 +49,23 @@ describe("POST /api/errors", () => {
         body: big,
         headers: { "content-length": String(big.length) },
       }),
+    );
+    expect(res.status).toBe(413);
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("refuses a chunked body over the cap, which carries no content-length", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const chunk = new TextEncoder().encode("x".repeat(3000));
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(chunk);
+        controller.enqueue(chunk);
+        controller.close();
+      },
+    });
+    const res = await POST(
+      new Request("http://x/api/errors", { method: "POST", body, duplex: "half" } as RequestInit),
     );
     expect(res.status).toBe(413);
     expect(spy).not.toHaveBeenCalled();

@@ -30,7 +30,7 @@ export function Layout({ header, dashboard, assistant }: LayoutProps) {
                   Skip to content
                 </a>
                 {header}
-                <div className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--gap)] max-lg:pb-[calc(72px+env(safe-area-inset-bottom))]">
+                <div className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--gap)] max-lg:pb-[calc(var(--bar-h)+env(safe-area-inset-bottom))]">
                   <ShellGrid dashboard={dashboard} assistant={assistant} />
                 </div>
               </PaletteProvider>

@@ -60,6 +60,7 @@
   --radius-control: var(--radius-control);
   --radius-card: var(--radius-card);
   --radius-pill: var(--radius-pill);
+  --radius-sheet: var(--radius-sheet);
   --shadow-popover: var(--shadow-popover);
 }
 

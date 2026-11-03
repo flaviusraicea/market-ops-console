@@ -33,9 +33,9 @@ export function SourcesTable({
         role="region"
         aria-label="Sources table"
         tabIndex={0}
-        className="overflow-x-auto rounded-control border border-border bg-surface [scrollbar-gutter:stable]"
+        className="overflow-x-auto rounded-control border border-border bg-surface"
       >
-        <table className="w-full min-w-[560px] border-collapse [&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_thead_tr>:first-child]:bg-surface-2 text-left text-[length:var(--text-body-dense)] leading-[18px]">
+        <table className="w-full min-w-[560px] border-collapse [&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_thead_tr>:first-child]:bg-surface-2 text-left text-[length:var(--text-body)] leading-[18px]">
           <caption className="sr-only">Sources cited by this answer</caption>
           <thead>
             <tr className="border-b border-border bg-surface-2">

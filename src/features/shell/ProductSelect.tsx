@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/components/cn";
 import {
   Select,
   SelectContent,
@@ -18,11 +19,13 @@ export function ProductSelect({
   products,
   onChange,
   disabled = false,
+  className,
 }: {
   product: string | undefined;
   products: readonly ProductOption[];
   onChange: (product: string | undefined) => void;
   disabled?: boolean;
+  className?: string;
 }) {
   return (
     <Select
@@ -30,7 +33,7 @@ export function ProductSelect({
       disabled={disabled}
       onValueChange={(v) => onChange(v === ALL ? undefined : v)}
     >
-      <SelectTrigger aria-label="Product" className="min-w-[136px]">
+      <SelectTrigger aria-label="Product" className={cn("min-w-[136px]", className)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

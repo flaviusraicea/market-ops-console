@@ -19,7 +19,8 @@
     "check:budget": "tsx scripts/check-budget.ts",
     "docs:a11y": "tsx scripts/gen-a11y-docs.ts",
     "build:geo": "tsx scripts/build-geo.ts",
-    "ci": "pnpm lint && pnpm typecheck && pnpm check:contrast && pnpm docs:a11y --check && pnpm test && pnpm build && pnpm check:budget && pnpm build-storybook"
+    "format:check": "prettier --check .",
+    "ci": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm check:contrast && pnpm docs:a11y --check && pnpm test && pnpm build && pnpm check:budget && pnpm build-storybook"
   },
   "dependencies": {
     "@tailwindcss/postcss": "4.3.3",

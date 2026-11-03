@@ -34,7 +34,8 @@ export const FactSchema = z.object({
   actual: z.number().nonnegative(),
   forecast: z.number().positive(),
   units: z.number().nonnegative(),
-  priorYear: z.number().nonnegative(),
+  // Positive: growth is a ratio against it.
+  priorYear: z.number().positive(),
 });
 export const MetaSchema = z.object({
   currency: z.literal("USD"),
@@ -91,6 +92,18 @@ export const DatasetSchema = z
         });
       }
       actualByKey.set(`${f.marketId}|${f.productId}|${f.period}`, f.actual);
+    });
+
+    // Period maths slices and shifts by index, so the list must be consecutive months in ascending order.
+    d.meta.periods.forEach((p, i) => {
+      const before = d.meta.periods[i - 1];
+      if (before !== undefined && shiftMonths(before, 1) !== p) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["meta", "periods", i],
+          message: `periods must be consecutive months in ascending order; ${p} does not follow ${before}`,
+        });
+      }
     });
 
     if (d.meta.periods[d.meta.periods.length - 1] !== d.meta.latestPeriod) {
