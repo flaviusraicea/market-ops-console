@@ -68,6 +68,7 @@ test("Shift+Enter on a heat map cell fills the composer, sends nothing, then Ent
   await open(page);
   await page.getByRole("gridcell", { name: /^Germany, Mar 2026/ }).focus();
   await expect(page.getByRole("tooltip")).toContainText("Ask about Germany, Mar 2026");
+  await expect(page.getByRole("tooltip")).toContainText("vs Feb−27.2%");
   await page.keyboard.press("Shift+Enter");
   await expect(composer(page)).toBeFocused();
   await expect(composer(page)).toHaveValue("Why did Germany's revenue dip in Mar 2026?");
