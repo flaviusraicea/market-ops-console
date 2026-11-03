@@ -5,6 +5,7 @@ import fixturesRaw from "@/data/fixtures.json";
 import { attainmentPct, factsFor, growthPct, toPeriod, totals } from "@/domain";
 import { parseDataset } from "@/domain/dataset";
 import { FixturesFileSchema } from "@/domain/stream";
+import { INLINE_MAP, inlineKey } from "@/features/assistant/inlineMap";
 import { pickFixture } from "@/lib/stream/pickFixture";
 import { formatPct } from "@/lib/format";
 
@@ -12,10 +13,7 @@ const ds = parseDataset(raw);
 const file = FixturesFileSchema.parse(fixturesRaw);
 const ask = (q: string, context?: Parameters<typeof pickFixture>[3]) =>
   pickFixture(file, ds, q, context);
-const idOf = (q: string) => {
-  const f = ask(q);
-  return file.fixtures.find((x) => x.id === f.id)?.id ?? f.id;
-};
+const idOf = (q: string) => ask(q).id;
 
 describe("the horizon guard", () => {
   it.each([
@@ -29,6 +27,12 @@ describe("the horizon guard", () => {
     "and next month?",
     "Predict Italy's attainment",
     "What is the forecast for next year?",
+    "Is Germany going to recover?",
+    "Is Germany expected to recover by year end?",
+    "What happens to Germany over the rest of the year?",
+    "What's the outlook for APAC vs Europe?",
+    "Why did Germany's revenue dip in 2023?",
+    "Why did Germany's revenue dip in March 2024?",
   ])("abstains on %s", (q) => {
     expect(ask(q).kind).toBe("abstain");
   });
@@ -67,6 +71,22 @@ describe("Germany's answer follows the period asked", () => {
     expect(f.answer.text).toContain(`Germany's revenue in ${label} was`);
     expect(f.answer.citations.every((c) => c.marketId === "de")).toBe(true);
     expect(f.answer.confidence).toBe("medium");
+  });
+
+  it("keeps the curated answer when the question names no month and the view is at the latest month", () => {
+    // What the Ask why button sends from the Executive view.
+    const f = ask("Why did Germany's revenue dip?", {
+      entity: { kind: "market", marketId: "de" },
+      period: toPeriod("2026-05"),
+    });
+    expect(f.id).toBe("germany-dip");
+  });
+
+  it("labels a year the data covers only in part by its range", () => {
+    const f = ask("Why did Germany's revenue dip in 2026?");
+    expect(f.answer.text).toContain("Germany's revenue in Jan 2026 to May 2026 was");
+    const g = ask("Why did Germany's revenue dip in 2024?");
+    expect(g.answer.text).toContain("Jun 2024 to Dec 2024");
   });
 
   it("uses the month in view when the question names none", () => {
@@ -126,7 +146,9 @@ describe("scripted answers agree with data.json", () => {
 
   it("the at-risk answer names the flagged markets and no others, and counts them", () => {
     const text = ask("Which markets are at risk?").answer.text;
-    expect(text).toContain(`${word(flagged.length)} markets are flagged`);
+    expect(text).toContain(
+      `As of May 2026, ${word(flagged.length).toLowerCase()} markets are flagged`,
+    );
     expect(text).toContain(`The other ${word(ds.markets.length - flagged.length).toLowerCase()}`);
     for (const m of ds.markets) {
       const named = text.includes(m.name);
@@ -172,5 +194,16 @@ describe("scripted answers agree with data.json", () => {
     expect(text).toContain(
       `${formatPct(growthPct(eu), { sign: false })} growth and ${pct(attainmentPct(eu))} for Europe`,
     );
+  });
+});
+
+describe("inline citation phrases", () => {
+  it("every mapped phrase occurs in its fixture's text, so a copy edit cannot silently drop a link", () => {
+    for (const f of file.fixtures) {
+      const phrases = INLINE_MAP[inlineKey(f.answer.citations)];
+      for (const { phrase } of phrases ?? []) {
+        expect(f.answer.text, `${f.id}: ${phrase}`).toContain(phrase);
+      }
+    }
   });
 });

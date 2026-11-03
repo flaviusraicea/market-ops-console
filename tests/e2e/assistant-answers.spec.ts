@@ -35,7 +35,9 @@ test("the at-risk answer counts the six flagged markets", async ({ page }) => {
   await page.goto("/");
   await ask(page, "Which markets are at risk this quarter, and why?");
   await answerComplete(page);
-  await expect(page.getByText("Six markets are flagged in the data.")).toBeVisible();
+  await expect(
+    page.getByText("As of May 2026, six markets are flagged in the data."),
+  ).toBeVisible();
   await expect(page.getByRole("list", { name: "Citations" }).getByRole("listitem")).toHaveCount(7);
 });
 
@@ -65,4 +67,11 @@ test("a long answer reads as paragraphs", async ({ page }) => {
   await answerComplete(page);
   const card = page.locator('[data-slot="question-echo"]').locator("xpath=following-sibling::div");
   await expect(card.locator("p")).toHaveCount(5);
+});
+
+test("Ask why on Germany from the Executive view tells the early-2026 story", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ask why Germany dipped" }).first().click();
+  await answerComplete(page);
+  await expect(page.getByText("steepest drop in March")).toBeVisible();
 });

@@ -25,7 +25,7 @@
       ],
       "kind": "normal",
       "answer": {
-        "text": "Six markets are flagged in the data. Germany is the clearest concern: it's at risk, below forecast and down year on year, with a sharp dip in March. Spain is off track, and Italy, the United Kingdom, France and Brazil are at risk. The other seven markets are on track.",
+        "text": "As of May 2026, six markets are flagged in the data. Germany is the clearest concern: it's at risk, below forecast and down year on year, with a sharp dip in March. Spain is off track, and Italy, the United Kingdom, France and Brazil are at risk. The other seven markets are on track.",
         "citations": [
           {
             "marketId": "de",
@@ -281,7 +281,7 @@
       ],
       "kind": "abstain",
       "answer": {
-        "text": "I can't answer that. The dataset only covers actuals and forecasts through the current horizon, which ends 2026-05, so I have no basis for projecting past it. If forward forecast data is loaded, I can summarise it.",
+        "text": "I can't answer that. The dataset covers actuals and forecasts from Jun 2024 to May 2026, so I have no basis for anything outside that window. If other data is loaded, I can summarise it.",
         "citations": [],
         "confidence": "low"
       }

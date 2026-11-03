@@ -19,10 +19,7 @@ import { formatMoneyCompact, formatPct, formatPeriodAbbr } from "@/lib/format";
 import { readQuestion } from "./horizon";
 
 type MarketView = { entity: Extract<Entity, { kind: "market" }>; period: Period };
-type MarketSpan = {
-  entity: Extract<Entity, { kind: "market" }>;
-  period: Period | readonly Period[];
-};
+type Periods = readonly [Period, ...Period[]];
 
 const marketView = (context?: ChatContext): MarketView | undefined =>
   context?.entity.kind === "market"
@@ -91,7 +88,8 @@ export function pickFixture(
   const error = hits.find((f) => f.kind === "error");
   if (error) return error;
   const asked = readQuestion(ds, question);
-  if (asked.beyondHorizon) return file.fixtures.find((f) => f.kind === "abstain") ?? file.default;
+  if (asked.beyondHorizon || asked.beforeData)
+    return file.fixtures.find((f) => f.kind === "abstain") ?? file.default;
   const view = marketView(context);
   const scoped = context
     ? hits.find(
@@ -112,7 +110,7 @@ export function pickFixture(
   if (fixture.template === undefined) {
     return outsideCuratedMonths(file, ds, fixture, asked.span, asked.label, view) ?? fixture;
   }
-  return view ? fillMarketMonth(ds, fixture, view) : file.default;
+  return view ? fillMarketMonth(ds, fixture, view.entity, [view.period]) : file.default;
 }
 
 /** The market a question names, or undefined when it names none or several. */
@@ -136,14 +134,13 @@ function outsideCuratedMonths(
   const { marketId, periods } = fixture;
   const template = file.fixtures.find((f) => f.template !== undefined);
   if (!marketId || !periods || !template) return undefined;
-  const span = named.length > 0 ? named : view?.entity.marketId === marketId ? [view.period] : [];
-  if (span.length === 0 || span.every((p) => periods.includes(p))) return undefined;
-  return fillMarketMonth(
-    ds,
-    template,
-    { entity: { kind: "market", marketId }, period: span },
-    label,
-  );
+  // The month in view counts only when the user navigated to it: at the latest month "why did it dip?" is the
+  // question the curated answer was written for (the Ask why button asks it from there).
+  const inView =
+    view?.entity.marketId === marketId && view.period !== ds.meta.latestPeriod ? [view.period] : [];
+  const [head, ...rest] = named.length > 0 ? named : inView;
+  if (head === undefined || [head, ...rest].every((p) => periods.includes(p))) return undefined;
+  return fillMarketMonth(ds, template, { kind: "market", marketId }, [head, ...rest], label);
 }
 
 /** The status of one market as data.json gives it, for "Is Germany at risk?". Read, not written. */
@@ -198,14 +195,13 @@ function templateSuits(
 function fillMarketMonth(
   ds: Dataset,
   fixture: Fixture,
-  { entity, period: asked }: MarketSpan,
+  entity: MarketView["entity"],
+  periods: Periods,
   spanLabel?: string,
 ): Fixture {
-  const periods = typeof asked === "string" ? [asked] : asked;
-  const first = periods[0] as Period;
-  const last = periods[periods.length - 1] as Period;
+  const first = periods[0];
+  const period = periods[periods.length - 1] ?? first;
   const single = periods.length === 1;
-  const period = last;
   const t = totals(factsFor(ds, { entity, periods: [...periods] }));
   const name = entityName(ds, entity);
   const previous = single ? previousPeriod(ds, period) : undefined;
@@ -219,7 +215,7 @@ function fillMarketMonth(
     market: name,
     period: single
       ? formatPeriodAbbr(period)
-      : (spanLabel ?? `${formatPeriodAbbr(first)} to ${formatPeriodAbbr(last)}`),
+      : (spanLabel ?? `${formatPeriodAbbr(first)} to ${formatPeriodAbbr(period)}`),
     actual: formatMoneyCompact(t.actual),
     forecast: formatMoneyCompact(t.forecast),
     attainment: formatPct(attainment, { sign: false }),
@@ -240,6 +236,6 @@ function fillMarketMonth(
     ? previous === undefined
       ? [cite(period)]
       : [cite(period), cite(previous)]
-    : [cite(first), cite(last)];
+    : [cite(first), cite(period)];
   return { ...fixture, answer: { ...fixture.answer, text, citations } };
 }
