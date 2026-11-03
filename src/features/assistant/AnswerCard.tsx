@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 
 import { ConfidenceMeter } from "@/components/ConfidenceMeter";
+import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
 import { Notice } from "@/components/Notice";
 import {
   ChevronDown,
@@ -38,8 +39,7 @@ type AnswerCardProps = {
 const PILL =
   "inline-flex h-[var(--chip-h)] items-center gap-1 rounded-pill bg-surface-2 px-2.5 font-ui text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2";
 
-const CAPTION =
-  "text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted";
+const CAPTION = `${EYEBROW_CLASS} text-ink-muted`;
 
 /** Design-system.md 6.5: question echo, then the AI card. */
 export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: AnswerCardProps) {
@@ -131,10 +131,10 @@ function CardHeader({ confidence }: { confidence?: ConfidenceLevel | undefined }
       data-slot="card-header"
       className="flex flex-wrap items-center justify-between gap-x-1.5 gap-y-1"
     >
-      <span className="inline-flex items-center gap-1.5 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ai-label uppercase">
+      <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
         <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
         AI-generated
-      </span>
+      </Eyebrow>
       {confidence ? <ConfidenceMeter level={confidence} compact /> : null}
     </div>
   );
@@ -211,7 +211,7 @@ function SourcesDisclosure({ answer }: { answer: Extract<Answer, { status: "done
         <Button
           type="button"
           variant="ghost"
-          className="-ml-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-2 uppercase"
+          className={`-ml-3 text-ink-2 uppercase ${EYEBROW_CLASS}`}
         >
           <ChevronDown
             aria-hidden

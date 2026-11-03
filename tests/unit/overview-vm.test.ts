@@ -46,7 +46,7 @@ describe("overview view model", () => {
         provenance: "Derived · sum of series",
       },
       {
-        label: "MARKETS NEEDING ATTENTION",
+        label: "NEEDS ATTENTION",
         headline: "6 of 13",
         delta: "4 at risk · 2 off track",
         direction: "flat",

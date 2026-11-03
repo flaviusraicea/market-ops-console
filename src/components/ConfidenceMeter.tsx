@@ -1,5 +1,6 @@
 import { ICON_STROKE, Shield, ShieldAlert, ShieldCheck } from "@/components/icons";
 import { cn } from "@/components/cn";
+import { Eyebrow } from "@/components/Eyebrow";
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
@@ -44,12 +45,7 @@ export function ConfidenceMeter({
         aria-label={label}
         className={cn("inline-flex items-center gap-1.5", className)}
       >
-        <span
-          aria-hidden
-          className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted uppercase"
-        >
-          Confidence
-        </span>
+        <Eyebrow>Confidence</Eyebrow>
         <span aria-hidden className="inline-flex gap-[2px]">
           {[1, 2, 3].map((n) => (
             <span

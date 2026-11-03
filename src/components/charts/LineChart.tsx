@@ -246,22 +246,23 @@ function LineSvg({
           if (!p) return null;
           const ax = x(a.index);
           const ay = y(p.actual);
-          // The label opens to the right; near the right edge it opens to the left so it is never clipped.
+          // The label sits 28px above and 8px beside the marker, opening to the right; near the right
+          // edge it opens to the left so it is never clipped.
           const dir = ax + 100 > innerW ? -1 : 1;
           return (
             <g key={a.period} aria-hidden>
               <line
-                x1={ax + dir * 3}
-                y1={ay - 3}
-                x2={ax + dir * 14}
-                y2={ay - 16}
+                x1={ax + dir * 2}
+                y1={ay - 4}
+                x2={ax + dir * 8}
+                y2={ay - 26}
                 stroke="var(--bad-mark)"
                 strokeWidth={1}
               />
               <text
-                x={ax + dir * 17}
-                y={ay - 16}
-                dy="0.32em"
+                data-slot="anomaly-label"
+                x={ax + dir * 8}
+                y={ay - 28}
                 textAnchor={dir === 1 ? "start" : "end"}
                 fill="var(--bad-text)"
                 stroke="var(--surface)"
@@ -415,12 +416,10 @@ export function LineChartTable({
                 ) : null}
               </span>
             </TableCell>
-            <TableCell className="text-right tabular-nums">{formatMoneyFull(p.actual)}</TableCell>
-            <TableCell className="text-right tabular-nums">{formatMoneyFull(p.forecast)}</TableCell>
-            <TableCell className="text-right tabular-nums">
-              {formatMoneyFull(p.priorYear)}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">
+            <TableCell className="text-right num">{formatMoneyFull(p.actual)}</TableCell>
+            <TableCell className="text-right num">{formatMoneyFull(p.forecast)}</TableCell>
+            <TableCell className="text-right num">{formatMoneyFull(p.priorYear)}</TableCell>
+            <TableCell className="text-right num">
               {formatPct(p.attainment, { sign: false })}
             </TableCell>
           </TableRow>

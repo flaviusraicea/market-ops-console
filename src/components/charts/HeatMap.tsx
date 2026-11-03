@@ -249,7 +249,7 @@ export function HeatMapTable({
               {row.name}
             </TableHead>
             {row.cells.map((cell) => (
-              <TableCell key={cell.period} className="text-right tabular-nums">
+              <TableCell key={cell.period} className="text-right num">
                 {cell.display}
               </TableCell>
             ))}

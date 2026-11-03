@@ -234,6 +234,20 @@ Fixed in both densities:
 - Page max width 1280 px, centered, 24 px side gutter at ≥ 1024 px, 16 px below. The layout must work at 390 px wide with no horizontal scroll (widgets stack to one column, the assistant panel moves below the dashboard).
 - Content column split at ≥ 1024 px: dashboard `minmax(0, 1fr)`, assistant panel fixed 380 px, gap `--gap`.
 
+## 4.1 Composition
+
+Seven rules so that every new card looks like its siblings. Rules 2, 3 and 4 are enforced in code: one `Eyebrow` and one `CardHeader` component, and `tests/unit/composition.test.ts` fails if figures are formatted without the `num` class or an eyebrow style is copied.
+
+1. **One display element per screen.** The verdict sentence on Overview (`--text-display`), the 20 px section eyebrow row on Analyst. A second display size competes with it and the eye has nowhere to start. Everything else is 22 px titles or smaller.
+2. **Eyebrows never wrap.** 11 px, 0.06 em, 600, uppercase, `white-space: nowrap`. If it does not fit, shorten the words (`NEEDS ATTENTION`, not `MARKETS NEEDING ATTENTION`), never the size. One `Eyebrow` component.
+3. **One header grammar for every card.** Serif title, muted subtitle on the next line, provenance caption and actions right-aligned on the title row, same height on every card. One `CardHeader` component; no card builds its own header.
+4. **Every number is tabular.** `font-variant-numeric: tabular-nums lining-nums` on tiles, tables, tooltips, chips and bars (`.num`), so columns align on the decimal and scanning down is comparing. KPI headlines and the verdict are serif 600 tabular; everything else is sans.
+5. **Captions right-align to the card edge.** `Source · data.json` and `Derived · …` sit on the title row's right edge or the card's bottom-right, never floating mid-card. Legends sit under their chart inside the card.
+6. **Vertical rhythm on an 8 px grid.** 24 px between sections on Overview, 16 px on Analyst (`--gap-section`); inside a section multiples of 4; density is a token, never an ad hoc margin.
+7. **Empty states: one sentence, one action.** `No alert rules yet.` + `Add a rule`. No illustration, no second paragraph.
+
+Analyst adds the ledger chrome (slice 14): sections are not cards but one sheet with 1 px rules between sections, eyebrow section titles, 32 px rows and 13 px body.
+
 ## 5. Motion
 
 ```css

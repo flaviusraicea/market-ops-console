@@ -56,6 +56,8 @@ const TEXT = pairs(
 const GRAPHIC = pairs(
   "ok-mark/surface, warn-mark/surface, bad-mark/surface, bad-mark/bad-bg, focus/surface, series-actual/surface, series-forecast/surface, series-prior/surface, cat-1/surface, cat-2/surface, cat-3/surface, cat-4/surface, cat-5/surface, cat-6/surface",
 );
+// Visibility, not WCAG text contrast: the land must read against the card (floor 1.15:1).
+const LAND = pairs("map-land/surface");
 const DECORATIVE = pairs(
   "border/surface, grid/surface, surface-2/surface, ai-border/ai-bg, bg/surface",
 );
@@ -92,6 +94,7 @@ function check(theme: string, map: Map<string, string>) {
   };
   run(TEXT, "text", 4.5);
   run(GRAPHIC, "graphic", 3);
+  run(LAND, "non-text", 1.15);
   run(DECORATIVE, "decorative", null);
 
   const mono = (names: string[], label: string) => {

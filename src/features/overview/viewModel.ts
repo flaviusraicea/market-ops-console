@@ -155,7 +155,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
   } else {
     const c = statusCounts(ds, entity);
     attention = {
-      label: "MARKETS NEEDING ATTENTION",
+      label: "NEEDS ATTENTION",
       headline: formatCount(attentionCount(ds, entity), inScope.length),
       delta: {
         direction: "flat",

@@ -42,6 +42,11 @@ export const Portfolio: Story = {
     await expect(
       within(canvasElement).queryByRole("button", { name: "Clear period" }),
     ).not.toBeInTheDocument();
+    // The only crumb is never truncated.
+    const nav = within(canvasElement).getByRole("navigation", { name: "Drill path" });
+    const crumb = within(nav).getByText("Portfolio");
+    await expect(crumb.scrollWidth).toBeLessThanOrEqual(crumb.clientWidth);
+    await expect(crumb).toBeVisible();
   },
 };
 

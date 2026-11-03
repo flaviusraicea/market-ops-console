@@ -59,9 +59,7 @@ test("following the Veltrix chip selects the Veltrix row and titles the chart Ge
   await expect(page).toHaveURL(/cite=2/);
   await expect(veltrix(page)).toHaveAttribute("aria-pressed", "true");
   await expect(march(page)).toHaveAttribute("aria-pressed", "false");
-  await expect(
-    page.getByRole("heading", { name: /^Germany · Veltrix · Revenue vs forecast/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 3, name: /^Germany · Veltrix/ })).toBeVisible();
   const row = page.getByRole("row", { name: /Veltrix/ });
   await expect(row).toHaveAttribute("aria-current", "true");
   await expect(row).toHaveAttribute("data-landed", "");

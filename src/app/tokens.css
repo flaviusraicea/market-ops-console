@@ -61,6 +61,7 @@
   --div-p3: #2f5f9e;
   --shadow-popover: 0 1px 2px rgba(28, 26, 23, 0.06), 0 4px 12px rgba(28, 26, 23, 0.08);
   --shimmer: rgba(255, 255, 255, 0.35);
+  --map-land: #e8e3d8;
 
   /* Type scale (section 2): size / line / weight / letter-spacing */
   --text-display: 32px;
@@ -196,6 +197,7 @@ html[data-density="analyst"] {
   --div-p3: #86ace4;
   --shadow-popover: none;
   --shimmer: rgba(255, 255, 255, 0.06);
+  --map-land: #2e2b25;
 }
 
 /* Colour: dark theme, following the OS unless the user chose light */
@@ -254,6 +256,7 @@ html[data-density="analyst"] {
     --div-p3: #86ace4;
     --shadow-popover: none;
     --shimmer: rgba(255, 255, 255, 0.06);
+    --map-land: #2e2b25;
   }
 }
 

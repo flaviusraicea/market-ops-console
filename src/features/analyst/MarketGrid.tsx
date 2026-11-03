@@ -120,8 +120,8 @@ function MarketRows({ rows, statusRule }: { rows: MarketRowVM[]; statusRule: str
                 {r.statusLabel}
               </Badge>
             </TableCell>
-            <TableCell className="text-right tabular-nums">{r.revenue}</TableCell>
-            <TableCell className="text-right tabular-nums">
+            <TableCell className="text-right num">{r.revenue}</TableCell>
+            <TableCell className="text-right num">
               <span className="inline-flex items-center justify-end gap-0.5">
                 {r.attainment}
                 {r.attainmentNote ? (
@@ -129,10 +129,10 @@ function MarketRows({ rows, statusRule }: { rows: MarketRowVM[]; statusRule: str
                 ) : null}
               </span>
             </TableCell>
-            <TableCell className={cn("text-right tabular-nums", signColour(r.growthDirection))}>
+            <TableCell className={cn("text-right num", signColour(r.growthDirection))}>
               {r.growth}
             </TableCell>
-            <TableCell className="text-right tabular-nums">{r.share}</TableCell>
+            <TableCell className="text-right num">{r.share}</TableCell>
             <TableCell>
               <Sparkline
                 values={r.trend.values}
@@ -191,12 +191,12 @@ function ProductRows({ rows, landed }: { rows: ProductRowVM[]; landed: boolean }
             {...rowProps(r.selected, () => setContext({ product: r.id }), landed && r.selected)}
           >
             <TableCell className="font-medium text-ink">{r.name}</TableCell>
-            <TableCell className="text-right tabular-nums">{r.revenue}</TableCell>
-            <TableCell className="text-right tabular-nums">{r.attainment}</TableCell>
-            <TableCell className={cn("text-right tabular-nums", signColour(r.growthDirection))}>
+            <TableCell className="text-right num">{r.revenue}</TableCell>
+            <TableCell className="text-right num">{r.attainment}</TableCell>
+            <TableCell className={cn("text-right num", signColour(r.growthDirection))}>
               {r.growth}
             </TableCell>
-            <TableCell className="text-right tabular-nums">{r.units}</TableCell>
+            <TableCell className="text-right num">{r.units}</TableCell>
             <TableCell>
               <Sparkline values={r.trend.values} label={r.trend.label} />
             </TableCell>
