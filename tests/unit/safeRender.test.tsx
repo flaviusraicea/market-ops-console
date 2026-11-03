@@ -1,20 +1,12 @@
-import { render } from "@testing-library/react";
-import { NuqsTestingAdapter } from "nuqs/adapters/testing";
+import { render, within } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
 
-import data from "@/data/data.json";
-import fixtures from "@/data/fixtures.json";
-import { CitationSchema, parseDataset, resolveCitation } from "@/domain";
 import { AnswerCard } from "@/features/assistant/AnswerCard";
 import { INLINE_MAP, inlineKey } from "@/features/assistant/inlineMap";
 import { renderWithCitations } from "@/features/assistant/renderWithCitations";
 import type { Answer } from "@/features/assistant/useAnswerMachine";
-import { DatasetProvider } from "@/lib/context/dataset";
-import { lightDataset, metaFromDataset } from "@/lib/context/invariants";
-import { ConsoleMetaProvider } from "@/lib/context/meta";
-
-const ds = parseDataset(data);
+import { TestProviders, resolvedFixture } from "./helpers";
 
 const HOSTILE = [
   '<img src=x onerror="window.pwned=1">',
@@ -23,53 +15,46 @@ const HOSTILE = [
   "{{template}} ${value} <script>window.pwned=2</script>",
 ].join(" ");
 
-const done: Answer = {
-  id: "a1",
-  question: "q",
-  status: "done",
-  text: HOSTILE,
-  kind: "normal",
-  confidence: "high",
-  citations: [],
-};
+const base = { id: "a1", question: "q" } as const;
+const states: Array<[string, Answer]> = [
+  [
+    "done",
+    { ...base, status: "done", text: HOSTILE, kind: "normal", confidence: "high", citations: [] },
+  ],
+  ["streaming", { ...base, status: "streaming", text: HOSTILE, controller: new AbortController() }],
+  ["stopped", { ...base, status: "stopped", text: HOSTILE }],
+  ["failed", { ...base, status: "failed", text: HOSTILE, message: "boom" }],
+];
+
+const pwned = () => (window as Window & { pwned?: number }).pwned;
 
 afterEach(() => {
-  delete (window as unknown as { pwned?: number }).pwned;
+  delete (window as Window & { pwned?: number }).pwned;
 });
 
 describe("safe rendering of model output", () => {
-  it.each([
-    ["done", done],
-    ["streaming", { ...done, status: "streaming", controller: new AbortController() } as Answer],
-    ["stopped", { id: "a1", question: "q", status: "stopped", text: HOSTILE } as Answer],
-  ])("a %s answer shows hostile text as literal characters", (_name, answer) => {
+  it.each(states)("a %s answer shows hostile text as literal characters", (_name, answer) => {
     const { container } = render(
-      <NuqsTestingAdapter hasMemory>
-        <ConsoleMetaProvider meta={metaFromDataset(ds)}>
-          <DatasetProvider dataset={lightDataset(ds)}>
-            <AnswerCard answer={answer} onStop={() => {}} onRetry={() => {}} onTry={() => {}} />
-          </DatasetProvider>
-        </ConsoleMetaProvider>
-      </NuqsTestingAdapter>,
+      <TestProviders>
+        <AnswerCard answer={answer} onStop={() => {}} onRetry={() => {}} onTry={() => {}} />
+      </TestProviders>,
     );
-    const text = container.querySelector("p.font-display");
-    expect(text?.textContent).toContain(HOSTILE);
+    const text = within(container).getByText(
+      (_, el) => el?.tagName === "P" && (el.textContent ?? "").startsWith(HOSTILE),
+    );
+    expect(text.querySelector("b")).toBeNull();
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector("script")).toBeNull();
-    expect(text?.querySelector("b")).toBeNull();
     expect(container.querySelector("a[href^='javascript' i]")).toBeNull();
-    expect((window as unknown as { pwned?: number }).pwned).toBeUndefined();
+    expect(pwned()).toBeUndefined();
   });
 
-  it("renderWithCitations wraps only the phrases from inlineMap and never interprets markup", () => {
-    const f = fixtures.fixtures.find((x) => x.id === "germany-dip")!;
-    const citations = f.answer.citations
-      .map((c) => CitationSchema.parse(c))
-      .map((citation) => ({ citation, resolution: resolveCitation(ds, citation, f.answer.text) }));
+  it("renderWithCitations wraps only phrases from inlineMap and never interprets markup", () => {
+    const { text: fixtureText, citations } = resolvedFixture("germany-dip");
     const phrases = (INLINE_MAP[inlineKey(citations.map((c) => c.citation))] ?? []).map(
       (p) => p.phrase,
     );
-    const text = `${f.answer.text} <img src=x onerror="window.pwned=1"> [x](javascript:alert(1))`;
+    const text = `${fixtureText} <img src=x onerror="window.pwned=1"> [x](javascript:alert(1))`;
     const html = renderToStaticMarkup(<p>{renderWithCitations(text, citations, "a1")}</p>);
     const anchors = [...html.matchAll(/<a [^>]*>([^<]*)<\/a>/g)].map((m) => m[1]);
     expect(anchors.length).toBeGreaterThan(0);

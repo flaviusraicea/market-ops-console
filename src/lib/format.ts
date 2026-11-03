@@ -26,17 +26,17 @@ export function formatMoneyFull(n: number): string {
   return `${n < 0 ? MINUS : ""}${int.format(Math.abs(n))}`;
 }
 
-/** One decimal place, no unit: 12.34 becomes "12.3". */
-export function formatOneDecimal(n: number): string {
-  return one.format(n);
+/** One decimal place with a real minus sign, rounded like formatPct: 12.34 becomes "12.3", -2 becomes "−2.0". */
+export function formatOneDecimal(n: number, { sign = false }: { sign?: boolean } = {}): string {
+  const rounded = Math.round(n * 10) / 10;
+  const body = one.format(Math.abs(rounded));
+  if (rounded === 0) return body;
+  if (rounded < 0) return `${MINUS}${body}`;
+  return `${sign ? "+" : ""}${body}`;
 }
 
 export function formatPct(n: number, { sign }: { sign: boolean }): string {
-  const rounded = Math.round(n * 10) / 10;
-  const body = one.format(Math.abs(rounded));
-  if (rounded === 0) return `${body}%`;
-  if (rounded < 0) return `${MINUS}${body}%`;
-  return `${sign ? "+" : ""}${body}%`;
+  return `${formatOneDecimal(n, { sign })}%`;
 }
 
 export function formatPeriod(p: string): string {

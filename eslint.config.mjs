@@ -114,30 +114,28 @@ const storyConfigs = [
 
 // Formatting lives in src/lib/format.ts; safe rendering means no raw HTML injection (docs/README.md, Testing).
 const FORMAT_MESSAGE = "Format numbers, money, percentages and dates through src/lib/format.ts.";
-const NO_HTML = {
-  selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
-  message: "Only app/layout.tsx may inject HTML (theme script).",
-};
-const NO_TO_FIXED = {
-  selector: "CallExpression[callee.property.name='toFixed']",
-  message: FORMAT_MESSAGE,
-};
-const NO_INTL_OR_LOCALE = [
-  "CallExpression[callee.property.name='toLocaleString']",
-  "CallExpression[callee.property.name='toLocaleDateString']",
+const NO_HTML = [
+  {
+    selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+    message: "Only app/layout.tsx may inject HTML (theme script).",
+  },
+  {
+    selector: "AssignmentExpression[left.property.name=/^(innerHTML|outerHTML)$/]",
+    message: "Only app/layout.tsx may inject HTML (theme script).",
+  },
+];
+const NO_FORMATTING = [
+  "CallExpression[callee.property.name=/^(toFixed|toPrecision|toExponential)$/]",
+  "CallExpression[callee.property.name=/^toLocale(|Date|Time)String$/]",
   "MemberExpression[object.name='Intl']",
+  "MemberExpression[object.name='globalThis'][property.name='Intl']",
 ].map((selector) => ({ selector, message: FORMAT_MESSAGE }));
 
-/** Files allowed to inject HTML. Keep this to one file; tests/unit/boundaries.test.ts pins it. */
-const HTML_INJECTION_ALLOWED = ["src/app/layout.tsx"];
+// The only places allowed to break each rule. Tests pin the HTML one by linting fixtures.
 const FORMAT_HOME = "src/lib/format.ts";
-/** SVG path coordinates only: rounding geometry, never text a user reads. */
-const SVG_ROUNDING_ALLOWED = [
-  "src/components/charts/Sparkline.tsx",
-  "src/components/charts/RadarChart.tsx",
-];
-
-export const htmlInjectionAllowed = HTML_INJECTION_ALLOWED;
+const HTML_HOME = "src/app/layout.tsx";
+/** Rounds SVG path coordinates; geometry only, never text. */
+const SVG_PATH_HOME = "src/components/charts/svgPath.ts";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -153,20 +151,22 @@ const eslintConfig = defineConfig([
   ...storyConfigs,
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: [FORMAT_HOME, ...HTML_INJECTION_ALLOWED, ...SVG_ROUNDING_ALLOWED],
-    rules: { "no-restricted-syntax": ["error", NO_HTML, NO_TO_FIXED, ...NO_INTL_OR_LOCALE] },
+    ignores: [FORMAT_HOME, HTML_HOME, SVG_PATH_HOME],
+    rules: { "no-restricted-syntax": ["error", ...NO_HTML, ...NO_FORMATTING] },
   },
   {
-    files: HTML_INJECTION_ALLOWED,
-    rules: { "no-restricted-syntax": ["error", NO_TO_FIXED, ...NO_INTL_OR_LOCALE] },
+    files: [HTML_HOME],
+    rules: { "no-restricted-syntax": ["error", ...NO_FORMATTING] },
   },
   {
-    files: [FORMAT_HOME],
-    rules: { "no-restricted-syntax": ["error", NO_HTML] },
-  },
-  {
-    files: SVG_ROUNDING_ALLOWED,
-    rules: { "no-restricted-syntax": ["error", NO_HTML, ...NO_INTL_OR_LOCALE] },
+    files: [SVG_PATH_HOME],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...NO_HTML,
+        ...NO_FORMATTING.filter((r) => !r.selector.includes("toFixed")),
+      ],
+    },
   },
   globalIgnores([
     ".next/**",
