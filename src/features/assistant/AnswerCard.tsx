@@ -43,7 +43,7 @@ const CAPTION = `${EYEBROW_CLASS} text-ink-muted`;
 
 /** A quiet state line, not an eyebrow: sentence case, no warning colour, no icon. */
 const STATE_NOTE =
-  "text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted";
+  "text-pretty text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted";
 
 /** An answer that ended before its sources arrived says so in the header and where the citation chips go. */
 const NO_SOURCES_CAPTION = "Partial \u00b7 no sources";
@@ -75,7 +75,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
         <>
           {text ? (
             <Card>
-              <CardHeader noSources />
+              <CardHeader status="failed" />
               <AnswerText
                 body={[text]}
                 trailing={
@@ -159,19 +159,18 @@ function Card({ children }: { children: ReactNode }) {
 function CardHeader({
   status,
   confidence,
-  noSources = false,
   onStop,
   onRetry,
 }: {
   status?: Answer["status"];
-  /** The answer ended without sources: the right side says so, beside Retry when there is one. */
-  noSources?: boolean;
   confidence?: ConfidenceLevel | undefined;
   onStop?: () => void;
   onRetry?: () => void;
 }) {
   const streaming = status === "streaming";
   const stopped = status === "stopped";
+  // A stopped or failed answer ended before its sources arrived; the right side says so, beside Retry when it has one.
+  const noSources = stopped || status === "failed";
   return (
     <div
       data-slot="card-header"
@@ -185,7 +184,7 @@ function CardHeader({
         {streaming ? <span className={CAPTION}>STREAMING…</span> : null}
       </div>
       <div className="flex items-center gap-x-1.5">
-        {stopped || noSources ? <span className={STATE_NOTE}>{NO_SOURCES_CAPTION}</span> : null}
+        {noSources ? <span className={STATE_NOTE}>{NO_SOURCES_CAPTION}</span> : null}
         {streaming || stopped ? (
           <Button type="button" size="sm" variant="ghost" onClick={streaming ? onStop : onRetry}>
             {streaming ? (
