@@ -30,7 +30,7 @@ Use Lighthouse CI to stop regressions at review time. Use Speed Insights to conf
 
 Lighthouse says whether a page is fast; the budget says why it will stay fast. `scripts/check-budget.ts` runs after `pnpm build` in `pnpm ci`. It starts `next start`, loads Overview and the Analyst URL in headless Chromium at 1440 wide, and adds up the compressed bytes the browser received for scripts, stylesheets and fonts. Any figure over its budget in `package.json` (`budgets`) fails the run. Scripts Analyst loads that Overview does not are the lazy chunks, each limited to 60 KB.
 
-| Measure (gzipped) | Budget | Before (main, 09cb7db) | After |
+| Measure (gzipped) | Budget | Before (main, 09cb7db; Lighthouse rows: main b30731a) | After |
 |---|---|---|---|
 | Overview scripts | 250 KB | 324.6 KB | 249.6 KB |
 | Analyst scripts (with Overview's) | 350 KB | 324.6 KB (one bundle) | 349.3 KB |
@@ -43,9 +43,9 @@ Lighthouse (desktop preset, median of 3, production build on one CI-class machin
 | URL | Performance | LCP | CLS | TBT |
 |---|---|---|---|---|
 | Overview, before | 1.00 | 0.82 s | 0.001 | 0 to 5 ms |
-| Overview, after | 1.00 | 0.67 to 0.77 s | 0.001 | 0 to 4 ms |
+| Overview, after | 1.00 | 0.73 to 0.75 s | 0.001 | 0 ms |
 | Analyst, before | 0.95 | 0.83 to 0.85 s | 0.132 | 0 to 13 ms |
-| Analyst, after | 0.99 | 0.83 to 0.87 s | 0 | 1 to 18 ms |
+| Analyst, after | 0.99 | 0.83 to 0.86 s | 0 | 0 to 48 ms |
 
 Analyst is heavier than before in total because its widgets are separate chunks, each carrying a little runtime of its own and sharing modules imperfectly. That is the trade: Overview, the cold open, is 75 KB lighter, and Analyst pays for its depth only when asked for.
 
