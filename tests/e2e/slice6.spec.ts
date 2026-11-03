@@ -114,6 +114,15 @@ test("the answer with chips has no axe violations in light and dark", async ({ p
   await march(page).click();
   for (const theme of ["light", "dark"]) {
     await page.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
+    // Colours transition on a theme change; measure contrast once they have settled.
+    await page.evaluate(() =>
+      Promise.allSettled(
+        document
+          .getAnimations()
+          .filter((a) => a instanceof CSSTransition)
+          .map((a) => a.finished),
+      ),
+    );
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
   }
