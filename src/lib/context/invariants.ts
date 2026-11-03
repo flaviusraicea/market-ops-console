@@ -9,6 +9,7 @@ import type {
   RegionId,
 } from "@/domain";
 import { isRegionId } from "@/domain/regions";
+import { oneOf } from "@/lib/oneOf";
 
 /** The slice of the dataset the URL layer needs, safe to ship to the client. */
 export type ConsoleMeta = {
@@ -16,14 +17,17 @@ export type ConsoleMeta = {
   latestPeriod: string;
   marketRegion: Readonly<Record<string, RegionId>>;
   productIds: readonly string[];
+  /** The view a URL without `mode` opens on: it follows the signed-in role. */
+  defaultMode: Mode;
 };
 
-export function metaFromDataset(ds: Dataset): ConsoleMeta {
+export function metaFromDataset(ds: Dataset, defaultMode: Mode = "executive"): ConsoleMeta {
   return {
     periods: ds.meta.periods,
     latestPeriod: ds.meta.latestPeriod,
     marketRegion: Object.fromEntries(ds.markets.map((m) => [m.id, m.regionId])),
     productIds: ds.products.map((p) => p.id),
+    defaultMode,
   };
 }
 
@@ -39,7 +43,12 @@ export type RawContext = {
   facts?: boolean | null | undefined;
 };
 
-export const MODES = ["overview", "analyst"] as const;
+export const MODES = ["executive", "analyst"] as const;
+
+/** Mode as a URL value. Links written before the rename say `overview`; they mean `executive`. */
+export function parseMode(v: string | null | undefined): Mode | null {
+  return oneOf(MODES, v === "overview" ? "executive" : v);
+}
 export const METRICS = ["attainment", "revenue", "growth"] as const;
 export const BASES = ["month", "ytd", "mat"] as const;
 
@@ -48,13 +57,13 @@ export function clampPeriodTo(meta: ConsoleMeta, p: string | null | undefined): 
 }
 
 const pick = <T extends string>(values: readonly T[], v: string | null | undefined, d: T): T =>
-  (values as readonly string[]).includes(v ?? "") ? (v as T) : d;
+  oneOf(values, v) ?? d;
 
 /** Turns whatever the URL held into a valid Context. Pure; shared by server and client. */
 export function normalizeContext(meta: ConsoleMeta, raw: RawContext): Context {
   const ctx: Context = {
     period: clampPeriodTo(meta, raw.period),
-    mode: pick<Mode>(MODES, raw.mode, "overview"),
+    mode: parseMode(raw.mode) ?? meta.defaultMode,
     metric: pick<Metric>(METRICS, raw.metric, "attainment"),
     basis: pick<Basis>(BASES, raw.basis, "month"),
   };

@@ -6,6 +6,7 @@ import { preload } from "react-dom";
 
 import { GEO_URL } from "@/lib/geoAsset";
 import { REDUCED_MOTION_KEY } from "@/lib/motion";
+import { readRole } from "@/lib/roles.server";
 import { WebVitals } from "@/lib/vitals";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -40,22 +41,25 @@ const THEME_SCRIPT = `try{var t=localStorage.getItem("mo.theme");if(t==="light"|
 // Same for the console's Reduce motion switch.
 const MOTION_SCRIPT = `try{if(localStorage.getItem("${REDUCED_MOTION_KEY}")==="true")document.documentElement.setAttribute("data-reduced-motion","true")}catch(e){}`;
 
-// Density follows the mode in the URL (lib/density.ts keeps it in step afterwards). Set before first paint, the
-// server-rendered Analyst view already has its compact rows and header; set after hydration it re-flowed the
-// whole page and was the layout shift Lighthouse reported on Analyst links.
-const DENSITY_SCRIPT = `try{document.documentElement.setAttribute("data-density",new URLSearchParams(location.search).get("mode")==="analyst"?"analyst":"overview")}catch(e){}`;
+// Density follows the mode in the URL, or the signed-in role when the URL has none (lib/density.ts keeps it in
+// step afterwards). Set before first paint, the server-rendered Analyst view already has its compact rows and
+// header; set after hydration it re-flowed the whole page and was the layout shift Lighthouse reported on
+// Analyst links. "overview" is the old name of "executive", which the proxy redirects.
+const densityScript = (role: string) =>
+  `try{var m=new URLSearchParams(location.search).get("mode");document.documentElement.setAttribute("data-density",m==="analyst"?"analyst":m==="executive"||m==="overview"?"executive":"${role}")}catch(e){}`;
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const role = await readRole();
   // Starts the map geometry with the HTML instead of after hydration. The request mode and credentials match
   // the fetch in MapCard (same-origin, so crossOrigin "anonymous"), which is what lets the browser reuse it.
   preload(GEO_URL, { as: "fetch", crossOrigin: "anonymous" });
   return (
     <html lang="en" className={`${display.variable} ${ui.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + MOTION_SCRIPT + DENSITY_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + MOTION_SCRIPT + densityScript(role) }} />
       </head>
       <body>
-        <Providers>
+        <Providers role={role}>
           <WebVitals />
           {children}
         </Providers>

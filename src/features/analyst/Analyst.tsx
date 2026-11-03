@@ -5,8 +5,8 @@ import { DatasetProvider } from "@/lib/context/dataset";
 import { lightDataset } from "@/lib/context/invariants";
 import { getDataset } from "@/lib/dataset";
 import {
-  AlertsSection,
   AnalystToolbar,
+  ConnectedAlertsSection,
   LiveHeatMapCard,
   LiveKpiStrip,
   LiveMapSection,
@@ -65,7 +65,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
         </div>
         <ErrorBoundary widget="alerts">
           <DatasetProvider dataset={lightDataset(ds)}>
-            <AlertsSection />
+            <ConnectedAlertsSection />
           </DatasetProvider>
         </ErrorBoundary>
       </Sheet>

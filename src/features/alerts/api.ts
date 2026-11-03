@@ -7,8 +7,17 @@ type Options = { fail?: boolean };
 const withFail = (url: string, fail?: boolean) =>
   fail ? `${url}${url.includes("?") ? "&" : "?"}fail=1` : url;
 
+/** The route refused because the signed-in role is an Executive. Retrying cannot succeed. */
+export class ReadOnlyRoleError extends Error {
+  constructor() {
+    super("Rules are read-only for Executives.");
+    this.name = "ReadOnlyRoleError";
+  }
+}
+
 async function failure(res: Response): Promise<Error> {
-  const body = (await res.json().catch(() => null)) as { message?: string } | null;
+  const body = (await res.json().catch(() => null)) as { message?: string; error?: string } | null;
+  if (res.status === 403 && body?.error === "read_only_role") return new ReadOnlyRoleError();
   return new Error(body?.message ?? `Request failed (${res.status})`);
 }
 

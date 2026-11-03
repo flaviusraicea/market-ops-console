@@ -10,10 +10,19 @@ describe("parsePrefs", () => {
     expect(parsePrefs("42")).toEqual(DEFAULT_PREFS);
   });
   it("keeps a valid field and defaults the rest", () => {
-    expect(parsePrefs('{"analyst":true}')).toEqual({ overview: true, analyst: true });
-    expect(parsePrefs('{"overview":false,"analyst":"yes"}')).toEqual({
-      overview: false,
+    expect(parsePrefs('{"analyst":true}')).toEqual({ executive: true, analyst: true });
+    expect(parsePrefs('{"executive":false,"analyst":"yes"}')).toEqual({
+      executive: false,
       analyst: false,
+    });
+  });
+});
+
+describe("parsePrefs, legacy key", () => {
+  it("reads the preference stored as overview before the rename", () => {
+    expect(parsePrefs('{"overview":false,"analyst":true}')).toEqual({
+      executive: false,
+      analyst: true,
     });
   });
 });

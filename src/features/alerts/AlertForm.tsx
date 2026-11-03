@@ -70,6 +70,10 @@ export type AlertFormProps = {
   failure?: SaveFailure | null;
   onRetry?: (opts: { fail: boolean }) => void;
   onDismiss?: () => void;
+  /** Offered instead of Try again when the save was refused for the role. */
+  onSwitchToAnalyst?: (() => void) | undefined;
+  /** Executives see the form but cannot change it: fields disabled, Save hidden. */
+  readOnly?: boolean;
 };
 
 function SaveStatusText({ status, savedAt }: { status: SaveStatus; savedAt: number | null }) {
@@ -103,11 +107,13 @@ function ThresholdField({
   name,
   label,
   help,
+  disabled,
 }: {
   form: ReturnType<typeof useForm<Values>>;
   name: "growth" | "attainment";
   label: string;
   help: string;
+  disabled: boolean;
 }) {
   return (
     <FormField
@@ -124,6 +130,8 @@ function ThresholdField({
                 inputMode="decimal"
                 autoComplete="off"
                 className="pr-8"
+                disabled={disabled}
+                aria-disabled={disabled || undefined}
               />
             </FormControl>
             <span
@@ -148,6 +156,8 @@ export function AlertForm({
   failure = null,
   onRetry,
   onDismiss,
+  onSwitchToAnalyst,
+  readOnly = false,
 }: AlertFormProps) {
   const ds = useDataset();
   const [simulateFail, setSimulateFail] = useState(false);
@@ -195,12 +205,14 @@ export function AlertForm({
             name="growth"
             label="Growth below"
             help="Alert when year-on-year growth falls below this value"
+            disabled={readOnly}
           />
           <ThresholdField
             form={form}
             name="attainment"
             label="Attainment below"
             help="Alert when forecast attainment falls below this value"
+            disabled={readOnly}
           />
           <FormField
             control={form.control}
@@ -208,9 +220,9 @@ export function AlertForm({
             render={({ field }) => (
               <FormItem className="content-start gap-1">
                 <FormLabel>Scope</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select value={field.value} onValueChange={field.onChange} disabled={readOnly}>
                   <FormControl>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full" aria-disabled={readOnly || undefined}>
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -250,38 +262,50 @@ export function AlertForm({
             type="checkbox"
             checked={simulateFail}
             onChange={(e) => setSimulateFail(e.target.checked)}
+            disabled={readOnly}
+            aria-disabled={readOnly || undefined}
             className="size-4 accent-[var(--accent)]"
           />
           Simulate failure
         </label>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={!form.formState.isValid || saving}>
-            Save thresholds
-          </Button>
-          <SaveStatusText status={status} savedAt={savedAt} />
-        </div>
+        {readOnly ? null : (
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" disabled={!form.formState.isValid || saving}>
+              Save thresholds
+            </Button>
+            <SaveStatusText status={status} savedAt={savedAt} />
+          </div>
+        )}
 
         {failure ? (
           <Notice
-            title="Couldn't save"
+            title={failure.readOnly ? "Rules are read-only for Executives." : "Couldn't save"}
             actions={
               <>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={saving}
-                  onClick={() => onRetry?.({ fail: simulateFail })}
-                >
-                  Try again
-                </Button>
+                {failure.readOnly ? (
+                  <Button type="button" variant="secondary" onClick={() => onSwitchToAnalyst?.()}>
+                    Switch to Analyst
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={saving}
+                    onClick={() => onRetry?.({ fail: simulateFail })}
+                  >
+                    Try again
+                  </Button>
+                )}
                 <Button type="button" variant="ghost" onClick={() => onDismiss?.()}>
                   Dismiss
                 </Button>
               </>
             }
           >
-            {`Your thresholds were restored to the last saved values (growth below ${formatThreshold(failure.restored.growth)}, attainment below ${formatThreshold(failure.restored.attainment)}).`}
+            {failure.readOnly
+              ? "Nothing was saved."
+              : `Your thresholds were restored to the last saved values (growth below ${formatThreshold(failure.restored.growth)}, attainment below ${formatThreshold(failure.restored.attainment)}).`}
           </Notice>
         ) : null}
       </form>

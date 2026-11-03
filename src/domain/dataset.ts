@@ -155,7 +155,7 @@ export const EntitySchema = z.discriminatedUnion("kind", [
 export type Basis = "month" | "ytd" | "mat";
 /** periods is non-empty and ascending. */
 export type Scope = { entity: Entity; periods: readonly Period[] };
-export type Mode = "overview" | "analyst";
+export type Mode = "executive" | "analyst";
 export type Metric = "attainment" | "revenue" | "growth";
 export type Context = {
   region?: RegionId;

@@ -39,9 +39,10 @@ const RadarCard = dynamic(() => import("./RadarCard").then((m) => m.RadarCard), 
 const HeatMapCard = dynamic(() => import("./HeatMapCard").then((m) => m.HeatMapCard), {
   loading: () => <SectionSkeleton label="heat map" reserve="heat" />,
 });
-export const AlertsSection = dynamic(() => import("./AlertsSection").then((m) => m.AlertsSection), {
-  loading: () => <SectionSkeleton label="alerts" reserve="alerts" />,
-});
+export const ConnectedAlertsSection = dynamic(
+  () => import("./AlertsSection").then((m) => m.ConnectedAlertsSection),
+  { loading: () => <SectionSkeleton label="alerts" reserve="alerts" /> },
+);
 
 const tiles = (e: Engine, ds: Ds, cx: Cx) => e.overview(ds, cx).tiles;
 export function LiveKpiStrip({ tiles: initial }: { tiles: OverviewVM["tiles"] }) {
