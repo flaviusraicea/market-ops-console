@@ -5,7 +5,7 @@ test("serves the shell", async ({ page }) => {
   const response = await page.goto("/");
   expect(response?.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Market Ops");
-  await expect(page.getByText(/data through may 2026/i)).toBeVisible();
+  await expect(page.getByText(/data through may 2026/i).locator("visible=true")).toBeVisible();
 });
 
 test("theme toggle sets data-theme and persists across reload", async ({ page }) => {

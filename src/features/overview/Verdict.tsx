@@ -2,6 +2,7 @@ import { cn } from "@/components/cn";
 import { pageHeadingProps } from "@/lib/motion";
 import { Eyebrow } from "@/components/Eyebrow";
 import { InfoTip } from "@/components/InfoTip";
+import { DataStamp } from "@/features/shell/DataStamp";
 import type { VerdictVM } from "./viewModel";
 
 const STATUS_TEXT = {
@@ -24,6 +25,8 @@ export function Verdict({ verdict }: { verdict: VerdictVM }) {
         <InfoTip label="About this verdict">{verdict.caption}</InfoTip>
         <span className="sr-only">{verdict.caption}</span>
       </div>
+      {/* The header's stamp is hidden under 768 px; the Overview carries it here instead. */}
+      <DataStamp latestPeriod={verdict.latestPeriod} className="md:hidden" />
       <h2
         id="verdict-h"
         {...pageHeadingProps}

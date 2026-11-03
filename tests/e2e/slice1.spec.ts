@@ -14,7 +14,7 @@ async function tabThrough(page: Page, names: { role: string; name: string }[]) {
 test("cold open content", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Market Ops");
-  await expect(page.getByText(/data through may 2026/i)).toBeVisible();
+  await expect(page.getByText(/data through may 2026/i).locator("visible=true")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Executive" })).toBeChecked();
   for (const name of [
     "Which markets are at risk?",

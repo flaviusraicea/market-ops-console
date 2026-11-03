@@ -326,6 +326,8 @@ export type VerdictSegment = {
 
 export type VerdictVM = {
   eyebrow: string;
+  /** The dataset's latest period, for the "Data through" line a phone shows under the eyebrow. */
+  latestPeriod: string;
   caption: string;
   segments: VerdictSegment[];
   status: Status;
@@ -405,6 +407,7 @@ export function verdictVM(ds: Dataset, ctx: Context): VerdictVM {
   return {
     eyebrow:
       `${entityName(ds, entity)} · ${formatPeriod(ctx.period)} · ${BASIS_LABEL.month}`.toUpperCase(),
+    latestPeriod: ds.meta.latestPeriod,
     caption: market ? sourceLabel(ds, atLatest(ds, ctx)) : derivedLabel(ds, atLatest(ds, ctx)),
     segments: joinSegments(parts),
     status,

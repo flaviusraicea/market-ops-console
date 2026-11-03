@@ -96,6 +96,13 @@ test.describe("phone", () => {
     expect(avatar.x + avatar.width).toBeLessThanOrEqual(390);
   });
 
+  test("the Overview carries the data stamp under its eyebrow, since the header drops it", async ({
+    page,
+  }) => {
+    await open(page, OVERVIEW);
+    await expect(page.getByText(/^Data through May 2026$/i).locator("visible=true")).toHaveCount(1);
+  });
+
   test("the Analyst grid scrolls inside its own region and keeps its first column in view", async ({
     page,
   }) => {
