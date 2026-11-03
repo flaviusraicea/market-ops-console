@@ -4,9 +4,7 @@ import type { ReactNode } from "react";
 import data from "@/data/data.json";
 import fixtures from "@/data/fixtures.json";
 import { CitationSchema, parseDataset, resolveCitation } from "@/domain";
-import { DatasetProvider } from "@/lib/context/dataset";
-import { lightDataset, metaFromDataset } from "@/lib/context/invariants";
-import { ConsoleMetaProvider } from "@/lib/context/meta";
+import { DatasetProviders } from "@/lib/context/DatasetProviders";
 
 export const ds = parseDataset(data);
 
@@ -14,9 +12,7 @@ export const ds = parseDataset(data);
 export function TestProviders({ children }: { children: ReactNode }) {
   return (
     <NuqsTestingAdapter hasMemory>
-      <ConsoleMetaProvider meta={metaFromDataset(ds)}>
-        <DatasetProvider dataset={lightDataset(ds)}>{children}</DatasetProvider>
-      </ConsoleMetaProvider>
+      <DatasetProviders dataset={ds}>{children}</DatasetProviders>
     </NuqsTestingAdapter>
   );
 }
