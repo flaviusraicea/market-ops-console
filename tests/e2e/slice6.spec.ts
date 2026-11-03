@@ -1,26 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-async function ask(page: Page, question: string) {
-  const box = page.getByRole("textbox", { name: "Ask the assistant" });
-  await box.fill(question);
-  await box.press("Enter");
-}
+import { ask, germanyAnswer, march, timeSeries } from "./helpers";
 
-async function germanyAnswer(page: Page) {
-  await page.goto("/");
-  await ask(page, "Why did Germany dip?");
-  await expect(page.getByRole("list", { name: "Citations" }).getByRole("listitem")).toHaveCount(3, {
-    timeout: 5000,
-  });
-}
-
-const march = (page: Page) =>
-  page.getByRole("button", { name: "Go to Germany, Mar 2026 (largest dip)" });
 const veltrix = (page: Page) =>
   page.getByRole("button", { name: "Go to Veltrix in Germany, Mar 2026" });
-
-const timeSeries = (page: Page) => page.getByRole("region", { name: /revenue Actual vs forecast/ });
 
 test("following the March chip switches to Analyst and lands on the time series at March", async ({
   page,

@@ -10,7 +10,11 @@ import { applyContextChange, normalizeContext } from "./invariants";
 import { useConsoleMeta } from "./meta";
 import { contextParsers } from "./parsers";
 
-export type SetContextOptions = { history?: "push" | "replace" };
+export type SetContextOptions = {
+  history?: "push" | "replace";
+  /** Skip the server round trip: for a change only the client reads (`cite`). Default false. */
+  shallow?: boolean;
+};
 
 /** The only writer of navigation state. Every widget reads and writes the URL through this hook. */
 export function useConsoleContext() {
@@ -43,7 +47,7 @@ export function useConsoleContext() {
             cite: next.cite ?? null,
             facts: next.facts ?? null,
           },
-          { history: opts?.history ?? result.history },
+          { history: opts?.history ?? result.history, shallow: opts?.shallow ?? false },
         );
       });
       logEvent({ type: "navigate", ctx: next });
