@@ -56,6 +56,11 @@ export const FixtureScopeSchema = z.discriminatedUnion("entity", [
 export const FixtureSchema = z.object({
   id: z.string(),
   keywords: z.array(z.string()).optional(),
+  /** Every group needs at least one hit, so "apac" alone does not answer a question about APAC and Europe. */
+  allOf: z.array(z.array(z.string())).optional(),
+  /** For an answer written about one market: the months it covers. Outside them the data-filled template answers. */
+  marketId: z.string().optional(),
+  periods: z.array(PeriodSchema).optional(),
   scope: FixtureScopeSchema.optional(),
   /** Names the filler that writes `answer.text` and `answer.citations` from data.json and the request's view. */
   template: z.literal("market-month").optional(),

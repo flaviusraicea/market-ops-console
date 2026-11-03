@@ -22,7 +22,7 @@ import { SUGGESTIONS } from "./Suggestions";
 import { CitationRow } from "./CitationRow";
 import { SourcesTable } from "./SourcesTable";
 import { useSourcesRows } from "./useSourcesRows";
-import { renderWithCitations } from "./renderWithCitations";
+import { renderWithCitations, splitParagraphs } from "./renderWithCitations";
 import type { Answer } from "./useAnswerMachine";
 import type { ConfidenceLevel } from "@/components/ConfidenceMeter";
 
@@ -65,13 +65,18 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
           {text ? (
             <Card>
               <CardHeader />
-              <AnswerText>
-                {text}{" "}
-                <span className={`${PILL} align-middle`}>
-                  <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-                  Failed · partial answer
-                </span>
-              </AnswerText>
+              <AnswerText
+                body={[text]}
+                trailing={
+                  <>
+                    {" "}
+                    <span className={`${PILL} align-middle`}>
+                      <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+                      Failed · partial answer
+                    </span>
+                  </>
+                }
+              />
             </Card>
           ) : null}
           <Notice
@@ -92,19 +97,25 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
               status === "done" && answer.kind !== "abstain" ? answer.confidence : undefined
             }
           />
-          <AnswerText>
-            {status === "done" ? renderWithCitations(text, answer.citations, answer.id) : text}
-            {status === "streaming" ? <span aria-hidden className="caret" /> : null}
-            {status === "stopped" ? (
+          <AnswerText
+            body={
+              status === "done" ? renderWithCitations(text, answer.citations, answer.id) : [text]
+            }
+            trailing={
               <>
-                {" "}
-                <span className={`${PILL} align-middle`}>
-                  <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-                  Stopped · partial answer
-                </span>
+                {status === "streaming" ? <span aria-hidden className="caret" /> : null}
+                {status === "stopped" ? (
+                  <>
+                    {" "}
+                    <span className={`${PILL} align-middle`}>
+                      <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+                      Stopped · partial answer
+                    </span>
+                  </>
+                ) : null}
               </>
-            ) : null}
-          </AnswerText>
+            }
+          />
           {status === "done" && answer.kind !== "abstain" ? (
             <ChipArea answer={answer} isLatest={isLatest} />
           ) : null}
@@ -152,31 +163,55 @@ function ChipArea({
     c.resolution.ok && c.resolution.disagreement ? [c.resolution.disagreement] : [],
   );
   const first = diffs[0];
+  const sources = useSourcesRows(answer.citations, answer.question);
+  const checks = sources.status === "ready" ? sources.checks : [];
   return (
     <div data-slot="chip-area" className="flex flex-col items-start gap-1.5">
       {first ? (
-        <p
-          role="note"
-          className="inline-flex max-w-full items-center gap-1.5 rounded-pill bg-warn-bg px-2.5 py-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-warn-text"
-        >
-          <TriangleAlert aria-hidden className="size-3 shrink-0" strokeWidth={ICON_STROKE} />
-          <span>
-            Differs from source: {first.assistant} here, {first.source.replace("_", " ")} in
-            data.json
-            {diffs.length > 1 ? ` · ${diffs.length} differences` : ""}
-          </span>
-        </p>
+        <DiffersNote>
+          Differs from source: {first.assistant} here, {first.source.replace("_", " ")} in data.json
+          {diffs.length > 1 ? ` · ${diffs.length} differences` : ""}
+        </DiffersNote>
       ) : null}
+      {checks.map((line) => (
+        <DiffersNote key={line} long>
+          {line}
+        </DiffersNote>
+      ))}
       <CitationRow answerId={answer.id} citations={answer.citations} isLatest={isLatest} />
     </div>
   );
 }
 
-function AnswerText({ children }: { children: ReactNode }) {
+/** One "Differs from source" line: the answer says one thing, data.json another. */
+function DiffersNote({ children, long }: { children: ReactNode; long?: boolean }) {
   return (
-    <p className="font-display text-[length:var(--text-answer)] leading-[var(--text-answer-lh)] font-[var(--text-answer-weight)] text-ink">
-      {children}
+    <p
+      role="note"
+      className={`inline-flex max-w-full items-start gap-1.5 ${long ? "rounded-card" : "rounded-pill"} bg-warn-bg px-2.5 py-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-warn-text`}
+    >
+      <TriangleAlert aria-hidden className="mt-0.5 size-3 shrink-0" strokeWidth={ICON_STROKE} />
+      <span>{children}</span>
     </p>
+  );
+}
+
+/** The answer in paragraphs (a blank line in the text starts one); `trailing` stays at the end of the last. */
+function AnswerText({ body, trailing }: { body: ReactNode[]; trailing: ReactNode }) {
+  const paragraphs = splitParagraphs(body);
+  const last = paragraphs.length - 1;
+  return (
+    <div className="flex flex-col gap-3">
+      {paragraphs.map((nodes, i) => (
+        <p
+          key={i}
+          className="font-display text-[length:var(--text-answer)] leading-[var(--text-answer-lh)] font-[var(--text-answer-weight)] text-ink"
+        >
+          {nodes}
+          {i === last ? trailing : null}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -244,7 +279,8 @@ function Footer({ answer, onStop, onRetry }: AnswerCardProps) {
     );
   }
   if (answer.status === "done") {
-    return <SourcesDisclosure answer={answer} />;
+    // A fallback answer cites nothing, so there is nothing to disclose.
+    return answer.citations.length > 0 ? <SourcesDisclosure answer={answer} /> : null;
   }
   if (answer.status === "streaming" || answer.status === "stopped") {
     // One button for both states, so focus stays on it when Stop turns into Retry.

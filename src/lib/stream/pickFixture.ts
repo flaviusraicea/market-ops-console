@@ -11,19 +11,33 @@ import {
   type Entity,
   type Fixture,
   type FixturesFile,
+  type Market,
   type Period,
+  STATUS_LABEL,
 } from "@/domain";
 import { formatMoneyCompact, formatPct, formatPeriodAbbr } from "@/lib/format";
+import { readQuestion } from "./horizon";
 
 type MarketView = { entity: Extract<Entity, { kind: "market" }>; period: Period };
+type Periods = readonly [Period, ...Period[]];
 
 const marketView = (context?: ChatContext): MarketView | undefined =>
   context?.entity.kind === "market"
     ? { entity: context.entity, period: context.period }
     : undefined;
 
-const hasKeyword = (fixture: Fixture, q: string) =>
-  (fixture.keywords ?? []).some((k) => q.includes(k));
+/** A fixture matches when one keyword hits, and, if it lists groups, when every group has a hit. */
+const hasKeyword = (fixture: Fixture, q: string) => {
+  const keywords = fixture.keywords ?? [];
+  const groups = fixture.allOf ?? [];
+  if (keywords.length === 0 && groups.length === 0) return false;
+  return (
+    (keywords.length === 0 || keywords.some((k) => q.includes(k))) &&
+    groups.every((group) => group.some((k) => q.includes(k)))
+  );
+};
+
+const STATUS_WORDS = /\b(at[- ]risk|off[- ]track|on[- ]track|status)\b/;
 
 /** Whether the view the question was asked from is the one a fixture's scope is written for. */
 function scopeFits(scope: NonNullable<Fixture["scope"]>, { entity }: ChatContext): boolean {
@@ -56,10 +70,12 @@ export function contextProblem(ds: Dataset, { entity, period }: ChatContext): st
 const hasMarket = (ds: Dataset, id: string) => ds.markets.some((m) => m.id === id);
 
 /**
- * The answer for a question. A scoped fixture that fits the view wins over an unscoped keyword match, then the
- * default. A market template stays out when the question names a different market than the one in view, and when
- * an unscoped fixture keyed on the market in view exists (Germany's curated answer is richer than the template).
- * The returned fixture has any template filled in.
+ * The answer for a question. Order: the error hook; a question about a time after the data ends (it abstains, even
+ * when it names a market); a scoped fixture that fits the view; a status question about one named market; an
+ * unscoped keyword match; the default. A market template stays out when the question names a different market than
+ * the one in view, and when an unscoped fixture keyed on the market in view exists (Germany's curated answer is
+ * richer than the template), except for months that answer was not written for. The returned fixture has any
+ * template filled in.
  */
 export function pickFixture(
   file: FixturesFile,
@@ -69,6 +85,11 @@ export function pickFixture(
 ): Fixture {
   const q = question.toLowerCase();
   const hits = file.fixtures.filter((f) => hasKeyword(f, q));
+  const error = hits.find((f) => f.kind === "error");
+  if (error) return error;
+  const asked = readQuestion(ds, question);
+  if (asked.beyondHorizon || asked.beforeData)
+    return file.fixtures.find((f) => f.kind === "abstain") ?? file.default;
   const view = marketView(context);
   const scoped = context
     ? hits.find(
@@ -78,10 +99,74 @@ export function pickFixture(
           (f.template === undefined || (view && templateSuits(ds, q, hits, view))),
       )
     : undefined;
-  const fixture = scoped ?? hits.find((f) => f.scope === undefined) ?? file.default;
+  const namedMarket = scoped ? undefined : singleMarketNamed(ds, q);
+  // "Why" asks for an explanation, which a market's curated or template answer gives; "Is Germany at risk?" asks for the status.
+  if (namedMarket && STATUS_WORDS.test(q) && !/\bwhy\b/.test(q))
+    return fillMarketStatus(ds, namedMarket);
+  // An answer written about the one market the question names beats a general keyword match ("Why is Germany off track?").
+  const aboutNamed = namedMarket && hits.find((f) => f.marketId === namedMarket.id);
+  const fixture = scoped ?? aboutNamed ?? hits.find((f) => f.scope === undefined) ?? file.default;
   // A template always comes from a scoped match, which needs a market view; the default is the unreachable fallback.
-  if (fixture.template === undefined) return fixture;
-  return view ? fillMarketMonth(ds, fixture, view) : file.default;
+  if (fixture.template === undefined) {
+    return outsideCuratedMonths(file, ds, fixture, asked.span, asked.label, view) ?? fixture;
+  }
+  return view ? fillMarketMonth(ds, fixture, view.entity, [view.period]) : file.default;
+}
+
+/** The market a question names, or undefined when it names none or several. */
+function singleMarketNamed(ds: Dataset, q: string): Market | undefined {
+  const named = ds.markets.filter((m) => q.includes(m.name.toLowerCase()));
+  return named.length === 1 ? named[0] : undefined;
+}
+
+/**
+ * A curated answer is written for certain months of one market. When the question is about other months of that
+ * market (named in the question, or the month in view when the market is), the data-filled template answers instead.
+ */
+function outsideCuratedMonths(
+  file: FixturesFile,
+  ds: Dataset,
+  fixture: Fixture,
+  named: readonly Period[],
+  label: string | undefined,
+  view: MarketView | undefined,
+): Fixture | undefined {
+  const { marketId, periods } = fixture;
+  const template = file.fixtures.find((f) => f.template !== undefined);
+  if (!marketId || !periods || !template) return undefined;
+  // The month in view counts only when the user navigated to it: at the latest month "why did it dip?" is the
+  // question the curated answer was written for (the Ask why button asks it from there).
+  const inView =
+    view?.entity.marketId === marketId && view.period !== ds.meta.latestPeriod ? [view.period] : [];
+  const [head, ...rest] = named.length > 0 ? named : inView;
+  if (head === undefined || [head, ...rest].every((p) => periods.includes(p))) return undefined;
+  return fillMarketMonth(ds, template, { kind: "market", marketId }, [head, ...rest], label);
+}
+
+/** The status of one market as data.json gives it, for "Is Germany at risk?". Read, not written. */
+function fillMarketStatus(ds: Dataset, market: Market): Fixture {
+  const { status, forecastAttainmentPct, growthPct, anomalies } = market.kpis;
+  const latest = ds.meta.latestPeriod;
+  const dip = anomalies.find((a) => a.type === "dip");
+  const text =
+    `${market.name} is ${STATUS_LABEL[status].toLowerCase()} in the data as of ${formatPeriodAbbr(latest)}: ` +
+    `${formatPct(forecastAttainmentPct, { sign: false })} of forecast, ${formatPct(growthPct, { sign: true })} year on year.` +
+    (dip ? ` The data also flags a dip in ${formatPeriodAbbr(dip.period)}.` : "");
+  const citations: Citation[] = [
+    { marketId: market.id, period: latest, label: `${market.name}, latest period` },
+  ];
+  if (dip) {
+    citations.push({
+      marketId: market.id,
+      period: dip.period,
+      label: `${market.name}, ${formatPeriodAbbr(dip.period)} dip`,
+    });
+  }
+  return {
+    id: "market-status",
+    kind: "normal",
+    answer: { text, citations, confidence: "medium" },
+  };
 }
 
 function templateSuits(
@@ -107,18 +192,30 @@ function templateSuits(
  * Writes the market-month template's text and citations from data.json. This is the only "intelligence" in the
  * mock: numbers are read and formatted, nothing is generated.
  */
-function fillMarketMonth(ds: Dataset, fixture: Fixture, { entity, period }: MarketView): Fixture {
-  const t = totals(factsFor(ds, { entity, periods: [period] }));
+function fillMarketMonth(
+  ds: Dataset,
+  fixture: Fixture,
+  entity: MarketView["entity"],
+  periods: Periods,
+  spanLabel?: string,
+): Fixture {
+  const first = periods[0];
+  const period = periods[periods.length - 1] ?? first;
+  const single = periods.length === 1;
+  const t = totals(factsFor(ds, { entity, periods: [...periods] }));
   const name = entityName(ds, entity);
-  const previous = previousPeriod(ds, period);
-  const mom = momChangePct(ds, entity, period);
+  const previous = single ? previousPeriod(ds, period) : undefined;
+  const mom = single ? momChangePct(ds, entity, period) : undefined;
   // At the latest month the dashboard shows the market's own KPI, so the answer quotes that, not a recomputation.
   const kpi = ds.markets.find((m) => m.id === entity.marketId)?.kpis.forecastAttainmentPct;
-  const attainment = period === ds.meta.latestPeriod && kpi !== undefined ? kpi : attainmentPct(t);
+  const attainment =
+    single && period === ds.meta.latestPeriod && kpi !== undefined ? kpi : attainmentPct(t);
 
   const values: Record<string, string> = {
     market: name,
-    period: formatPeriodAbbr(period),
+    period: single
+      ? formatPeriodAbbr(period)
+      : (spanLabel ?? `${formatPeriodAbbr(first)} to ${formatPeriodAbbr(period)}`),
     actual: formatMoneyCompact(t.actual),
     forecast: formatMoneyCompact(t.forecast),
     attainment: formatPct(attainment, { sign: false }),
@@ -135,6 +232,10 @@ function fillMarketMonth(ds: Dataset, fixture: Fixture, { entity, period }: Mark
     period: p,
     label: `${name}, ${formatPeriodAbbr(p)}`,
   });
-  const citations = previous === undefined ? [cite(period)] : [cite(period), cite(previous)];
+  const citations = single
+    ? previous === undefined
+      ? [cite(period)]
+      : [cite(period), cite(previous)]
+    : [cite(first), cite(period)];
   return { ...fixture, answer: { ...fixture.answer, text, citations } };
 }
