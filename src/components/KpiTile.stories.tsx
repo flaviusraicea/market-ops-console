@@ -112,7 +112,7 @@ export const Strip: Story = {
   },
   play: async ({ canvasElement }) => {
     const delta = canvasElement.querySelector('[data-slot="kpi-delta"]')!;
-    await expect(delta).toHaveTextContent("+7.3%vs May 2025");
+    await expect(delta).toHaveTextContent("+7.3% vs May 2025");
     // The strip says its provenance once, below the row; the cell carries none of its own.
     await expect(within(canvasElement).queryByText("Derived · sum of series")).toBeNull();
     await expect(canvasElement.querySelector("[title]")).toBeNull();
