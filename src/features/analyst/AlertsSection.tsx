@@ -10,33 +10,11 @@ import { AlertForm } from "@/features/alerts/AlertForm";
 import { METRIC_LABEL } from "@/features/alerts/labels";
 import { RuleList } from "@/features/alerts/RuleList";
 import { useAlertSave } from "@/features/alerts/useAlertSave";
+import { createStoredState } from "@/lib/storedState";
 
-const STORAGE_KEY = "market-ops:alerts-open";
-
-const listeners = new Set<() => void>();
-
-function subscribe(onChange: () => void) {
-  listeners.add(onChange);
-  return () => void listeners.delete(onChange);
-}
-
-/** Closed on the server and on the first client render; the remembered state applies right after. */
-function readOpen(): boolean {
-  try {
-    return window.sessionStorage.getItem(STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeOpen(next: boolean) {
-  try {
-    window.sessionStorage.setItem(STORAGE_KEY, next ? "1" : "0");
-  } catch {
-    // Remembering is a convenience.
-  }
-  listeners.forEach((l) => l());
-}
+const openState = createStoredState("market-ops:alerts-open", "session");
+const readOpen = () => openState.read() === "1";
+const writeOpen = (next: boolean) => openState.write(next ? "1" : "0");
 
 /** One line for the folded section: the rule count and the rule names, or the kinds of rule you can add. */
 function summaryOf(rules: { metric: keyof typeof METRIC_LABEL }[]): string {
@@ -50,7 +28,7 @@ function summaryOf(rules: { metric: keyof typeof METRIC_LABEL }[]): string {
 export function AlertsSection() {
   const alerts = useAlertSave();
   const headingId = useId();
-  const open = useSyncExternalStore(subscribe, readOpen, () => false);
+  const open = useSyncExternalStore(openState.subscribe, readOpen, () => false);
 
   return (
     <Collapsible open={open} onOpenChange={writeOpen}>

@@ -27,7 +27,7 @@ export function Verdict({ verdict }: { verdict: VerdictVM }) {
       <h2
         id="verdict-h"
         {...pageHeadingProps}
-        className="num font-display text-[length:var(--text-display)] leading-[var(--text-display-lh)] font-semibold tracking-[var(--text-display-ls)] text-balance text-ink"
+        className="num font-display outline-none text-[length:var(--text-display)] leading-[var(--text-display-lh)] font-semibold tracking-[var(--text-display-ls)] text-balance text-ink"
       >
         {verdict.segments.map((segment, i) => (
           <span

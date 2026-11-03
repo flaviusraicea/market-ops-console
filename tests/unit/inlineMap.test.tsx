@@ -1,25 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import data from "@/data/data.json";
-import fixtures from "@/data/fixtures.json";
-import { CitationSchema, parseDataset, resolveCitation } from "@/domain";
 import { renderWithCitations } from "@/features/assistant/renderWithCitations";
 import { segmentText } from "@/features/assistant/inlineMap";
-
-const ds = parseDataset(data);
-
-function resolved(id: string) {
-  const f = fixtures.fixtures.find((x) => x.id === id)!;
-  const citations = f.answer.citations.map((c) => CitationSchema.parse(c));
-  return {
-    text: f.answer.text,
-    citations: citations.map((citation) => ({
-      citation,
-      resolution: resolveCitation(ds, citation, f.answer.text),
-    })),
-  };
-}
+import { resolvedFixture as resolved } from "./helpers";
 
 describe("inline citations", () => {
   it("wraps the three Germany-dip phrases in cite-inline anchors", () => {

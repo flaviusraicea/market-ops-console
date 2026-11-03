@@ -6,14 +6,17 @@ import { LineChart, LineChartTable, SERIES_LEGEND } from "@/components/charts/Li
 import { Legend } from "@/components/charts/Legend";
 import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
 import { prefersReducedMotion } from "@/lib/motion";
+import { useAskWhy } from "@/features/assistant/askWhy";
+import { askContext, cellQuestion } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useLanding } from "./useLanding";
-import type { Period } from "@/domain";
+import { PeriodSchema } from "@/domain";
 import { SheetSection } from "./Sheet";
 import type { TimeSeriesVM } from "./viewModel";
 
 export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?: string }) {
   const { setContext } = useConsoleContext();
+  const { prefill } = useAskWhy();
   const landing = useLanding();
   const ref = useRef<HTMLElement>(null);
   const tableId = useId();
@@ -54,7 +57,16 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
             {...(landed && landing.target ? { landedPeriod: landing.target.period } : {})}
             title={vm.chartTitle}
             desc={vm.desc}
-            onPeriod={(period) => setContext({ period: period as Period })}
+            onPeriod={(period) => setContext({ period: PeriodSchema.parse(period) })}
+            ask={{
+              subject: vm.subject.name,
+              onAsk: ({ period, momPct }) =>
+                prefill(
+                  cellQuestion(vm.subject.name, period, momPct),
+                  askContext(vm.subject.entity, vm.subject.name, PeriodSchema.parse(period)),
+                  "the anomaly marker",
+                ),
+            }}
           />
         }
         table={

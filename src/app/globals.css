@@ -78,6 +78,11 @@ body {
   outline-offset: 2px;
 }
 
+/* The palette's search field fills the dialog's top row, so the focus ring sits inside it (WCAG 2.4.7). */
+[cmdk-input]:focus-visible {
+  outline-offset: -2px;
+}
+
 /* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */
 .num {
   font-variant-numeric: tabular-nums lining-nums;

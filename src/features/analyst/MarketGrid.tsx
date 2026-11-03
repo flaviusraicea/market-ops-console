@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAskWhy } from "@/features/assistant/askWhy";
+import { askContext } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useLanding } from "./useLanding";
 import { SheetSection } from "./Sheet";
@@ -166,7 +167,7 @@ function MarketRows({
   onSort: (next: Sort) => void;
 }) {
   const { ctx, setContext } = useConsoleContext();
-  const { prefill } = useAskWhy();
+  const { ask } = useAskWhy();
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
     <>
@@ -248,7 +249,15 @@ function MarketRows({
               />
             </TableCell>
             <TableCell className="text-right">
-              <AskWhyButton label={r.askWhy.aria} onAsk={() => prefill(r.askWhy.text)} />
+              <AskWhyButton
+                label={r.askWhy.aria}
+                onAsk={() =>
+                  ask(
+                    r.askWhy.text,
+                    askContext({ kind: "market", marketId: r.id }, r.name, ctx.period),
+                  )
+                }
+              />
             </TableCell>
           </TableRow>
         ))}

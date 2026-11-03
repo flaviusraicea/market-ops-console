@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { ArrowDown, ICON_STROKE } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { useAssistantRail } from "@/features/shell/railState";
 import { prefersReducedMotion } from "@/lib/motion";
 import { AnswerCard } from "./AnswerCard";
 import { EmptyState, type PanelContext } from "./EmptyState";
@@ -51,6 +53,8 @@ export function AnswerList({
   const [leftAt, setLeftAt] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<{ n: number; text: string }>({ n: 0, text: "" });
   const seen = useRef(new Map<string, Answer["status"]>());
+
+  const { liveHost, noteAnswerDone } = useAssistantRail();
 
   const last = answers[answers.length - 1];
   const signature = last ? `${answers.length}:${last.id}:${last.status}:${last.text.length}` : "";
@@ -150,10 +154,14 @@ export function AnswerList({
       const before = seen.current.get(a.id);
       seen.current.set(a.id, a.status);
       const text = ANNOUNCEMENT[a.status];
-      if (before === "streaming" && text) setAnnouncement((p) => ({ n: p.n + 1, text }));
+      if (before === "streaming" && text) {
+        setAnnouncement((p) => ({ n: p.n + 1, text }));
+        if (a.status === "done") noteAnswerDone();
+      }
     }
-  }, [answers]);
+  }, [answers, noteAnswerDone]);
 
+  const announced = <span key={announcement.n}>{announcement.text}</span>;
   const showNewText = hasAnswers && leftAt !== null && leftAt !== signature;
 
   return (
@@ -196,9 +204,14 @@ export function AnswerList({
           <ArrowDown aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
         </Button>
       ) : null}
-      <div role="status" aria-live="polite" className="sr-only">
-        <span key={announcement.n}>{announcement.text}</span>
-      </div>
+      {liveHost === undefined ? (
+        <div role="status" aria-live="polite" className="sr-only">
+          {announced}
+        </div>
+      ) : liveHost ? (
+        // The shell's live region stays mounted while the panel is collapsed.
+        createPortal(announced, liveHost)
+      ) : null}
     </div>
   );
 }

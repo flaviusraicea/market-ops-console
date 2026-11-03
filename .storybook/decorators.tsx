@@ -5,9 +5,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 import data from "../src/data/data.json";
 import { parseDataset, type Context, type Dataset, type Period } from "../src/domain";
-import { lightDataset, metaFromDataset } from "../src/lib/context/invariants";
-import { DatasetProvider } from "../src/lib/context/dataset";
-import { ConsoleMetaProvider } from "../src/lib/context/meta";
+import { DatasetProviders } from "../src/lib/context/DatasetProviders";
 
 type NuqsParameters = {
   searchParams?: string;
@@ -59,10 +57,8 @@ export const portfolioMay: Context = {
 /** Per story file, for stories under features/. Exposes the dataset and the console meta. */
 export const withDataset: Decorator = (Story) => (
   <DatasetContext.Provider value={ds}>
-    <ConsoleMetaProvider meta={metaFromDataset(ds)}>
-      <DatasetProvider dataset={lightDataset(ds)}>
-        <Story />
-      </DatasetProvider>
-    </ConsoleMetaProvider>
+    <DatasetProviders dataset={ds}>
+      <Story />
+    </DatasetProviders>
   </DatasetContext.Provider>
 );

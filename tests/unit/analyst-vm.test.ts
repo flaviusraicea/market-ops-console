@@ -75,6 +75,7 @@ describe("analyst view model", () => {
     expect(ts.anomalies).toHaveLength(1);
     expect(ts.anomalies[0]).toMatchObject({
       label: "−27% vs Feb",
+      momPct: -27.2,
       ariaLabel: "Anomaly: March 2026 revenue fell 27 percent versus February",
     });
     expect(ts.title).toBe("Germany revenue");
@@ -104,6 +105,20 @@ describe("analyst view model", () => {
       hm.rows.find((r) => r.id === id)?.cells.find((c) => c.period === period)?.value;
     expect(cell("de", "2026-04")).toBe(92.2);
     expect(cell("it", "2026-03")).toBe(92.8);
+  });
+
+  it("heatMapVM carries month-on-month change per cell, none for the first month", () => {
+    const hm = analystVM(ds, germany).heatMap;
+    const de = hm.rows.find((r) => r.id === "de");
+    expect(de?.cells[0]?.momPct).toBeUndefined();
+    expect(de?.cells.find((c) => c.period === "2026-03")?.momPct).toBe(-27.2);
+  });
+
+  it("heatMapVM hint names the outlined cell, and only when a market is selected", () => {
+    expect(analystVM(ds, europe).heatMap.hint).toBe("Shift+Enter on a focused cell asks about it.");
+    expect(analystVM(ds, { ...germany, period: "2026-03" as Period }).heatMap.hint).toBe(
+      "Mar 2026 is the outlined cell in the Germany row. Shift+Enter on a focused cell asks about it.",
+    );
   });
 
   it("heatMapVM rows follow the grid's revenue order, at region and portfolio level", () => {
