@@ -16,13 +16,13 @@ export function Breadcrumbs({
 }) {
   return (
     <nav aria-label="Drill path" className="min-w-0 flex-1">
-      <ol className="flex min-w-0 flex-nowrap items-center">
+      <ol className="flex w-full min-w-0 flex-nowrap items-center">
         {trail.map((crumb, i) => {
           const current = i === trail.length - 1;
           return (
             <li
               key={crumb.label}
-              className={cn("flex items-center", current ? "max-w-[60%] shrink-0" : "min-w-0")}
+              className={cn("flex items-center", current ? "max-w-full shrink-0" : "min-w-0")}
             >
               {i > 0 ? (
                 <span aria-hidden className="mx-2 shrink-0 text-ink-muted">

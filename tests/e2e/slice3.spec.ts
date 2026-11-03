@@ -32,7 +32,9 @@ test("a deep link renders every part of the state", async ({ page }) => {
   await expect(page.getByRole("combobox", { name: "Period" })).toContainText("March 2026");
   await expect(page.getByRole("combobox", { name: "Product" })).toContainText("Veltrix");
   await expect(page.getByRole("radio", { name: "Analyst" })).toBeChecked();
-  await expect(page.getByRole("heading", { name: "Germany · Veltrix", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Germany · Veltrix", exact: true }),
+  ).toBeVisible();
   await expect(page).toHaveTitle("Germany · Veltrix · March 2026 · Market Ops");
 });
 

@@ -5,7 +5,7 @@ const TILES = [
   { label: "PORTFOLIO REVENUE", headline: "$22.85M", delta: "+7.3% vs May 2025" },
   { label: "FORECAST ATTAINMENT", headline: "100.4%", delta: "+$0.10M vs forecast" },
   { label: "GROWTH, YEAR ON YEAR", headline: "+7.3%", delta: "YTD +6.1% vs 2025" },
-  { label: "MARKETS NEEDING ATTENTION", headline: "6 of 13", delta: "4 at risk · 2 off track" },
+  { label: "NEEDS ATTENTION", headline: "6 of 13", delta: "4 at risk · 2 off track" },
 ];
 
 test("the four KPI tiles show the portfolio figures", async ({ page }) => {
@@ -26,7 +26,7 @@ test("the four KPI tiles show the portfolio figures", async ({ page }) => {
 test("the attention tile uses the flat icon and ink-2, not a status colour", async ({ page }) => {
   await page.goto("/");
   const delta = page
-    .getByRole("group", { name: "MARKETS NEEDING ATTENTION" })
+    .getByRole("group", { name: "NEEDS ATTENTION" })
     .locator('[data-slot="kpi-delta"]');
   await expect(delta).toHaveAttribute("data-direction", "flat");
   await expect(delta.locator("svg")).toHaveClass(/lucide-minus/);
@@ -61,8 +61,10 @@ test("View as table swaps the map for a 13-row table and back", async ({ page })
 
 test("the metric select recolours the map and renames the card", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("combobox", { name: "Map metric" }).click();
-  await page.getByRole("option", { name: "Revenue" }).click();
+  await page
+    .getByRole("radiogroup", { name: "Map metric" })
+    .getByRole("radio", { name: "Revenue" })
+    .click();
   await expect(page).toHaveURL(/metric=revenue/);
   await expect(page.getByRole("heading", { name: "Markets by Revenue" })).toBeVisible();
   await expect(

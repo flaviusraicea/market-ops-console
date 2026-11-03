@@ -1,5 +1,6 @@
 "use client";
 
+import { CardHeader } from "@/components/CardHeader";
 import { AlertForm } from "./AlertForm";
 import { RuleList } from "./RuleList";
 import { useAlertSave } from "./useAlertSave";
@@ -11,12 +12,7 @@ export function AlertsCard() {
       aria-labelledby="alerts-h"
       className="flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)]"
     >
-      <h3
-        id="alerts-h"
-        className="font-display text-[length:var(--text-title)] leading-[var(--text-title-lh)] font-semibold tracking-[var(--text-title-ls)]"
-      >
-        Alert thresholds
-      </h3>
+      <CardHeader title="Alert thresholds" titleId="alerts-h" />
       <AlertForm
         saveRule={alerts.save}
         status={alerts.status}

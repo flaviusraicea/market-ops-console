@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
+import { CardHeader } from "@/components/CardHeader";
+import { SegmentedControl } from "@/components/SegmentedControl";
 import { Notice } from "@/components/Notice";
 import { Choropleth, type MapGeo } from "@/components/charts/Choropleth";
 import { Legend, type LegendItem } from "@/components/charts/Legend";
@@ -11,15 +13,8 @@ import {
   revenueLegend,
   type LegendBin,
 } from "@/components/charts/scales";
-import { ViewAsTable } from "@/components/charts/ViewAsTable";
+import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -138,6 +133,8 @@ function MarketsTable({ map }: { map: OverviewVM["map"] }) {
 export function MapCard({ map }: { map: OverviewVM["map"] }) {
   const { setContext } = useConsoleContext();
   const geoState = useGeo();
+  const tableId = useId();
+  const [pressed, setPressed] = useState(false);
   const metricLabel = METRIC_LABEL[map.metric];
 
   const legend: LegendItem[] = legendFor(map).map((b) => ({
@@ -146,25 +143,16 @@ export function MapCard({ map }: { map: OverviewVM["map"] }) {
     color: b.token,
   }));
 
-  const toolbar = (
-    <div className="flex flex-col gap-3">
-      <Select
-        value={map.metric}
-        onValueChange={(metric) => setContext({ metric: metric as Metric })}
-      >
-        <SelectTrigger aria-label="Map metric" className="min-w-[132px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {(Object.keys(METRIC_LABEL) as Metric[]).map((m) => (
-            <SelectItem key={m} value={m}>
-              {METRIC_LABEL[m]}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Legend items={legend} label={`${metricLabel} colour scale`} />
-    </div>
+  const metricControl = (
+    <SegmentedControl<Metric>
+      ariaLabel="Map metric"
+      value={map.metric}
+      onChange={(metric) => setContext({ metric })}
+      options={(Object.keys(METRIC_LABEL) as Metric[]).map((m) => ({
+        value: m,
+        label: METRIC_LABEL[m],
+      }))}
+    />
   );
 
   const chart =
@@ -183,30 +171,52 @@ export function MapCard({ map }: { map: OverviewVM["map"] }) {
       <Skeleton aria-hidden className="aspect-[2/1] w-full" />
     );
 
+  const legendEl = (
+    <div className="mx-auto mt-2 flex w-full max-w-[40rem] justify-center">
+      <Legend items={legend} label={`${metricLabel} colour scale`} />
+    </div>
+  );
+
+  const forced = geoState.status === "error";
+  const showTable = forced || pressed;
+
   return (
     <section
       aria-labelledby="map-h"
       className="flex flex-col gap-3 rounded-card border border-border bg-surface p-[var(--pad-card)]"
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3
-          id="map-h"
-          className="font-display text-[length:var(--text-title)] leading-[var(--text-title-lh)] font-semibold tracking-[var(--text-title-ls)]"
-        >
-          Markets by {metricLabel}
-        </h3>
-        <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-          {map.periodLabel} · {map.provenance}
-        </p>
-      </div>
-      {geoState.status === "error" ? (
+      <CardHeader
+        title={`Markets by ${metricLabel}`}
+        titleId="map-h"
+        caption={`${map.periodLabel} · ${map.provenance}`}
+        actions={
+          <>
+            {metricControl}
+            {forced ? null : (
+              <ViewAsTableToggle
+                pressed={pressed}
+                controls={tableId}
+                onPressedChange={setPressed}
+              />
+            )}
+          </>
+        }
+      />
+      {forced ? (
         <Notice title="Map unavailable">The market table below has the same data.</Notice>
       ) : null}
-      <ViewAsTable
-        toolbar={toolbar}
-        chart={chart}
+      <TableView
+        id={tableId}
+        pressed={showTable}
+        chart={
+          forced ? null : (
+            <>
+              {chart}
+              {legendEl}
+            </>
+          )
+        }
         table={<MarketsTable map={map} />}
-        forced={geoState.status === "error"}
       />
     </section>
   );

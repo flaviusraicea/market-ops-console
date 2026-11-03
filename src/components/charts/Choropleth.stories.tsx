@@ -86,6 +86,12 @@ export const TwoMarkets: Story = {
     const fr = canvas.getByRole("button", { name: "France, on track, 104.5% attainment" });
     await expect(de).toHaveAttribute("role", "button");
 
+    // Land carries the dedicated token and the hairline outline in both themes.
+    const land = canvasElement.querySelector('path[fill="var(--map-land)"]');
+    await expect(land).not.toBeNull();
+    await expect(land).toHaveAttribute("stroke", "var(--border)");
+    await expect(land).toHaveAttribute("stroke-width", "0.5");
+
     // Alphabetical roving focus: France first, then Germany.
     await expect(fr).toHaveAttribute("tabindex", "0");
     await expect(de).toHaveAttribute("tabindex", "-1");

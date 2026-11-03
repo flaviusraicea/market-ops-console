@@ -76,7 +76,9 @@ describe("analyst view model", () => {
       label: "−27% vs Feb",
       ariaLabel: "Anomaly: March 2026 revenue fell 27 percent versus February",
     });
-    expect(ts.title).toBe("Germany · Revenue vs forecast vs prior year");
+    expect(ts.title).toBe("Germany");
+    expect(ts.subtitle).toBe("Revenue vs forecast vs prior year · Jun 2024 – May 2026 · USD");
+    expect(ts.chartTitle).toBe("Germany · Revenue vs forecast vs prior year");
     expect(ts.desc).toContain("Line chart of Germany monthly revenue from June 2024 to May 2026.");
     expect(ts.desc).toContain("Actual below forecast in 24 of 24 months");
     expect(ts.desc).toContain("Table available via View as table.");
@@ -85,7 +87,8 @@ describe("analyst view model", () => {
   it("timeSeriesVM has no anomaly outside a market, and keeps Germany's on a product", () => {
     expect(analystVM(ds, europe).timeSeries.anomalies).toHaveLength(0);
     const veltrix = analystVM(ds, { ...germany, product: "veltrix" }).timeSeries;
-    expect(veltrix.title).toBe("Germany · Veltrix · Revenue vs forecast vs prior year");
+    expect(veltrix.title).toBe("Germany · Veltrix");
+    expect(veltrix.chartTitle).toBe("Germany · Veltrix · Revenue vs forecast vs prior year");
     expect(veltrix.anomalies).toHaveLength(1);
   });
 
@@ -118,7 +121,13 @@ describe("analyst view model", () => {
   it("radarVM for Europe: five series on the given-share axes", () => {
     const radar = analystVM(ds, europe).radar;
     expect(radar.axes).toEqual(RADAR_AXES_GIVEN);
-    expect(radar.axes).toEqual(["Attainment", "Growth", "Share (given)"]);
+    expect(radar.axes).toEqual([
+      "Attainment",
+      "Growth YoY",
+      "Share (given)",
+      "Month on month",
+      "Forecast accuracy",
+    ]);
     expect(radar.series).toHaveLength(5);
     expect(radar.series.map((s) => s.name)).toEqual([
       "France",
@@ -134,12 +143,25 @@ describe("analyst view model", () => {
       "--cat-4",
       "--cat-5",
     ]);
-    for (let axis = 0; axis < 3; axis++) {
+    for (let axis = 0; axis < 5; axis++) {
       const vals = radar.series.map((s) => s.values[axis]!);
       expect(Math.min(...vals)).toBe(0);
       expect(Math.max(...vals)).toBe(1);
     }
-    expect(radar.series.find((s) => s.id === "de")?.raw).toEqual(["92.0%", "−9.7%", "8.9%"]);
+    expect(radar.series.find((s) => s.id === "de")?.raw).toEqual([
+      "92.0%",
+      "−9.7%",
+      "8.9%",
+      "+1.1%",
+      "92.0%",
+    ]);
+  });
+
+  it("radarVM: Germany month on month for March 2026 and forecast accuracy for May 2026", () => {
+    const march = analystVM(ds, { ...europe, period: "2026-03" as Period }).radar;
+    expect(march.series.find((s) => s.id === "de")?.raw[3]).toBe("−27.2%");
+    const may = analystVM(ds, europe).radar;
+    expect(may.series.find((s) => s.id === "de")?.raw[4]).toBe("92.0%");
   });
 
   it("radarVM at the portfolio: four regions and the derived third axis", () => {

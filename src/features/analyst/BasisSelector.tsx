@@ -1,101 +1,42 @@
 "use client";
 
-import { useRef, type KeyboardEvent } from "react";
-
-import { cn } from "@/components/cn";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Eyebrow } from "@/components/Eyebrow";
+import { SegmentedControl } from "@/components/SegmentedControl";
 import type { Basis } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
-
-const OPTIONS: ReadonlyArray<{ value: Basis; label: string }> = [
-  { value: "month", label: "Month" },
-  { value: "ytd", label: "YTD" },
-  { value: "mat", label: "MAT" },
-];
 
 const MAT_HINT = "Needs 12 months of data";
 
 /** Month, YTD or MAT. Writes `basis` to the URL; MAT is unavailable before twelve months exist. */
 export function BasisSelector({ basis, matDisabled }: { basis: Basis; matDisabled: boolean }) {
   const { setContext } = useConsoleContext();
-  const refs = useRef<Array<HTMLButtonElement | null>>([]);
-  const enabled = OPTIONS.filter((o) => !(o.value === "mat" && matDisabled));
-
-  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    const forward = e.key === "ArrowRight" || e.key === "ArrowDown";
-    const back = e.key === "ArrowLeft" || e.key === "ArrowUp";
-    if (!forward && !back) return;
-    e.preventDefault();
-    const i = enabled.findIndex((o) => o.value === basis);
-    const target = enabled[(i + (forward ? 1 : -1) + enabled.length) % enabled.length];
-    if (!target) return;
-    setContext({ basis: target.value });
-    refs.current[OPTIONS.findIndex((o) => o.value === target.value)]?.focus();
-  }
-
   return (
-    <TooltipProvider>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span
-          id="basis-label"
-          className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted uppercase"
-        >
-          Basis
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <Eyebrow id="basis-label">Basis</Eyebrow>
+      <SegmentedControl<Basis>
+        labelledBy="basis-label"
+        value={basis}
+        onChange={(next) => setContext({ basis: next })}
+        options={[
+          { value: "month", label: "Month" },
+          { value: "ytd", label: "YTD" },
+          {
+            value: "mat",
+            label: "MAT",
+            disabled: matDisabled,
+            hint: MAT_HINT,
+            hintId: "basis-mat-hint",
+          },
+        ]}
+      />
+      {matDisabled ? (
+        <span id="basis-mat-hint" className="sr-only">
+          {MAT_HINT}
         </span>
-        <div
-          role="radiogroup"
-          aria-labelledby="basis-label"
-          onKeyDown={onKeyDown}
-          className="inline-flex h-[var(--control-h)] items-center rounded-pill bg-surface-2 p-0.5"
-        >
-          {OPTIONS.map((o, i) => {
-            const checked = o.value === basis;
-            const disabled = o.value === "mat" && matDisabled;
-            const button = (
-              <button
-                key={o.value}
-                ref={(el) => {
-                  refs.current[i] = el;
-                }}
-                type="button"
-                role="radio"
-                aria-checked={checked}
-                aria-disabled={disabled || undefined}
-                aria-describedby={disabled ? "basis-mat-hint" : undefined}
-                tabIndex={checked ? 0 : -1}
-                onClick={() => {
-                  if (!disabled) setContext({ basis: o.value });
-                }}
-                className={cn(
-                  "h-full rounded-pill border px-3 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
-                  checked
-                    ? "border-border bg-surface font-semibold text-ink"
-                    : "border-transparent font-medium text-ink-2 hover:text-ink",
-                  disabled && "cursor-not-allowed text-ink-disabled hover:text-ink-disabled",
-                )}
-              >
-                {o.label}
-              </button>
-            );
-            return disabled ? (
-              <Tooltip key={o.value}>
-                <TooltipTrigger asChild>{button}</TooltipTrigger>
-                <TooltipContent>{MAT_HINT}</TooltipContent>
-              </Tooltip>
-            ) : (
-              button
-            );
-          })}
-        </div>
-        {matDisabled ? (
-          <span id="basis-mat-hint" className="sr-only">
-            {MAT_HINT}
-          </span>
-        ) : null}
-        <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-          Applies to the tiles and the map
-        </span>
-      </div>
-    </TooltipProvider>
+      ) : null}
+      <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+        Applies to the tiles and the map
+      </span>
+    </div>
   );
 }

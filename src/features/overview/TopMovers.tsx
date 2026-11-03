@@ -2,6 +2,8 @@
 
 import { ICON_STROKE, MessageSquareText } from "@/components/icons";
 import { cn } from "@/components/cn";
+import { CardHeader } from "@/components/CardHeader";
+import { Eyebrow } from "@/components/Eyebrow";
 import { Button } from "@/components/ui/button";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import type { MoverVM, OverviewVM } from "./viewModel";
@@ -10,9 +12,9 @@ function Column({ title, items }: { title: string; items: MoverVM[] }) {
   const { prefill } = useAskWhy();
   return (
     <div className="min-w-0">
-      <h4 className="mb-1 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted uppercase">
+      <Eyebrow as="h4" className="mb-1 block">
         {title}
-      </h4>
+      </Eyebrow>
       <ul>
         {items.map((m) => {
           return (
@@ -23,7 +25,7 @@ function Column({ title, items }: { title: string; items: MoverVM[] }) {
               <span className="min-w-0 flex-1 truncate font-medium text-ink">{m.name}</span>
               <span
                 className={cn(
-                  "font-medium",
+                  "num font-medium",
                   m.growth > 0 ? "text-ok-text" : m.growth < 0 ? "text-bad-text" : "text-ink-2",
                 )}
               >
@@ -52,15 +54,10 @@ export function TopMovers({ movers }: { movers: OverviewVM["movers"] }) {
       aria-labelledby="movers-h"
       className="flex flex-col gap-3 rounded-card border border-border bg-surface p-[var(--pad-card)]"
     >
-      <h3
-        id="movers-h"
-        className="font-display text-[length:var(--text-title)] leading-[var(--text-title-lh)] font-semibold tracking-[var(--text-title-ls)]"
-      >
-        Top movers
-      </h3>
+      <CardHeader title="Top movers" titleId="movers-h" />
       <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
         <Column title="Rising" items={movers.rising} />
-        <Column title="Falling" items={movers.falling} />
+        <Column title="Lowest growth" items={movers.falling} />
       </div>
       <p className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
         Growth YoY, {movers.period} · Source · data.json

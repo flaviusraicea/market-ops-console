@@ -39,6 +39,7 @@
   --color-cat-4: var(--cat-4);
   --color-cat-5: var(--cat-5);
   --color-cat-6: var(--cat-6);
+  --color-map-land: var(--map-land);
   --color-seq-1: var(--seq-1);
   --color-seq-2: var(--seq-2);
   --color-seq-3: var(--seq-3);
@@ -64,7 +65,7 @@
 
 body {
   font-family: var(--font-ui);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: num;
   font-feature-settings: "cv11", "ss01";
   font-size: var(--text-body);
   line-height: var(--text-body-lh);
@@ -75,6 +76,11 @@ body {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */
+.num {
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .sr-only-focusable:not(:focus):not(:focus-within) {

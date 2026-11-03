@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { Eyebrow } from "@/components/Eyebrow";
 import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { logEvent } from "@/lib/events";
 import { prefersReducedMotion } from "@/lib/motion";
@@ -68,10 +69,10 @@ export function Panel({ onSubmit, stream }: PanelProps) {
   return (
     <div className="flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)] lg:sticky lg:top-4 lg:max-h-[calc(100vh-var(--header-h)-32px)]">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <span className="inline-flex items-center gap-1.5 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ai-label uppercase">
+        <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
           <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
           Assistant
-        </span>
+        </Eyebrow>
         <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
           Answers are AI-generated. Numbers link to source.
         </span>

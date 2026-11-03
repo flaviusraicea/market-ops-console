@@ -56,7 +56,7 @@ export function ChartTooltip({
         {rows.map((row) => (
           <div key={row.label} className="contents">
             <dt className="text-ink-2">{row.label}</dt>
-            <dd className="text-right text-ink">{row.value}</dd>
+            <dd className="num text-right text-ink">{row.value}</dd>
           </div>
         ))}
       </dl>

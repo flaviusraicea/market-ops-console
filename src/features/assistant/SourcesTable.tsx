@@ -1,5 +1,6 @@
 import { ICON_STROKE, TriangleAlert } from "@/components/icons";
 import { cn } from "@/components/cn";
+import { EYEBROW_CLASS } from "@/components/Eyebrow";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SourceRow } from "./sourcesRows";
 
@@ -39,14 +40,7 @@ export function SourcesTable({
           <thead>
             <tr className="border-b border-border bg-surface-2">
               {HEADERS.map((h) => (
-                <th
-                  key={h}
-                  scope="col"
-                  className={cn(
-                    CELL,
-                    "text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold tracking-[var(--text-caption-ls)] text-ink-muted",
-                  )}
-                >
+                <th key={h} scope="col" className={cn(CELL, EYEBROW_CLASS, "text-ink-muted")}>
                   {h}
                 </th>
               ))}

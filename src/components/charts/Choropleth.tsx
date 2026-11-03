@@ -158,7 +158,7 @@ function MapSvg({
         {land ? (
           <path
             d={path(land) ?? ""}
-            fill="var(--surface-2)"
+            fill="var(--map-land)"
             stroke="var(--border)"
             strokeWidth={0.5}
           />

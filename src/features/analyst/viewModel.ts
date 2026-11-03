@@ -10,6 +10,7 @@ import {
   growthPct,
   kpiFor,
   marketsIn,
+  momChangePct,
   periodIndex,
   totals,
   type Context,
@@ -34,8 +35,21 @@ const SOURCE = "Source · data.json";
 const DERIVED = "Derived · sum of series";
 const MINUS = "−";
 
-export const RADAR_AXES_GIVEN = ["Attainment", "Growth", "Share (given)"] as const;
-export const RADAR_AXES_DERIVED = ["Attainment", "Growth", "Revenue share (derived)"] as const;
+export const RADAR_AXES_GIVEN = [
+  "Attainment",
+  "Growth YoY",
+  "Share (given)",
+  "Month on month",
+  "Forecast accuracy",
+] as const;
+export const RADAR_AXES_DERIVED = [
+  "Attainment",
+  "Growth YoY",
+  "Revenue share (derived)",
+  "Month on month",
+  "Forecast accuracy",
+] as const;
+export type RadarTuple<T> = [T, T, T, T, T];
 
 /** Spain's attainment cell explains why a market above 100% is still off track (preview-spec 9.2). */
 const OFF_TRACK_ABOVE_PLAN = (attainment: string, growth: string) =>
@@ -124,6 +138,9 @@ export type AnomalyVM = {
 
 export type TimeSeriesVM = {
   title: string;
+  subtitle: string;
+  /** The full sentence, for the chart's accessible name and the table caption. */
+  chartTitle: string;
   caption: string;
   desc: string;
   selectedPeriod: Period;
@@ -137,16 +154,16 @@ export type RadarSeriesVM = {
   /** A CSS custom property such as `--cat-1`. */
   color: string;
   /** Normalised 0..1 per axis, in axis order. */
-  values: [number, number, number];
+  values: RadarTuple<number>;
   /** Formatted raw values, in axis order. */
-  raw: [string, string, string];
+  raw: RadarTuple<string>;
   selected: boolean;
 };
 
 export type RadarVM = {
   title: string;
   caption: string;
-  axes: readonly [string, string, string];
+  axes: readonly string[];
   series: RadarSeriesVM[];
 };
 
@@ -338,8 +355,10 @@ function timeSeriesVM(ds: Dataset, ctx: Context): TimeSeriesVM {
   const desc = `Line chart of ${name} monthly revenue from ${formatPeriod(first)} to ${formatPeriod(last)}. Actual ${direct} of ${points.length} months${anomalyText}. Table available via View as table.`;
 
   return {
-    title: `${name} · Revenue vs forecast vs prior year`,
-    caption: `${formatPeriodAbbr(first)} – ${formatPeriodAbbr(last)} · USD · ${DERIVED}`,
+    title: name,
+    subtitle: `Revenue vs forecast vs prior year · ${formatPeriodAbbr(first)} – ${formatPeriodAbbr(last)} · USD`,
+    chartTitle: `${name} · Revenue vs forecast vs prior year`,
+    caption: DERIVED,
     desc,
     selectedPeriod: ctx.period,
     points,
@@ -352,6 +371,9 @@ function minMax(values: number[]): (v: number) => number {
   const hi = Math.max(...values);
   return (v) => (hi === lo ? 0.5 : (v - lo) / (hi - lo));
 }
+
+/** Forecast accuracy in percentage points, higher is better. */
+const accuracy = (attainmentPct: number) => 100 - Math.abs(attainmentPct - 100);
 
 function radarVM(ds: Dataset, ctx: Context): RadarVM {
   const atPortfolio = !ctx.region;
@@ -366,6 +388,7 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
           attainment: k.attainmentPct,
           growth: k.growthPct,
           share: (k.totals.actual / portfolio.totals.actual) * 100,
+          mom: momChangePct(ds, entity, ctx.period),
           selected: false,
         };
       })
@@ -377,6 +400,7 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
           attainment: k.attainmentPct,
           growth: k.growthPct,
           share: m.kpis.sharePct,
+          mom: momChangePct(ds, { kind: "market", marketId: m.id }, ctx.period),
           selected: ctx.market === m.id,
         };
       });
@@ -386,16 +410,26 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
     minMax(byName.map((r) => r.attainment)),
     minMax(byName.map((r) => r.growth)),
     minMax(byName.map((r) => r.share)),
+    minMax(byName.map((r) => r.mom ?? 0)),
+    minMax(byName.map((r) => accuracy(r.attainment))),
   ] as const;
   const series: RadarSeriesVM[] = byName.slice(0, 6).map((r, i) => ({
     id: r.id,
     name: r.name,
     color: `--cat-${i + 1}`,
-    values: [norm[0](r.attainment), norm[1](r.growth), norm[2](r.share)],
+    values: [
+      norm[0](r.attainment),
+      norm[1](r.growth),
+      norm[2](r.share),
+      norm[3](r.mom ?? 0),
+      norm[4](accuracy(r.attainment)),
+    ],
     raw: [
       formatPct(r.attainment, { sign: false }),
       formatPct(r.growth, { sign: true }),
       formatPct(r.share, { sign: false }),
+      r.mom === undefined ? "n/a" : formatPct(r.mom, { sign: true }),
+      formatPct(accuracy(r.attainment), { sign: false }),
     ],
     selected: r.selected,
   }));
