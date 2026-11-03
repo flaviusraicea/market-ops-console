@@ -21,8 +21,8 @@ import { isMotionOverrideOn, toggleMotionOverride } from "@/lib/motion";
 import { useTheme } from "@/lib/theme";
 import type { PaletteAction } from "./items";
 
-// The palette and cmdk stay out of the first bundle. The chunk loads once the page is idle, so the first open
-// is not a network wait and a long frame.
+// The palette and cmdk stay out of the first bundle (the script budget counts every byte on load); the chunk loads
+// when a modifier key goes down, just before the shortcut is complete.
 const loadPalette = () => import("./CommandPalette").then((m) => m.CommandPalette);
 const CommandPalette = dynamic(loadPalette, { ssr: false });
 
@@ -65,22 +65,14 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
     changeOpen(true);
   }, [changeOpen]);
 
-  // Warm the palette when the browser is idle: fetch its chunk and mount it closed.
-  useEffect(() => {
-    const warm = () => {
-      void loadPalette();
-      setEverOpened(true);
-    };
-    if (typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(warm, { timeout: 4000 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const id = window.setTimeout(warm, 2000);
-    return () => window.clearTimeout(id);
-  }, []);
-
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      // The modifier goes down a moment before K: start fetching the chunk and mount the palette closed, so the
+      // open itself is not the first time it runs. Nothing loads for a visitor who never reaches for the shortcut.
+      if (e.key === "Control" || e.key === "Meta") {
+        void loadPalette();
+        setEverOpened(true);
+      }
       if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
         openPalette();
