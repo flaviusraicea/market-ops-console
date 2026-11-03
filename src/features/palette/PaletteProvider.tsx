@@ -23,8 +23,9 @@ import type { PaletteAction } from "./items";
 
 // The palette and cmdk stay out of the first bundle (the script budget counts every byte on load); the chunk loads
 // when a modifier key goes down, just before the shortcut is complete.
-const loadPalette = () => import("./CommandPalette").then((m) => m.CommandPalette);
-const CommandPalette = dynamic(loadPalette, { ssr: false });
+const CommandPalette = dynamic(() => import("./CommandPalette").then((m) => m.CommandPalette), {
+  ssr: false,
+});
 
 const PaletteContext = createContext<{ openPalette: () => void }>({ openPalette: () => {} });
 
@@ -70,7 +71,7 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
       // The modifier goes down a moment before K: start fetching the chunk and mount the palette closed, so the
       // open itself is not the first time it runs. Nothing loads for a visitor who never reaches for the shortcut.
       if (e.key === "Control" || e.key === "Meta") {
-        void loadPalette();
+        void import("./CommandPalette");
         setEverOpened(true);
       }
       if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") {
