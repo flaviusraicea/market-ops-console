@@ -57,13 +57,6 @@ test("the metric control is a segmented radiogroup and the attention eyebrow doe
   expect(lines).toBeLessThanOrEqual(14);
 });
 
-test("top movers second column is titled Lowest growth", async ({ page }) => {
-  await page.goto("/");
-  const movers = page.getByRole("region", { name: "Top movers" });
-  await expect(movers.getByRole("heading", { name: "Lowest growth" })).toBeVisible();
-  await expect(movers.getByText("Falling")).toHaveCount(0);
-});
-
 for (const theme of ["light", "dark"] as const) {
   test(`overview has no axe violations (${theme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });

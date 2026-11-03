@@ -1,6 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Minus } from "@/components/icons";
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
+import { Sparkline } from "@/components/charts/Sparkline";
 
 export type Direction = "up" | "down" | "flat";
 
@@ -11,6 +12,8 @@ export type KpiTileProps = {
   delta: { direction: Direction; value: string; comparison: string };
   /** For example "Source · data.json" or "Derived · sum of series". */
   provenance: string;
+  /** Monthly actuals with the forecast beside them, drawn as a small line under the headline. */
+  trend?: { actual: readonly number[]; forecast: readonly number[]; label: string } | undefined;
   className?: string;
 };
 
@@ -23,7 +26,7 @@ const DELTA_STYLE: Record<Direction, string> = {
 const DELTA_ICON = { up: ArrowUpRight, down: ArrowDownRight, flat: Minus } as const;
 
 /** Design-system 6.2. The headline is never coloured by direction; the delta carries sign, icon and colour. */
-export function KpiTile({ label, headline, delta, provenance, className }: KpiTileProps) {
+export function KpiTile({ label, headline, delta, provenance, trend, className }: KpiTileProps) {
   const Icon = DELTA_ICON[delta.direction];
   return (
     <div
@@ -41,6 +44,9 @@ export function KpiTile({ label, headline, delta, provenance, className }: KpiTi
       >
         {headline}
       </p>
+      {trend ? (
+        <Sparkline values={trend.actual} secondary={trend.forecast} label={trend.label} />
+      ) : null}
       <p
         data-slot="kpi-delta"
         data-direction={delta.direction}

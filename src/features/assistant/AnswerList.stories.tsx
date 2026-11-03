@@ -2,7 +2,10 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { useState } from "react";
 
-import { withDataset } from "../../../.storybook/decorators";
+import { portfolioMay, withDataset } from "../../../.storybook/decorators";
+import data from "@/data/data.json";
+import { parseDataset } from "@/domain";
+import { panelContextVM } from "@/features/overview/viewModel";
 import { AnswerList } from "./AnswerList";
 import type { Answer } from "./useAnswerMachine";
 
@@ -23,6 +26,7 @@ const stopped = (n: number): Answer => ({
   status: "stopped",
   text: text.slice(0, 80),
 });
+const context = panelContextVM(parseDataset(data), portfolioMay);
 const three: Answer[] = [done(1), stopped(2), done(3)];
 
 function Harness() {
@@ -33,7 +37,14 @@ function Harness() {
         Append answer
       </button>
       <div className="flex h-[320px] flex-col p-4">
-        <AnswerList answers={answers} onPick={fn()} onStop={fn()} onRetry={fn()} onTry={fn()} />
+        <AnswerList
+          answers={answers}
+          context={context}
+          onPick={fn()}
+          onStop={fn()}
+          onRetry={fn()}
+          onTry={fn()}
+        />
       </div>
     </div>
   );
@@ -55,7 +66,7 @@ const inView = (el: HTMLElement, box: HTMLElement) => {
 };
 
 export const ThreeAnswers: Story = {
-  args: { answers: three, onPick: fn(), onStop: fn(), onRetry: fn(), onTry: fn() },
+  args: { answers: three, context, onPick: fn(), onStop: fn(), onRetry: fn(), onTry: fn() },
   render: () => <Harness />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);

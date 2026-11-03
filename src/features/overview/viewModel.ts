@@ -2,24 +2,33 @@ import {
   STATUS_LABEL,
   askWhyPrompt,
   attentionCount,
+  statusForDerived,
   effectiveBasis,
   entityName,
   entityOf,
   kpiFor,
   marketsIn,
+  momChangePct,
   statusCounts,
   type Context,
   type Dataset,
+  type Entity,
+  type Market,
   type Metric,
   type Period,
+  type RegionId,
   type Status,
 } from "@/domain";
+import type { PanelContext } from "@/features/assistant/EmptyState";
 import {
   formatCount,
+  formatMonthName,
+  formatMoneyBrief,
   formatMoneyCompact,
   formatMoneyFull,
   formatPct,
   formatPeriod,
+  formatPeriodAbbr,
 } from "@/lib/format";
 
 export type KpiTileVM = {
@@ -27,6 +36,7 @@ export type KpiTileVM = {
   headline: string;
   delta: { direction: "up" | "down" | "flat"; value: string; comparison: string };
   provenance: string;
+  trend?: { actual: number[]; forecast: number[]; label: string };
 };
 
 export type MapRowVM = {
@@ -50,15 +60,6 @@ export type MapValueVM = {
   revenue: string;
 };
 
-export type MoverVM = {
-  id: string;
-  name: string;
-  status: Status;
-  growth: number;
-  display: string;
-  askWhy: { aria: string; text: string };
-};
-
 export type OverviewVM = {
   /** Entity in view and its caption, for the title row above the tiles. */
   title: string;
@@ -70,12 +71,10 @@ export type OverviewVM = {
     /** Markets drawn at full strength; everything else is dimmed. Undefined at portfolio level. */
     focus: string[] | undefined;
     periodLabel: string;
-    provenance: string;
     maxRevenue: number;
     values: Record<string, MapValueVM>;
     rows: MapRowVM[];
   };
-  movers: { period: string; rising: MoverVM[]; falling: MoverVM[] };
 };
 
 const BASIS_LABEL = { month: "Month", ytd: "YTD", mat: "MAT" } as const;
@@ -97,6 +96,26 @@ function basisFor(ds: Dataset, ctx: Context) {
   return ctx.mode === "analyst" ? effectiveBasis(ds, ctx.basis, ctx.period) : "month";
 }
 
+function revenueTrend(
+  ds: Dataset,
+  entity: Entity,
+  period: Period,
+): NonNullable<KpiTileVM["trend"]> {
+  const markets = new Set(marketsIn(ds, entity).map((m) => m.id));
+  const productId = entity.kind === "product" ? entity.productId : undefined;
+  const series = monthlySeries(
+    ds,
+    period,
+    24,
+    (m, p) => markets.has(m) && (productId === undefined || p === productId),
+  );
+  const latest = series.actual[series.actual.length - 1] ?? 0;
+  return {
+    ...series,
+    label: `${series.actual.length}-month revenue trend, latest ${formatMoneyCompact(latest)}`,
+  };
+}
+
 function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
   const entity = entityOf(ctx);
   const basis = basisFor(ds, ctx);
@@ -116,6 +135,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
       comparison: `vs ${prior}`,
     },
     provenance,
+    trend: revenueTrend(ds, entity, ctx.period),
   };
   const attainment: KpiTileVM = {
     label: "FORECAST ATTAINMENT",
@@ -177,7 +197,6 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
     const k = kpiFor(ds, { kind: "market", marketId: m.id }, ctx.period, basis);
     return { m, k };
   });
-  const allSource = entries.every((e) => e.k.provenance === "source");
 
   const values: OverviewVM["map"]["values"] = {};
   for (const { m, k } of entries) {
@@ -219,17 +238,6 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const byGrowth = entries.map(({ m, k }) => ({
-    id: m.id,
-    name: m.name,
-    status: m.kpis.status,
-    growth: k.growthPct,
-    display: formatPct(k.growthPct, { sign: true }),
-    askWhy: askWhyPrompt(m),
-  }));
-  const rising = [...byGrowth].sort((a, b) => b.growth - a.growth).slice(0, 3);
-  const falling = [...byGrowth].sort((a, b) => a.growth - b.growth).slice(0, 3);
-
   // A market always carries its region (invariants), so the region's markets cover both cases.
   const focus = ctx.region
     ? ds.markets.filter((m) => m.regionId === ctx.region).map((m) => m.id)
@@ -244,11 +252,406 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
       selected: ctx.market,
       focus,
       periodLabel: formatPeriod(ctx.period),
-      provenance: allSource ? SOURCE : DERIVED,
       maxRevenue: Math.max(...entries.map((e) => e.k.totals.actual)),
       values,
       rows,
     },
-    movers: { period: formatPeriod(ctx.period), rising, falling },
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Verdict, status strip, attention list, region bars and the panel's "What changed" line.
+// Everything below is derived from `kpiFor` and the markets' given status; nothing is AI-written.
+// ---------------------------------------------------------------------------------------------
+
+const NUMBER_WORDS = [
+  "zero",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+];
+
+/** One to twelve are spelled out in prose; larger counts stay digits. */
+const spell = (n: number): string => NUMBER_WORDS[n] ?? String(n);
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+const STATUS_PHRASE: Record<Status, string> = {
+  on_track: "on track",
+  at_risk: "at risk",
+  off_track: "off track",
+};
+
+const STATUS_ORDER: Record<Status, number> = { off_track: 0, at_risk: 1, on_track: 2 };
+
+const REGION_ADJECTIVE: Record<RegionId, string> = {
+  na: "North American",
+  eu: "European",
+  apac: "APAC",
+  latam: "LATAM",
+};
+
+export type VerdictSegment = {
+  text: string;
+  role: "plain" | "status" | "attention" | "number";
+};
+
+export type VerdictVM = {
+  eyebrow: string;
+  caption: string;
+  segments: VerdictSegment[];
+  status: Status;
+  /** Colour of the attention phrase; "none" when no market needs attention or the scope is one market. */
+  attention: "bad" | "warn" | "none";
+};
+
+function joinSegments(parts: VerdictSegment[]): VerdictSegment[] {
+  const out: VerdictSegment[] = [];
+  for (const part of parts) {
+    const last = out[out.length - 1];
+    if (last && last.role === "plain" && part.role === "plain") last.text += part.text;
+    else out.push({ ...part });
+  }
+  return out;
+}
+
+const plain = (text: string): VerdictSegment => ({ text, role: "plain" });
+const num = (text: string): VerdictSegment => ({ text, role: "number" });
+
+function marketOf(ds: Dataset, entity: Entity): Market | undefined {
+  return entity.kind === "market" ? ds.markets.find((m) => m.id === entity.marketId) : undefined;
+}
+
+/** The sentence the exec reads first. A market uses its given status; a portfolio or region derives one. */
+export function verdictVM(ds: Dataset, ctx: Context): VerdictVM {
+  const entity = entityOf(ctx);
+  const k = kpiFor(ds, entity, ctx.period, "month");
+  const market = marketOf(ds, entity);
+  const status = market ? market.kpis.status : statusForDerived(k.attainmentPct, k.growthPct);
+
+  const growth =
+    k.growthPct === 0
+      ? [plain("flat on last year")]
+      : [
+          plain(k.growthPct > 0 ? "up " : "down "),
+          num(formatPct(Math.abs(k.growthPct), { sign: false })),
+          plain(" on last year"),
+        ];
+
+  const parts: VerdictSegment[] = [
+    plain(`${entityName(ds, entity)} is `),
+    { text: STATUS_PHRASE[status], role: "status" },
+    plain(" at "),
+    num(formatPct(k.attainmentPct, { sign: false })),
+    plain(" of forecast, "),
+    ...growth,
+    plain("."),
+  ];
+
+  let attention: VerdictVM["attention"] = "none";
+  if (entity.kind === "portfolio" || entity.kind === "region") {
+    const counts = statusCounts(ds, entity);
+    const n = counts.at_risk + counts.off_track;
+    attention = counts.off_track > 0 ? "bad" : counts.at_risk > 0 ? "warn" : "none";
+    const phrase =
+      n === 0
+        ? "No markets need attention"
+        : n === 1
+          ? "One market needs attention"
+          : `${capitalise(spell(n))} markets need attention`;
+    parts.push(plain(" "), { text: phrase, role: n === 0 ? "plain" : "attention" }, plain("."));
+  }
+
+  const dip = market?.kpis.anomalies.find((a) => a.type === "dip");
+  if (market && dip) {
+    const mom = momChangePct(ds, entity, dip.period);
+    if (mom !== undefined) {
+      parts.push(
+        plain(" Revenue fell "),
+        num(formatPct(Math.abs(mom), { sign: false })),
+        plain(` in ${formatMonthName(dip.period)}.`),
+      );
+    }
+  }
+
+  return {
+    eyebrow:
+      `${entityName(ds, entity)} · ${formatPeriod(ctx.period)} · ${BASIS_LABEL.month}`.toUpperCase(),
+    caption: market ? SOURCE : DERIVED,
+    segments: joinSegments(parts),
+    status,
+    attention,
+  };
+}
+
+export type StripChipVM = { id: string; name: string; status: Status; statusLabel: string };
+export type StripGroupVM = {
+  id: RegionId;
+  name: string;
+  count: number;
+  /** Derived with the published rule from the region's figures. */
+  status: Status;
+  statusLabel: string;
+  markets: StripChipVM[];
+};
+
+/**
+ * Off track and at risk markets first, lowest attainment first; on-track markets keep dataset order.
+ * One comparator for the strip and the attention list so both always agree.
+ */
+function compareByStatus(
+  a: { status: Status; attainment: number },
+  b: { status: Status; attainment: number },
+): number {
+  const byStatus = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+  if (byStatus !== 0) return byStatus;
+  return a.status === "on_track" ? 0 : a.attainment - b.attainment;
+}
+
+/** Every market in scope as a chip, grouped by region. Empty at market scope, where the strip is hidden. */
+export function stripVM(ds: Dataset, ctx: Context): StripGroupVM[] {
+  if (ctx.market) return [];
+  return ds.regions
+    .filter((r) => !ctx.region || r.id === ctx.region)
+    .map((r) => {
+      const markets = ds.markets
+        .filter((m) => m.regionId === r.id)
+        .map((m) => ({
+          status: m.kpis.status,
+          attainment: kpiFor(ds, { kind: "market", marketId: m.id }, ctx.period, "month")
+            .attainmentPct,
+          chip: {
+            id: m.id,
+            name: m.name,
+            status: m.kpis.status,
+            statusLabel: STATUS_LABEL[m.kpis.status],
+          },
+        }))
+        .sort(compareByStatus)
+        .map((m) => m.chip);
+      const k = kpiFor(ds, { kind: "region", regionId: r.id }, ctx.period, "month");
+      const status = statusForDerived(k.attainmentPct, k.growthPct);
+      return {
+        id: r.id,
+        name: r.name,
+        count: markets.length,
+        status,
+        statusLabel: STATUS_LABEL[status],
+        markets,
+      };
+    });
+}
+
+/** Actual and forecast revenue per month, oldest first, ending at `period`, for at most `count` months. */
+function monthlySeries(
+  ds: Dataset,
+  period: Period,
+  count: number,
+  include: (marketId: string, productId: string) => boolean,
+): { actual: number[]; forecast: number[] } {
+  const months = ds.meta.periods.filter((p) => p <= period).slice(-count);
+  const sums = new Map(months.map((p) => [p, { actual: 0, forecast: 0 }]));
+  for (const f of ds.series) {
+    const sum = sums.get(f.period);
+    if (sum && include(f.marketId, f.productId)) {
+      sum.actual += f.actual;
+      sum.forecast += f.forecast;
+    }
+  }
+  const rows = months.map((p) => sums.get(p) ?? { actual: 0, forecast: 0 });
+  return { actual: rows.map((r) => r.actual), forecast: rows.map((r) => r.forecast) };
+}
+
+const lastTwelveActuals = (
+  ds: Dataset,
+  period: Period,
+  include: (marketId: string, productId: string) => boolean,
+) => monthlySeries(ds, period, 12, include).actual;
+
+export type AttentionRowVM = {
+  id: string;
+  name: string;
+  region: string;
+  status: Status;
+  statusLabel: string;
+  attainment: string;
+  growth: string;
+  growthPct: number;
+  spark: number[];
+  sparkLabel: string;
+};
+
+export type RankedRowVM = AttentionRowVM & {
+  rank: number;
+  askWhy: { aria: string; text: string };
+};
+
+export type ProductRowVM = {
+  id: string;
+  name: string;
+  revenue: string;
+  attainment: string;
+  growth: string;
+  growthPct: number;
+  spark: number[];
+  sparkLabel: string;
+};
+
+export type AttentionVM =
+  | { kind: "markets"; caption: string; rows: RankedRowVM[]; rising: AttentionRowVM[] }
+  | { kind: "products"; caption: string; rows: ProductRowVM[] };
+
+/** Markets that need attention, worst first, then the three fastest-growing markets of any status. */
+export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
+  const regionName = new Map(ds.regions.map((r) => [r.id, r.name]));
+  const period = formatPeriod(ctx.period);
+
+  if (ctx.market) {
+    const marketId = ctx.market;
+    const rows = ds.products.map((p) => {
+      const k = kpiFor(ds, { kind: "product", marketId, productId: p.id }, ctx.period, "month");
+      const spark = lastTwelveActuals(ds, ctx.period, (m, prod) => m === marketId && prod === p.id);
+      return {
+        id: p.id,
+        name: p.name,
+        revenue: formatMoneyCompact(k.totals.actual),
+        attainment: formatPct(k.attainmentPct, { sign: false }),
+        growth: formatPct(k.growthPct, { sign: true }),
+        growthPct: k.growthPct,
+        spark,
+        sparkLabel: `${p.name}, revenue, last 12 months`,
+      };
+    });
+    return { kind: "products", caption: `Derived · sum of series · ${period}`, rows };
+  }
+
+  const scoped = marketsIn(ds, entityOf(ctx)).map((m) => {
+    const k = kpiFor(ds, { kind: "market", marketId: m.id }, ctx.period, "month");
+    const row: AttentionRowVM = {
+      id: m.id,
+      name: m.name,
+      region: regionName.get(m.regionId) ?? m.regionId,
+      status: m.kpis.status,
+      statusLabel: STATUS_LABEL[m.kpis.status],
+      attainment: formatPct(k.attainmentPct, { sign: false }),
+      growth: formatPct(k.growthPct, { sign: true }),
+      growthPct: k.growthPct,
+      spark: lastTwelveActuals(ds, ctx.period, (marketId) => marketId === m.id),
+      sparkLabel: `${m.name}, revenue, last 12 months`,
+    };
+    return { market: m, row, attainment: k.attainmentPct };
+  });
+
+  const rows = scoped
+    .filter((s) => s.row.status !== "on_track")
+    .sort((a, b) =>
+      compareByStatus(
+        { ...a.row, attainment: a.attainment },
+        { ...b.row, attainment: b.attainment },
+      ),
+    )
+    .map((s, i) => ({ ...s.row, rank: i + 1, askWhy: askWhyPrompt(s.market) }));
+
+  const rising = [...scoped]
+    .sort((a, b) => b.row.growthPct - a.row.growthPct)
+    .slice(0, 3)
+    .map((s) => s.row);
+
+  return {
+    kind: "markets",
+    caption: `Off track first, then at risk by attainment · ${period}`,
+    rows,
+    rising,
+  };
+}
+
+export type RegionBarVM = {
+  id: RegionId;
+  name: string;
+  revenue: string;
+  attainmentPct: number;
+  attainment: string;
+  status: Status;
+  statusLabel: string;
+};
+
+export type RegionBarsVM = {
+  rows: RegionBarVM[];
+  /** `lead` is set in bold, `rest` follows it. Together they read as one sentence. */
+  sentence: { lead: string; rest: string };
+  caption: string;
+};
+
+/** Revenue and attainment per region, with one derived sentence about the weakest (or leading) region. */
+export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
+  const rows = ds.regions.map((r) => {
+    const k = kpiFor(ds, { kind: "region", regionId: r.id }, ctx.period, "month");
+    const status = statusForDerived(k.attainmentPct, k.growthPct);
+    return {
+      id: r.id,
+      name: r.name,
+      revenue: formatMoneyBrief(k.totals.actual),
+      attainmentPct: k.attainmentPct,
+      attainment: formatPct(k.attainmentPct, { sign: false }),
+      status,
+      statusLabel: STATUS_LABEL[status],
+    };
+  });
+
+  const lowest = rows.reduce((a, b) => (b.attainmentPct < a.attainmentPct ? b : a));
+  let sentence: RegionBarsVM["sentence"];
+  if (lowest.attainmentPct < 100) {
+    const inRegion = ds.markets.filter((m) => m.regionId === lowest.id);
+    const flagged = inRegion.filter((m) => m.kpis.status !== "on_track").length;
+    const share =
+      flagged === inRegion.length
+        ? `All ${spell(flagged)}`
+        : `${capitalise(spell(flagged))} of ${spell(inRegion.length)}`;
+    const gap = (100 - lowest.attainmentPct).toFixed(1);
+    sentence = {
+      lead: `${lowest.name} is the drag.`,
+      rest: ` ${share} ${REGION_ADJECTIVE[lowest.id]} markets are flagged, and its attainment is ${gap} points under forecast.`,
+    };
+  } else {
+    const best = rows.reduce((a, b) => (b.attainmentPct > a.attainmentPct ? b : a));
+    sentence = { lead: `${best.name} leads`, rest: ` at ${best.attainment} of forecast.` };
+  }
+  return { rows, sentence, caption: DERIVED };
+}
+
+/** The market in scope furthest from plan, as one sentence for the panel's empty state. */
+export function whatChangedVM(ds: Dataset, ctx: Context): { text: string } {
+  const candidates = marketsIn(ds, entityOf(ctx)).map((market) => ({
+    market,
+    k: kpiFor(ds, { kind: "market", marketId: market.id }, ctx.period, "month"),
+  }));
+  const furthest = candidates.reduce((a, b) =>
+    Math.abs(b.k.attainmentPct - 100) > Math.abs(a.k.attainmentPct - 100) ? b : a,
+  );
+  const { market, k } = furthest;
+  let text = `${market.name} is furthest from plan: ${formatPct(k.attainmentPct, { sign: false })} of forecast and ${formatPct(k.growthPct, { sign: true })} on last year`;
+  const dip = market.kpis.anomalies.find((a) => a.type === "dip");
+  const mom = dip
+    ? momChangePct(ds, { kind: "market", marketId: market.id }, dip.period)
+    : undefined;
+  if (dip && mom !== undefined) {
+    text += `, after a ${formatPct(Math.abs(mom), { sign: false })} drop in ${formatMonthName(dip.period)}`;
+  }
+  return { text: `${text}.` };
+}
+
+/** What the assistant panel's empty state says about the current view. */
+export function panelContextVM(ds: Dataset, ctx: Context): PanelContext {
+  return {
+    about: `About ${entityName(ds, entityOf(ctx))} · ${formatPeriodAbbr(ctx.period)}`,
+    whatChanged: whatChangedVM(ds, ctx).text,
   };
 }

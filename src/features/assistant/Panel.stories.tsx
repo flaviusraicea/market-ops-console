@@ -1,7 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
-import { withDataset } from "../../../.storybook/decorators";
+import { portfolioMay, withDataset } from "../../../.storybook/decorators";
+import data from "@/data/data.json";
+import { parseDataset } from "@/domain";
+import { panelContextVM } from "@/features/overview/viewModel";
 import type { AskStream } from "@/lib/stream/chatClient";
 import { Panel } from "./Panel";
 
@@ -12,7 +15,11 @@ const meta = {
   title: "features/assistant/Panel",
   component: Panel,
   decorators: [withDataset],
-  args: { onSubmit: fn(), stream: quiet },
+  args: {
+    context: panelContextVM(parseDataset(data), portfolioMay),
+    onSubmit: fn(),
+    stream: quiet,
+  },
 } satisfies Meta<typeof Panel>;
 
 export default meta;

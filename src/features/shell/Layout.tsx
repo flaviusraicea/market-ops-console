@@ -26,10 +26,7 @@ export function Layout({ header, dashboard, assistant }: LayoutProps) {
             id="main"
             className="grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_var(--assistant-w)]"
           >
-            <section aria-labelledby="dashboard-h" className="min-w-0">
-              <h2 id="dashboard-h" className="sr-only">
-                Dashboard
-              </h2>
+            <section aria-label="Dashboard" className="min-w-0">
               {dashboard}
             </section>
             <aside aria-labelledby="assistant-h" className="min-w-0">

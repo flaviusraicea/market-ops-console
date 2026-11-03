@@ -88,6 +88,7 @@
   /* Density: Overview values (section 4). Analyst overrides below. */
   --space-unit: 8px;
   --gap: 16px;
+  --gap-section: 24px;
   --pad-card: 20px;
   --pad-cell-y: 12px;
   --pad-cell-x: 16px;
@@ -122,6 +123,20 @@
 @media (min-width: 1024px) {
   :root {
     --gutter: 24px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --text-display: 36px;
+    --text-display-lh: 42px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --text-display: 26px;
+    --text-display-lh: 32px;
   }
 }
 

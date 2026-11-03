@@ -29,7 +29,7 @@ export function CardHeader({
           {title}
         </h3>
         {caption || actions ? (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {caption ? (
               <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
                 {caption}

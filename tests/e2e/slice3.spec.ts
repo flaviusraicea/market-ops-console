@@ -86,9 +86,7 @@ for (const scheme of ["light", "dark"] as const) {
     const context = await browser.newContext({ colorScheme: scheme });
     const page = await context.newPage();
     await page.goto("/?region=eu&market=de&product=veltrix&period=2026-03");
-    await expect(
-      page.getByRole("heading", { name: "Germany · Veltrix", exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /^Germany · Veltrix is / })).toBeVisible();
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
     await context.close();
