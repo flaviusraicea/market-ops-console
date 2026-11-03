@@ -9,6 +9,7 @@ import {
   growthPct,
   kpiFor,
   momChangePct,
+  unitsYoyPct,
   periodsForBasis,
   statusCounts,
   topMovers,
@@ -44,6 +45,11 @@ describe("totals and KPIs", () => {
     expect(t.actual).toBe(1211930);
     expect(t.forecast).toBe(1314025);
     expect(momChangePct(ds, market("de"), p("2026-03"))).toBe(-27.2);
+  });
+
+  it("unitsYoyPct compares units with the same month a year earlier and is undefined in the first year", () => {
+    expect(unitsYoyPct(ds, market("de"), p("2026-05"))).toBe(-9.9);
+    expect(unitsYoyPct(ds, market("de"), p("2025-05"))).toBeUndefined();
   });
 
   it("Germany x Veltrix, 2026-03", () => {

@@ -3,7 +3,6 @@
 import { memo } from "react";
 
 import type { RadarSeries } from "./RadarChart";
-import { formatOneDecimal } from "@/lib/format";
 import { svgPath } from "./svgPath";
 
 /** Long axis names break at the space nearest the middle so side labels stay inside the card. */
@@ -51,7 +50,7 @@ export const RadarMarks = memo(function RadarMarks({
   series: readonly RadarSeries[];
   geometry: Geometry;
 }) {
-  const { cx, cy, radius, n } = geometry;
+  const { cx, cy, n } = geometry;
   const hasSelection = series.some((s) => s.selected);
   return (
     <>
@@ -66,15 +65,6 @@ export const RadarMarks = memo(function RadarMarks({
             stroke="var(--grid)"
             strokeWidth={1}
           />
-          <text
-            x={cx + 4}
-            y={cy - radius * r}
-            dy="-0.2em"
-            aria-hidden
-            className="fill-ink-muted text-[length:var(--text-caption)]"
-          >
-            {formatOneDecimal(r)}
-          </text>
         </g>
       ))}
       {axes.map((label, a) => {
@@ -106,22 +96,25 @@ export const RadarMarks = memo(function RadarMarks({
           </g>
         );
       })}
-      {series.map((s) => {
-        const emphasised = s.selected || !hasSelection;
-        return (
-          <path
-            key={s.id}
-            data-series={s.id}
-            d={polyAt(geometry, s.values)}
-            fill={`var(${s.color})`}
-            fillOpacity={s.selected ? 0.2 : 0.12}
-            stroke={`var(${s.color})`}
-            strokeWidth={s.selected ? 3 : 2}
-            strokeOpacity={emphasised ? 1 : 0.55}
-            strokeLinejoin="round"
-          />
-        );
-      })}
+      {/* The selected market is drawn last so it sits on top of its peers. */}
+      {[...series]
+        .sort((a, b) => Number(a.selected ?? false) - Number(b.selected ?? false))
+        .map((s) => {
+          const emphasised = s.selected || !hasSelection;
+          return (
+            <path
+              key={s.id}
+              data-series={s.id}
+              d={polyAt(geometry, s.values)}
+              fill={`var(${s.color})`}
+              fillOpacity={s.selected ? 0.2 : 0.12}
+              stroke={`var(${s.color})`}
+              strokeWidth={s.selected ? 3 : 2}
+              strokeOpacity={emphasised ? 1 : 0.55}
+              strokeLinejoin="round"
+            />
+          );
+        })}
     </>
   );
 });

@@ -68,7 +68,12 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
           />
         }
         table={
-          <LineChartTable caption={vm.chartTitle} points={vm.points} anomalies={vm.anomalies} />
+          <LineChartTable
+            caption={vm.chartTitle}
+            points={vm.points}
+            anomalies={vm.anomalies}
+            selectedPeriod={vm.selectedPeriod}
+          />
         }
       />
     </SheetSection>

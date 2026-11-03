@@ -184,35 +184,37 @@ function MoverColumn({
           {rising ? "No market is up on last year." : "No market is down on last year."}
         </p>
       ) : null}
-      <ul className="flex flex-col">
-        {rows.map((row) => (
-          <li
-            key={row.id}
-            className="flex items-center gap-3 border-b border-grid last:border-b-0 md:h-[var(--row-h)] max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']"
-          >
-            <MarketButton
-              row={row}
-              select={select}
-              className="min-w-0 flex-1 break-words max-md:min-h-11 max-md:[grid-area:name]"
-            />
-            <span className="flex md:w-24 max-md:justify-self-end max-md:[grid-area:status]">
-              <StatusBadge status={row.status} label={row.statusLabel} size="md" />
-            </span>
-            <span className="num w-16 text-right max-md:w-auto max-md:text-left max-md:[grid-area:growth]">
-              <Growth pct={row.growthPct} rising={rising}>
-                {row.growth}
-              </Growth>
-            </span>
-            <span className="max-md:justify-self-end max-md:[grid-area:spark]">
-              <Sparkline
-                values={row.spark}
-                label={row.sparkLabel}
-                color={SPARK_COLOR[row.status]}
+      {rows.length > 0 ? (
+        <ul className="flex flex-col">
+          {rows.map((row) => (
+            <li
+              key={row.id}
+              className="flex items-center gap-3 border-b border-grid last:border-b-0 md:h-[var(--row-h)] max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']"
+            >
+              <MarketButton
+                row={row}
+                select={select}
+                className="min-w-0 flex-1 break-words max-md:min-h-11 max-md:[grid-area:name]"
               />
-            </span>
-          </li>
-        ))}
-      </ul>
+              <span className="flex md:w-24 max-md:justify-self-end max-md:[grid-area:status]">
+                <StatusBadge status={row.status} label={row.statusLabel} size="md" />
+              </span>
+              <span className="num w-16 text-right max-md:w-auto max-md:text-left max-md:[grid-area:growth]">
+                <Growth pct={row.growthPct} rising={rising}>
+                  {row.growth}
+                </Growth>
+              </span>
+              <span className="max-md:justify-self-end max-md:[grid-area:spark]">
+                <Sparkline
+                  values={row.spark}
+                  label={row.sparkLabel}
+                  color={SPARK_COLOR[row.status]}
+                />
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }

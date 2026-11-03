@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatMoneyCompact, formatMoneyFull, formatPct } from "@/lib/format";
+import { formatMoneyCompact, formatMoneyExact, formatPct } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame, type Margins } from "./Frame";
 import type { LegendItem } from "./Legend";
@@ -221,8 +221,7 @@ function LineSvg({
             y1={0}
             y2={innerH}
             stroke="var(--accent)"
-            strokeWidth={1}
-            opacity={0.6}
+            strokeWidth={2}
           />
         ) : null}
         {cursor !== null ? (
@@ -356,15 +355,18 @@ export function LineChartTable({
   caption,
   points,
   anomalies,
+  selectedPeriod,
 }: {
   caption: string;
   points: readonly LinePoint[];
   anomalies: readonly LineAnomaly[];
+  /** The row for this month is highlighted, as the chart's selected-month line is. */
+  selectedPeriod?: string;
 }) {
   const flagged = new Set(anomalies.map((a) => a.period));
   return (
     <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
-      <TableCaption className="sr-only">{caption}</TableCaption>
+      <TableCaption className="sr-only">{caption} · USD</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead scope="col">Period</TableHead>
@@ -384,7 +386,11 @@ export function LineChartTable({
       </TableHeader>
       <TableBody>
         {points.map((p) => (
-          <TableRow key={p.period}>
+          <TableRow
+            key={p.period}
+            data-period={p.period}
+            {...(p.period === selectedPeriod ? { "data-state": "selected" } : {})}
+          >
             <TableCell className="font-medium">
               <span className="inline-flex items-center gap-1.5">
                 {p.name}
@@ -400,9 +406,15 @@ export function LineChartTable({
                 ) : null}
               </span>
             </TableCell>
-            <TableCell className="text-right num">{formatMoneyFull(p.actual)}</TableCell>
-            <TableCell className="text-right num">{formatMoneyFull(p.forecast)}</TableCell>
-            <TableCell className="text-right num">{formatMoneyFull(p.priorYear)}</TableCell>
+            <TableCell className="text-right num" title={formatMoneyExact(p.actual)}>
+              {formatMoneyCompact(p.actual)}
+            </TableCell>
+            <TableCell className="text-right num" title={formatMoneyExact(p.forecast)}>
+              {formatMoneyCompact(p.forecast)}
+            </TableCell>
+            <TableCell className="text-right num" title={formatMoneyExact(p.priorYear)}>
+              {formatMoneyCompact(p.priorYear)}
+            </TableCell>
             <TableCell className="text-right num">
               {formatPct(p.attainment, { sign: false })}
             </TableCell>

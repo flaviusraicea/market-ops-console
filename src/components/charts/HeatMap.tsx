@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/components/cn";
+import { ICON_STROKE, TriangleAlert } from "@/components/icons";
 import { formatMonthShort, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { HeatCellView, type CellHandlers } from "./HeatCellView";
@@ -26,6 +27,8 @@ export type HeatCell = {
   forecast: number;
   /** Month-on-month change in revenue, percent; undefined for the first month. */
   momPct: number | undefined;
+  /** Set on a flagged anomaly month: the source's note. The cell gets a mark and the tooltip a line. */
+  anomaly?: string | undefined;
 };
 export type HeatRow = { id: string; name: string; cells: readonly HeatCell[] };
 
@@ -296,6 +299,16 @@ export function HeatMapTable({
             {row.cells.map((cell) => (
               <TableCell key={cell.period} className="text-right num">
                 {cell.display}
+                {cell.anomaly ? (
+                  <>
+                    <TriangleAlert
+                      aria-hidden
+                      className="ml-1 inline size-3 text-bad-text"
+                      strokeWidth={ICON_STROKE}
+                    />
+                    <span className="sr-only"> anomaly</span>
+                  </>
+                ) : null}
               </TableCell>
             ))}
           </TableRow>

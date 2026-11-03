@@ -121,6 +121,12 @@ body {
   outline: none;
 }
 
+/* A map market draws its ring as a stroke along the country's outline (Choropleth), because a native outline on an
+   SVG path boxes the bounding rectangle. */
+[data-focus-ring="stroke"]:focus-visible {
+  outline: none;
+}
+
 /* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */
 .num {
   font-variant-numeric: tabular-nums lining-nums;

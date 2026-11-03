@@ -133,7 +133,8 @@ export const LineSeries = memo(function LineSeries({
               textAnchor={dir === 1 ? "start" : "end"}
               fill="var(--bad-text)"
               stroke="var(--surface)"
-              strokeWidth={3}
+              strokeWidth={5}
+              strokeLinejoin="round"
               paintOrder="stroke"
               className="text-[length:var(--text-label)] font-medium"
             >

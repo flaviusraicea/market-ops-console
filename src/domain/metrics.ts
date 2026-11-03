@@ -9,7 +9,7 @@ import type {
   Status,
   Totals,
 } from "./dataset";
-import { periodsForBasis, previousPeriod } from "./periods";
+import { periodIndex, periodsForBasis, previousPeriod } from "./periods";
 import { factsFor, marketsIn } from "./scope";
 
 const round1 = (x: number) => Math.round(x * 10) / 10;
@@ -50,6 +50,16 @@ export function momChangePct(ds: Dataset, entity: Entity, period: Period): numbe
   const cur = totals(factsFor(ds, { entity, periods: [period] })).actual;
   const before = totals(factsFor(ds, { entity, periods: [prev] })).actual;
   return changePct(cur, before);
+}
+
+/** Units sold against the same month a year earlier, percent with one decimal; undefined in the first year of data. */
+export function unitsYoyPct(ds: Dataset, entity: Entity, period: Period): number | undefined {
+  const i = periodIndex(ds, period);
+  const earlier = i >= 12 ? ds.meta.periods[i - 12] : undefined;
+  if (!earlier) return undefined;
+  const cur = totals(factsFor(ds, { entity, periods: [period] })).units;
+  const before = totals(factsFor(ds, { entity, periods: [earlier] })).units;
+  return before > 0 ? changePct(cur, before) : undefined;
 }
 
 export function kpiFor(

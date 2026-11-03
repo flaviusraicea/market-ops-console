@@ -145,7 +145,7 @@ describe("analyst view model", () => {
       "Growth YoY",
       "Share (given)",
       "Month on month",
-      "Forecast accuracy",
+      "Units YoY",
     ]);
     expect(radar.series).toHaveLength(5);
     expect(radar.series.map((s) => s.name)).toEqual([
@@ -164,23 +164,23 @@ describe("analyst view model", () => {
     ]);
     for (let axis = 0; axis < 5; axis++) {
       const vals = radar.series.map((s) => s.values[axis]!);
-      expect(Math.min(...vals)).toBe(0);
-      expect(Math.max(...vals)).toBe(1);
+      expect(Math.min(...vals)).toBeCloseTo(0.115, 3);
+      expect(Math.max(...vals)).toBeCloseTo(0.885, 3);
     }
     expect(radar.series.find((s) => s.id === "de")?.raw).toEqual([
       "92.0%",
       "−9.7%",
       "8.9%",
       "+1.1%",
-      "92.0%",
+      "−9.9%",
     ]);
   });
 
-  it("radarVM: Germany month on month for March 2026 and forecast accuracy for May 2026", () => {
+  it("radarVM: Germany month on month for March 2026 and units year on year for May 2026", () => {
     const march = analystVM(ds, { ...europe, period: "2026-03" as Period }).radar;
     expect(march.series.find((s) => s.id === "de")?.raw[3]).toBe("−27.2%");
     const may = analystVM(ds, europe).radar;
-    expect(may.series.find((s) => s.id === "de")?.raw[4]).toBe("92.0%");
+    expect(may.series.find((s) => s.id === "de")?.raw[4]).toBe("−9.9%");
   });
 
   it("radarVM at the portfolio: four regions and the derived third axis", () => {

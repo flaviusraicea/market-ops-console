@@ -33,6 +33,11 @@ export function formatMoneyFull(n: number): string {
   return `${n < 0 ? MINUS : ""}${int.format(Math.abs(n))}`;
 }
 
+/** Whole dollars with the symbol, for an exact figure behind a compact one: "$1,962,344". */
+export function formatMoneyExact(n: number): string {
+  return `${n < 0 ? MINUS : ""}$${int.format(Math.abs(n))}`;
+}
+
 /** One decimal place with a real minus sign, rounded like formatPct: 12.34 becomes "12.3", -2 becomes "−2.0". */
 export function formatOneDecimal(n: number, { sign = false }: { sign?: boolean } = {}): string {
   const rounded = Math.round(n * 10) / 10;

@@ -4,7 +4,7 @@ import { localPoint } from "@visx/event";
 import { ParentSize } from "@visx/responsive";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
-import { useCallback, useMemo, useRef, type FocusEvent, type MouseEvent } from "react";
+import { useCallback, useMemo, useRef, useState, type FocusEvent, type MouseEvent } from "react";
 
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
@@ -79,6 +79,8 @@ function MapSvg({
   const wrapRef = useRef<HTMLDivElement>(null);
   const pathRefs = useRef<Array<SVGPathElement | null>>([]);
   const tip = useChartTooltip();
+  // Index of the market whose focus ring is drawn: keyboard focus only, so a click does not leave a ring behind.
+  const [ringIndex, setRingIndex] = useState<number | null>(null);
 
   const { land, markets } = useMemo(() => {
     const land = geo.features.find((f) => f.properties?.["kind"] === "land");
@@ -155,6 +157,7 @@ function MapSvg({
 
   function onFocus(index: number, e: FocusEvent<SVGPathElement>) {
     keyboard.setActiveIndex(index);
+    setRingIndex(e.currentTarget.matches(":focus-visible") ? index : null);
     const wrap = wrapRef.current?.getBoundingClientRect();
     const box = e.currentTarget.getBoundingClientRect();
     if (wrap) showFor(index, box.left - wrap.left + box.width / 2, box.top - wrap.top);
@@ -201,16 +204,38 @@ function MapSvg({
               stroke={isSelected ? "var(--accent)" : "var(--surface)"}
               strokeWidth={isSelected ? 2 : 1}
               className="tween-fill cursor-pointer"
+              data-focus-ring="stroke"
               onMouseEnter={(e) => onMouse(i, e)}
               onMouseMove={(e) => onMouse(i, e)}
               onMouseLeave={tip.hide}
               onFocus={(e) => onFocus(i, e)}
-              onBlur={tip.hide}
+              onBlur={() => {
+                setRingIndex(null);
+                tip.hide();
+              }}
               onClick={() => onSelect(id)}
               onKeyDown={(e) => keyboard.onKeyDown(e, i)}
             />
           );
         })}
+        {ringIndex !== null && marketD[ringIndex] ? (
+          // SVG has no z-order, so the ring is a copy of the focused outline drawn last. Native outlines on SVG
+          // paths box the bounding rectangle; a stroke follows the country. A 2px focus stroke over a 4px surface halo keeps it visible on any fill.
+          <g aria-hidden="true" pointerEvents="none" fill="none" strokeLinejoin="round">
+            <path
+              d={marketD[ringIndex]}
+              stroke="var(--surface)"
+              strokeWidth={4}
+              vectorEffect="non-scaling-stroke"
+            />
+            <path
+              d={marketD[ringIndex]}
+              stroke="var(--focus)"
+              strokeWidth={2}
+              vectorEffect="non-scaling-stroke"
+            />
+          </g>
+        ) : null}
       </Frame>
       {tip.open && tip.content ? (
         <ChartTooltip {...tip.content} left={tip.left} top={tip.top} />
