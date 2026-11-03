@@ -129,11 +129,7 @@ export function ChartTooltip({
     el.style.setProperty("--caret-shift", `${-shift}px`);
     // Too near the top for the box to sit above the mark: it drops below the mark when there is more room
     // there, and in a short chart that fits neither side it is held inside the chart rather than clipped.
-    if (!keepInside) {
-      el.dataset.flip = "false";
-      el.style.marginTop = "";
-      return;
-    }
+    if (!keepInside) return;
     const h = el.offsetHeight;
     const above = top - 8 - h;
     const below = top + 8;

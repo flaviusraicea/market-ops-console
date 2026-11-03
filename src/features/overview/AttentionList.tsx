@@ -238,7 +238,7 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
         {/* A scroller must be reachable by keyboard and named, or a keyboard user cannot see its overflow. */}
         <div
           role="region"
-          aria-label="Products, scrollable"
+          aria-label="Products table, scrollable"
           tabIndex={0}
           className="overflow-x-auto rounded-control"
         >

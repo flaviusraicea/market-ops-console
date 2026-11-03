@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Locator, type Page, type devices } from "@playwright/test";
 
 /**
  * A browser that is already signed in as the Analyst, for tests that edit alert rules. A fresh context is signed in
@@ -45,4 +45,14 @@ export async function boxOf(target: Locator) {
 /** Waits for the screen-reader status that closes every finished answer. */
 export async function answerComplete(page: Page) {
   await expect(page.getByRole("status")).toHaveText("Answer complete", { timeout: 15_000 });
+}
+
+/**
+ * A device profile for the Chromium suite: the profiles bring their own browser (WebKit), so keep the viewport, the
+ * touch input and the user agent and drop the browser type.
+ */
+export function onChromium(profile: (typeof devices)[string]) {
+  const { defaultBrowserType, ...rest } = profile;
+  void defaultBrowserType;
+  return rest;
 }

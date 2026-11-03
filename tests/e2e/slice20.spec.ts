@@ -1,15 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { devices, expect, test, type Page } from "@playwright/test";
 
-import { open } from "./helpers";
+import { onChromium, open } from "./helpers";
 
-// The device profiles bring their own browser (WebKit); the suite runs on Chromium, so keep the viewport, the
-// touch input and the user agent and drop the browser type.
-function onChromium(profile: (typeof devices)[string]) {
-  const { defaultBrowserType, ...rest } = profile;
-  void defaultBrowserType;
-  return rest;
-}
 const iPhone = onChromium(devices["iPhone 14"]!);
 const iPad = onChromium(devices["iPad (gen 7)"]!);
 

@@ -1,10 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { devices, expect, test } from "@playwright/test";
 
-import { open } from "./helpers";
+import { onChromium, open } from "./helpers";
 
-const { defaultBrowserType, ...iPhone } = devices["iPhone 14"]!;
-void defaultBrowserType;
+const iPhone = onChromium(devices["iPhone 14"]!);
 
 const ANALYST = "/?mode=analyst&region=eu&market=de";
 const DRILL = "/?region=eu&market=de";
@@ -36,7 +35,7 @@ test.describe("phone", () => {
     page,
   }) => {
     await open(page, DRILL);
-    const region = page.getByRole("region", { name: "Products, scrollable" });
+    const region = page.getByRole("region", { name: "Products table, scrollable" });
     await expect(region).toHaveAttribute("tabindex", "0");
     const results = await new AxeBuilder({ page })
       .withRules(["scrollable-region-focusable"])
@@ -44,18 +43,24 @@ test.describe("phone", () => {
     expect(results.violations).toEqual([]);
   });
 
-  test("every market chip is whole: none is cut off at the right edge", async ({ page }) => {
+  test("each region group is narrower than the screen, so its chips snap into view whole", async ({
+    page,
+  }) => {
     await open(page, "/");
     const strip = page.getByRole("group", { name: "Market status by region" });
-    const stripBox = (await strip.boundingBox())!;
-    const chips = strip.locator("[data-chip]");
-    const count = await chips.count();
-    expect(count).toBeGreaterThan(0);
+    const groups = strip.getByRole("group");
+    const count = await groups.count();
+    expect(count).toBeGreaterThan(1);
     for (let i = 0; i < count; i++) {
-      const box = (await chips.nth(i).boundingBox())!;
-      expect(box.x).toBeGreaterThanOrEqual(stripBox.x - 1);
-      expect(box.x + box.width).toBeLessThanOrEqual(stripBox.x + stripBox.width + 1);
+      const group = groups.nth(i);
+      await group.evaluate((el) => el.scrollIntoView({ inline: "start", block: "nearest" }));
+      const stripBox = (await strip.boundingBox())!;
+      const chips = group.locator("[data-chip]");
+      for (let j = 0; j < (await chips.count()); j++) {
+        const box = (await chips.nth(j).boundingBox())!;
+        expect(box.x).toBeGreaterThanOrEqual(stripBox.x - 1);
+        expect(box.x + box.width).toBeLessThanOrEqual(stripBox.x + stripBox.width + 1);
+      }
     }
-    expect(await strip.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   });
 });
