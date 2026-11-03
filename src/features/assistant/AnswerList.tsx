@@ -25,6 +25,10 @@ type AnswerListProps = {
 };
 
 const NEAR_BOTTOM_PX = 48;
+/** How long a smooth scroll to a new card keeps the list following the stream. */
+const FOLLOW_MS = 500;
+/** Keys that scroll the page or the list. */
+const SCROLL_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]);
 
 const ANNOUNCEMENT: Partial<Record<Answer["status"], string>> = {
   done: "Answer complete",
@@ -96,8 +100,27 @@ export function AnswerList({
     };
   }, [hasAnswers]);
 
+  // The reader's own scroll input ends the follow window at once, so a reader who scrolls up right after asking is not
+  // pulled back down (WCAG 2.2.2: the user stays in control of auto-moving content).
+  useEffect(() => {
+    const stopFollowing = () => {
+      followUntil.current = 0;
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (SCROLL_KEYS.has(e.key)) stopFollowing();
+    };
+    window.addEventListener("wheel", stopFollowing, { passive: true });
+    window.addEventListener("touchmove", stopFollowing, { passive: true });
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("wheel", stopFollowing);
+      window.removeEventListener("touchmove", stopFollowing);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
   function scrollToEnd(smooth: boolean) {
-    if (smooth) followUntil.current = performance.now() + 500;
+    if (smooth) followUntil.current = performance.now() + FOLLOW_MS;
     sentinelRef.current?.scrollIntoView({
       block: "end",
       behavior: smooth && !prefersReducedMotion() ? "smooth" : "instant",
