@@ -12,7 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/components/cn";
-import { formatMoneyCompact, formatPct, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
+import {
+  formatMoneyCompact,
+  formatMonthShort,
+  formatPct,
+  formatPeriodAbbr,
+  formatPeriodShort,
+} from "@/lib/format";
 import { momPct } from "@/lib/change";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { attainmentDiverging } from "./scales";
@@ -88,6 +94,9 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
     const cell = rows[row]?.cells[col];
     const wrap = wrapRef.current?.getBoundingClientRect();
     if (!cell || !wrap) return;
+    const prev = rows[row]?.cells[col - 1];
+    const mom = momPct(cell.actual, prev?.actual);
+    const change = mom === null ? "" : formatPct(mom, { sign: true });
     const box = el.getBoundingClientRect();
     tip.show(
       {
@@ -96,6 +105,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
           { label: "Actual", value: formatMoneyCompact(cell.actual) },
           { label: "Forecast", value: formatMoneyCompact(cell.forecast) },
           { label: "Attainment", value: formatPct(cell.value, { sign: false }) },
+          ...(prev ? [{ label: `vs ${formatMonthShort(prev.period)}`, value: change }] : []),
         ],
         ...(onAsk
           ? {
