@@ -182,6 +182,8 @@ export type TimeSeriesVM = {
   selectedPeriod: Period;
   points: SeriesPoint[];
   anomalies: AnomalyVM[];
+  /** The entity the chart shows; an anomaly's "Ask about" names it. */
+  subject: { entity: Entity; name: string };
 };
 
 export type RadarSeriesVM = {
@@ -451,6 +453,7 @@ function timeSeriesVM(ds: Dataset, ctx: Context): TimeSeriesVM {
     selectedPeriod: ctx.period,
     points,
     anomalies,
+    subject: { entity, name },
   };
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { CitationChip } from "@/components/CitationChip";
+import { useAssistantRail } from "@/features/shell/railState";
 import { useDataset } from "@/lib/context/dataset";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { targetToContext } from "./targetToContext";
@@ -19,6 +20,7 @@ export const chipId = (answerId: string, i: number) => `chip-${answerId}-${i}`;
 export function CitationRow({ answerId, citations, isLatest }: CitationRowProps) {
   const ds = useDataset();
   const { ctx, setContext } = useConsoleContext();
+  const { openIn } = useAssistantRail();
 
   return (
     <ul aria-label="Citations" className="flex flex-wrap gap-1.5">
@@ -44,10 +46,10 @@ export function CitationRow({ answerId, citations, isLatest }: CitationRowProps)
               }
               onFollow={() => {
                 if (!resolution.ok) return;
-                setContext(
-                  { ...targetToContext(resolution.target, ds), cite: i },
-                  { history: "push" },
-                );
+                const next = targetToContext(resolution.target, ds);
+                // A followed chip lands in Analyst; the answer that led there stays on screen.
+                if (next.mode) openIn(next.mode);
+                setContext({ ...next, cite: i }, { history: "push" });
               }}
             />
           </li>

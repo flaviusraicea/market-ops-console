@@ -11,15 +11,33 @@ import {
   type ReactNode,
 } from "react";
 
-/** `fill` is false when the question was already sent, so the composer text should be left alone. */
-export type AskWhyRequest = { text: string; fill: boolean; nonce: number };
+import type { Entity, Period } from "@/domain";
+import { useAssistantRail } from "@/features/shell/railState";
+
+/** Where a question was asked from. `label` is what the question echo shows, e.g. "Germany · Mar 2026". */
+export type AskContext = { entity: Entity; period?: Period; label: string };
+
+/**
+ * `fill` is false when the question was already sent, so the composer text should be left alone.
+ * `from` names the widget a prefill came from ("the heat map cell"), for the composer's helper line.
+ */
+export type AskWhyRequest = {
+  text: string;
+  ctx?: AskContext;
+  from?: string;
+  fill: boolean;
+  nonce: number;
+};
 
 /** Sends a question for the panel. Returns false when it cannot, for example while an answer streams. */
-type Sender = (text: string, about?: string) => boolean;
+type Sender = (text: string, ctx?: AskContext) => boolean;
+
+type Prefill = (text: string, ctx?: AskContext, from?: string) => void;
+type Ask = (text: string, ctx?: AskContext) => void;
 
 type AskWhyValue = {
-  prefill: (text: string) => void;
-  ask: (text: string, about?: string) => void;
+  prefill: Prefill;
+  ask: Ask;
   request: AskWhyRequest | null;
   registerSender: (sender: Sender) => () => void;
 };
@@ -36,16 +54,29 @@ const AskWhyContext = createContext<AskWhyValue>(NOOP);
 export function AskWhyProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<AskWhyRequest | null>(null);
   const sender = useRef<Sender | null>(null);
+  const rail = useAssistantRail();
+  const openRail = rail.openForEntry;
 
   const publish = useCallback(
-    (text: string, fill: boolean) =>
-      setRequest((prev) => ({ text, fill, nonce: (prev?.nonce ?? 0) + 1 })),
-    [],
+    (text: string, fill: boolean, ctx?: AskContext, from?: string) => {
+      openRail();
+      setRequest((prev) => ({
+        text,
+        fill,
+        ...(ctx ? { ctx } : {}),
+        ...(from ? { from } : {}),
+        nonce: (prev?.nonce ?? 0) + 1,
+      }));
+    },
+    [openRail],
   );
-  const prefill = useCallback((text: string) => publish(text, true), [publish]);
+  const prefill = useCallback<Prefill>(
+    (text, ctx, from) => publish(text, true, ctx, from),
+    [publish],
+  );
   // Falls back to filling the composer when the panel is busy or not mounted.
-  const ask = useCallback(
-    (text: string, about?: string) => publish(text, !(sender.current?.(text, about) ?? false)),
+  const ask = useCallback<Ask>(
+    (text, ctx) => publish(text, !(sender.current?.(text, ctx) ?? false), ctx),
     [publish],
   );
   const registerSender = useCallback((next: Sender) => {
@@ -62,11 +93,11 @@ export function AskWhyProvider({ children }: { children: ReactNode }) {
   return <AskWhyContext.Provider value={value}>{children}</AskWhyContext.Provider>;
 }
 
-/** `prefill` fills the composer and focuses it, leaving the sending to the user. `ask` also sends; `about` says where it was asked from. */
-export function useAskWhy(): {
-  prefill: (text: string) => void;
-  ask: (text: string, about?: string) => void;
-} {
+/**
+ * `prefill` fills the composer, opens the assistant and focuses the composer, leaving the sending to the user.
+ * `ask` also sends. `ctx` says where it was asked from.
+ */
+export function useAskWhy(): { prefill: Prefill; ask: Ask } {
   const { prefill, ask } = useContext(AskWhyContext);
   return { prefill, ask };
 }
@@ -83,5 +114,5 @@ export function useRegisterAskSender(send: Sender) {
   useEffect(() => {
     latest.current = send;
   });
-  useEffect(() => registerSender((text, about) => latest.current(text, about)), [registerSender]);
+  useEffect(() => registerSender((text, ctx) => latest.current(text, ctx)), [registerSender]);
 }

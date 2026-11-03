@@ -212,3 +212,23 @@ export const ViewAsTableState: Story = {
     await expect(canvas.getByRole("table")).toBeVisible();
   },
 };
+
+export const HeatMapCellAction: Story = {
+  args: { selected: { market: "de", period: "2026-03" }, onAsk: fn() },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const cell = canvas.getByRole("gridcell", { name: /^Germany, Mar 2026/ });
+    cell.focus();
+    await expect(await canvas.findByRole("tooltip")).toHaveTextContent(
+      "Ask about Germany, Mar 2026",
+    );
+    await userEvent.keyboard("{Shift>}{Enter}{/Shift}");
+    await expect(args.onAsk).toHaveBeenCalledTimes(1);
+    const [call] = (args.onAsk as ReturnType<typeof fn>).mock.calls[0] ?? [];
+    await expect(call).toMatchObject({ market: "de", marketName: "Germany", period: "2026-03" });
+    await expect(call.momPct).toBeLessThanOrEqual(-10);
+    // Enter alone still selects the cell.
+    await userEvent.keyboard("{Enter}");
+    await expect(args.onCell).toHaveBeenCalledWith("de", "2026-03");
+  },
+};

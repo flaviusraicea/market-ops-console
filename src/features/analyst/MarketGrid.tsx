@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAskWhy } from "@/features/assistant/askWhy";
+import { askLabel } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useLanding } from "./useLanding";
 import { SheetSection } from "./Sheet";
@@ -182,7 +183,7 @@ function MarketRows({
   onSort: (next: Sort) => void;
 }) {
   const { ctx, setContext } = useConsoleContext();
-  const { prefill } = useAskWhy();
+  const { ask } = useAskWhy();
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
     <>
@@ -264,7 +265,16 @@ function MarketRows({
               />
             </TableCell>
             <TableCell className="text-right">
-              <AskWhyButton label={r.askWhy.aria} onAsk={() => prefill(r.askWhy.text)} />
+              <AskWhyButton
+                label={r.askWhy.aria}
+                onAsk={() =>
+                  ask(r.askWhy.text, {
+                    entity: { kind: "market", marketId: r.id },
+                    period: ctx.period,
+                    label: askLabel(r.name, ctx.period),
+                  })
+                }
+              />
             </TableCell>
           </TableRow>
         ))}

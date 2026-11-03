@@ -58,6 +58,12 @@ type LineChartProps = {
   title: string;
   desc: string;
   onPeriod: (period: string) => void;
+  /**
+   * Asks about an anomaly: its tooltip gains an action and Shift+Enter on the focused marker does the same.
+   * `subject` names the entity in the action label.
+   */
+  onAsk?: (anomaly: { period: string; momPct: number | null }) => void;
+  subject?: string;
 };
 
 const HEIGHT = 260;
@@ -73,6 +79,8 @@ function LineSvg({
   title,
   desc,
   onPeriod,
+  onAsk,
+  subject,
 }: LineChartProps & { width: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const hintId = useId();
@@ -96,7 +104,17 @@ function LineSvg({
   const ticks = y.ticks(5);
   const x = (i: number) => step * (i + 0.5);
 
-  function reveal(index: number, anchorY?: number) {
+  function askAbout(index: number) {
+    const p = points[index];
+    if (!p || !onAsk) return;
+    const prev = points[index - 1]?.actual;
+    onAsk({
+      period: p.period,
+      momPct: prev && prev > 0 ? (p.actual / prev - 1) * 100 : null,
+    });
+  }
+
+  function reveal(index: number, anchorY?: number, asking = false) {
     const p = points[index];
     if (!p) return;
     setCursor(index);
@@ -109,6 +127,15 @@ function LineSvg({
           { label: "Prior year", value: formatMoneyCompact(p.priorYear) },
           { label: "Attainment", value: formatPct(p.attainment, { sign: false }) },
         ],
+        ...(asking && onAsk
+          ? {
+              action: {
+                label: `Ask about ${subject ?? "this"}, ${p.name}`,
+                hint: "⇧↩",
+                onActivate: () => askAbout(index),
+              },
+            }
+          : {}),
       },
       MARGIN.left + x(index),
       MARGIN.top + (anchorY ?? y(p.actual)),
@@ -320,13 +347,22 @@ function LineSvg({
                 aria-label={a.ariaLabel}
                 data-period={a.period}
                 className="pointer-events-auto cursor-pointer"
-                onFocus={() => reveal(a.index, y(p.actual))}
-                onBlur={hide}
+                onFocus={() => reveal(a.index, y(p.actual), true)}
+                onBlur={() => {
+                  setCursor(null);
+                  tip.hideSoon();
+                }}
+                onMouseEnter={() => reveal(a.index, y(p.actual), true)}
+                onMouseLeave={() => {
+                  setCursor(null);
+                  tip.hideSoon();
+                }}
                 onClick={() => onPeriod(a.period)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onPeriod(a.period);
+                    if (e.key === "Enter" && e.shiftKey && onAsk) askAbout(a.index);
+                    else onPeriod(a.period);
                   }
                 }}
               >
@@ -350,7 +386,7 @@ function LineSvg({
         </svg>
       ) : null}
       {tip.open && tip.content ? (
-        <ChartTooltip {...tip.content} left={tip.left} top={tip.top} />
+        <ChartTooltip {...tip.content} left={tip.left} top={tip.top} onHover={tip.hover} />
       ) : null}
     </div>
   );

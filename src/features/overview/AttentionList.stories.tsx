@@ -24,10 +24,11 @@ export const Portfolio: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole("button", { name: "Ask why Germany dipped" }));
-    await expect(args.onAsk).toHaveBeenCalledWith(
-      "Why did Germany's revenue dip?",
-      "Germany · May 2026",
-    );
+    await expect(args.onAsk).toHaveBeenCalledWith("Why did Germany's revenue dip?", {
+      entity: { kind: "market", marketId: "de" },
+      period: "2026-05",
+      label: "Germany · May 2026",
+    });
     await userEvent.click(canvas.getByRole("button", { name: "Spain" }));
     await expect(args.onSelect).toHaveBeenCalledWith("es");
     // The rising rows have no Ask why.
