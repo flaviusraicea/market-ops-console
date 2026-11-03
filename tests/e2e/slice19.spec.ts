@@ -9,6 +9,8 @@ const MARKERS = {
   radarChart: "data-axis",
   heatMap: "cursor-pointer rounded-[2px]",
   commandPalette: "Go to a market, switch view",
+  accountMenu: "Sign out",
+  answerCard: "Show sources",
 } as const;
 type Marker = keyof typeof MARKERS;
 
@@ -61,6 +63,27 @@ test("Overview downloads none of the Analyst code or the palette until they are 
   await page.keyboard.press("Control+k");
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect.poll(loaded).toContain("commandPalette");
+});
+
+test("the account menu and the answer card load on first use, and the menu opens from the keyboard", async ({
+  page,
+}) => {
+  const loaded = watchScripts(page);
+  await open(page, "/");
+  expect(await loaded()).toEqual([]);
+
+  const avatar = page.getByRole("button", { name: /Account menu$/ });
+  await avatar.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("menuitem", { name: "Sign out" })).toBeVisible();
+  await expect.poll(loaded).toContain("accountMenu");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menuitem", { name: "Sign out" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Account menu$/ })).toBeFocused();
+  expect(await loaded()).not.toContain("answerCard");
+
+  await page.getByRole("textbox", { name: "Ask the assistant" }).fill("Why is Germany off track?");
+  await expect.poll(loaded).toContain("answerCard");
 });
 
 test("the map swaps in for a skeleton of the same height and nothing shifts", async ({ page }) => {

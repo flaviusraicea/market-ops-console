@@ -32,8 +32,8 @@ Lighthouse says whether a page is fast; the budget says why it will stay fast. `
 
 | Measure (gzipped) | Budget | Before (main, 09cb7db; Lighthouse rows: main b30731a) | After |
 |---|---|---|---|
-| Overview scripts | 250 KB | 324.6 KB | 249.6 KB |
-| Analyst scripts (with Overview's) | 350 KB | 324.6 KB (one bundle) | 349.3 KB |
+| Overview scripts | 250 KB | 324.6 KB | 238.5 KB |
+| Analyst scripts (with Overview's) | 350 KB | 324.6 KB (one bundle) | 339.1 KB |
 | Largest lazy chunk | 60 KB | none | 31.0 KB |
 | Fonts loaded | 110 KB | 166.6 KB | 97.1 KB |
 | CSS | 20 KB | 12.4 KB | 12.6 KB |
@@ -47,7 +47,9 @@ Lighthouse (desktop preset, median of 3, production build on one CI-class machin
 | Analyst, before | 0.95 | 0.83 to 0.85 s | 0.132 | 0 to 13 ms |
 | Analyst, after | 0.99 | 0.83 to 0.86 s | 0 | 0 to 48 ms |
 
-Analyst is heavier than before in total because its widgets are separate chunks, each carrying a little runtime of its own and sharing modules imperfectly. That is the trade: Overview, the cold open, is 75 KB lighter, and Analyst pays for its depth only when asked for.
+Analyst is heavier than before in total because its widgets are separate chunks, each carrying a little runtime of its own and sharing modules imperfectly. That is the trade: Overview, the cold open, is 86 KB lighter, and Analyst pays for its depth only when asked for.
+
+Two pieces load on first use rather than with the page: the answer card (sources table, citations) when the first key is typed or a question is sent, and the account menu (Radix menu) on hover, focus or click of the avatar. Both were measured at about 11 KB together; together they keep the Executive load well under budget for the mobile work that follows.
 
 ### How to find a regression
 

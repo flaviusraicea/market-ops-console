@@ -7,7 +7,7 @@ import { ArrowDown, ICON_STROKE } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAssistantRail } from "@/features/shell/railState";
 import { prefersReducedMotion } from "@/lib/motion";
-import { AnswerCard } from "./AnswerCard";
+import { AnswerCard } from "./AnswerCardLazy";
 import { EmptyState, type PanelContext } from "./EmptyState";
 import type { Answer } from "./useAnswerMachine";
 

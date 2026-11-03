@@ -12,20 +12,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PERSONAS, ROLES, ROLE_LABEL, parseRole, type Role } from "@/lib/roles";
-import { useRole } from "@/lib/role";
 
 export type AvatarMenuProps = {
   role: Role;
+  /** Opens on mount: the lazy wrapper mounts this after the first click. */
+  defaultOpen?: boolean;
   onSwitch: (role: Role) => void;
   onSignOut: () => void;
 };
 
 /** Who is signed in, the one-click role switch and Sign out. The identity is a mock; see `src/lib/roles.ts`. */
-export function AvatarMenu({ role, onSwitch, onSignOut }: AvatarMenuProps) {
+export function AvatarMenu({ role, onSwitch, onSignOut, defaultOpen }: AvatarMenuProps) {
   const user = PERSONAS[role];
   return (
     // Not modal: a header menu should not hide the rest of the page from assistive technology or lock scrolling.
-    <DropdownMenu modal={false}>
+    <DropdownMenu modal={false} {...(defaultOpen ? { defaultOpen } : {})}>
       <DropdownMenuTrigger
         aria-label={`Signed in as ${user.name}, ${ROLE_LABEL[role]}. Account menu`}
         // The initials are drawn from an attribute, not text: the accessible name is the full sentence, and
@@ -61,10 +62,4 @@ export function AvatarMenu({ role, onSwitch, onSignOut }: AvatarMenuProps) {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
-
-/** The header's menu, wired to the signed-in role. */
-export function ConnectedAvatarMenu() {
-  const { role, switchRole, signOut } = useRole();
-  return <AvatarMenu role={role} onSwitch={switchRole} onSignOut={signOut} />;
 }

@@ -6,6 +6,7 @@ import { Eyebrow } from "@/components/Eyebrow";
 import { ArrowUp, ICON_STROKE, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { preloadAnswerCard } from "./AnswerCardLazy";
 
 const MAX_ROWS = 4;
 
@@ -94,7 +95,11 @@ export function Composer({
             undefined
           }
           placeholder="Ask about markets, products or periods…"
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            // The first keystroke is the cue that an answer is coming.
+            preloadAnswerCard();
+            onChange(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
