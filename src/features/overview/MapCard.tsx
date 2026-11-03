@@ -109,8 +109,12 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
       <TableHeader>
         <TableRow>
           <TableHead scope="col">Market</TableHead>
-          <TableHead scope="col">Region</TableHead>
-          <TableHead scope="col">Status</TableHead>
+          <TableHead scope="col" className="max-md:px-2">
+            Region
+          </TableHead>
+          <TableHead scope="col" className="max-md:px-2">
+            Status
+          </TableHead>
           <TableHead scope="col" className="text-right">
             Attainment
           </TableHead>
@@ -126,8 +130,10 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
         {map.rows.map((r) => (
           <TableRow key={r.id} {...(map.selected === r.id ? { "data-state": "selected" } : {})}>
             <TableCell className="font-medium">{r.name}</TableCell>
-            <TableCell className="text-ink-2">{r.region}</TableCell>
-            <TableCell>
+            <TableCell className="text-ink-2 max-md:px-2 max-md:whitespace-normal">
+              {r.region}
+            </TableCell>
+            <TableCell className="max-md:px-2">
               <Badge variant={r.status}>
                 <StatusGlyph status={r.status} />
                 {r.statusLabel}

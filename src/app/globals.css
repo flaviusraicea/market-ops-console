@@ -8,6 +8,7 @@
   --color-surface-overlay: var(--surface-overlay);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-border-control: var(--border-control);
   --color-grid: var(--grid);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);

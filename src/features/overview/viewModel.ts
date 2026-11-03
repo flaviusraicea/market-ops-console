@@ -535,6 +535,9 @@ export type AttentionVM =
       provenance: string;
       rows: RankedRowVM[];
       rising: AttentionRowVM[];
+      falling: AttentionRowVM[];
+      /** The window every sparkline in the list covers, e.g. "12 months · Jun 2025 – May 2026". */
+      sparkCaption: string;
     }
   | { kind: "products"; caption: string; rows: ProductRowVM[] };
 
@@ -601,6 +604,11 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
     .sort((a, b) => b.row.growthPct - a.row.growthPct)
     .slice(0, 3)
     .map((s) => s.row);
+  const falling = [...scoped]
+    .sort((a, b) => a.row.growthPct - b.row.growthPct)
+    .slice(0, 3)
+    .map((s) => s.row);
+  const window = ds.meta.periods.filter((p) => p <= ctx.period).slice(-12);
 
   return {
     kind: "markets",
@@ -608,6 +616,8 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
     provenance: sourceLabel(ds, atLatest(ds, ctx)),
     rows,
     rising,
+    falling,
+    sparkCaption: `${window.length} months · ${formatPeriodAbbr(window[0] ?? ctx.period)} – ${formatPeriodAbbr(window[window.length - 1] ?? ctx.period)}`,
   };
 }
 

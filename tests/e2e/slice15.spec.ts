@@ -43,24 +43,28 @@ test("the attention list ranks the flagged markets and Ask why sends", async ({ 
   await page.goto("/");
   const list = page.getByRole("region", { name: "Needs attention" });
   const rows = list.getByRole("row");
-  const expected = [
+  const flagged = [
     ["Germany", "Off track"],
     ["Spain", "Off track"],
     ["Italy", "At risk"],
     ["United Kingdom", "At risk"],
     ["Brazil", "At risk"],
     ["France", "At risk"],
-    ["China", "On track"],
-    ["France", "At risk"],
-    ["Canada", "On track"],
   ];
-  // Header, six flagged markets, the movers heading, three movers.
-  await expect(rows).toHaveCount(11);
-  for (const [i, [market, status]] of expected.entries()) {
-    const row = rows.nth(i < 6 ? i + 1 : i + 2);
+  // Header and the six flagged markets; the movers sit below in two columns of three.
+  await expect(rows).toHaveCount(7);
+  for (const [i, [market, status]] of flagged.entries()) {
+    const row = rows.nth(i + 1);
     await expect(row).toContainText(market!);
     await expect(row).toContainText(status!);
   }
+  const rising = list.getByRole("region", { name: "Top movers · rising" }).getByRole("listitem");
+  const falling = list.getByRole("region", { name: "Falling" }).getByRole("listitem");
+  await expect(rising).toHaveCount(3);
+  await expect(falling).toHaveCount(3);
+  await expect(rising.nth(0)).toContainText("China");
+  await expect(falling.nth(0)).toContainText("Germany");
+  await expect(list.getByText("12 months · Jun 2025 – May 2026")).toBeVisible();
   await expect(list.getByText("Top movers · rising")).toBeVisible();
 
   await list.getByRole("button", { name: "Ask why Germany dipped" }).click();
@@ -174,7 +178,7 @@ test("tab order from the skip link", async ({ page }) => {
     "Paused",
     "Executive",
     "Switch to dark theme",
-    "Signed in as Dana Whitfield, Executive. Account menu",
+    "Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu",
   ]);
   expect(seen[7]).toBe("About this verdict");
   expect(seen.slice(8, 11)).toEqual([

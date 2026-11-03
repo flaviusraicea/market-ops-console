@@ -2,7 +2,7 @@
 
 import { cn } from "@/components/cn";
 import { CardHeader } from "@/components/CardHeader";
-import { ArrowUpRight, ICON_STROKE, Sparkles } from "@/components/icons";
+import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
 import { StatusGlyph } from "@/components/StatusGlyph";
 import { Sparkline } from "@/components/charts/Sparkline";
@@ -114,7 +114,7 @@ function MarketCell({ row, select }: { row: AttentionRowVM; select: (id: string)
   );
 }
 
-function MetricCells({ row, rising }: { row: AttentionRowVM; rising?: boolean }) {
+function MetricCells({ row }: { row: AttentionRowVM }) {
   return (
     <>
       <td
@@ -130,9 +130,7 @@ function MetricCells({ row, rising }: { row: AttentionRowVM; rising?: boolean })
         role="cell"
         className={cn(CELL, "text-right max-md:p-0 max-md:text-left max-md:[grid-area:yoy]")}
       >
-        <Growth pct={row.growthPct} rising={rising ?? false}>
-          {row.growth}
-        </Growth>
+        <Growth pct={row.growthPct}>{row.growth}</Growth>
       </td>
       <td
         role="cell"
@@ -144,22 +142,64 @@ function MetricCells({ row, rising }: { row: AttentionRowVM; rising?: boolean })
   );
 }
 
-function RisingRow({ row, select }: { row: AttentionRowVM; select: (id: string) => void }) {
+function MoverColumn({
+  title,
+  id,
+  rows,
+  rising,
+  select,
+}: {
+  title: string;
+  id: string;
+  rows: AttentionRowVM[];
+  rising: boolean;
+  select: (marketId: string) => void;
+}) {
   return (
-    <tr role="row" className={cn(ROW, MOBILE_ROW)}>
-      <td role="cell" className={cn(CELL, "text-ok-text max-md:p-0 max-md:[grid-area:rank]")}>
-        <ArrowUpRight aria-hidden className="size-4" strokeWidth={ICON_STROKE} />
-      </td>
-      <MarketCell row={row} select={select} />
-      <td role="cell" className={cn(CELL, "max-md:p-0 max-md:[grid-area:status]")}>
-        <Badge variant={row.status}>
-          <StatusGlyph status={row.status} />
-          {row.statusLabel}
-        </Badge>
-      </td>
-      <MetricCells row={row} rising />
-      <td role="cell" className="max-md:hidden" />
-    </tr>
+    <section aria-labelledby={id} className="flex min-w-0 flex-col">
+      <Eyebrow as="h4" id={id} className="flex items-center gap-1.5 pb-1">
+        {rising ? (
+          <ArrowUpRight aria-hidden className="size-4 text-ok-text" strokeWidth={ICON_STROKE} />
+        ) : (
+          <ArrowDownRight aria-hidden className="size-4 text-bad-text" strokeWidth={ICON_STROKE} />
+        )}
+        {title}
+      </Eyebrow>
+      <ul className="flex flex-col">
+        {rows.map((row) => (
+          <li
+            key={row.id}
+            className="flex items-center gap-3 border-b border-grid last:border-b-0 md:h-[var(--row-h)] max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']"
+          >
+            <button
+              type="button"
+              onClick={() => select(row.id)}
+              className="min-w-0 flex-1 truncate rounded-control text-left font-medium text-ink underline-offset-4 hover:underline max-md:min-h-11 max-md:[grid-area:name]"
+            >
+              {row.name}
+            </button>
+            <span className="flex md:w-24 max-md:justify-self-end max-md:[grid-area:status]">
+              <Badge variant={row.status}>
+                <StatusGlyph status={row.status} />
+                {row.statusLabel}
+              </Badge>
+            </span>
+            <span className="num w-16 text-right max-md:w-auto max-md:text-left max-md:[grid-area:growth]">
+              <Growth pct={row.growthPct} rising={rising}>
+                {row.growth}
+              </Growth>
+            </span>
+            <span className="max-md:justify-self-end max-md:[grid-area:spark]">
+              <Sparkline
+                values={row.spark}
+                label={row.sparkLabel}
+                color={SPARK_COLOR[row.status]}
+              />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -302,24 +342,28 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
             ))}
           </tbody>
         ) : null}
-        {attention.rising.length > 0 ? (
-          <tbody className="border-t border-border max-md:block">
-            <tr role="row">
-              <th
-                role="rowheader"
-                scope="rowgroup"
-                colSpan={7}
-                className="px-3 pt-3 pb-1 text-left"
-              >
-                <Eyebrow>Top movers · rising</Eyebrow>
-              </th>
-            </tr>
-            {attention.rising.map((row) => (
-              <RisingRow key={row.id} row={row} select={select} />
-            ))}
-          </tbody>
-        ) : null}
       </table>
+      <div className="flex flex-col gap-1 border-t border-border pt-3">
+        <p className="px-3 text-right text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+          {attention.sparkCaption}
+        </p>
+        <div className="grid gap-x-8 gap-y-4 px-3 md:grid-cols-2">
+          <MoverColumn
+            id="movers-rising-h"
+            title="Top movers · rising"
+            rows={attention.rising}
+            rising
+            select={select}
+          />
+          <MoverColumn
+            id="movers-falling-h"
+            title="Falling"
+            rows={attention.falling}
+            rising={false}
+            select={select}
+          />
+        </div>
+      </div>
     </section>
   );
 }

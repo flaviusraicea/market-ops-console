@@ -215,7 +215,7 @@ test.describe("keyboard", () => {
         el.textContent ||
         el.getAttribute("placeholder") ||
         "";
-      return text.trim().replace(/\s+/g, " ").slice(0, 60);
+      return text.trim().replace(/\s+/g, " ").slice(0, 80);
     });
 
   for (const { title, url, stops } of TAB_ORDERS) {

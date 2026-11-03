@@ -82,9 +82,9 @@ export const Germany: Story = {
     const items = within(nav).getAllByRole("listitem");
     await expect(items).toHaveLength(3);
     const portfolioLink = within(items[0]!).getByRole("link", { name: "Portfolio" });
-    await expect(portfolioLink).toHaveAttribute("href", "/");
+    await expect(portfolioLink).toHaveAttribute("href", "/?mode=executive");
     const europeLink = within(items[1]!).getByRole("link", { name: "Europe" });
-    await expect(europeLink).toHaveAttribute("href", "/?region=eu");
+    await expect(europeLink).toHaveAttribute("href", "/?region=eu&mode=executive");
     const last = items[2]!;
     await expect(within(last).getByText("Germany")).toHaveAttribute("aria-current", "page");
 

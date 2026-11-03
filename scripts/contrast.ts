@@ -58,6 +58,10 @@ const GRAPHIC = pairs(
 );
 // Headline verdict words (Verdict.tsx) are large text on their tinted wash: WCAG asks 3:1 (1.4.3).
 const LARGE = pairs("ok-display/ok-bg, warn-display/warn-bg, bad-display/bad-bg");
+// WCAG 1.4.11: a form control's edge against every surface a control sits on.
+const CONTROL_EDGE = pairs(
+  "border-control/surface, border-control/bg, border-control/surface-2, border-control/ai-bg, border-control/accent-soft, border-control/surface-raised, border-control/surface-overlay",
+);
 // Visibility, not WCAG text contrast: the land must read against the card (floor 1.15:1).
 const LAND = pairs("map-land/surface");
 const DECORATIVE = pairs(
@@ -100,6 +104,7 @@ function check(theme: string, map: Map<string, string>) {
   // Dark only: the AI surface border must stay a 3:1 boundary on its own fill (light is decorative; the label carries it).
   if (theme === "dark") run(pairs("ai-border/ai-bg"), "graphic", 3);
   else run(pairs("ai-border/ai-bg"), "decorative", null);
+  run(CONTROL_EDGE, "non-text", 3);
   run(LAND, "non-text", 1.15);
   run(DECORATIVE, "decorative", null);
 

@@ -27,7 +27,7 @@ test("a first visit is signed in as the Executive and lands on the Executive ove
   await expect(page.getByRole("radio", { name: "Executive" })).toBeChecked();
   await expect(page.locator("html")).toHaveAttribute("data-density", "executive");
   await expect(avatar(page, "Dana Whitfield")).toHaveAccessibleName(
-    "Signed in as Dana Whitfield, Executive. Account menu",
+    "Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu",
   );
 });
 
@@ -56,10 +56,12 @@ test("Switch to Analyst in the menu lands on the Analyst view with editable aler
 }) => {
   await open(page, "/");
   await avatar(page, "Dana Whitfield").click();
-  await page.getByRole("menuitemradio", { name: "Switch to Analyst" }).click();
+  await page
+    .getByRole("menuitemradio", { name: "Switch role to Analyst (can edit alerts)" })
+    .click();
   await expect(avatar(page, "Sam Okafor")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Analyst" })).toBeChecked();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/mode=analyst/);
   await page.getByRole("gridcell").first().waitFor();
   await openAlerts(page);
   await expect(alerts(page).getByRole("note")).toHaveCount(0);

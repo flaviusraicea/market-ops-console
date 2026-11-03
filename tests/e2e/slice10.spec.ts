@@ -80,6 +80,11 @@ test("a failed save shows 97 briefly, then the alert Notice and the saved 95 aga
 
   const notice = card(page).getByRole("alert");
   await expect(notice.getByText("Couldn't save")).toBeVisible({ timeout: 3000 });
+  // Focus moves to the notice, so Tab goes straight to Try again.
+  await expect(notice).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(notice.getByRole("button", { name: "Try again" })).toBeFocused();
+  await notice.focus();
   await expect(notice).toContainText(
     "Your thresholds were restored to the last saved values (growth below 0%, attainment below 95%).",
   );
