@@ -37,8 +37,9 @@ export function ShellGrid({
   return (
     <main
       id="main"
+      tabIndex={-1}
       className={cn(
-        "grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_48px]",
+        "grid outline-none gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_48px]",
         // Analyst pins its header, so the assistant sticks below it.
         mode === "analyst" ? "[--assistant-top:var(--below-header)]" : "[--assistant-top:1rem]",
         ready &&

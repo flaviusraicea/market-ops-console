@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { AnswerStoreProvider } from "@/features/assistant/AnswerStore";
 import { AskWhyProvider } from "@/features/assistant/askWhy";
+import { PaletteProvider } from "@/features/palette/PaletteProvider";
 import { AssistantRailProvider } from "./railState";
 import { ShellGrid } from "./ShellGrid";
 
@@ -17,16 +18,18 @@ export function Layout({ header, dashboard, assistant }: LayoutProps) {
     <AssistantRailProvider>
       <AskWhyProvider>
         <AnswerStoreProvider>
-          <a
-            href="#main"
-            className="sr-only-focusable rounded-control bg-surface px-3 py-2 text-ink focus:fixed focus:top-2 focus:left-2 focus:z-50"
-          >
-            Skip to content
-          </a>
-          {header}
-          <div className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--gap)]">
-            <ShellGrid dashboard={dashboard} assistant={assistant} />
-          </div>
+          <PaletteProvider>
+            <a
+              href="#main"
+              className="sr-only-focusable rounded-control bg-surface px-3 py-2 text-ink focus:fixed focus:top-2 focus:left-2 focus:z-50"
+            >
+              Skip to content
+            </a>
+            {header}
+            <div className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--gap)]">
+              <ShellGrid dashboard={dashboard} assistant={assistant} />
+            </div>
+          </PaletteProvider>
         </AnswerStoreProvider>
       </AskWhyProvider>
     </AssistantRailProvider>

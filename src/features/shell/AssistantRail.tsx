@@ -5,6 +5,7 @@ import { useRef, type Ref } from "react";
 import { ChevronLeft, ICON_STROKE, Sparkles } from "@/components/icons";
 import { Eyebrow } from "@/components/Eyebrow";
 import { cn } from "@/components/cn";
+import { PaletteButton } from "@/features/palette/PaletteButton";
 import { useAssistantRail, useFocusRequest } from "./railState";
 
 type AssistantRailProps = {
@@ -56,6 +57,10 @@ export function AssistantRail({
             {unread}
           </span>
         ) : null}
+      </div>
+      {/* Above the strip-wide toggle so it takes its own clicks. */}
+      <div className="relative pb-2">
+        <PaletteButton side="left" />
       </div>
     </div>
   );

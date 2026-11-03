@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { entityName, entityOf } from "@/domain";
 import { cn } from "@/components/cn";
+import { PaletteButton } from "@/features/palette/PaletteButton";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ChevronRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -117,7 +118,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
       {...(overlay ? { role: "dialog", "aria-modal": true, "aria-labelledby": "assistant-h" } : {})}
       onKeyDown={onKeyDown}
       className={cn(
-        "flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)]",
+        "relative flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)]",
         // From 1280 px the panel is sticky in its column; from 1024 to 1279 px it overlays the dashboard when open.
         "xl:sticky xl:max-h-[calc(100vh-var(--header-h)-32px)]",
         "xl:top-[var(--assistant-top)]",
@@ -126,7 +127,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex min-w-0 flex-col gap-1 pr-[var(--control-h)] lg:pr-0">
           <h2
             id="assistant-h"
             ref={headingRef}
@@ -173,6 +174,10 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
         onClearAbout={() => setPending(null)}
         note={pending?.note ?? null}
       />
+      {/* After the composer in the DOM so the composer stays first in tab order; placed top right. */}
+      <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:right-[calc(var(--pad-card)+var(--control-h)+8px)]">
+        <PaletteButton />
+      </div>
       <AnswerList
         answers={answers}
         context={pending ? { ...context, about: null } : context}

@@ -77,9 +77,11 @@ test("the panel empty state puts the composer first", async ({ page }) => {
   await page.goto("/");
   const panel = page.getByRole("complementary");
   const first = await panel.evaluate((el) => {
-    const focusable = el.querySelector<HTMLElement>(
-      'button:not(#assistant-toggle):not([aria-label="Collapse assistant"]), textarea, a[href], input, select',
-    );
+    const focusable = el
+      .querySelector("#assistant-panel")
+      ?.querySelector<HTMLElement>(
+        'button:not([aria-label="Collapse assistant"]), textarea, a[href], input, select',
+      );
     return focusable?.id ?? focusable?.tagName;
   });
   expect(first).toBe("ask");
