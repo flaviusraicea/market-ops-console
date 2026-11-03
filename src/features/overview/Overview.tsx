@@ -32,7 +32,7 @@ export function Overview({ ctx }: { ctx: Context }) {
       <div className="grid gap-[var(--gap)] lg:grid-cols-12">
         <div className="lg:col-span-7">
           <ErrorBoundary widget="map">
-            <MapCard map={vm.map} />
+            <MapCard map={vm.map} scheme="status" />
           </ErrorBoundary>
         </div>
         <div className="lg:col-span-5">

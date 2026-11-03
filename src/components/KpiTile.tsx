@@ -1,6 +1,7 @@
 import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Minus } from "@/components/icons";
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
+import { InfoTip } from "@/components/InfoTip";
 import { Sparkline } from "@/components/charts/Sparkline";
 
 export type Direction = "up" | "down" | "flat";
@@ -12,6 +13,8 @@ export type KpiTileProps = {
   delta: { direction: Direction; value: string; comparison: string };
   /** For example "Source · data.json" or "Derived · sum of series". */
   provenance: string;
+  /** Accessible name of the info button, for example "About forecast attainment". */
+  infoLabel?: string;
   /** Monthly actuals with the forecast beside them, drawn as a small line under the headline. */
   trend?: { actual: readonly number[]; forecast: readonly number[]; label: string } | undefined;
   /** `strip` is the Analyst ledger cell: no card, one line of eyebrow, headline and delta, provenance in a tooltip. */
@@ -33,6 +36,7 @@ export function KpiTile({
   headline,
   delta,
   provenance,
+  infoLabel = "About this figure",
   trend,
   variant = "tile",
   className,
@@ -45,9 +49,7 @@ export function KpiTile({
         aria-label={label}
         className={cn("flex min-w-0 flex-col gap-0.5 px-[var(--pad-card)] py-2", className)}
       >
-        <Eyebrow as="p" title={provenance}>
-          {label}
-        </Eyebrow>
+        <Eyebrow as="p">{label}</Eyebrow>
         <p className="flex flex-wrap items-baseline gap-x-2">
           <span
             data-slot="kpi-headline"
@@ -68,7 +70,9 @@ export function KpiTile({
             <span className={cn("font-medium", DELTA_STYLE[delta.direction])}>{delta.value}</span>
             {delta.comparison ? <span className="text-ink-muted">{delta.comparison}</span> : null}
           </span>
-          <span className="sr-only">{provenance}</span>
+        </p>
+        <p className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
+          {provenance}
         </p>
       </div>
     );
@@ -83,12 +87,15 @@ export function KpiTile({
       )}
     >
       <Eyebrow as="p">{label}</Eyebrow>
-      <p
-        data-slot="kpi-headline"
-        className="num font-[family-name:var(--font-display)] text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-semibold tracking-[var(--text-kpi-ls)]"
-      >
-        {headline}
-      </p>
+      <div className="-mr-1.5 flex items-center justify-between gap-1">
+        <p
+          data-slot="kpi-headline"
+          className="num font-[family-name:var(--font-display)] text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-semibold tracking-[var(--text-kpi-ls)]"
+        >
+          {headline}
+        </p>
+        <InfoTip label={infoLabel}>{provenance}</InfoTip>
+      </div>
       {trend ? (
         <Sparkline values={trend.actual} secondary={trend.forecast} label={trend.label} />
       ) : null}
@@ -110,12 +117,9 @@ export function KpiTile({
           </>
         ) : null}
       </p>
-      <p
-        data-slot="kpi-provenance"
-        className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
-      >
+      <span data-slot="kpi-provenance" className="sr-only">
         {provenance}
-      </p>
+      </span>
     </div>
   );
 }

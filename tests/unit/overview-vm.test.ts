@@ -98,11 +98,18 @@ describe("overview view model", () => {
     expect(map.rows.map((r) => r.name)).toEqual([...map.rows.map((r) => r.name)].sort());
   });
 
-  it("the map follows the metric", () => {
-    const rev = overviewVM(ds, { ...base, metric: "revenue" }).map;
+  it("Analyst's map follows the metric", () => {
+    const analyst = { ...base, mode: "analyst" } as const;
+    const rev = overviewVM(ds, { ...analyst, metric: "revenue" }).map;
     expect(rev.values["de"]?.label).toBe("$1.68M revenue");
-    const growth = overviewVM(ds, { ...base, metric: "growth" }).map;
+    const growth = overviewVM(ds, { ...analyst, metric: "growth" }).map;
     expect(growth.values["de"]?.label).toBe("−9.7% growth");
+  });
+
+  it("the executive map ignores the URL metric and reads attainment", () => {
+    const map = overviewVM(ds, { ...base, mode: "overview", metric: "growth" }).map;
+    expect(map.metric).toBe("attainment");
+    expect(map.values["de"]?.label).toBe("92.0% attainment");
   });
 });
 
@@ -308,10 +315,10 @@ describe("region bars", () => {
   it("lists the four regions with revenue and attainment", () => {
     const vm = regionBarsVM(ds, base);
     expect(vm.rows.map((r) => [r.name, r.revenue, r.attainment])).toEqual([
-      ["North America", "$4.4M", "101.0%"],
-      ["Europe", "$7.1M", "95.4%"],
-      ["APAC", "$9.5M", "104.9%"],
-      ["LATAM", "$1.9M", "98.0%"],
+      ["North America", "$4.38M", "101.0%"],
+      ["Europe", "$7.06M", "95.4%"],
+      ["APAC", "$9.49M", "104.9%"],
+      ["LATAM", "$1.92M", "98.0%"],
     ]);
     expect(vm.caption).toBe("Derived · sum of series");
   });

@@ -14,6 +14,7 @@ import {
   type LegendBin,
 } from "@/components/charts/scales";
 import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
+import { StatusGlyph } from "@/components/StatusGlyph";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -36,12 +37,6 @@ export const METRIC_LABEL: Record<Metric, string> = {
 };
 
 const MAP_HEIGHT = 320;
-
-const DOT: Record<string, string> = {
-  on_track: "bg-ok-mark",
-  at_risk: "bg-warn-mark",
-  off_track: "bg-bad-mark",
-};
 
 export type GeoState =
   { status: "loading" } | { status: "error" } | { status: "ready"; geo: MapGeo };
@@ -119,7 +114,7 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
             <TableCell className="text-ink-2">{r.region}</TableCell>
             <TableCell>
               <Badge variant={r.status}>
-                <span aria-hidden className={`size-2 rounded-pill ${DOT[r.status]}`} />
+                <StatusGlyph status={r.status} />
                 {r.statusLabel}
               </Badge>
             </TableCell>
@@ -133,20 +128,32 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
   );
 }
 
-export function MapCard({ map }: { map: OverviewVM["map"] }) {
+const STATUS_LEGEND: LegendItem[] = [
+  { label: "On track", swatch: "status", status: "on_track" },
+  { label: "At risk", swatch: "status", status: "at_risk" },
+  { label: "Off track", swatch: "status", status: "off_track" },
+];
+
+/** The executive map answers "where is the trouble", so it is coloured by status; Analyst keeps the metric. */
+export function MapCard({
+  map,
+  scheme = "metric",
+}: {
+  map: OverviewVM["map"];
+  scheme?: "metric" | "status";
+}) {
   const { setContext } = useConsoleContext();
   const geoState = useGeo();
   const tableId = useId();
   const [pressed, setPressed] = useState(false);
   const metricLabel = METRIC_LABEL[map.metric];
 
-  const legend: LegendItem[] = legendFor(map).map((b) => ({
-    label: b.label,
-    swatch: "fill",
-    color: b.token,
-  }));
+  const byStatus = scheme === "status";
+  const legend: LegendItem[] = byStatus
+    ? STATUS_LEGEND
+    : legendFor(map).map((b) => ({ label: b.label, swatch: "fill", color: b.token }));
 
-  const metricControl = (
+  const metricControl = byStatus ? null : (
     <SegmentedControl<Metric>
       ariaLabel="Map metric"
       value={map.metric}
@@ -165,6 +172,7 @@ export function MapCard({ map }: { map: OverviewVM["map"] }) {
         values={map.values}
         metric={map.metric}
         metricLabel={metricLabel}
+        scheme={scheme}
         periodLabel={map.periodLabel}
         selected={map.selected}
         focus={map.focus}
@@ -177,7 +185,7 @@ export function MapCard({ map }: { map: OverviewVM["map"] }) {
 
   const legendEl = (
     <div className="mx-auto mt-2 flex w-full max-w-[40rem] justify-center">
-      <Legend items={legend} label={`${metricLabel} colour scale`} />
+      <Legend items={legend} label={`${byStatus ? "Status" : metricLabel} colour scale`} />
     </div>
   );
 
@@ -190,7 +198,7 @@ export function MapCard({ map }: { map: OverviewVM["map"] }) {
       className="flex h-full flex-col gap-3 rounded-card border border-border bg-surface p-[var(--pad-card)]"
     >
       <CardHeader
-        title={`Markets by ${metricLabel.toLowerCase()}`}
+        title={byStatus ? "Markets by status" : `Markets by ${metricLabel.toLowerCase()}`}
         titleId="map-h"
         subtitle={`${map.periodLabel} · click a market to drill`}
         actions={

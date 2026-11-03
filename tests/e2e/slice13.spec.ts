@@ -46,9 +46,10 @@ test("the map legend sits directly under the map, inside the card", async ({ pag
 test("the metric control is a segmented radiogroup and the attention eyebrow does not wrap", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/?mode=analyst");
   const group = page.getByRole("radiogroup", { name: "Map metric" });
   await expect(group.getByRole("radio")).toHaveText(["Attainment", "Revenue", "Growth"]);
+  await page.goto("/");
   const tile = page.getByRole("group", { name: "NEEDS ATTENTION" });
   await expect(tile).toBeVisible();
   const lines = await tile

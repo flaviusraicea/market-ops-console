@@ -143,7 +143,7 @@ test("a market shows its products and hides the strip", async ({ page }) => {
 test("the map table and the legend still work at the new position", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  const map = page.getByRole("region", { name: "Markets by attainment" });
+  const map = page.getByRole("region", { name: "Markets by status" });
   await expect(map.getByRole("list", { name: /colour scale/ })).toBeVisible();
   await map.getByRole("button", { name: "View as table" }).click();
   await expect(map.getByRole("table").locator("tbody tr")).toHaveCount(13);
@@ -152,7 +152,7 @@ test("the map table and the legend still work at the new position", async ({ pag
 test("tab order from the skip link", async ({ page }) => {
   await page.goto("/");
   const seen: string[] = [];
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 10; i++) {
     await page.keyboard.press("Tab");
     seen.push(
       await page.evaluate(() => {
@@ -167,7 +167,8 @@ test("tab order from the skip link", async ({ page }) => {
     "Overview",
     "Switch to dark theme",
   ]);
-  expect(seen.slice(4, 7)).toEqual([
+  expect(seen[4]).toBe("About this verdict");
+  expect(seen.slice(5, 8)).toEqual([
     "Drill into North America · 2",
     "United States, on track",
     "Canada, on track",
@@ -201,3 +202,93 @@ for (const width of [390, 768, 1024, 1440]) {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 }
+
+test("the map is coloured by status with a three-item legend and no metric control", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const map = page.getByRole("region", { name: "Markets by status" });
+  await expect(map.getByRole("radiogroup", { name: "Map metric" })).toHaveCount(0);
+  await expect(
+    map.getByRole("list", { name: "Status colour scale" }).getByRole("listitem"),
+  ).toHaveText(["On track", "At risk", "Off track"]);
+  const fill = (name: RegExp) =>
+    map.getByRole("button", { name }).evaluate((el) => el.getAttribute("fill"));
+  expect(await fill(/^Germany,/)).toBe("var(--bad-mark)");
+  expect(await fill(/^Italy,/)).toBe("var(--warn-mark)");
+  expect(await fill(/^China,/)).toBe("var(--ok-mark)");
+});
+
+test("tile provenance sits in a tooltip on the info button", async ({ page }) => {
+  await page.goto("/");
+  const tile = page.getByRole("group", { name: "FORECAST ATTAINMENT" });
+  await expect(tile.locator('[data-slot="kpi-provenance"]')).toHaveClass(/sr-only/);
+  await tile.getByRole("button", { name: "About forecast attainment" }).focus();
+  await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
+});
+
+test("region revenue shows two decimals on both views", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("region", { name: "By region" })).toContainText("$7.06M");
+  await page.goto("/?mode=analyst");
+  await expect(page.getByText("$7.06M").first()).toBeVisible();
+});
+
+test("the status legend uses the strip's marks and sits centred under the map", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const map = page.getByRole("region", { name: "Markets by status" });
+  const legend = map.getByRole("list", { name: "Status colour scale" });
+  await expect(legend.locator("svg")).toHaveCount(3);
+  await expect(legend.locator("polygon")).toHaveCount(2);
+  await expect(legend.locator("circle")).toHaveCount(1);
+  const [l, m] = await Promise.all([legend.boundingBox(), map.boundingBox()]);
+  const items = await legend.getByRole("listitem").evaluateAll((els) => {
+    const rects = els.map((el) => el.getBoundingClientRect());
+    return { left: rects[0]!.left, right: rects[rects.length - 1]!.right };
+  });
+  const centre = (items.left + items.right) / 2;
+  expect(Math.abs(centre - (m!.x + m!.width / 2))).toBeLessThan(8);
+  expect(l!.width).toBeGreaterThan(0);
+});
+
+test("the executive map ignores the URL metric", async ({ page }) => {
+  await page.goto("/?metric=growth");
+  await expect(
+    page.getByRole("button", { name: "Germany, off track, 92.0% attainment" }),
+  ).toBeVisible();
+});
+
+test("the info button names the figure in sentence case", async ({ page }) => {
+  await page.goto("/?region=eu&market=de");
+  await expect(page.getByRole("button", { name: "About Germany revenue" })).toBeVisible();
+});
+
+test("Analyst shows tile provenance as visible text", async ({ page }) => {
+  await page.goto("/?mode=analyst");
+  const tile = page.getByRole("group", { name: "FORECAST ATTAINMENT" });
+  await expect(tile.getByText("Derived · sum of series")).toBeVisible();
+  await expect(tile.locator("[title]")).toHaveCount(0);
+});
+
+test.describe("on a touch screen", () => {
+  test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+  test("tapping the info button opens the provenance tooltip and a second tap closes it", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const button = page.getByRole("button", { name: "About forecast attainment" });
+    await button.tap();
+    await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
+    await button.tap();
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
+  });
+});
+
+test("the verdict's provenance sits in a tooltip on the Overview", async ({ page }) => {
+  await page.goto("/");
+  const info = page.getByRole("button", { name: "About this verdict" });
+  await info.focus();
+  await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
+});

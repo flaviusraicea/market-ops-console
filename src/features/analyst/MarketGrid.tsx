@@ -3,7 +3,8 @@
 import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
-import { ArrowDown, ArrowUp, ICON_STROKE, Info, Sparkles } from "@/components/icons";
+import { InfoTip } from "@/components/InfoTip";
+import { ArrowDown, ArrowUp, ICON_STROKE, Sparkles } from "@/components/icons";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useLanding } from "./useLanding";
@@ -53,23 +53,6 @@ const DEFAULT_SORT: Sort = { key: "revenue", dir: "desc" };
 
 const signColour = (d: "up" | "down" | "flat") =>
   d === "up" ? "text-ok-text" : d === "down" ? "text-bad-text" : "text-ink-2";
-
-function InfoTip({ label, children }: { label: string; children: string }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          aria-label={label}
-          className="inline-flex size-5 items-center justify-center rounded-control text-ink-muted hover:text-ink"
-        >
-          <Info aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-72">{children}</TooltipContent>
-    </Tooltip>
-  );
-}
 
 /** A focusable row that selects on Enter or Space, unless the key came from a control inside it. */
 function rowProps(selected: boolean, onSelect: () => void, landed = false) {
@@ -386,24 +369,22 @@ export function MarketGrid({ grid }: { grid: GridVM }): ReactNode {
       caption={grid.caption}
       landed={landing.active && kind !== "product" && kind !== "portfolio"}
     >
-      <TooltipProvider>
-        <Table scrollLabel={`${grid.title}, scrollable`}>
-          <TableCaption className="sr-only">
-            {grid.title}. {subtitle}. {grid.caption}
-          </TableCaption>
-          {grid.kind === "markets" ? (
-            <MarketRows rows={grid.rows} total={grid.total} sort={sort} onSort={setSort} />
-          ) : (
-            <ProductRows
-              rows={grid.rows}
-              total={grid.total}
-              landed={productLanding}
-              sort={sort}
-              onSort={setSort}
-            />
-          )}
-        </Table>
-      </TooltipProvider>
+      <Table scrollLabel={`${grid.title}, scrollable`}>
+        <TableCaption className="sr-only">
+          {grid.title}. {subtitle}. {grid.caption}
+        </TableCaption>
+        {grid.kind === "markets" ? (
+          <MarketRows rows={grid.rows} total={grid.total} sort={sort} onSort={setSort} />
+        ) : (
+          <ProductRows
+            rows={grid.rows}
+            total={grid.total}
+            landed={productLanding}
+            sort={sort}
+            onSort={setSort}
+          />
+        )}
+      </Table>
     </SheetSection>
   );
 }

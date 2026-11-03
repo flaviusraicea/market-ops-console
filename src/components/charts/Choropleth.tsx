@@ -35,6 +35,8 @@ type ChoroplethProps = {
   values: Record<string, MarketValue>;
   metric: MapMetric;
   metricLabel: string;
+  /** `status` fills each market by its status instead of the metric value. */
+  scheme?: "metric" | "status";
   /** Used in the chart description. */
   periodLabel: string;
   selected?: string | undefined;
@@ -43,6 +45,12 @@ type ChoroplethProps = {
   onSelect: (marketId: string) => void;
   /** Fixed height in px. Without it the map keeps a clamped aspect ratio. */
   height?: number;
+};
+
+const STATUS_FILL: Record<MapStatus, string> = {
+  on_track: "--ok-mark",
+  at_risk: "--warn-mark",
+  off_track: "--bad-mark",
 };
 
 const HEIGHT_RATIO = 0.52;
@@ -62,6 +70,7 @@ function MapSvg({
   values,
   metric,
   metricLabel,
+  scheme = "metric",
   periodLabel,
   selected,
   focus,
@@ -146,7 +155,7 @@ function MapSvg({
     if (p) showFor(index, p.x, p.y);
   }
 
-  const desc = `Choropleth of ${markets.length} markets coloured by ${metricLabel.toLowerCase()} for ${periodLabel}. ${counts.on_track} on track, ${counts.at_risk} at risk, ${counts.off_track} off track. Table available via View as table.`;
+  const desc = `Choropleth of ${markets.length} markets coloured by ${scheme === "status" ? "status" : metricLabel.toLowerCase()} for ${periodLabel}. ${counts.on_track} on track, ${counts.at_risk} at risk, ${counts.off_track} off track. Table available via View as table.`;
 
   return (
     <div ref={wrapRef} className="relative" style={{ width, height }}>
@@ -154,7 +163,7 @@ function MapSvg({
         role="group"
         width={width}
         height={height}
-        title={`Markets by ${metricLabel}`}
+        title={scheme === "status" ? "Markets by status" : `Markets by ${metricLabel}`}
         desc={desc}
       >
         {land ? (
@@ -183,7 +192,7 @@ function MapSvg({
               aria-pressed={isSelected}
               data-dim={dim}
               fillOpacity={dim ? 0.6 : 1}
-              fill={`var(${colourFor(metric, v.value, max)})`}
+              fill={`var(${scheme === "status" ? STATUS_FILL[v.status] : colourFor(metric, v.value, max)})`}
               stroke={isSelected ? "var(--accent)" : "var(--surface)"}
               strokeWidth={isSelected ? 2 : 1}
               className="cursor-pointer"
