@@ -6,7 +6,7 @@ test("Ask why on Germany fills the composer and focuses it, without sending", as
   const box = page.getByRole("textbox", { name: "Ask the assistant" });
   await expect(box).toHaveValue("Why did Germany's revenue dip?");
   await expect(box).toBeFocused();
-  await expect(page.getByText("You asked:")).toHaveCount(0);
+  await expect(page.locator('[data-slot="question-echo"]')).toHaveCount(0);
 });
 
 test("Enter in the prefilled composer sends and the Germany answer arrives", async ({ page }) => {

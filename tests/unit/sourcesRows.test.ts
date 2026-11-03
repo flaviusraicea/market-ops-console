@@ -57,7 +57,7 @@ describe("sourcesRows", () => {
       disagreement: false,
     });
     expect(rows[3]!.sourceValue).toBe("At risk · 96.0% attainment");
-    expect(caption).toContain("4 markets are at risk and 2 are off track");
+    expect(caption).toBe("Sources · data.json · attainment as given · derived");
   });
 
   it("Germany dip answer: three rows following the formatting rule", () => {
@@ -86,11 +86,12 @@ describe("sourcesRows", () => {
       ],
     ]);
     expect(rows.some((r) => r.disagreement)).toBe(false);
-    expect(caption).toBe(GERMANY_DIP.caption);
+    expect(caption).toBe("Sources · data.json · attainment as given · derived");
   });
 
   it("forecast-miss answer: three rows with revenue", () => {
-    const { rows } = sourcesRows(ds, resolved("forecast-miss").citations, FORECAST_MISS);
+    const { rows, caption } = sourcesRows(ds, resolved("forecast-miss").citations, FORECAST_MISS);
+    expect(caption).toBe("Sources · data.json · attainment as given");
     expect(rows.map((r) => [r.entity, r.sourceValue, r.assistant])).toEqual([
       ["Germany", "Off track · 92.0% attainment · $1.68M", "Under plan"],
       ["Italy", "At risk · 93.0% attainment · $0.94M", "Under plan"],
@@ -104,7 +105,6 @@ describe("sourcesRows", () => {
       resolution: resolveCitation(ds, { marketId: "xx", label: "Atlantis" }),
     };
     const { rows } = sourcesRows(ds, [...resolved("forecast-miss").citations.slice(0, 1), bad], {
-      caption: "c",
       items: [],
     });
     expect(rows[0]!.claim).toBe("Germany");
@@ -127,9 +127,11 @@ describe("sourcesRows", () => {
       citation: { marketId: "de", label: "Germany" },
       resolution: resolveCitation(ds, { marketId: "de", label: "Germany" }),
     };
-    const { rows, caption } = sourcesRows(ds, [noPeriod, bad], { caption: "Source.", items: [] });
+    const { rows, caption } = sourcesRows(ds, [noPeriod, bad], { items: [] });
     expect(rows[0]!.period).toBe("2026-05 (latest)");
-    expect(caption).toBe("Source. 1 citation could not be resolved.");
+    expect(caption).toBe(
+      "Sources · data.json · attainment as given · 1 citation could not be resolved",
+    );
   });
 });
 

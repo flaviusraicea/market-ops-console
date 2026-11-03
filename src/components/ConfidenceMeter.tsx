@@ -1,5 +1,6 @@
 import { ICON_STROKE, Shield, ShieldAlert, ShieldCheck } from "@/components/icons";
 import { cn } from "@/components/cn";
+import { Eyebrow } from "@/components/Eyebrow";
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
@@ -28,12 +29,41 @@ const LEVELS = {
 export function ConfidenceMeter({
   level,
   className,
+  compact = false,
 }: {
   level: ConfidenceLevel;
   className?: string;
+  /** The answer card's header form: `CONFIDENCE ▬▬▬ ✓ High`. The accessible name stays the full sentence. */
+  compact?: boolean;
 }) {
   const { bars, word, meaning, Icon } = LEVELS[level];
   const label = `${word}: ${meaning.charAt(0).toLowerCase()}${meaning.slice(1)}`;
+  if (compact) {
+    return (
+      <div
+        role="img"
+        aria-label={label}
+        className={cn("inline-flex items-center gap-1.5", className)}
+      >
+        <Eyebrow>Confidence</Eyebrow>
+        <span aria-hidden className="inline-flex gap-[2px]">
+          {[1, 2, 3].map((n) => (
+            <span
+              key={n}
+              className={cn("h-1.5 w-2.5 rounded-[2px]", n <= bars ? "bg-ai-label" : "bg-border")}
+            />
+          ))}
+        </span>
+        <Icon aria-hidden className="size-3 text-ai-label" strokeWidth={ICON_STROKE} />
+        <span
+          aria-hidden
+          className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-ai-label"
+        >
+          {word.replace(" confidence", "")}
+        </span>
+      </div>
+    );
+  }
   return (
     <div
       role="img"

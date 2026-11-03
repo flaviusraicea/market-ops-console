@@ -90,7 +90,15 @@ export const Done: Story = {
     await expect(
       canvas.getByRole("img", { name: "High confidence: directly supported by cited data" }),
     ).toBeInTheDocument();
-    const sources = canvas.getByRole("button", { name: "Show sources" });
+    const header = canvasElement.querySelector('[data-slot="card-header"]') as HTMLElement;
+    await expect(
+      within(header).getByRole("img", {
+        name: "High confidence: directly supported by cited data",
+      }),
+    ).toBeInTheDocument();
+    await expect(within(header).getByText("AI-generated")).toBeInTheDocument();
+    await expect(canvasElement.querySelector('[role="note"]')).toBeNull();
+    const sources = canvas.getByRole("button", { name: /Show sources \(3\)/ });
     await expect(sources).toBeEnabled();
     await expect(sources).toHaveAttribute("aria-expanded", "false");
     await userEvent.click(sources);
@@ -98,6 +106,52 @@ export const Done: Story = {
     await expect(
       await within(table).findByRole("row", { name: /Fell in early 2026/ }),
     ).toBeVisible();
+    await expect(canvas.getByRole("button", { name: /Hide sources \(3\)/ })).toBeInTheDocument();
+    await expect(
+      canvas.getByText("Sources · data.json · attainment as given · derived"),
+    ).toBeInTheDocument();
+  },
+};
+
+const atRisk = fixtures.fixtures.find((f) => f.id === "at-risk")!;
+const atRiskDone = answerReducer(
+  {
+    ...base,
+    question: "Which markets are at risk?",
+    about: "Portfolio · May 2026",
+    status: "streaming",
+    text: atRisk.answer.text,
+    controller: new AbortController(),
+  },
+  {
+    type: "DONE",
+    kind: "normal",
+    confidence: "high",
+    citations: atRisk.answer.citations.map((c) => CitationSchema.parse(c)),
+    ds,
+  },
+) as Answer;
+
+export const Disagreement: Story = {
+  args: { answer: atRiskDone },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvasElement.querySelector('[data-slot="question-echo"]')).toHaveTextContent(
+      "You asked, about Portfolio · May 2026:Which markets are at risk?",
+    );
+    const area = canvasElement.querySelector('[data-slot="chip-area"]') as HTMLElement;
+    const note = area.firstElementChild as HTMLElement;
+    await expect(note).toHaveAttribute("role", "note");
+    await expect(note).toHaveTextContent(
+      "Differs from source: at risk here, off track in data.json",
+    );
+    await expect(note.tagName).not.toBe("BUTTON");
+    await expect(within(area).getAllByRole("button")).toHaveLength(4);
+    const sources = canvas.getByRole("button", { name: /Hide sources \(4\)/ });
+    await expect(sources).toHaveAttribute("aria-expanded", "true");
+    await expect(
+      await canvas.findByText("Sources · data.json · attainment as given · derived"),
+    ).toBeInTheDocument();
   },
 };
 
@@ -163,8 +217,8 @@ export const Abstain: Story = {
     await expect(canvas.getByText("Can\u2019t answer from this data")).toBeInTheDocument();
     await expect(canvas.getByText(/Jun 2024 to May 2026/)).toBeInTheDocument();
     await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
-    await expect(canvas.queryByRole("img")).toBeNull();
-    await expect(canvas.queryByRole("button", { name: "Show sources" })).toBeNull();
+    await expect(canvas.queryByRole("img")).toBeNull(); // no meter on an abstain
+    await expect(canvas.queryByRole("button", { name: /Show sources/ })).toBeNull();
     await userEvent.click(
       canvas.getByRole("button", { name: "Try: \u201CWhich markets are at risk?\u201D" }),
     );
@@ -179,7 +233,6 @@ export const LowConfidence: Story = {
     await expect(
       canvas.getByRole("img", { name: "Low confidence: directional only, verify before acting" }),
     ).toBeInTheDocument();
-    await expect(canvas.getByText("Directional only, verify before acting")).toBeInTheDocument();
     await expect(canvas.queryByText("Can\u2019t answer from this data")).toBeNull();
   },
 };

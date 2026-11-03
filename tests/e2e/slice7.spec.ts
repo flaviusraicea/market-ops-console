@@ -30,7 +30,7 @@ test("Show sources is open by default for this answer, with four rows and the ca
   page,
 }) => {
   await atRiskAnswer(page);
-  const trigger = page.getByRole("button", { name: "Show sources" });
+  const trigger = page.getByRole("button", { name: /Hide sources \(4\)/ });
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
   const region = page.getByRole("region", { name: "Sources table" });
   await expect(region.getByRole("row")).toHaveCount(5); // header + four
@@ -39,7 +39,7 @@ test("Show sources is open by default for this answer, with four rows and the ca
   const assistant = first.getByRole("cell").last();
   await expect(assistant).toHaveText("At risk");
   await expect(assistant).toHaveClass(/text-warn-text/);
-  await expect(page.getByText(/4 markets are at risk and 2 are off track/)).toBeVisible();
+  await expect(page.getByText("Sources · data.json · attainment as given · derived")).toBeVisible();
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });
@@ -47,7 +47,7 @@ test("Show sources is open by default for this answer, with four rows and the ca
 test("the sources table stays closed when nothing disagrees", async ({ page }) => {
   await page.goto("/");
   await ask(page, "Why did Germany dip?");
-  const trigger = page.getByRole("button", { name: "Show sources" });
+  const trigger = page.getByRole("button", { name: /Show sources \(3\)/ });
   await expect(trigger).toBeVisible({ timeout: 5000 });
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
   await trigger.click();

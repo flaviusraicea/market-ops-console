@@ -35,7 +35,7 @@ User and job: the reviewer, or any first visit. "Understand what this is and wha
 Steps
 1. Open `/`.
 2. See the header (wordmark, breadcrumbs at Portfolio, period May 2026, stamp "Data through May 2026", mode switch on Overview, theme toggle).
-3. See the Overview dashboard (slice 2) and the assistant panel open on the right with three suggestion chips: "Which markets are at risk?", "Why did Germany dip?", "What will sales be next year?".
+3. See the Overview dashboard (slice 2) and the assistant panel open on the right with three suggestion chips: "Which markets are at risk?", "Why did Germany dip?", "Compare APAC and Europe".
 4. See the assistant's empty state: one sentence "Ask about markets, products or periods. Answers cite the data they use." and the three chips.
 
 States: loading (skeleton tiles and skeleton panel, `aria-busy`), ready, fonts-failed (system fallbacks).
