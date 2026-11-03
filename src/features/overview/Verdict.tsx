@@ -1,5 +1,6 @@
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
+import { InfoTip } from "@/components/InfoTip";
 import type { VerdictVM } from "./viewModel";
 
 const STATUS_TEXT = {
@@ -17,11 +18,10 @@ const ATTENTION_TEXT = { bad: "text-bad-text", warn: "text-warn-text", none: "" 
 export function Verdict({ verdict }: { verdict: VerdictVM }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <div className="flex items-center justify-between gap-x-4">
         <Eyebrow>{verdict.eyebrow}</Eyebrow>
-        <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-          {verdict.caption}
-        </p>
+        <InfoTip label="About this verdict">{verdict.caption}</InfoTip>
+        <span className="sr-only">{verdict.caption}</span>
       </div>
       <h2
         id="verdict-h"

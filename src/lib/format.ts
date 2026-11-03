@@ -22,14 +22,6 @@ export function formatMoneyCompact(n: number): string {
   return `${sign}$${int.format(abs)}`;
 }
 
-/** One decimal, for tight rows such as the region bars: "$4.4M". Below $100K it falls back to whole dollars. */
-export function formatMoneyBrief(n: number): string {
-  const sign = n < 0 ? MINUS : "";
-  const abs = Math.abs(n);
-  if (abs >= 100_000) return `${sign}$${one.format(abs / 1_000_000)}M`;
-  return `${sign}$${int.format(abs)}`;
-}
-
 export function formatMoneyFull(n: number): string {
   return `${n < 0 ? MINUS : ""}${int.format(Math.abs(n))}`;
 }

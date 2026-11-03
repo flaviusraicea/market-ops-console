@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { expect, within } from "storybook/test";
+import { expect, userEvent, within } from "storybook/test";
 
 import { KpiTile } from "./KpiTile";
 
@@ -90,9 +90,15 @@ export const Derived: Story = {
     headline: "100.4%",
     delta: { direction: "up", value: "+$0.10M", comparison: "vs forecast" },
     provenance: "Derived · sum of series",
+    infoLabel: "About forecast attainment",
   },
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByText("Derived · sum of series")).toBeVisible();
+    const c = within(canvasElement);
+    await userEvent.tab();
+    await expect(c.getByRole("button", { name: "About forecast attainment" })).toHaveFocus();
+    await expect(await within(document.body).findByRole("tooltip")).toHaveTextContent(
+      "Derived · sum of series",
+    );
   },
 };
 
@@ -107,9 +113,7 @@ export const Strip: Story = {
   play: async ({ canvasElement }) => {
     const delta = canvasElement.querySelector('[data-slot="kpi-delta"]')!;
     await expect(delta).toHaveTextContent("+7.3%vs May 2025");
-    await expect(canvasElement.querySelector("p[title]")).toHaveAttribute(
-      "title",
-      "Derived · sum of series",
-    );
+    await expect(within(canvasElement).getByText("Derived · sum of series")).toBeVisible();
+    await expect(canvasElement.querySelector("[title]")).toBeNull();
   },
 };
