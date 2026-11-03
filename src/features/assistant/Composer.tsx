@@ -97,7 +97,7 @@ export function Composer({
           placeholder="Ask about markets, products or periods…"
           onChange={(e) => {
             // The first keystroke is the cue that an answer is coming.
-            preloadAnswerCard();
+            void preloadAnswerCard();
             onChange(e.target.value);
           }}
           onKeyDown={(e) => {

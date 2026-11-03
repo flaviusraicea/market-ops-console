@@ -60,7 +60,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
 
   /** `about` is the entry point a question came from; without one the question is about the view in the URL. */
   function submit(question: string, about?: AskContext) {
-    preloadAnswerCard();
+    void preloadAnswerCard();
     logEvent({ type: "ask", question });
     onSubmit?.(question);
     const entity = entityOf(ctx);
