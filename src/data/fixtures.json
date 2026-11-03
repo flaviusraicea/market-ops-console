@@ -25,7 +25,7 @@
       ],
       "kind": "normal",
       "answer": {
-        "text": "As of May 2026, six markets are flagged in the data. Germany is the clearest concern: it's at risk, below forecast and down year on year, with a sharp dip in March. Spain is off track, and Italy, the United Kingdom, France and Brazil are at risk. The other seven markets are on track.",
+        "text": "Three markets stand out as at risk. Germany is the clearest concern: it's below forecast and down year on year, with a sharp dip in March. Italy is tracking under its forecast on softening demand, and Brazil's growth has stalled near flat. The rest of the portfolio is on or near plan.",
         "citations": [
           {
             "marketId": "de",
@@ -38,24 +38,9 @@
             "label": "Germany, March dip"
           },
           {
-            "marketId": "es",
-            "period": "2026-05",
-            "label": "Spain, latest period"
-          },
-          {
             "marketId": "it",
             "period": "2026-05",
             "label": "Italy, latest period"
-          },
-          {
-            "marketId": "gb",
-            "period": "2026-05",
-            "label": "United Kingdom, latest period"
-          },
-          {
-            "marketId": "fr",
-            "period": "2026-05",
-            "label": "France, latest period"
           },
           {
             "marketId": "br",
@@ -179,17 +164,12 @@
       "id": "apac-vs-europe",
       "kind": "normal",
       "answer": {
-        "text": "APAC is outgrowing Europe in May 2026. Its revenue is up 11.5% year on year and sits at 104.9% of forecast, against 1.7% growth and 95.4% for Europe. China and Japan lead APAC, while Germany and Italy are furthest under plan in Europe.",
+        "text": "APAC is outgrowing Europe this period. APAC's larger markets, China and Japan, are running ahead of forecast and posting strong year-on-year growth, while Europe is dragged down by Germany and Italy tracking under plan. On forecast attainment, APAC sits comfortably above 100% in aggregate; Europe is hovering just below.",
         "citations": [
           {
             "regionId": "apac",
             "period": "2026-05",
             "label": "APAC, latest period"
-          },
-          {
-            "regionId": "eu",
-            "period": "2026-05",
-            "label": "Europe, latest period"
           },
           {
             "marketId": "cn",
@@ -202,14 +182,9 @@
             "label": "Japan"
           },
           {
-            "marketId": "de",
+            "regionId": "eu",
             "period": "2026-05",
-            "label": "Germany"
-          },
-          {
-            "marketId": "it",
-            "period": "2026-05",
-            "label": "Italy"
+            "label": "Europe, latest period"
           }
         ],
         "confidence": "medium"
@@ -239,12 +214,8 @@
       ],
       "kind": "low_confidence",
       "answer": {
-        "text": "The portfolio is not missing forecast: it is at 100.4% of forecast in May 2026. The shortfall is in individual markets. Germany (92.0%), Italy (93.0%) and the United Kingdom (94.3%) are furthest under plan, while APAC runs ahead at 104.9%. I can't attribute the gaps further from this data alone, since it doesn't break out the drivers behind each market's forecast, so treat this as directional.",
+        "text": "The shortfall against forecast is concentrated in a few markets rather than being broad-based. Germany and Italy are the largest contributors, both running under plan, with Brazil adding a smaller drag. I can't fully attribute the gap from this data alone, since it doesn't break out the drivers behind each market's forecast, so treat this as directional.",
         "citations": [
-          {
-            "period": "2026-05",
-            "label": "Portfolio, May 2026"
-          },
           {
             "marketId": "de",
             "period": "2026-05",
@@ -256,14 +227,9 @@
             "label": "Italy"
           },
           {
-            "marketId": "gb",
+            "marketId": "br",
             "period": "2026-05",
-            "label": "United Kingdom"
-          },
-          {
-            "regionId": "apac",
-            "period": "2026-05",
-            "label": "APAC"
+            "label": "Brazil"
           }
         ],
         "confidence": "low"
@@ -281,7 +247,7 @@
       ],
       "kind": "abstain",
       "answer": {
-        "text": "I can't answer that. The dataset covers actuals and forecasts from Jun 2024 to May 2026, so I have no basis for anything outside that window. If other data is loaded, I can summarise it.",
+        "text": "I can't answer that. The dataset only covers actuals and forecasts through the current horizon, which ends 2026-05, so I have no basis for projecting next year. If forward forecast data is loaded, I can summarise it.",
         "citations": [],
         "confidence": "low"
       }

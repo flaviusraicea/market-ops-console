@@ -151,8 +151,8 @@ export const Disagreement: Story = {
       "Differs from source: at risk here, off track in data.json",
     );
     await expect(note.tagName).not.toBe("BUTTON");
-    await expect(within(area).getAllByRole("button")).toHaveLength(7);
-    const sources = canvas.getByRole("button", { name: /Hide sources \(7\)/ });
+    await expect(within(area).getAllByRole("button")).toHaveLength(4);
+    const sources = canvas.getByRole("button", { name: /Hide sources \(4\)/ });
     await expect(sources).toHaveAttribute("aria-expanded", "true");
     await expect(
       await canvas.findByText("Sources · data.json · attainment as given · derived"),

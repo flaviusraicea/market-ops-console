@@ -31,23 +31,32 @@ test("Germany's answer is about the month asked, not the early-2026 story", asyn
   await expect(page.getByText("steepest drop in March")).toHaveCount(0);
 });
 
-test("the at-risk answer counts the six flagged markets", async ({ page }) => {
+test("the at-risk answer is shown as given and flagged against the six markets data.json flags", async ({
+  page,
+}) => {
   await page.goto("/");
   await ask(page, "Which markets are at risk this quarter, and why?");
   await answerComplete(page);
+  await expect(page.getByText("Three markets stand out as at risk.")).toBeVisible();
   await expect(
-    page.getByText("As of May 2026, six markets are flagged in the data."),
+    page
+      .getByRole("note")
+      .filter({ hasText: "the answer names three markets; data.json flags six" }),
   ).toBeVisible();
-  await expect(page.getByRole("list", { name: "Citations" }).getByRole("listitem")).toHaveCount(7);
 });
 
-test("the forecast-miss answer corrects its premise with the portfolio's attainment", async ({
+test("the forecast-miss answer is shown as given and flagged with the portfolio's attainment", async ({
   page,
 }) => {
   await page.goto("/");
   await ask(page, "What's driving the portfolio's forecast miss?");
   await answerComplete(page);
-  await expect(page.getByText("100.4% of forecast in May 2026", { exact: false })).toBeVisible();
+  await expect(page.getByText("The shortfall against forecast is concentrated")).toBeVisible();
+  await expect(
+    page
+      .getByRole("note")
+      .filter({ hasText: "the portfolio is at 100.4% of forecast in May 2026" }),
+  ).toBeVisible();
 });
 
 test("a market the question names is not answered with another region's comparison", async ({
@@ -66,7 +75,7 @@ test("a long answer reads as paragraphs", async ({ page }) => {
   await ask(page, "Give me a full summary of the portfolio");
   await answerComplete(page);
   const card = page.locator('[data-slot="question-echo"]').locator("xpath=following-sibling::div");
-  await expect(card.locator("p")).toHaveCount(5);
+  await expect(card.locator("p.font-display")).toHaveCount(5);
 });
 
 test("Ask why on Germany from the Executive view tells the early-2026 story", async ({ page }) => {

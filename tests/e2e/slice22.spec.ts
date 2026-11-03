@@ -35,10 +35,7 @@ test("at portfolio scope, the same question still gets the portfolio answer", as
   await expect(citations(page)).toHaveText([
     "Germany, latest period",
     "Germany, March dip",
-    "Spain, latest period",
     "Italy, latest period",
-    "United Kingdom, latest period",
-    "France, latest period",
     "Brazil, latest period",
   ]);
 });

@@ -163,27 +163,40 @@ function ChipArea({
     c.resolution.ok && c.resolution.disagreement ? [c.resolution.disagreement] : [],
   );
   const first = diffs[0];
+  const sources = useSourcesRows(answer.citations);
+  const checks = sources.status === "ready" ? sources.checks : [];
   return (
     <div data-slot="chip-area" className="flex flex-col items-start gap-1.5">
       {first ? (
-        <p
-          role="note"
-          className="inline-flex max-w-full items-center gap-1.5 rounded-pill bg-warn-bg px-2.5 py-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-warn-text"
-        >
-          <TriangleAlert aria-hidden className="size-3 shrink-0" strokeWidth={ICON_STROKE} />
-          <span>
-            Differs from source: {first.assistant} here, {first.source.replace("_", " ")} in
-            data.json
-            {diffs.length > 1 ? ` · ${diffs.length} differences` : ""}
-          </span>
-        </p>
+        <DiffersNote>
+          Differs from source: {first.assistant} here, {first.source.replace("_", " ")} in data.json
+          {diffs.length > 1 ? ` · ${diffs.length} differences` : ""}
+        </DiffersNote>
       ) : null}
+      {checks.map((line) => (
+        <DiffersNote key={line} long>
+          {line}
+        </DiffersNote>
+      ))}
       <CitationRow answerId={answer.id} citations={answer.citations} isLatest={isLatest} />
     </div>
   );
 }
 
 /** The answer in paragraphs (a blank line in the text starts one); `trailing` stays at the end of the last. */
+/** One "Differs from source" line: the answer says one thing, data.json another. */
+function DiffersNote({ children, long }: { children: ReactNode; long?: boolean }) {
+  return (
+    <p
+      role="note"
+      className={`inline-flex max-w-full items-start gap-1.5 ${long ? "rounded-card" : "rounded-pill"} bg-warn-bg px-2.5 py-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-warn-text`}
+    >
+      <TriangleAlert aria-hidden className="mt-0.5 size-3 shrink-0" strokeWidth={ICON_STROKE} />
+      <span>{children}</span>
+    </p>
+  );
+}
+
 function AnswerText({ body, trailing }: { body: ReactNode[]; trailing: ReactNode }) {
   const paragraphs = splitParagraphs(body);
   const last = paragraphs.length - 1;

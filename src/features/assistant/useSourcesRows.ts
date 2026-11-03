@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { Dataset } from "@/domain";
 import { useDataset } from "@/lib/context/dataset";
 import { DEFAULT_SOURCES_META, SOURCES_META, inlineKey } from "./inlineMap";
+import { crossChecks } from "./crossChecks";
 import { sourcesRows, type SourceRow } from "./sourcesRows";
 import type { Resolved } from "./useAnswerMachine";
 
@@ -27,7 +28,7 @@ function loadFull(): Promise<Dataset> {
 }
 
 export type SourcesState =
-  { status: "loading" } | { status: "ready"; rows: SourceRow[]; caption: string };
+  { status: "loading" } | { status: "ready"; rows: SourceRow[]; caption: string; checks: string[] };
 
 export function useSourcesRows(citations: readonly Resolved[]): SourcesState {
   const light = useDataset();
@@ -48,5 +49,6 @@ export function useSourcesRows(citations: readonly Resolved[]): SourcesState {
   return {
     status: "ready",
     ...sourcesRows(fullDs, citations, SOURCES_META[key] ?? DEFAULT_SOURCES_META),
+    checks: crossChecks(fullDs, key),
   };
 }

@@ -23,15 +23,7 @@ describe("inline citations", () => {
       text,
       citations.map((c) => c.citation),
     ).filter((s) => s.citationIndex !== undefined);
-    expect(cited.map((s) => s.text)).toEqual([
-      "Germany",
-      "sharp dip in March",
-      "Spain",
-      "Italy",
-      "United Kingdom",
-      "France",
-      "Brazil",
-    ]);
+    expect(cited.map((s) => s.text)).toEqual(["Germany", "sharp dip in March", "Italy", "Brazil"]);
   });
   it("leaves text without a mapping untouched", () => {
     const { text, citations } = resolved("next-year");

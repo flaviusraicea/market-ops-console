@@ -5,7 +5,9 @@ import fixturesRaw from "@/data/fixtures.json";
 import { attainmentPct, factsFor, growthPct, toPeriod, totals } from "@/domain";
 import { parseDataset } from "@/domain/dataset";
 import { FixturesFileSchema } from "@/domain/stream";
+import { crossChecks } from "@/features/assistant/crossChecks";
 import { INLINE_MAP, inlineKey } from "@/features/assistant/inlineMap";
+import starter from "../fixtures/starter-fixtures.json";
 import { pickFixture } from "@/lib/stream/pickFixture";
 import { formatPct } from "@/lib/format";
 
@@ -138,62 +140,59 @@ describe("rephrasings reach the right answer", () => {
   });
 });
 
-describe("scripted answers agree with data.json", () => {
+describe("the starter pack's answers are shown as given and checked against data.json", () => {
+  const pack = FixturesFileSchema.parse(starter);
+  it("keeps the text and citations of every answer the pack shipped", () => {
+    for (const given of [pack.default, ...pack.fixtures]) {
+      const ours =
+        given.id === "default" ? file.default : file.fixtures.find((f) => f.id === given.id);
+      expect(ours?.answer, given.id).toEqual(given.answer);
+    }
+  });
+
+  const keyOf = (id: string) => inlineKey(pack.fixtures.find((f) => f.id === id)!.answer.citations);
+  const latest = ds.meta.latestPeriod;
   const pct = (n: number) => formatPct(n, { sign: false });
-  const flagged = ds.markets.filter((m) => m.kpis.status !== "on_track");
-  const word = (n: number) =>
-    ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"][n] ?? `${n}`;
-
-  it("the at-risk answer names the flagged markets and no others, and counts them", () => {
-    const text = ask("Which markets are at risk?").answer.text;
-    expect(text).toContain(
-      `As of May 2026, ${word(flagged.length).toLowerCase()} markets are flagged`,
+  const region = (regionId: "apac" | "eu") =>
+    attainmentPct(
+      totals(factsFor(ds, { entity: { kind: "region", regionId }, periods: [latest] })),
     );
-    expect(text).toContain(`The other ${word(ds.markets.length - flagged.length).toLowerCase()}`);
-    for (const m of ds.markets) {
-      const named = text.includes(m.name);
-      expect(named, m.name).toBe(m.kpis.status !== "on_track");
+
+  it("flags the at-risk answer's count against the markets data.json flags", () => {
+    const [line] = crossChecks(ds, keyOf("at-risk"));
+    expect(line).toContain("the answer names three markets; data.json flags six");
+    for (const m of ds.markets.filter((x) => x.kpis.status !== "on_track")) {
+      expect(line).toContain(m.name);
     }
+    expect(line).toContain("Germany and Spain are off track");
   });
 
-  it("each market's status word is data.json's, apart from Germany's deliberate mismatch", () => {
-    const text = ask("Which markets are at risk?").answer.text;
-    const spain = ds.markets.find((m) => m.id === "es")!;
-    expect(spain.kpis.status).toBe("off_track");
-    expect(text).toContain("Spain is off track");
-    for (const id of ["it", "gb", "fr", "br"]) {
-      expect(ds.markets.find((m) => m.id === id)!.kpis.status).toBe("at_risk");
-    }
-    expect(text).toContain("Italy, the United Kingdom, France and Brazil are at risk");
+  it("flags the forecast-miss premise with the portfolio's own attainment", () => {
+    const portfolio = attainmentPct(
+      totals(factsFor(ds, { entity: { kind: "portfolio" }, periods: [latest] })),
+    );
+    expect(crossChecks(ds, keyOf("forecast-miss"))).toEqual([
+      `Differs from source: the portfolio is at ${pct(portfolio)} of forecast in May 2026; the answer describes a forecast miss.`,
+    ]);
   });
 
-  it("the forecast-miss answer corrects the premise with the portfolio's own attainment", () => {
-    const latest = ds.meta.latestPeriod;
-    const t = totals(factsFor(ds, { entity: { kind: "portfolio" }, periods: [latest] }));
-    const text = ask("What's driving the portfolio's forecast miss?").answer.text;
-    expect(text).toContain(`not missing forecast: it is at ${pct(attainmentPct(t))} of forecast`);
-    for (const id of ["de", "it", "gb"]) {
-      const m = ds.markets.find((x) => x.id === id)!;
-      expect(text).toContain(`${pct(m.kpis.forecastAttainmentPct)}`);
-    }
-    const apac = totals(
-      factsFor(ds, { entity: { kind: "region", regionId: "apac" }, periods: [latest] }),
-    );
-    expect(text).toContain(`APAC runs ahead at ${pct(attainmentPct(apac))}`);
+  it("flags Europe's attainment next to the 'just below' claim", () => {
+    expect(crossChecks(ds, keyOf("apac-vs-europe"))).toEqual([
+      `Differs from source: Europe is at ${pct(region("eu"))} of forecast in May 2026 and APAC at ${pct(region("apac"))}; the answer says Europe is "just below" 100%.`,
+    ]);
   });
 
-  it("the APAC and Europe answer quotes both regions' growth and attainment", () => {
-    const latest = ds.meta.latestPeriod;
-    const region = (regionId: "apac" | "eu") =>
-      totals(factsFor(ds, { entity: { kind: "region", regionId }, periods: [latest] }));
-    const text = ask("Compare APAC and Europe on growth and forecast attainment").answer.text;
-    const [apac, eu] = [region("apac"), region("eu")];
-    expect(text).toContain(
-      `up ${formatPct(growthPct(apac), { sign: false })} year on year and sits at ${pct(attainmentPct(apac))} of forecast`,
-    );
-    expect(text).toContain(
-      `${formatPct(growthPct(eu), { sign: false })} growth and ${pct(attainmentPct(eu))} for Europe`,
-    );
+  it("flags the summary's 'close to plan' markets and its short watch list", () => {
+    const [line] = crossChecks(ds, keyOf("summary-long"));
+    expect(line).toContain("United Kingdom is at risk");
+    expect(line).toContain("France is at risk");
+    expect(line).toContain("Spain is off track");
+    expect(line).toContain("It names three markets to watch; data.json flags six");
+  });
+
+  it("says nothing about an answer it has no check for", () => {
+    expect(crossChecks(ds, keyOf("germany-dip"))).toEqual([]);
+    expect(crossChecks(ds, "")).toEqual([]);
   });
 });
 

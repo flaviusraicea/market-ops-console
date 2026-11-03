@@ -10,7 +10,7 @@ async function ask(page: Page, question: string) {
 async function atRiskAnswer(page: Page) {
   await page.goto("/");
   await ask(page, "Which markets are at risk this quarter and why?");
-  await expect(page.getByRole("list", { name: "Citations" }).getByRole("listitem")).toHaveCount(7, {
+  await expect(page.getByRole("list", { name: "Citations" }).getByRole("listitem")).toHaveCount(4, {
     timeout: 5000,
   });
 }
@@ -26,14 +26,14 @@ test("exactly one chip carries the warning and says why", async ({ page }) => {
   );
 });
 
-test("Show sources is open by default for this answer, with seven rows and the caption", async ({
+test("Show sources is open by default for this answer, with four rows and the caption", async ({
   page,
 }) => {
   await atRiskAnswer(page);
-  const trigger = page.getByRole("button", { name: /Hide sources \(7\)/ });
+  const trigger = page.getByRole("button", { name: /Hide sources \(4\)/ });
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
   const region = page.getByRole("region", { name: "Sources table" });
-  await expect(region.getByRole("row")).toHaveCount(8); // header + seven
+  await expect(region.getByRole("row")).toHaveCount(5); // header + four
   const first = region.getByRole("row").nth(1);
   await expect(first.locator("svg.lucide-triangle-alert")).toHaveCount(1);
   const assistant = first.getByRole("cell").last();

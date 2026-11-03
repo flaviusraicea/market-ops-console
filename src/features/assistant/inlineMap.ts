@@ -12,32 +12,17 @@ const EUROPE_AT_RISK = ["Germany", "Spain", "Italy", "United Kingdom", "France"]
   .map((n) => `${n}, latest period`)
   .join("|");
 
-const AT_RISK = [
-  "Germany, latest period",
-  "Germany, March dip",
-  "Spain, latest period",
-  "Italy, latest period",
-  "United Kingdom, latest period",
-  "France, latest period",
-  "Brazil, latest period",
-].join("|");
-const FORECAST_MISS = "Portfolio, May 2026|Germany|Italy|United Kingdom|APAC";
-const APAC_VS_EUROPE = "APAC, latest period|Europe, latest period|China|Japan|Germany|Italy";
-
 export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
   "Germany, Feb 2026|Germany, Mar 2026 (largest dip)|Veltrix in Germany, Mar 2026": [
     { phrase: "early 2026", citationIndex: 0 },
     { phrase: "steepest drop in March", citationIndex: 1 },
     { phrase: "across the product portfolio", citationIndex: 2 },
   ],
-  [AT_RISK]: [
+  "Germany, latest period|Germany, March dip|Italy, latest period|Brazil, latest period": [
     { phrase: "Germany", citationIndex: 0 },
     { phrase: "sharp dip in March", citationIndex: 1 },
-    { phrase: "Spain", citationIndex: 2 },
-    { phrase: "Italy", citationIndex: 3 },
-    { phrase: "United Kingdom", citationIndex: 4 },
-    { phrase: "France", citationIndex: 5 },
-    { phrase: "Brazil", citationIndex: 6 },
+    { phrase: "Italy", citationIndex: 2 },
+    { phrase: "Brazil", citationIndex: 3 },
   ],
   [EUROPE_AT_RISK]: [
     { phrase: "Germany", citationIndex: 0 },
@@ -46,20 +31,10 @@ export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
     { phrase: "United Kingdom", citationIndex: 3 },
     { phrase: "France", citationIndex: 4 },
   ],
-  [FORECAST_MISS]: [
-    { phrase: "100.4% of forecast in May 2026", citationIndex: 0 },
-    { phrase: "Germany", citationIndex: 1 },
-    { phrase: "Italy", citationIndex: 2 },
-    { phrase: "United Kingdom", citationIndex: 3 },
-    { phrase: "APAC", citationIndex: 4 },
-  ],
-  [APAC_VS_EUROPE]: [
-    { phrase: "up 11.5% year on year and sits at 104.9% of forecast", citationIndex: 0 },
-    { phrase: "1.7% growth and 95.4% for Europe", citationIndex: 1 },
-    { phrase: "China", citationIndex: 2 },
-    { phrase: "Japan", citationIndex: 3 },
-    { phrase: "Germany", citationIndex: 4 },
-    { phrase: "Italy", citationIndex: 5 },
+  "Germany|Italy|Brazil": [
+    { phrase: "Germany", citationIndex: 0 },
+    { phrase: "Italy", citationIndex: 1 },
+    { phrase: "Brazil", citationIndex: 2 },
   ],
 };
 
@@ -75,14 +50,11 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
       { claim: "Decline across the portfolio", assistantWord: "Across products" },
     ],
   },
-  [AT_RISK]: {
+  "Germany, latest period|Germany, March dip|Italy, latest period|Brazil, latest period": {
     items: [
       { claim: "Germany at risk", assistantWord: "At risk" },
       { claim: "March dip", assistantWord: "Sharp dip" },
-      { claim: "Spain off track", assistantWord: "Off track" },
       { claim: "Italy at risk", assistantWord: "At risk" },
-      { claim: "United Kingdom at risk", assistantWord: "At risk" },
-      { claim: "France at risk", assistantWord: "At risk" },
       { claim: "Brazil at risk", assistantWord: "At risk" },
     ],
   },
@@ -95,24 +67,12 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
       { claim: "France at risk", assistantWord: "At risk" },
     ],
   },
-  [FORECAST_MISS]: {
+  "Germany|Italy|Brazil": {
     withRevenue: true,
     items: [
-      { claim: "Portfolio on forecast", assistantWord: "100.4% of forecast" },
-      { claim: "Furthest under plan", assistantWord: "92.0%" },
-      { claim: "Furthest under plan", assistantWord: "93.0%" },
-      { claim: "Furthest under plan", assistantWord: "94.3%" },
-      { claim: "Ahead of plan", assistantWord: "104.9%" },
-    ],
-  },
-  [APAC_VS_EUROPE]: {
-    items: [
-      { claim: "APAC growth and attainment", assistantWord: "+11.5% · 104.9%" },
-      { claim: "Europe growth and attainment", assistantWord: "+1.7% · 95.4%" },
-      { claim: "Leads APAC", assistantWord: "Leads APAC" },
-      { claim: "Leads APAC", assistantWord: "Leads APAC" },
-      { claim: "Furthest under plan", assistantWord: "Under plan" },
-      { claim: "Furthest under plan", assistantWord: "Under plan" },
+      { claim: "Largest contributor", assistantWord: "Under plan" },
+      { claim: "Largest contributor", assistantWord: "Under plan" },
+      { claim: "Smaller drag", assistantWord: "Smaller drag" },
     ],
   },
 };
