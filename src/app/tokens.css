@@ -139,6 +139,15 @@
   --dur-fast: 150ms;
   --dur-base: 200ms;
   --dur-chart: 240ms;
+  /* A followed citation (motion-spec.md section 3, row 3): ring and tint fade in with the chart tweens, hold, then decay gently; opacity only. */
+  --dur-land-in: 240ms;
+  --dur-land-out: 800ms;
+  --hold-highlight: 1500ms; /* read by JS once (useLanding), so reduced motion keeps the hold */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --land-tint: color-mix(in srgb, var(--accent) 8%, transparent);
+  /* The composer's one row: a line of text plus padding and border, so Send matches the box in either density. */
+  --composer-row: calc(var(--text-body-lh) + 14px);
   --dur-enter: 400ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
   /* Apple-style springs as CSS linear(): critically damped (response 0.4 s), and a slight overshoot
@@ -273,6 +282,7 @@ html[data-density="analyst"] {
   --on-accent: #0f1318;
   --accent-soft: #1d2a3c;
   --focus: #8db4e8;
+  --land-tint: color-mix(in srgb, var(--accent) 12%, transparent);
   --ok-text: #8fd9a8;
   --ok-bg: #15291f;
   --ok-mark: #5fbf84;
@@ -351,6 +361,7 @@ html[data-density="analyst"] {
     --on-accent: #0f1318;
     --accent-soft: #1d2a3c;
     --focus: #8db4e8;
+    --land-tint: color-mix(in srgb, var(--accent) 12%, transparent);
     --ok-text: #8fd9a8;
     --ok-bg: #15291f;
     --ok-mark: #5fbf84;
@@ -417,6 +428,8 @@ html[data-density="analyst"] {
     --dur-base: 0ms;
     --dur-chart: 0ms;
     --dur-enter: 0ms;
+    --dur-land-in: 0ms;
+    --dur-land-out: 0ms;
   }
 }
 
@@ -426,4 +439,6 @@ html[data-reduced-motion="true"] {
   --dur-base: 0ms;
   --dur-chart: 0ms;
   --dur-enter: 0ms;
+  --dur-land-in: 0ms;
+  --dur-land-out: 0ms;
 }

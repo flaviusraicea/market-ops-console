@@ -65,7 +65,7 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "Drill into APAC",
       "Drill into LATAM",
       "Collapse assistant",
-      "Ask about markets, products or periods…",
+      "Ask about a market or period…",
       "Send",
       "Open command palette",
       "Which markets are at risk?",

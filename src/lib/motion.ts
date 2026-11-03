@@ -1,6 +1,35 @@
 /** How long marks keep their tween after new data commits (a little over --dur-chart, 240 ms). */
 export const TWEEN_SETTLE_MS = 300;
 
+/** Keys that scroll the page or a list. */
+const SCROLL_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]);
+
+/**
+ * Calls `cb` when the reader scrolls: the wheel, a touch drag, or a scrolling key that is not being typed into a
+ * field. Listeners go when `signal` aborts. Client only.
+ */
+export function onScrollIntent(cb: () => void, signal: AbortSignal): void {
+  const onKey = (e: KeyboardEvent) => {
+    const typing =
+      e.target instanceof HTMLElement && e.target.matches("input, textarea, [contenteditable]");
+    if (!typing && SCROLL_KEYS.has(e.key)) cb();
+  };
+  window.addEventListener("wheel", cb, { passive: true, signal });
+  window.addEventListener("touchmove", cb, { passive: true, signal });
+  window.addEventListener("keydown", onKey, { signal });
+}
+
+/**
+ * A time custom property in ms. The CSS minifier rewrites "2000ms" as "2s" and "150ms" as ".15s", so the unit is
+ * read. Client only.
+ */
+export function cssMs(name: string, fallback: number): number {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const n = parseFloat(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return raw.endsWith("ms") ? n : raw.endsWith("s") ? n * 1000 : fallback;
+}
+
 export const REDUCED_MOTION_KEY = "mo.reduced-motion";
 
 /** True when the OS asks for reduced motion or the console's own override is on. Client only. */

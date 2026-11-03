@@ -62,7 +62,7 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 49. Drill into APAC
 50. Drill into LATAM
 51. Collapse assistant
-52. Ask about markets, products or periods…
+52. Ask about a market or period…
 53. Send
 54. Open command palette
 55. Which markets are at risk?

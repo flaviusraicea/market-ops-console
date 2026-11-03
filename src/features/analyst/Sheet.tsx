@@ -61,7 +61,7 @@ export function SheetSection({
       data-landing-target=""
       data-landed={landed ? "" : undefined}
       aria-labelledby={subtitle ? `${id} ${id}-sub` : id}
-      className={cn("flex min-w-0 flex-col gap-2 p-[var(--pad-card)]", className)}
+      className={cn("relative flex min-w-0 flex-col gap-2 p-[var(--pad-card)]", className)}
     >
       <div
         data-slot="card-header"

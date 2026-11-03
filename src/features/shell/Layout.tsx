@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AnswerStoreProvider } from "@/features/assistant/AnswerStore";
+import { LandingProvider } from "@/features/analyst/useLanding";
 import { AnswerMachineProvider } from "@/features/assistant/AnswerMachine";
 import { AskWhyProvider } from "@/features/assistant/askWhy";
 import { LiveProvider } from "@/features/live/LiveProvider";
@@ -20,22 +21,24 @@ export function Layout({ header, dashboard, assistant }: LayoutProps) {
     <AssistantRailProvider>
       <AskWhyProvider>
         <AnswerStoreProvider>
-          <LiveProvider>
-            <AnswerMachineProvider>
-              <PaletteProvider>
-                <a
-                  href="#main"
-                  className="sr-only-focusable rounded-control bg-surface px-3 py-2 text-ink focus:fixed focus:top-2 focus:left-2 focus:z-50"
-                >
-                  Skip to content
-                </a>
-                {header}
-                <div className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--gap)] max-lg:pb-[calc(var(--bar-h)+env(safe-area-inset-bottom))]">
-                  <ShellGrid dashboard={dashboard} assistant={assistant} />
-                </div>
-              </PaletteProvider>
-            </AnswerMachineProvider>
-          </LiveProvider>
+          <LandingProvider>
+            <LiveProvider>
+              <AnswerMachineProvider>
+                <PaletteProvider>
+                  <a
+                    href="#main"
+                    className="sr-only-focusable rounded-control bg-surface px-3 py-2 text-ink focus:fixed focus:top-2 focus:left-2 focus:z-50"
+                  >
+                    Skip to content
+                  </a>
+                  {header}
+                  <div className="mx-auto w-full max-w-[var(--page-max)] px-[var(--gutter)] py-[var(--gap)] max-lg:pb-[calc(var(--bar-h)+env(safe-area-inset-bottom))]">
+                    <ShellGrid dashboard={dashboard} assistant={assistant} />
+                  </div>
+                </PaletteProvider>
+              </AnswerMachineProvider>
+            </LiveProvider>
+          </LandingProvider>
         </AnswerStoreProvider>
       </AskWhyProvider>
     </AssistantRailProvider>
