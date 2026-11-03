@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { cn } from "@/components/cn";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { FACTS_VIEWPORT_H } from "./factsViewport";
@@ -57,12 +58,15 @@ export function SectionSkeleton({ label, reserve }: { label: string; reserve: Re
 }
 
 /** The sticky toolbar's height (h-10), so the sheet does not jump under it. */
-export function ToolbarSkeleton() {
+export function ToolbarSkeleton({ className }: { className?: string }) {
   return (
     <div
       role="status"
       aria-busy="true"
-      className="sticky top-[var(--header-h)] z-20 mb-[var(--gap-section)] flex h-10 items-center border-b border-border bg-bg shadow-toolbar"
+      className={cn(
+        "sticky top-[var(--header-h)] z-20 mb-[var(--gap-section)] flex h-10 items-center border-b border-border bg-bg shadow-toolbar",
+        className,
+      )}
     >
       <span className="sr-only">Loading analyst controls</span>
       <Skeleton aria-hidden className="h-4 w-64" />

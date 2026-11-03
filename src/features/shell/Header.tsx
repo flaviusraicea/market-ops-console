@@ -10,7 +10,6 @@ import { useDensity } from "@/lib/density";
 import type { ContextPatch } from "@/domain";
 import { ConnectedLiveToggle } from "@/features/live/LiveToggle";
 import { Breadcrumbs } from "./Breadcrumbs";
-import { ContextChips } from "./ContextChips";
 import { DataStamp } from "./DataStamp";
 import { ConnectedAvatarMenu } from "./ConnectedAvatarMenu";
 import { ModeSwitch } from "./ModeSwitch";
@@ -48,12 +47,7 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
   useDensity();
 
   return (
-    <header
-      className={cn(
-        "relative border-b border-border bg-surface shadow-header",
-        mode === "analyst" && "sticky top-0 z-30",
-      )}
-    >
+    <header className={cn("sticky top-0 z-30 border-b border-border bg-surface shadow-header")}>
       <div
         aria-hidden
         data-slot="progress"
@@ -75,15 +69,11 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
             <span aria-hidden className="mx-4 h-5 w-px shrink-0 bg-border max-md:mx-3" />
             <Breadcrumbs trail={crumbs} onNavigate={(c) => setContext(c)} />
           </div>
-          <ContextChips
-            period={period}
-            latestPeriod={latestPeriod}
-            onPeriod={(p) => setContext({ period: p as Period })}
-          />
         </div>
         <div className="flex items-center gap-x-3 max-md:contents md:max-lg:min-w-0 md:max-lg:flex-wrap md:max-lg:justify-end lg:shrink-0">
+          {/* From 768 px the selects live in the page toolbar; the phone keeps them in row 2. */}
           {ctx.market && mode !== "analyst" ? (
-            <div className="max-md:order-4 max-md:min-w-0 max-md:flex-1">
+            <div className="max-md:order-4 max-md:min-w-0 max-md:flex-1 md:hidden">
               <ProductSelect
                 className="max-md:w-full"
                 product={ctx.product}
@@ -93,7 +83,7 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
             </div>
           ) : null}
           {mode !== "analyst" ? (
-            <div className="max-md:order-4 max-md:min-w-0 max-md:flex-1">
+            <div className="max-md:order-4 max-md:min-w-0 max-md:flex-1 md:hidden">
               <PeriodSelect
                 period={period}
                 periods={periods}

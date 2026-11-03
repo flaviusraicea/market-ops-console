@@ -25,14 +25,13 @@ test("cold open content", async ({ page }) => {
   }
 });
 
-test("tab order at the latest period skips the wordmark and has no period chip", async ({
+test("tab order at the latest period skips the wordmark; the period lives in the page toolbar", async ({
   page,
 }) => {
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Clear period" })).toHaveCount(0);
   await tabThrough(page, [
     { role: "link", name: "Skip to content" },
-    { role: "combobox", name: "Period" },
     { role: "button", name: "Live" },
     { role: "button", name: "Paused" },
     { role: "radio", name: "Executive" },
@@ -47,9 +46,6 @@ test("tab order on a drilled earlier period", async ({ page }) => {
     { role: "link", name: "Skip to content" },
     { role: "link", name: "Portfolio" },
     { role: "link", name: "Europe" },
-    { role: "button", name: "Clear period" },
-    { role: "combobox", name: "Product" },
-    { role: "combobox", name: "Period" },
     { role: "button", name: "Live" },
     { role: "button", name: "Paused" },
     { role: "radio", name: "Executive" },
