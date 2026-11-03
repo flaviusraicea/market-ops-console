@@ -44,6 +44,12 @@ export const ROLE_LABEL: Readonly<Record<Role, string>> = {
   analyst: "Analyst",
 };
 
+/** What a role changes, in the words the sign-in cards, the account button and its menu all share. */
+export const ROLE_EFFECT: Readonly<Record<Role, string>> = {
+  executive: "alerts read-only",
+  analyst: "can edit alerts",
+};
+
 export function parseRole(value: string | null | undefined): Role | null {
   return oneOf(ROLES, value);
 }

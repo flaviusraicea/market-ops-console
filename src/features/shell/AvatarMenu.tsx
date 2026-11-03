@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PERSONAS, ROLES, ROLE_LABEL, parseRole, type Role } from "@/lib/roles";
+import { PERSONAS, ROLES, ROLE_EFFECT, ROLE_LABEL, parseRole, type Role } from "@/lib/roles";
 import { avatarTriggerProps } from "./avatarTrigger";
 
 export type AvatarMenuProps = {
@@ -46,7 +46,10 @@ export function AvatarMenu({ role, onSwitch, onSignOut, defaultOpen, openedBy }:
           <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
             {user.email}
           </span>
-          <Badge className="mt-1">{ROLE_LABEL[role]}</Badge>
+          <Badge className="mt-1 w-fit">{ROLE_LABEL[role]} role</Badge>
+          <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
+            Opens the {ROLE_LABEL[role]} view · {ROLE_EFFECT[role]}
+          </span>
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Role</DropdownMenuLabel>
@@ -59,7 +62,7 @@ export function AvatarMenu({ role, onSwitch, onSignOut, defaultOpen, openedBy }:
         >
           {ROLES.map((r) => (
             <DropdownMenuRadioItem key={r} value={r}>
-              {r === role ? ROLE_LABEL[r] : `Switch to ${ROLE_LABEL[r]}`}
+              {r === role ? ROLE_LABEL[r] : `Switch role to ${ROLE_LABEL[r]} (${ROLE_EFFECT[r]})`}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>

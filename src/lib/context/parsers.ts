@@ -28,9 +28,14 @@ export function parseAsPeriod(meta: ConsoleMeta) {
   }).withDefault(meta.latestPeriod);
 }
 
-/** `mode` in the URL; absent means the signed-in role's view, and the pre-rename `overview` reads as `executive`. */
+/**
+ * `mode` in the URL. Absent still reads as the signed-in role's view (and the pre-rename `overview` as
+ * `executive`), but it is never cleared on write: an address someone copies always names the view it shows.
+ */
 export function parseAsMode(defaultMode: Mode) {
-  return createParser<Mode>({ parse: parseMode, serialize: (v) => v }).withDefault(defaultMode);
+  return createParser<Mode>({ parse: parseMode, serialize: (v) => v })
+    .withDefault(defaultMode)
+    .withOptions({ clearOnDefault: false });
 }
 
 export function contextParsers(meta: ConsoleMeta) {

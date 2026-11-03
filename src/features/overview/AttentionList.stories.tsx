@@ -29,9 +29,9 @@ export const Portfolio: Story = {
       period: "2026-05",
       label: "Germany · May 2026",
     });
-    await userEvent.click(canvas.getByRole("button", { name: "Spain" }));
+    await userEvent.click(canvas.getAllByRole("button", { name: "Spain" })[0]!);
     await expect(args.onSelect).toHaveBeenCalledWith("es");
-    // The rising rows have no Ask why.
+    // The movers have no Ask why.
     await expect(canvas.getAllByRole("button", { name: /^Ask why/ })).toHaveLength(6);
   },
 };
@@ -47,7 +47,7 @@ export const Empty: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByText("All markets are on track.")).toBeVisible();
     await expect(canvas.queryAllByRole("button", { name: /^Ask why/ })).toHaveLength(0);
-    await expect(canvas.getByText("Top movers · rising")).toBeVisible();
+    await expect(canvas.getByRole("region", { name: "Rising" })).toBeVisible();
   },
 };
 

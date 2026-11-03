@@ -14,6 +14,8 @@
   --surface-overlay: #ffffff;
   --surface-2: #e8e3d8;
   --border: #cfc6b3;
+  /* Form-control edge: 3:1 against every surface a control sits on (WCAG 1.4.11). Cards and dividers keep --border. */
+  --border-control: #7f796d;
   --hairline: transparent;
   --selected-edge: rgba(255, 255, 255, 0.7);
   --grid: #e3ded3;
@@ -268,6 +270,7 @@ html[data-density="analyst"] {
   --surface-2: #1f2630;
   --surface-overlay: #242c36;
   --border: #303a46;
+  --border-control: #7a8391;
   --grid: #242c36;
   --hairline: rgba(255, 255, 255, 0.05);
   --selected-edge: rgba(255, 255, 255, 0.06);
@@ -346,6 +349,7 @@ html[data-density="analyst"] {
     --surface-2: #1f2630;
     --surface-overlay: #242c36;
     --border: #303a46;
+    --border-control: #7a8391;
     --grid: #242c36;
     --hairline: rgba(255, 255, 255, 0.05);
     --selected-edge: rgba(255, 255, 255, 0.06);

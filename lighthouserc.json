@@ -5,7 +5,7 @@
       "startServerReadyPattern": "Ready",
       "startServerReadyTimeout": 60000,
       "url": [
-        "http://localhost:3200/",
+        "http://localhost:3200/?mode=executive",
         "http://localhost:3200/?region=eu&market=de&product=veltrix&period=2026-03&mode=analyst"
       ],
       "numberOfRuns": 3,
@@ -14,7 +14,7 @@
     "assert": {
       "assertMatrix": [
         {
-          "matchingUrlPattern": "^http://localhost:3200/$",
+          "matchingUrlPattern": "mode=executive",
           "assertions": {
             "categories:accessibility": ["error", { "minScore": 0.95 }],
             "categories:performance": ["error", { "minScore": 0.9 }],
