@@ -29,7 +29,7 @@ export function StatusStrip({
     <div
       aria-label="Market status by region"
       role="group"
-      className="relative flex flex-wrap gap-x-5 gap-y-4 max-md:snap-x max-md:snap-mandatory max-md:flex-nowrap max-md:overflow-x-auto max-md:pb-1"
+      className="relative flex flex-wrap gap-x-5 gap-y-4 max-md:flex-col"
     >
       {groups.map((group) => {
         const heading = (
@@ -43,7 +43,7 @@ export function StatusStrip({
             key={group.id}
             role="group"
             aria-label={`${group.name}, ${group.statusLabel.toLowerCase()}, ${group.count} markets`}
-            className="flex flex-col gap-2 max-md:shrink-0 max-md:snap-start"
+            className="flex flex-col gap-2"
           >
             {ctx.region === group.id ? (
               <Eyebrow>{heading}</Eyebrow>
@@ -62,6 +62,8 @@ export function StatusStrip({
               className={cn(
                 "grid gap-1.5",
                 group.count <= 2 ? "grid-cols-1" : "grid-cols-[repeat(3,max-content)]",
+                // A phone has no room for three across, and a sideways scroll cuts chips off: two across, wrapping.
+                "max-md:grid-cols-[repeat(2,minmax(0,1fr))]",
               )}
             >
               {group.markets.map((market) => (
