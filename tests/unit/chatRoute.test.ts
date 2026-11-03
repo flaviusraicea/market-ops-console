@@ -108,6 +108,61 @@ describe("/api/chat follows the view the question was asked from", () => {
     expect(text).toBe(fixtures.default.answer.text);
   });
 
+  it("answers a heat map cell question about the market in view, not the default", async () => {
+    const view = (marketId: string, period: string) => ({
+      entity: { kind: "market", marketId },
+      period,
+    });
+    for (const question of [
+      "Why did France's revenue dip in Feb 2026?",
+      "Why did France's revenue change in Mar 2026?",
+    ]) {
+      const { text, done } = await ask({ question, context: view("fr", "2026-02") });
+      expect(text).toMatch(/^France's revenue in Feb 2026 was /);
+      expect(done?.type === "done" && done.citations.map((c) => c.marketId)).toEqual(["fr", "fr"]);
+    }
+  });
+
+  it("answers an Overview Ask why on France about France, quoting the dashboard's own attainment", async () => {
+    const { text, done } = await ask({
+      question: "Why is France at risk?",
+      context: { entity: { kind: "market", marketId: "fr" }, period: "2026-05" },
+    });
+    expect(text).toMatch(/^France's revenue in May 2026 was .* 96\.4% attainment; /);
+    expect(done).toMatchObject({ confidence: "medium" });
+  });
+
+  const germany = { entity: { kind: "market", marketId: "de" }, period: "2026-03" };
+  const france = { entity: { kind: "market", marketId: "fr" }, period: "2026-03" };
+  it.each([
+    ["a status question in Germany", "Why is Germany off track?", germany],
+    ["a dip question in Germany", "Why did Germany's revenue dip in Mar 2026?", germany],
+    ["a question naming Germany from France", "Why did Germany's revenue dip in Mar 2026?", france],
+  ])("keeps Germany's curated answer for %s", async (_name, question, context) => {
+    expect((await ask({ question, context })).text).toBe(fixtureText("germany-dip"));
+  });
+
+  it("rejects a view that is not in the dataset with a 400, not a 500", async () => {
+    const unknownMarket = await ask({
+      question: "Why did revenue dip?",
+      context: { entity: { kind: "market", marketId: "zz" }, period: "2026-03" },
+    });
+    expect(unknownMarket.res.status).toBe(400);
+    const badMonth = await ask({
+      question: "Why did revenue dip?",
+      context: { entity: { kind: "market", marketId: "de" }, period: "2030-01" },
+    });
+    expect(badMonth.res.status).toBe(400);
+    const badProduct = await ask({
+      question: "q",
+      context: {
+        entity: { kind: "product", marketId: "de", productId: "nope" },
+        period: "2026-03",
+      },
+    });
+    expect(badProduct.res.status).toBe(400);
+  });
+
   it("rejects a body that is not a chat request", async () => {
     const { res } = await ask({ context: europe });
     expect(res.status).toBe(400);

@@ -11,7 +11,7 @@
 import raw from "@/data/fixtures.json";
 import { ChatRequestSchema, FixturesFileSchema, SseEventSchema } from "@/domain";
 import { getDataset } from "@/lib/dataset";
-import { pickFixture, resolveFixture } from "@/lib/stream/pickFixture";
+import { contextProblem, pickFixture } from "@/lib/stream/pickFixture";
 
 export const runtime = "nodejs";
 
@@ -28,7 +28,9 @@ export async function POST(req: Request) {
   }
   const { question, context } = parsed.data;
   const ds = getDataset();
-  const fixture = resolveFixture(ds, pickFixture(fixtures, ds, question, context), context);
+  const problem = context ? contextProblem(ds, context) : undefined;
+  if (problem) return Response.json({ message: problem, issues: [] }, { status: 400 });
+  const fixture = pickFixture(fixtures, ds, question, context);
   const encoder = new TextEncoder();
   const send = (obj: unknown) => {
     // In development, assert every outgoing event matches the contract before it is enqueued.

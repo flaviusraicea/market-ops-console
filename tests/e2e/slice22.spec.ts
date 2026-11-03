@@ -65,3 +65,17 @@ test("in Germany in March, 'Why did revenue dip?' is answered from that month's 
   await expect(series.getByRole("tooltip")).toContainText("Mar 2026");
   await expect(series.getByRole("tooltip")).toContainText("Actual$1.21M");
 });
+
+test("Ask why on a France row in the Overview answers about France", async ({ page }) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: /^Ask why.*France/ })
+    .first()
+    .click();
+  await answerComplete(page);
+  await expect(page.locator('[data-slot="question-echo"]')).toHaveText(
+    "You asked, about France · May 2026:Why is France at risk?",
+  );
+  await expect(page.getByText(/^France's revenue in May 2026 was /)).toBeVisible();
+  await expect(citations(page)).toHaveText(["France, May 2026", "France, Apr 2026"]);
+});

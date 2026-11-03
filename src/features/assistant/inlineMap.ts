@@ -7,6 +7,11 @@ export type InlinePhrase = { phrase: string; citationIndex: number };
  * Words in an answer that stand for one of its citations (preview-spec 9.4). The stream's `done` event carries no
  * fixture id, so a fixture is recognised by its citation labels joined with "|", which is unique per fixture.
  */
+/** The Europe at-risk answer's citation labels, which is how `inlineKey` recognises it. */
+const EUROPE_AT_RISK = ["Germany", "Spain", "Italy", "United Kingdom", "France"]
+  .map((n) => `${n}, latest period`)
+  .join("|");
+
 export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
   "Germany, Feb 2026|Germany, Mar 2026 (largest dip)|Veltrix in Germany, Mar 2026": [
     { phrase: "early 2026", citationIndex: 0 },
@@ -19,14 +24,13 @@ export const INLINE_MAP: Readonly<Record<string, readonly InlinePhrase[]>> = {
     { phrase: "Italy", citationIndex: 2 },
     { phrase: "Brazil", citationIndex: 3 },
   ],
-  "Germany, latest period|Spain, latest period|Italy, latest period|United Kingdom, latest period|France, latest period":
-    [
-      { phrase: "Germany", citationIndex: 0 },
-      { phrase: "Spain", citationIndex: 1 },
-      { phrase: "Italy", citationIndex: 2 },
-      { phrase: "United Kingdom", citationIndex: 3 },
-      { phrase: "France", citationIndex: 4 },
-    ],
+  [EUROPE_AT_RISK]: [
+    { phrase: "Germany", citationIndex: 0 },
+    { phrase: "Spain", citationIndex: 1 },
+    { phrase: "Italy", citationIndex: 2 },
+    { phrase: "United Kingdom", citationIndex: 3 },
+    { phrase: "France", citationIndex: 4 },
+  ],
   "Germany|Italy|Brazil": [
     { phrase: "Germany", citationIndex: 0 },
     { phrase: "Italy", citationIndex: 1 },
@@ -54,16 +58,15 @@ export const SOURCES_META: Readonly<Record<string, SourcesMeta>> = {
       { claim: "Brazil at risk", assistantWord: "At risk" },
     ],
   },
-  "Germany, latest period|Spain, latest period|Italy, latest period|United Kingdom, latest period|France, latest period":
-    {
-      items: [
-        { claim: "Germany off track", assistantWord: "Off track" },
-        { claim: "Spain off track", assistantWord: "Off track" },
-        { claim: "Italy at risk", assistantWord: "At risk" },
-        { claim: "United Kingdom at risk", assistantWord: "At risk" },
-        { claim: "France at risk", assistantWord: "At risk" },
-      ],
-    },
+  [EUROPE_AT_RISK]: {
+    items: [
+      { claim: "Germany off track", assistantWord: "Off track" },
+      { claim: "Spain off track", assistantWord: "Off track" },
+      { claim: "Italy at risk", assistantWord: "At risk" },
+      { claim: "United Kingdom at risk", assistantWord: "At risk" },
+      { claim: "France at risk", assistantWord: "At risk" },
+    ],
+  },
   "Germany|Italy|Brazil": {
     withRevenue: true,
     items: [

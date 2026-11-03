@@ -40,7 +40,7 @@
       },
       "kind": "normal",
       "answer": {
-        "text": "All five of Europe's markets are flagged in the data. Germany and Spain are off track, and Italy, the United Kingdom and France are at risk. Germany is furthest under forecast at 92.0% attainment, then Italy at 93.0%, the United Kingdom at 94.3% and France at 96.4%. Spain's flag sits oddly with its 104.5% attainment, so check its source row.",
+        "text": "As of May 2026, all five of Europe's markets are flagged in the data. Germany and Spain are off track, and Italy, the United Kingdom and France are at risk. Germany is furthest under forecast at 92.0% attainment, then Italy at 93.0%, the United Kingdom at 94.3% and France at 96.4%. Spain's flag sits oddly with its 104.5% attainment, so check its source row.",
         "citations": [
           {
             "marketId": "de",
@@ -78,7 +78,10 @@
         "why did revenue",
         "revenue fall",
         "revenue drop",
-        "revenue decline"
+        "revenue decline",
+        "revenue change",
+        "change in",
+        "why is"
       ],
       "scope": {
         "entity": "market"

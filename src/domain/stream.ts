@@ -45,11 +45,11 @@ export type ChatContext = z.infer<typeof ChatContextSchema>;
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 
 /** The view a canned answer is written for. A fixture without a scope fits any view. */
-export const FixtureScopeSchema = z.object({
-  entity: z.enum(["portfolio", "region", "market"]),
-  regionId: RegionIdSchema.optional(),
-  marketId: z.string().optional(),
-});
+export const FixtureScopeSchema = z.discriminatedUnion("entity", [
+  z.object({ entity: z.literal("portfolio") }),
+  z.object({ entity: z.literal("region"), regionId: RegionIdSchema.optional() }),
+  z.object({ entity: z.literal("market"), marketId: z.string().optional() }),
+]);
 
 /** One canned answer in fixtures.json. */
 export const FixtureSchema = z.object({
