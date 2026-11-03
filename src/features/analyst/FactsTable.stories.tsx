@@ -27,7 +27,7 @@ export const AllFacts: Story = {
     await expect(canvasElement.querySelectorAll("tr").length).toBeLessThan(40);
 
     // Scrolling to the end brings the last row of data.json into the DOM.
-    const last = ds.series.at(-1)!;
+    const last = ds.series.at(-1)!; // the dataset is never empty
     scroller.scrollTop = scroller.scrollHeight;
     await waitFor(() => {
       const row = canvasElement.querySelector('tr[aria-rowindex="1561"]');

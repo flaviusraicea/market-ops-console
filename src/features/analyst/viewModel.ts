@@ -606,7 +606,7 @@ export type FactRowVM = {
   forecast: number;
   priorYear: number;
   units: number;
-  /** Actual over forecast, in percent. */
+  /** Actual over forecast, in percent, rounded like every other attainment figure. */
   attainment: number;
 };
 
@@ -628,7 +628,7 @@ export function factsVM(ds: Dataset, ctx: Context): FactsVM {
     forecast: f.forecast,
     priorYear: f.priorYear,
     units: f.units,
-    attainment: (f.actual / f.forecast) * 100,
+    attainment: attainmentPct(totals([f])),
   }));
   return { rows, total: ds.series.length };
 }
