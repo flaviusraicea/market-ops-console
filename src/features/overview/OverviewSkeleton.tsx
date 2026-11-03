@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageToolbarSkeleton } from "@/features/shell/PageToolbarSkeleton";
 import { cn } from "@/components/cn";
 
 function Tile() {
@@ -17,28 +18,31 @@ function Tile() {
  */
 export function OverviewSkeleton({ busy = true }: { busy?: boolean }) {
   return (
-    <div
-      {...(busy ? { "aria-busy": true } : {})}
-      className={cn("flex flex-col gap-[var(--gap)]")}
-      data-slot="overview-skeleton"
-    >
-      {busy ? <span className="sr-only">Loading dashboard</span> : null}
-      <div className="grid grid-cols-2 gap-[var(--gap)] md:grid-cols-4">
-        <Tile />
-        <Tile />
-        <Tile />
-        <Tile />
+    <>
+      {busy ? <PageToolbarSkeleton label="Loading controls" className="max-md:hidden" /> : null}
+      <div
+        {...(busy ? { "aria-busy": true } : {})}
+        className={cn("flex flex-col gap-[var(--gap)]")}
+        data-slot="overview-skeleton"
+      >
+        {busy ? <span className="sr-only">Loading dashboard</span> : null}
+        <div className="grid grid-cols-2 gap-[var(--gap)] md:grid-cols-4">
+          <Tile />
+          <Tile />
+          <Tile />
+          <Tile />
+        </div>
+        <div className="rounded-card layer-card p-[var(--pad-card)]">
+          <Skeleton className="mb-3 h-4 w-40" />
+          <Skeleton className="aspect-video w-full" />
+        </div>
+        <div className="flex flex-col gap-3 rounded-card layer-card p-[var(--pad-card)]">
+          <Skeleton className="h-4 w-32" />
+          {Array.from({ length: 6 }, (_, i) => (
+            <Skeleton key={i} className="h-4 w-full" />
+          ))}
+        </div>
       </div>
-      <div className="rounded-card layer-card p-[var(--pad-card)]">
-        <Skeleton className="mb-3 h-4 w-40" />
-        <Skeleton className="aspect-video w-full" />
-      </div>
-      <div className="flex flex-col gap-3 rounded-card layer-card p-[var(--pad-card)]">
-        <Skeleton className="h-4 w-32" />
-        {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="h-4 w-full" />
-        ))}
-      </div>
-    </div>
+    </>
   );
 }

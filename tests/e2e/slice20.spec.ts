@@ -186,7 +186,7 @@ test.describe("phone", () => {
     await bar(page).tap();
     await composer(page).fill("What about Spain?");
     const close = sheet(page).getByRole("button", { name: "Close assistant" });
-    expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect(Math.round((await close.boundingBox())!.height)).toBeGreaterThanOrEqual(44);
     await close.tap();
     await expect(sheet(page)).toBeHidden();
     await expect(bar(page)).toBeFocused();

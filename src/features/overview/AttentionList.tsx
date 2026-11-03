@@ -4,9 +4,8 @@ import { cn } from "@/components/cn";
 import { CardHeader } from "@/components/CardHeader";
 import { ArrowUpRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
-import { StatusGlyph } from "@/components/StatusGlyph";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Sparkline } from "@/components/charts/Sparkline";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAskWhy, type AskContext } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
@@ -67,10 +66,7 @@ function MarketRow({
       </td>
       <MarketCell row={row} select={select} />
       <td role="cell" className={cn(CELL, "max-md:p-0 max-md:[grid-area:status]")}>
-        <Badge variant={row.status}>
-          <StatusGlyph status={row.status} />
-          {row.statusLabel}
-        </Badge>
+        <StatusBadge status={row.status} label={row.statusLabel} size="md" />
       </td>
       <MetricCells row={row} />
       <td
@@ -152,10 +148,7 @@ function RisingRow({ row, select }: { row: AttentionRowVM; select: (id: string) 
       </td>
       <MarketCell row={row} select={select} />
       <td role="cell" className={cn(CELL, "max-md:p-0 max-md:[grid-area:status]")}>
-        <Badge variant={row.status}>
-          <StatusGlyph status={row.status} />
-          {row.statusLabel}
-        </Badge>
+        <StatusBadge status={row.status} label={row.statusLabel} size="md" />
       </td>
       <MetricCells row={row} rising />
       <td role="cell" className="max-md:hidden" />

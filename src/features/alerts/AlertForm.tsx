@@ -93,7 +93,7 @@ function SaveStatusText({ status, savedAt }: { status: SaveStatus; savedAt: numb
       {status === "saving" ? (
         <span className="text-ink-muted">Saving…</span>
       ) : status === "saved" ? (
-        <span className="flex items-center gap-1 text-ok-text">
+        <span className="fade-in flex items-center gap-1 text-ok-text">
           <Check aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
           {fresh ? "Saved · just now" : "Saved"}
         </span>

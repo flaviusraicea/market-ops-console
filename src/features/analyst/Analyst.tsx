@@ -39,7 +39,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
       />
       <Sheet style={reserveStyle(vm.grid.rows.length, Boolean(ctx.market))}>
         <ErrorBoundary widget="kpi-strip">
-          <LiveKpiStrip tiles={overview.tiles} />
+          <LiveKpiStrip tiles={overview.tiles} provenance={overview.tilesProvenance} />
         </ErrorBoundary>
         <ErrorBoundary widget="market-grid">
           <LiveMarketGrid grid={vm.grid} />

@@ -1,7 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { StatusGlyph } from "@/components/StatusGlyph";
+import { StatusBadge } from "@/components/StatusBadge";
 import type { RegionId } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { CardHeader } from "@/components/CardHeader";
@@ -58,7 +57,8 @@ export function RegionBars({
       <CardHeader
         title="By region"
         titleId="regions-h"
-        subtitle="Attainment vs forecast · 100% at centre"
+        caption={bars.caption}
+        subtitle={bars.subtitle}
       />
       <ul>
         {bars.rows.map((row) => (
@@ -85,10 +85,7 @@ export function RegionBars({
             />
             <div className="flex flex-col items-end gap-1">
               <p className="num font-medium text-ink">{row.attainment}</p>
-              <Badge variant={row.status}>
-                <StatusGlyph status={row.status} />
-                {row.statusLabel}
-              </Badge>
+              <StatusBadge status={row.status} label={row.statusLabel} size="sm" />
             </div>
           </li>
         ))}
@@ -96,9 +93,6 @@ export function RegionBars({
       <p className="border-t border-border pt-3 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink-2">
         <strong className="font-semibold text-ink">{bars.sentence.lead}</strong>
         {bars.sentence.rest}
-      </p>
-      <p className="mt-auto text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
-        {bars.caption}
       </p>
     </section>
   );

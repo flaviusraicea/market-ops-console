@@ -4,6 +4,8 @@ import type { Dataset } from "./dataset";
 export const SOURCE_LABEL = "Source · data.json";
 export const DERIVED_LABEL = "Derived · sum of series";
 export const LIVE_LABEL = "Derived · live";
+/** `SOURCE_LABEL` as it reads after another label on the same line: "Derived · sum of series · Source data.json". */
+export const SOURCE_CONTINUED = "Source data.json";
 
 /**
  * The caption for a figure that data.json gives. While the dataset is simulated, a figure that includes the

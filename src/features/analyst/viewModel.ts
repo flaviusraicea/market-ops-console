@@ -34,6 +34,7 @@ import {
   formatPeriodAbbr,
   formatPeriodShort,
 } from "@/lib/format";
+import { ALL_PRODUCTS } from "@/features/overview/viewModel";
 
 const MINUS = "−";
 
@@ -206,6 +207,8 @@ export type RadarVM = {
   title: string;
   subtitle: string;
   caption: string;
+  /** A product is selected but the markets are compared across all products. */
+  allProducts: boolean;
   axes: readonly string[];
   series: RadarSeriesVM[];
 };
@@ -226,6 +229,8 @@ export type HeatMapVM = {
   title: string;
   subtitle: string;
   caption: string;
+  /** A product is selected but the heat map shows every product. */
+  allProducts: boolean;
   periods: Period[];
   rows: HeatRowVM[];
   selected: { market: string; period: Period } | undefined;
@@ -545,9 +550,10 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
   return {
     title: `${scope} compared`,
     subtitle: atPortfolio
-      ? `Regions · five axes, scaled across all ${peers} regions`
-      : `${entityName(ds, { kind: "region", regionId: ctx.region! })} · five axes, scaled across all ${peers} markets`,
+      ? `Regions${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · five axes, scaled across all ${peers} regions`
+      : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? ` markets · ${ALL_PRODUCTS}` : ""} · five axes, scaled across all ${peers} markets`,
     caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod) : "Attainment and growth derived · share given"}`,
+    allProducts: Boolean(ctx.product),
     axes: atPortfolio ? RADAR_AXES_DERIVED : RADAR_AXES_GIVEN,
     series,
   };
@@ -581,8 +587,9 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
   const picked = rows.find((r) => r.id === selected?.market);
   return {
     title: `Attainment by month · ${scope}`,
-    subtitle: `${ctx.region ? scope : "All markets"} · ${formatPeriod(periods[0] ?? "")} – ${formatPeriod(periods[periods.length - 1] ?? "")} · % of forecast`,
+    subtitle: `${ctx.region ? (ctx.product ? `${scope} markets` : scope) : "All markets"}${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · ${formatPeriod(periods[0] ?? "")} – ${formatPeriod(periods[periods.length - 1] ?? "")} · % of forecast`,
     caption: `Sorted by revenue · ${derivedLabel(ds)}`,
+    allProducts: Boolean(ctx.product),
     periods,
     rows,
     selected,

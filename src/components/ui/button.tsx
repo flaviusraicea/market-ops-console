@@ -6,7 +6,7 @@ import { cn } from "@/components/cn";
 
 // Variants follow docs/design-system.md section 6.11.
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-control px-3 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium transition-colors duration-[var(--dur-fast)] outline-none disabled:pointer-events-none disabled:bg-surface-2 disabled:text-ink-disabled [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+  "press inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-control px-3 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium transition-colors duration-[var(--dur-fast)] outline-none disabled:pointer-events-none disabled:bg-surface-2 disabled:text-ink-disabled [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
       variant: {
