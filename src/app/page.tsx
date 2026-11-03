@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 import { breadcrumbTrail, entityName, entityOf } from "@/domain";
@@ -41,19 +40,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 export default async function Page({ searchParams }: PageProps) {
   const ds = getDataset();
   const defaultMode = await roleDefaultMode();
-  const params = await searchParams;
-  // An address always names its view, so a link someone copies shows what they saw: add the role's view in place.
-  if (params["mode"] === undefined) {
-    const query = new URLSearchParams();
-    for (const [key, value] of Object.entries(params)) {
-      for (const v of Array.isArray(value) ? value : value === undefined ? [] : [value]) {
-        query.append(key, v);
-      }
-    }
-    query.set("mode", defaultMode);
-    redirect(`/?${query}`);
-  }
-  const ctx = parseContextFromSearchParams(ds, params, defaultMode);
+  const ctx = parseContextFromSearchParams(ds, await searchParams, defaultMode);
   const meta = metaFromDataset(ds, defaultMode);
   // The fallback shows until the dashboard streams in, so it has the dashboard's shape: Analyst's own skeleton
   // holds each section at its height, which keeps the swap from shifting the page.

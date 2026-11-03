@@ -29,7 +29,7 @@ export function StatusStrip({
     <div
       aria-label="Market status by region"
       role="group"
-      className="relative flex flex-wrap gap-x-5 gap-y-4 max-md:snap-x max-md:snap-mandatory max-md:flex-nowrap max-md:overflow-x-auto max-md:pr-6 max-md:pb-1 max-md:[mask-image:linear-gradient(to_right,#000_calc(100%-1.5rem),transparent)]"
+      className="relative flex flex-wrap gap-x-5 gap-y-4 max-md:snap-x max-md:snap-mandatory max-md:flex-nowrap max-md:overflow-x-auto max-md:pr-6 max-md:pb-1 max-md:fade-inline-end"
     >
       {groups.map((group) => {
         const heading = (

@@ -78,6 +78,12 @@
 /* Elevation layers (design-system.md 3.1): one recipe per layer, so a surface asks for its layer by name and the
    border, tone and shadow can never drift apart. Radius stays with the component. Every layer keeps its 1 px border:
    a shadow is never the only edge (forced-colors mode drops shadows). */
+/* A scroller's trailing edge fades out, so a cut-off item reads as "more this way", not as a clip.
+   The mask uses the alpha channel only, so the colour is irrelevant. */
+@utility fade-inline-end {
+  mask-image: linear-gradient(to right, canvastext calc(100% - 1.5rem), transparent);
+}
+
 @utility layer-card {
   border: 1px solid var(--border);
   background-color: var(--surface);

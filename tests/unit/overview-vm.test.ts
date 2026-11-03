@@ -245,6 +245,33 @@ describe("attention list", () => {
       ["Canada", "+10.7%"],
     ]);
     expect(vm.caption).toBe("Off track first, then at risk by attainment · May 2026");
+    // Only markets that are actually down are Falling; Italy at +0.3% is in neither column's bottom.
+    expect(vm.falling.map((r) => [r.name, r.growth])).toEqual([
+      ["Germany", "−9.7%"],
+      ["Spain", "−4.6%"],
+    ]);
+    expect(vm.sparkCaption).toBe("12 months · Jun 2025 – May 2026");
+  });
+
+  it("names the sparkline window from the chosen month", () => {
+    const vm = attentionVM(ds, { ...base, period: "2026-03" as Period });
+    if (vm.kind !== "markets") throw new Error("expected the market list");
+    expect(vm.sparkCaption).toBe("12 months · Apr 2025 – Mar 2026");
+  });
+
+  it("never lists a market in both columns, and leaves a column empty when nothing qualifies", () => {
+    const na = attentionVM(ds, { ...base, region: "na" });
+    if (na.kind !== "markets") throw new Error("expected the market list");
+    expect(na.rising.map((r) => r.name)).toEqual(["Canada", "United States"]);
+    expect(na.falling).toEqual([]);
+    for (const region of ["na", "eu", "apac", "latam"] as const) {
+      const vm = attentionVM(ds, { ...base, region });
+      if (vm.kind !== "markets") throw new Error("expected the market list");
+      const rising = new Set(vm.rising.map((r) => r.id));
+      expect(vm.falling.filter((r) => rising.has(r.id))).toEqual([]);
+      expect(vm.rising.every((r) => r.growthPct > 0)).toBe(true);
+      expect(vm.falling.every((r) => r.growthPct < 0)).toBe(true);
+    }
   });
 
   it("carries twelve months of revenue and the Ask why prompt", () => {

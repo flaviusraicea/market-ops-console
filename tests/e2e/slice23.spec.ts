@@ -112,7 +112,7 @@ test("Sign out goes to the sign-in screen, and picking a persona returns to its 
   await expect(page.getByRole("button", { name: "Continue with SSO" })).toBeDisabled();
 
   await page.getByRole("button", { name: /Dana Whitfield/ }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/\?mode=executive$/);
   await expect(page.getByRole("radio", { name: "Executive" })).toBeChecked();
   await expect(avatar(page, "Dana Whitfield")).toBeVisible();
 });
@@ -123,7 +123,7 @@ test("the Analyst persona card opens the analyst view; Enter picks a card", asyn
   await page.waitForLoadState("networkidle");
   await page.getByRole("button", { name: /Sam Okafor/ }).focus();
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/\?mode=analyst$/);
   await expect(page.getByRole("radio", { name: "Analyst" })).toBeChecked();
   // The header must follow the new persona without a reload.
   await expect(avatar(page, "Sam Okafor")).toBeVisible();

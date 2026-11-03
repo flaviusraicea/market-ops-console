@@ -473,6 +473,11 @@ export function stripVM(ds: Dataset, ctx: Context): StripGroupVM[] {
     });
 }
 
+/** The last `count` months of the dataset up to and including `period`, oldest first. */
+function trailingPeriods(ds: Dataset, period: Period, count: number): Period[] {
+  return ds.meta.periods.filter((p) => p <= period).slice(-count);
+}
+
 /** Actual and forecast revenue per month, oldest first, ending at `period`, for at most `count` months. */
 function monthlySeries(
   ds: Dataset,
@@ -480,7 +485,7 @@ function monthlySeries(
   count: number,
   include: (marketId: string, productId: string) => boolean,
 ): { actual: number[]; forecast: number[] } {
-  const months = ds.meta.periods.filter((p) => p <= period).slice(-count);
+  const months = trailingPeriods(ds, period, count);
   const sums = new Map(months.map((p) => [p, { actual: 0, forecast: 0 }]));
   for (const f of ds.series) {
     const sum = sums.get(f.period);
@@ -600,15 +605,18 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
       askWhy: askWhyPrompt(s.market),
     }));
 
-  const rising = [...scoped]
+  // A market is only ever in one column: up on last year, or down on it. Flat markets are in neither.
+  const rising = scoped
+    .filter((s) => s.row.growthPct > 0)
     .sort((a, b) => b.row.growthPct - a.row.growthPct)
     .slice(0, 3)
     .map((s) => s.row);
-  const falling = [...scoped]
+  const falling = scoped
+    .filter((s) => s.row.growthPct < 0)
     .sort((a, b) => a.row.growthPct - b.row.growthPct)
     .slice(0, 3)
     .map((s) => s.row);
-  const window = ds.meta.periods.filter((p) => p <= ctx.period).slice(-12);
+  const sparkMonths = trailingPeriods(ds, ctx.period, 12);
 
   return {
     kind: "markets",
@@ -617,7 +625,7 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
     rows,
     rising,
     falling,
-    sparkCaption: `${window.length} months · ${formatPeriodAbbr(window[0] ?? ctx.period)} – ${formatPeriodAbbr(window[window.length - 1] ?? ctx.period)}`,
+    sparkCaption: `${sparkMonths.length} months · ${formatPeriodAbbr(sparkMonths[0] ?? ctx.period)} – ${formatPeriodAbbr(sparkMonths[sparkMonths.length - 1] ?? ctx.period)}`,
   };
 }
 

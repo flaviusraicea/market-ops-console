@@ -61,7 +61,7 @@ test("the attention list ranks the flagged markets and Ask why sends", async ({ 
   const rising = list.getByRole("region", { name: "Top movers · rising" }).getByRole("listitem");
   const falling = list.getByRole("region", { name: "Falling" }).getByRole("listitem");
   await expect(rising).toHaveCount(3);
-  await expect(falling).toHaveCount(3);
+  await expect(falling).toHaveCount(2);
   await expect(rising.nth(0)).toContainText("China");
   await expect(falling.nth(0)).toContainText("Germany");
   await expect(list.getByText("12 months · Jun 2025 – May 2026")).toBeVisible();

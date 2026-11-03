@@ -57,20 +57,19 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 44. Canada
 45. Germany
 46. Spain
-47. Italy
-48. View as table of the markets map
-49. Australia, on track, 101.8% attainment
-50. Drill into North America
-51. Drill into Europe
-52. Drill into APAC
-53. Drill into LATAM
-54. Collapse assistant
-55. Ask about a market or period…
-56. Send
-57. Open command palette
-58. Which markets are at risk?
-59. Why did Germany dip?
-60. Compare APAC and Europe
+47. View as table of the markets map
+48. Australia, on track, 101.8% attainment
+49. Drill into North America
+50. Drill into Europe
+51. Drill into APAC
+52. Drill into LATAM
+53. Collapse assistant
+54. Ask about a market or period…
+55. Send
+56. Open command palette
+57. Which markets are at risk?
+58. Why did Germany dip?
+59. Compare APAC and Europe
 
 #### Analyst, Germany (`/?mode=analyst&region=eu&market=de`)
 

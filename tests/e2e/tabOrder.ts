@@ -60,7 +60,6 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "Canada",
       "Germany",
       "Spain",
-      "Italy",
       "View as table of the markets map",
       "Australia, on track, 101.8% attainment",
       "Drill into North America",
