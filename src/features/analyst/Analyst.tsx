@@ -7,13 +7,14 @@ import { lightDataset } from "@/lib/context/invariants";
 import { getDataset } from "@/lib/dataset";
 import { AnalystToolbar } from "./AnalystToolbar";
 import { HeatMapCard } from "./HeatMapCard";
+import { LazyFactsTable } from "./LazyFactsTable";
 import { KpiStrip } from "./KpiStrip";
 import { MapSection } from "./MapSection";
 import { MarketGrid } from "./MarketGrid";
 import { RadarCard } from "./RadarCard";
 import { Sheet } from "./Sheet";
 import { TimeSeriesCard } from "./TimeSeriesCard";
-import { analystVM } from "./viewModel";
+import { analystVM, factsVM } from "./viewModel";
 
 /**
  * Analyst mode: a sticky toolbar over one ruled sheet. KPI strip, the grid first, then the map, the time
@@ -40,6 +41,11 @@ export function Analyst({ ctx }: { ctx: Context }) {
         <ErrorBoundary widget="market-grid">
           <MarketGrid grid={vm.grid} />
         </ErrorBoundary>
+        {ctx.facts ? (
+          <ErrorBoundary widget="facts-table">
+            <LazyFactsTable facts={factsVM(ds, ctx)} />
+          </ErrorBoundary>
+        ) : null}
         <ErrorBoundary widget="map">
           <MapSection map={overview.map} regions={regionBarsVM(ds, ctx)} />
         </ErrorBoundary>
