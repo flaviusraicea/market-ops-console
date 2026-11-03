@@ -78,9 +78,9 @@ body {
   outline-offset: 2px;
 }
 
-/* The palette's search field is the whole top row of the dialog; the caret and the highlighted row mark focus (mock: no ring). */
+/* The palette's search field fills the dialog's top row, so the focus ring sits inside it (WCAG 2.4.7). */
 [cmdk-input]:focus-visible {
-  outline: none;
+  outline-offset: -2px;
 }
 
 /* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */

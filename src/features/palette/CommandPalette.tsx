@@ -110,7 +110,7 @@ export function CommandPalette({
             value={query}
             onValueChange={setQuery}
             placeholder="Go to a market, switch view, or ask…"
-            className="h-12 min-w-0 flex-1 bg-transparent text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink outline-none placeholder:text-ink-muted"
+            className="h-12 min-w-0 flex-1 bg-transparent px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink outline-none placeholder:text-ink-muted"
           />
         </div>
         <Command.List className="max-h-[min(440px,calc(100dvh-104px-96px))] min-h-0 flex-1 overflow-y-auto p-2 max-lg:max-h-none">
