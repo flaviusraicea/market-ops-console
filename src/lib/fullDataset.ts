@@ -1,5 +1,6 @@
 import raw from "@/data/data.json";
-import { parseDataset, type Dataset } from "@/domain";
+import { type Dataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 
 /**
  * The whole dataset, series included, for the browser. Only the lazily loaded live-mode chunk imports this

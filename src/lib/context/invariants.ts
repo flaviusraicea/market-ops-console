@@ -8,7 +8,7 @@ import type {
   Period,
   RegionId,
 } from "@/domain";
-import { RegionIdSchema } from "@/domain";
+import { isRegionId } from "@/domain/regions";
 
 /** The slice of the dataset the URL layer needs, safe to ship to the client. */
 export type ConsoleMeta = {
@@ -64,8 +64,7 @@ export function normalizeContext(meta: ConsoleMeta, raw: RawContext): Context {
     ctx.region = meta.marketRegion[market] as RegionId;
     if (raw.product && meta.productIds.includes(raw.product)) ctx.product = raw.product;
   } else {
-    const region = RegionIdSchema.safeParse(raw.region);
-    if (region.success) ctx.region = region.data;
+    if (isRegionId(raw.region)) ctx.region = raw.region;
   }
   if (typeof raw.cite === "number" && Number.isInteger(raw.cite) && raw.cite >= 0)
     ctx.cite = raw.cite;

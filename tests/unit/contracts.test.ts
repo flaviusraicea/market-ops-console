@@ -3,13 +3,9 @@ import { ZodError } from "zod";
 
 import raw from "@/data/data.json";
 import fixtures from "@/data/fixtures.json";
-import {
-  AlertRuleSchema,
-  ChatRequestSchema,
-  FixturesFileSchema,
-  parseDataset,
-  parseSseLine,
-} from "@/domain";
+import { AlertRuleSchema } from "@/domain/alerts";
+import { parseDataset } from "@/domain/dataset";
+import { ChatRequestSchema, FixturesFileSchema, parseSseLine } from "@/domain/stream";
 
 const clone = () => structuredClone(raw) as unknown as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 

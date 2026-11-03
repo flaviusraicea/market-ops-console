@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+import { open } from "./helpers";
+
 const URL = "/?mode=analyst";
 
 // Rules live in the browser; every test gets a fresh context, so each starts from an empty list.
@@ -24,7 +26,7 @@ async function openAlerts(page: Page, { remembered = false } = {}) {
 test("an attainment of 120 is invalid, linked to its message, and blocks Save", async ({
   page,
 }) => {
-  await page.goto(URL);
+  await open(page, URL);
   await openAlerts(page);
   const input = card(page).getByRole("textbox", { name: "Attainment below" });
   await input.fill("120");
@@ -39,7 +41,7 @@ test("an attainment of 120 is invalid, linked to its message, and blocks Save", 
 test("Save shows the rule at once as Saving…, then Saved · just now and the evaluation", async ({
   page,
 }) => {
-  await page.goto(URL);
+  await open(page, URL);
   await openAlerts(page);
   await chooseScope(page, "Europe");
   await expect(
@@ -61,7 +63,7 @@ test("Save shows the rule at once as Saving…, then Saved · just now and the e
 test("a failed save shows 97 briefly, then the alert Notice and the saved 95 again", async ({
   page,
 }) => {
-  await page.goto(URL);
+  await open(page, URL);
   await openAlerts(page);
   await chooseScope(page, "Europe");
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
@@ -89,7 +91,7 @@ test("a failed save shows 97 briefly, then the alert Notice and the saved 95 aga
 });
 
 test("Delete asks first, with a danger button, and removes the rule", async ({ page }) => {
-  await page.goto(URL);
+  await open(page, URL);
   await openAlerts(page);
   await chooseScope(page, "Germany");
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
@@ -110,7 +112,7 @@ test("Delete asks first, with a danger button, and removes the rule", async ({ p
 });
 
 test("saved rules survive a reload, and a deleted rule stays gone", async ({ page }) => {
-  await page.goto(URL);
+  await open(page, URL);
   await openAlerts(page);
   await chooseScope(page, "Europe");
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
@@ -152,7 +154,7 @@ test("saved rules survive a reload, and a deleted rule stays gone", async ({ pag
 for (const theme of ["light", "dark"] as const) {
   test(`axe finds no violations on the alerts card (${theme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme });
-    await page.goto(URL);
+    await open(page, URL);
     await openAlerts(page);
     await expect(card(page)).toBeVisible();
     const results = await new AxeBuilder({ page }).analyze();

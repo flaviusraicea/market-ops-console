@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { parseDataset, type Dataset } from "@/domain";
+import type { Dataset } from "@/domain";
 import { DEFAULT_SOURCES_META, SOURCES_META, inlineKey } from "./inlineMap";
 import { sourcesRows, type SourceRow } from "./sourcesRows";
 import type { Resolved } from "./useAnswerMachine";
@@ -14,7 +14,10 @@ let full: Promise<Dataset> | undefined;
  * non-latest rows, so it is fetched as its own chunk the first time an answer with sources renders, then cached.
  */
 export function loadFullDataset(): Promise<Dataset> {
-  full ??= import("@/data/data.json").then((m) => parseDataset(m.default));
+  // The schema library rides in the same lazy chunk as the data it validates.
+  full ??= Promise.all([import("@/data/data.json"), import("@/domain/dataset")]).then(
+    ([data, schema]) => schema.parseDataset(data.default),
+  );
   return full;
 }
 

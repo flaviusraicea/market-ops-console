@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { evaluateRule, parseDataset } from "@/domain";
+import { evaluateRule } from "@/domain/alerts";
+import { parseDataset } from "@/domain/dataset";
 
 const ds = parseDataset(raw);
 const names = (r: { breaching: { name: string }[] }) => r.breaching.map((m) => m.name);

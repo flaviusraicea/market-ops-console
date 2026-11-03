@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { parseDataset, type Context, type Period } from "@/domain";
+import { type Context, type Period } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { overviewVM, regionBarsVM } from "@/features/overview/viewModel";
 import { RADAR_AXES_DERIVED, RADAR_AXES_GIVEN, analystVM } from "@/features/analyst/viewModel";
 

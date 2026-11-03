@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
+import { preload } from "react-dom";
 
+import { GEO_URL } from "@/lib/geoAsset";
 import { REDUCED_MOTION_KEY } from "@/lib/motion";
 import { WebVitals } from "@/lib/vitals";
 import { Providers } from "./providers";
@@ -10,8 +12,10 @@ import "./globals.css";
 
 const display = Source_Serif_4({
   subsets: ["latin"],
-  // next/font only allows the opsz axis on the variable font, so weight is left to the axis (covers 400 and 600).
-  axes: ["opsz"],
+  // Two static weights, no variable file and no italic: about half the bytes of the optical-size axis, and the
+  // headlines never go past 36px where the axis would matter.
+  weight: ["400", "600"],
+  style: "normal",
   variable: "--font-display",
   display: "swap",
   fallback: ["Georgia", "Times New Roman", "serif"],
@@ -36,11 +40,19 @@ const THEME_SCRIPT = `try{var t=localStorage.getItem("mo.theme");if(t==="light"|
 // Same for the console's Reduce motion switch.
 const MOTION_SCRIPT = `try{if(localStorage.getItem("${REDUCED_MOTION_KEY}")==="true")document.documentElement.setAttribute("data-reduced-motion","true")}catch(e){}`;
 
+// Density follows the mode in the URL (lib/density.ts keeps it in step afterwards). Set before first paint, the
+// server-rendered Analyst view already has its compact rows and header; set after hydration it re-flowed the
+// whole page and was the layout shift Lighthouse reported on Analyst links.
+const DENSITY_SCRIPT = `try{document.documentElement.setAttribute("data-density",new URLSearchParams(location.search).get("mode")==="analyst"?"analyst":"overview")}catch(e){}`;
+
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // Starts the map geometry with the HTML instead of after hydration. The request mode and credentials match
+  // the fetch in MapCard (same-origin, so crossOrigin "anonymous"), which is what lets the browser reuse it.
+  preload(GEO_URL, { as: "fetch", crossOrigin: "anonymous" });
   return (
     <html lang="en" className={`${display.variable} ${ui.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + MOTION_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + MOTION_SCRIPT + DENSITY_SCRIPT }} />
       </head>
       <body>
         <Providers>

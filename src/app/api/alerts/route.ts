@@ -1,4 +1,5 @@
-import { AlertRuleSchema, type AlertRule } from "@/domain";
+import { type AlertRule } from "@/domain";
+import { AlertRuleSchema } from "@/domain/alerts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

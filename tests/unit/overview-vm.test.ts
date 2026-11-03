@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { parseDataset, type Context, type Dataset, type Period } from "@/domain";
+import { type Context, type Dataset, type Period } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import {
   attentionVM,
   overviewVM,

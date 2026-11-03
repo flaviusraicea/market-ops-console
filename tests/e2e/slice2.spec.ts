@@ -73,7 +73,7 @@ test("the metric select recolours the map and renames the card", async ({ page }
 });
 
 test("a failed geometry request shows the fallback and forces the table", async ({ page }) => {
-  await page.route("**/geo/markets.json", (route) => route.abort());
+  await page.route("**/geo/markets.*.json", (route) => route.abort());
   await page.goto("/");
   await expect(page.getByText("Map unavailable")).toBeVisible();
   await expect(page.getByText("The market table below has the same data.")).toBeVisible();

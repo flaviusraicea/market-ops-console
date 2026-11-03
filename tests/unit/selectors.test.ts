@@ -9,7 +9,6 @@ import {
   growthPct,
   kpiFor,
   momChangePct,
-  parseDataset,
   periodsForBasis,
   statusCounts,
   topMovers,
@@ -18,6 +17,7 @@ import {
   type Entity,
   type Period,
 } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 
 const ds = parseDataset(raw);
 const p = (s: string) => s as Period;

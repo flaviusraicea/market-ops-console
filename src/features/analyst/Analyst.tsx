@@ -1,20 +1,21 @@
 import type { Context } from "@/domain";
-import { AlertsSection } from "./AlertsSection";
 import { overviewVM, regionBarsVM } from "@/features/overview/viewModel";
 import { ErrorBoundary } from "@/features/shell/ErrorBoundary";
 import { DatasetProvider } from "@/lib/context/dataset";
 import { lightDataset } from "@/lib/context/invariants";
 import { getDataset } from "@/lib/dataset";
-import { AnalystToolbar } from "./AnalystToolbar";
 import {
+  AlertsSection,
+  AnalystToolbar,
   LiveHeatMapCard,
   LiveKpiStrip,
   LiveMapSection,
   LiveMarketGrid,
   LiveRadarCard,
   LiveTimeSeriesCard,
-} from "@/features/live/LiveIslands";
+} from "./AnalystIslands";
 import { LazyFactsTable } from "./LazyFactsTable";
+import { reserveStyle } from "./AnalystSkeletons";
 import { Sheet } from "./Sheet";
 import { analystVM, factsVM } from "./viewModel";
 
@@ -36,7 +37,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
         matDisabled={vm.matDisabled}
         statusRule={vm.statusRule}
       />
-      <Sheet>
+      <Sheet style={reserveStyle(vm.grid.rows.length, Boolean(ctx.market))}>
         <ErrorBoundary widget="kpi-strip">
           <LiveKpiStrip tiles={overview.tiles} />
         </ErrorBoundary>

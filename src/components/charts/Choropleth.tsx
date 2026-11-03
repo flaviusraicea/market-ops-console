@@ -11,7 +11,7 @@ import { Frame } from "./Frame";
 import { colourFor } from "./scales";
 import { useChartKeyboard } from "./useChartKeyboard";
 
-/** GeoJSON with one land feature and one feature per market (public/geo/markets.json). */
+/** GeoJSON with one land feature and one feature per market (public/geo/markets.<hash>.json). */
 export type MapGeo = FeatureCollection;
 export type MapMetric = "attainment" | "revenue" | "growth";
 export type MapStatus = "on_track" | "at_risk" | "off_track";
@@ -104,6 +104,11 @@ function MapSvg({
     return geoPath(projection);
   }, [land, width, height]);
 
+  // Path strings are the expensive part (d3-geo projects every vertex), and a tooltip move re-renders this
+  // component, so they are built once per geometry and size.
+  const landD = useMemo(() => (land ? (path(land) ?? "") : ""), [land, path]);
+  const marketD = useMemo(() => markets.map((f) => path(f) ?? ""), [markets, path]);
+
   const max = useMemo(() => Math.max(...Object.values(values).map((v) => v.value), 0), [values]);
 
   const counts = useMemo(() => {
@@ -172,12 +177,7 @@ function MapSvg({
         desc={desc}
       >
         {land ? (
-          <path
-            d={path(land) ?? ""}
-            fill="var(--map-land)"
-            stroke="var(--border)"
-            strokeWidth={0.5}
-          />
+          <path d={landD} fill="var(--map-land)" stroke="var(--border)" strokeWidth={0.5} />
         ) : null}
         {markets.map((f, i) => {
           const id = marketIdOf(f)!;
@@ -190,7 +190,7 @@ function MapSvg({
               ref={(el) => {
                 pathRefs.current[i] = el;
               }}
-              d={path(f) ?? ""}
+              d={marketD[i] ?? ""}
               role="button"
               tabIndex={i === keyboard.activeIndex ? 0 : -1}
               aria-label={`${v.name}, ${v.statusLabel.toLowerCase()}, ${v.label}`}

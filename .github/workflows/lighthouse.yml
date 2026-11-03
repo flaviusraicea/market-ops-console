@@ -18,7 +18,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       # Serves the production build (next start) and audits "/" and an Analyst URL, 3 runs each.
-      # Accessibility below 0.95 fails the job; performance assertions only warn (see docs/performance-monitoring.md).
+      # Every assertion is an error: accessibility, performance, LCP, CLS, TBT and script weight (see docs/performance-monitoring.md).
       - run: pnpm exec lhci autorun
         env:
           LHCI_UPLOAD__TARGET: temporary-public-storage

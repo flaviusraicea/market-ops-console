@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useSyncExternalStore } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useId, useState, useSyncExternalStore } from "react";
 
 import { cn } from "@/components/cn";
 import { ChevronDown, ICON_STROKE } from "@/components/icons";
@@ -24,8 +25,20 @@ function summaryOf(rules: { metric: keyof typeof METRIC_LABEL }[]): string {
   return `${rules.length} ${rules.length === 1 ? "rule" : "rules"} · ${names(unique)}`;
 }
 
-/** Alerts folded away at the end of the sheet; opening shows the form and the saved rules. */
+/**
+ * Alerts folded away at the end of the sheet; opening shows the form and the saved rules. TanStack Query is
+ * only used by the alert mutations, so its provider lives here and rides in this lazy chunk.
+ */
 export function AlertsSection() {
+  const [client] = useState(() => new QueryClient());
+  return (
+    <QueryClientProvider client={client}>
+      <AlertsSectionBody />
+    </QueryClientProvider>
+  );
+}
+
+function AlertsSectionBody() {
   const alerts = useAlertSave();
   const headingId = useId();
   const open = useSyncExternalStore(openState.subscribe, readOpen, () => false);

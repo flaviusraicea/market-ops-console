@@ -1,13 +1,6 @@
 "use client";
 
 import type { Context as Cx, Dataset as Ds } from "@/domain";
-import { HeatMapCard } from "@/features/analyst/HeatMapCard";
-import { KpiStrip } from "@/features/analyst/KpiStrip";
-import { MapSection } from "@/features/analyst/MapSection";
-import { MarketGrid } from "@/features/analyst/MarketGrid";
-import { RadarCard } from "@/features/analyst/RadarCard";
-import { TimeSeriesCard } from "@/features/analyst/TimeSeriesCard";
-import type { AnalystVM } from "@/features/analyst/viewModel";
 import { AttentionList } from "@/features/overview/AttentionList";
 import { KpiRow } from "@/features/overview/KpiRow";
 import { MapCard } from "@/features/overview/MapCard";
@@ -28,15 +21,13 @@ import { useLiveVM } from "./LiveProvider";
  * One wrapper per widget that moves in live mode. Each takes the same props as the widget, hands the server's
  * view model to `useLiveVM`, and renders the widget with whichever model comes back. Until Live is turned on
  * the server's model is returned untouched and nothing else loads. The selectors are module-level so they
- * are stable for the hook. This file is a deliberate registry of those wrappers, one line of logic each.
+ * are stable for the hook. This file is the registry for the Overview wrappers, one line of logic each; the
+ * Analyst ones live in analyst/AnalystIslands.tsx so Overview does not download their widgets.
  */
 
 const tiles = (e: Engine, ds: Ds, cx: Cx) => e.overview(ds, cx).tiles;
 export function LiveKpiRow({ tiles: initial }: { tiles: OverviewVM["tiles"] }) {
   return <KpiRow tiles={useLiveVM(initial, tiles)} />;
-}
-export function LiveKpiStrip({ tiles: initial }: { tiles: OverviewVM["tiles"] }) {
-  return <KpiStrip tiles={useLiveVM(initial, tiles)} />;
 }
 
 const verdict = (e: Engine, ds: Ds, cx: Cx) => e.verdict(ds, cx);
@@ -62,33 +53,4 @@ export function LiveMapCard({ map: initial }: { map: OverviewVM["map"] }) {
 const regionBars = (e: Engine, ds: Ds, cx: Cx) => e.regionBars(ds, cx);
 export function LiveRegionBars({ bars }: { bars: RegionBarsVM }) {
   return <RegionBars bars={useLiveVM(bars, regionBars)} />;
-}
-export function LiveMapSection({
-  map: initialMap,
-  regions,
-}: {
-  map: OverviewVM["map"];
-  regions: RegionBarsVM;
-}) {
-  return <MapSection map={useLiveVM(initialMap, map)} regions={useLiveVM(regions, regionBars)} />;
-}
-
-const grid = (e: Engine, ds: Ds, cx: Cx) => e.analyst(ds, cx).grid;
-export function LiveMarketGrid({ grid: initial }: { grid: AnalystVM["grid"] }) {
-  return <MarketGrid grid={useLiveVM(initial, grid)} />;
-}
-
-const timeSeries = (e: Engine, ds: Ds, cx: Cx) => e.analyst(ds, cx).timeSeries;
-export function LiveTimeSeriesCard({ vm }: { vm: AnalystVM["timeSeries"] }) {
-  return <TimeSeriesCard vm={useLiveVM(vm, timeSeries)} />;
-}
-
-const radar = (e: Engine, ds: Ds, cx: Cx) => e.analyst(ds, cx).radar;
-export function LiveRadarCard({ vm, rowLabel }: { vm: AnalystVM["radar"]; rowLabel: string }) {
-  return <RadarCard vm={useLiveVM(vm, radar)} rowLabel={rowLabel} />;
-}
-
-const heatMap = (e: Engine, ds: Ds, cx: Cx) => e.analyst(ds, cx).heatMap;
-export function LiveHeatMapCard({ vm }: { vm: AnalystVM["heatMap"] }) {
-  return <HeatMapCard vm={useLiveVM(vm, heatMap)} />;
 }

@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import { breadcrumbTrail, entityName, entityOf } from "@/domain";
 import { Panel } from "@/features/assistant/Panel";
 import { Analyst } from "@/features/analyst/Analyst";
+import { AnalystSkeleton, reserveStyle } from "@/features/analyst/AnalystSkeletons";
+import { gridRowCount } from "@/features/analyst/viewModel";
 import { Overview } from "@/features/overview/Overview";
 import { OverviewSkeleton } from "@/features/overview/OverviewSkeleton";
 import { panelContextVM } from "@/features/overview/viewModel";
@@ -32,6 +34,17 @@ export default async function Page({ searchParams }: PageProps) {
   const ds = getDataset();
   const ctx = parseContextFromSearchParams(ds, await searchParams);
   const meta = metaFromDataset(ds);
+  // The fallback shows until the dashboard streams in, so it has the dashboard's shape: Analyst's own skeleton
+  // holds each section at its height, which keeps the swap from shifting the page.
+  const fallback =
+    ctx.mode === "analyst" ? (
+      <AnalystSkeleton
+        style={reserveStyle(gridRowCount(ds, ctx), Boolean(ctx.market))}
+        facts={Boolean(ctx.facts)}
+      />
+    ) : (
+      <OverviewSkeleton />
+    );
 
   return (
     <ConsoleMetaProvider meta={meta}>
@@ -49,7 +62,7 @@ export default async function Page({ searchParams }: PageProps) {
               />
             }
             dashboard={
-              <Suspense fallback={<OverviewSkeleton />}>
+              <Suspense fallback={fallback}>
                 {ctx.mode === "analyst" ? <Analyst ctx={ctx} /> : <Overview ctx={ctx} />}
               </Suspense>
             }

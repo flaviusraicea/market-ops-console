@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import data from "@/data/data.json";
-import { breadcrumbTrail, parseDataset, type Context, type Period } from "@/domain";
+import { breadcrumbTrail, type Context, type Period } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { withDataset } from "../../../.storybook/decorators";
 import { Header } from "./Header";
 

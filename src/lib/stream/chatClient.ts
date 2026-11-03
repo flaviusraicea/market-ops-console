@@ -1,4 +1,5 @@
-import { parseSseLine, type ChatContext, type ChatRequest, type SseEvent } from "@/domain";
+import { parseSseLineLite } from "@/domain/sseGuard";
+import type { ChatContext, ChatRequest, SseEvent } from "@/domain";
 
 /** Events the client emits: the wire contract plus one internal event for a user abort. */
 export type StreamEvent = SseEvent | { type: "aborted" };
@@ -36,7 +37,7 @@ function parseBlock(block: string): SseEvent[] {
   for (const line of block.split("\n")) {
     if (!line.startsWith("data:")) continue;
     try {
-      const event = parseSseLine(line);
+      const event = parseSseLineLite(line);
       if (event) events.push(event);
     } catch {
       const type = peekType(line);
