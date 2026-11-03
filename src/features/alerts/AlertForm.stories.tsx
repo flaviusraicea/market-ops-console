@@ -129,6 +129,7 @@ export const Failed: Story = {
     failure: {
       vars: { rules: [], fail: true },
       restored: { growth: 0, attainment: 95 },
+      readOnly: false,
     },
   },
   render: withList(rows),
@@ -141,5 +142,25 @@ export const Failed: Story = {
     );
     await userEvent.click(within(notice).getByRole("button", { name: "Try again" }));
     await expect(args.onRetry).toHaveBeenCalled();
+  },
+};
+
+export const RefusedForRole: Story = {
+  args: {
+    onSwitchToAnalyst: fn(),
+    failure: {
+      vars: { rules: [], fail: false },
+      restored: { growth: 0, attainment: 95 },
+      readOnly: true,
+    },
+  },
+  render: withList(rows),
+  play: async ({ canvasElement, args }) => {
+    const notice = within(canvasElement).getByRole("alert");
+    await expect(notice).toHaveTextContent("Rules are read-only for Executives.");
+    // Trying again could never succeed, so it is not offered.
+    await expect(within(notice).queryByRole("button", { name: "Try again" })).toBeNull();
+    await userEvent.click(within(notice).getByRole("button", { name: "Switch to Analyst" }));
+    await expect(args.onSwitchToAnalyst).toHaveBeenCalled();
   },
 };

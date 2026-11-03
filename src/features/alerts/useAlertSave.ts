@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { AlertRule } from "@/domain";
 import { logEvent } from "@/lib/events";
-import { alertApi, type AlertApi } from "./api";
+import { ReadOnlyRoleError, alertApi, type AlertApi } from "./api";
 import { scopeToValue } from "./labels";
 import { subscribeToRules } from "./storage";
 
@@ -22,6 +22,8 @@ type SaveVars = { rules: AlertRule[]; fail: boolean };
 export type SaveFailure = {
   vars: SaveVars;
   restored: { growth: number; attainment: number };
+  /** The role may not edit rules, so Try again would fail the same way. */
+  readOnly: boolean;
 };
 
 export type SaveStatus = "idle" | "saving" | "saved";
@@ -80,6 +82,7 @@ export function useAlertSave(api: AlertApi = alertApi) {
   const [failure, setFailure] = useState<SaveFailure | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [deleteFailed, setDeleteFailed] = useState(false);
+  const [deleteReadOnly, setDeleteReadOnly] = useState(false);
 
   const list = useQuery({
     queryKey: ALERTS_KEY,
@@ -113,7 +116,11 @@ export function useAlertSave(api: AlertApi = alertApi) {
       const previous = ctx?.previous ?? [];
       qc.setQueryData<RuleRow[]>(ALERTS_KEY, previous);
       const scope = vars.rules[0]?.scope ?? "portfolio";
-      setFailure({ vars, restored: thresholdsFor(previous, scope) });
+      setFailure({
+        vars,
+        restored: thresholdsFor(previous, scope),
+        readOnly: error instanceof ReadOnlyRoleError,
+      });
       logEvent({ type: "alert_save_failed", message: error.message });
     },
     onSuccess: () => {
@@ -134,11 +141,13 @@ export function useAlertSave(api: AlertApi = alertApi) {
         previous.filter((r) => r.id !== id),
       );
       setDeleteFailed(false);
+      setDeleteReadOnly(false);
       return { previous };
     },
     onError: (error, _vars, ctx) => {
       qc.setQueryData<RuleRow[]>(ALERTS_KEY, ctx?.previous ?? []);
       setDeleteFailed(true);
+      setDeleteReadOnly(error instanceof ReadOnlyRoleError);
       logEvent({ type: "alert_save_failed", message: error.message });
     },
     onSettled: () => settle(),
@@ -171,6 +180,7 @@ export function useAlertSave(api: AlertApi = alertApi) {
     dismiss: useCallback(() => setFailure(null), []),
     remove: useCallback((id: string) => remove.mutate({ id }), [remove]),
     deleteFailed,
+    deleteReadOnly,
     dismissDeleteFailed: useCallback(() => setDeleteFailed(false), []),
   };
 }

@@ -70,6 +70,35 @@ describe("useAlertSave", () => {
     expect(result.current.failure?.restored).toEqual({ growth: 0, attainment: 95 });
   });
 
+  it("marks a 403 read_only_role as read-only, for a save and for a delete", async () => {
+    const refuse = () =>
+      ok({ error: "read_only_role", message: "Rules are read-only for Executives." }, 403);
+    const { result } = setup((url, init) => (init?.method ? refuse() : ok({ rules: [saved] })));
+    await waitFor(() => expect(result.current.rules).toHaveLength(1));
+
+    act(() => result.current.save([next], { fail: false }));
+    await waitFor(() => expect(result.current.failure).not.toBeNull());
+    expect(result.current.failure?.readOnly).toBe(true);
+    expect(result.current.rules[0]).toMatchObject({ threshold: 95 });
+
+    act(() => result.current.remove("r1"));
+    await waitFor(() => expect(result.current.deleteFailed).toBe(true));
+    expect(result.current.deleteReadOnly).toBe(true);
+    expect(result.current.rules).toHaveLength(1);
+  });
+
+  it("a plain 500 is not read-only", async () => {
+    const { result } = setup((url, init) =>
+      init?.method === "POST"
+        ? ok({ message: "Save failed (simulated)" }, 500)
+        : ok({ rules: [saved] }),
+    );
+    await waitFor(() => expect(result.current.rules).toHaveLength(1));
+    act(() => result.current.save([next], { fail: true }));
+    await waitFor(() => expect(result.current.failure).not.toBeNull());
+    expect(result.current.failure?.readOnly).toBe(false);
+  });
+
   it("Try again posts the same payload again", async () => {
     let posts = 0;
     const { result, fetchMock } = setup((url, init) => {

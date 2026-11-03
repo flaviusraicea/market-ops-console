@@ -5,11 +5,15 @@ import { useId, useSyncExternalStore } from "react";
 import { cn } from "@/components/cn";
 import { ChevronDown, ICON_STROKE } from "@/components/icons";
 import { Eyebrow } from "@/components/Eyebrow";
+import { Notice } from "@/components/Notice";
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertForm } from "@/features/alerts/AlertForm";
 import { METRIC_LABEL } from "@/features/alerts/labels";
 import { RuleList } from "@/features/alerts/RuleList";
 import { useAlertSave } from "@/features/alerts/useAlertSave";
+import { useRole } from "@/lib/role";
+import { canEditAlerts } from "@/lib/roles";
 import { createStoredState } from "@/lib/storedState";
 
 const openState = createStoredState("market-ops:alerts-open", "session");
@@ -25,7 +29,14 @@ function summaryOf(rules: { metric: keyof typeof METRIC_LABEL }[]): string {
 }
 
 /** Alerts folded away at the end of the sheet; opening shows the form and the saved rules. */
-export function AlertsSection() {
+export function AlertsSection({
+  readOnly = false,
+  onSwitchToAnalyst,
+}: {
+  /** An Executive reads the rules but cannot change them. */
+  readOnly?: boolean;
+  onSwitchToAnalyst?: () => void;
+}) {
   const alerts = useAlertSave();
   const headingId = useId();
   const open = useSyncExternalStore(openState.subscribe, readOpen, () => false);
@@ -51,23 +62,52 @@ export function AlertsSection() {
         </h3>
         <CollapsibleContent>
           <div className="flex flex-col gap-4 px-[var(--pad-card)] pb-[var(--pad-card)]">
+            {readOnly ? (
+              <Notice
+                tone="neutral"
+                title="Read-only for Executives."
+                actions={
+                  <Button type="button" variant="ghost" onClick={() => onSwitchToAnalyst?.()}>
+                    Switch to Analyst
+                  </Button>
+                }
+              >
+                Switch to Analyst to edit rules.
+              </Notice>
+            ) : null}
             <AlertForm
+              readOnly={readOnly}
               saveRule={alerts.save}
               status={alerts.status}
               savedAt={alerts.savedAt}
               failure={alerts.failure}
               onRetry={alerts.retry}
               onDismiss={alerts.dismiss}
+              onSwitchToAnalyst={onSwitchToAnalyst}
             />
             <RuleList
               rules={alerts.rules}
               onDelete={alerts.remove}
               deleteFailed={alerts.deleteFailed}
               onDismissDeleteFailed={alerts.dismissDeleteFailed}
+              deleteReadOnly={alerts.deleteReadOnly}
+              onSwitchToAnalyst={onSwitchToAnalyst}
+              readOnly={readOnly}
             />
           </div>
         </CollapsibleContent>
       </section>
     </Collapsible>
+  );
+}
+
+/** The section for the signed-in role. */
+export function ConnectedAlertsSection() {
+  const { role, switchRole } = useRole();
+  return (
+    <AlertsSection
+      readOnly={!canEditAlerts(role)}
+      onSwitchToAnalyst={() => switchRole("analyst")}
+    />
   );
 }

@@ -12,7 +12,7 @@ describe("parseContextFromSearchParams", () => {
     const ctx = parseContextFromSearchParams(ds, { market: "de" });
     expect(ctx.region).toBe("eu");
     expect(ctx.period).toBe("2026-05");
-    expect(ctx.mode).toBe("overview");
+    expect(ctx.mode).toBe("executive");
   });
   it("clamps an unknown period and drops a product without a market", () => {
     const ctx = parseContextFromSearchParams(ds, { period: "2030-01", product: "veltrix" });
@@ -41,7 +41,7 @@ describe("applyContextChange invariants", () => {
   const meta = metaFromDataset(ds);
   const base = {
     period: "2026-05",
-    mode: "overview",
+    mode: "executive",
     metric: "attainment",
     basis: "month",
   } as const;

@@ -15,7 +15,7 @@ test("cold open content", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Market Ops");
   await expect(page.getByText(/data through may 2026/i)).toBeVisible();
-  await expect(page.getByRole("radio", { name: "Overview" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Executive" })).toBeChecked();
   for (const name of [
     "Which markets are at risk?",
     "Why did Germany dip?",
@@ -35,7 +35,7 @@ test("tab order at the latest period skips the wordmark and has no period chip",
     { role: "combobox", name: "Period" },
     { role: "button", name: "Live" },
     { role: "button", name: "Paused" },
-    { role: "radio", name: "Overview" },
+    { role: "radio", name: "Executive" },
     { role: "button", name: "Switch to dark theme" },
   ]);
 });
@@ -52,7 +52,7 @@ test("tab order on a drilled earlier period", async ({ page }) => {
     { role: "combobox", name: "Period" },
     { role: "button", name: "Live" },
     { role: "button", name: "Paused" },
-    { role: "radio", name: "Overview" },
+    { role: "radio", name: "Executive" },
     { role: "button", name: "Switch to dark theme" },
   ]);
 });

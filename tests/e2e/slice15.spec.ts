@@ -156,7 +156,7 @@ test("the map table and the legend still work at the new position", async ({ pag
 test("tab order from the skip link", async ({ page }) => {
   await page.goto("/");
   const seen: string[] = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 11; i++) {
     await page.keyboard.press("Tab");
     seen.push(
       await page.evaluate(() => {
@@ -165,16 +165,17 @@ test("tab order from the skip link", async ({ page }) => {
       }),
     );
   }
-  expect(seen.slice(0, 6)).toEqual([
+  expect(seen.slice(0, 7)).toEqual([
     "Skip to content",
     "Period",
     "Live",
     "Paused",
-    "Overview",
+    "Executive",
     "Switch to dark theme",
+    "Signed in as Dana Whitfield, Executive. Account menu",
   ]);
-  expect(seen[6]).toBe("About this verdict");
-  expect(seen.slice(7, 10)).toEqual([
+  expect(seen[7]).toBe("About this verdict");
+  expect(seen.slice(8, 11)).toEqual([
     "Drill into North America · 2",
     "United States, on track",
     "Canada, on track",

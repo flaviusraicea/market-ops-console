@@ -144,9 +144,9 @@ Known disagreements in the shipped data: the at-risk fixture names Germany, Ital
 
 ## 9. Context (navigation) sub-model
 
-`Context { region?: regionId, market?: marketId, product?: productId, period: Period, mode: "overview" | "analyst", metric: "attainment" | "revenue" | "growth", cite?: citationIndex }`
+`Context { region?: regionId, market?: marketId, product?: productId, period: Period, mode: "executive" | "analyst", metric: "attainment" | "revenue" | "growth", cite?: citationIndex }`
 
-- Invariants: market implies its region; product implies a market; period is within `meta.periods`; defaults are portfolio, latest period, overview, attainment.
+- Invariants: market implies its region; product implies a market; period is within `meta.periods`; defaults are portfolio, latest period, the signed-in role's view (executive or analyst), attainment.
 - Every widget reads Context and writes it through one API, so a map click, a breadcrumb, a heat-map cell and a citation chip are the same operation.
 - Context is serialised to the URL. Mode is part of it so a shared link opens at the sender's depth.
 

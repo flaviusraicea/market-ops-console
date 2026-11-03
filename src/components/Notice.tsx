@@ -1,35 +1,48 @@
 import type { ReactNode } from "react";
 
-import { CircleAlert, ICON_STROKE } from "@/components/icons";
+import { CircleAlert, Info, ICON_STROKE } from "@/components/icons";
 import { cn } from "@/components/cn";
 
 // Design-system.md 6.12: one component for stream errors, failed-save rollbacks and blocking errors.
+// `neutral` is the same shape for a plain statement of fact (a permission, a limit): surface fill, accent rule.
 export function Notice({
   title,
   children,
   actions,
+  tone = "bad",
   className,
 }: {
   title: string;
   children?: ReactNode;
   actions?: ReactNode;
+  tone?: "bad" | "neutral";
   className?: string;
 }) {
+  const neutral = tone === "neutral";
+  const Icon = neutral ? Info : CircleAlert;
   return (
     <div
-      role="alert"
+      role={neutral ? "note" : "alert"}
       className={cn(
-        "flex gap-3 rounded-card border border-bad-mark bg-bad-bg p-[var(--pad-card)] shadow-[inset_4px_0_0_var(--bad-mark)]",
+        "flex gap-3 rounded-card border p-[var(--pad-card)]",
+        neutral
+          ? "border-border bg-surface-2 shadow-[inset_4px_0_0_var(--accent)]"
+          : "border-bad-mark bg-bad-bg shadow-[inset_4px_0_0_var(--bad-mark)]",
         className,
       )}
     >
-      <CircleAlert
+      <Icon
         aria-hidden
-        className="mt-0.5 size-5 shrink-0 text-bad-text"
+        className={cn("mt-0.5 size-5 shrink-0", neutral ? "text-accent" : "text-bad-text")}
         strokeWidth={ICON_STROKE}
       />
       <div className="flex min-w-0 flex-col gap-1">
-        <p className="text-[length:var(--text-body)] leading-[var(--text-body-lh)] font-semibold text-bad-text">
+        <p
+          className={cn(
+            "text-[length:var(--text-body)] leading-[var(--text-body-lh)] font-semibold",
+            neutral ? "text-ink" : "text-bad-text",
+          )}
+        >
           {title}
         </p>
         {children ? (

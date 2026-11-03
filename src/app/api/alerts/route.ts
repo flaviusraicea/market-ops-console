@@ -1,4 +1,7 @@
 import { AlertRuleSchema, type AlertRule } from "@/domain";
+import type { NextRequest } from "next/server";
+
+import { DEFAULT_ROLE, ROLE_COOKIE, canEditAlerts, parseRole } from "@/lib/roles";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,9 +13,17 @@ const LATENCY_MS = 600;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const json = (body: unknown, status = 200) => Response.json(body, { status });
 
+/** Executives read alert rules; only an Analyst changes them. */
+const forbidden = (req: NextRequest) =>
+  canEditAlerts(parseRole(req.cookies.get(ROLE_COOKIE)?.value) ?? DEFAULT_ROLE)
+    ? null
+    : json({ error: "read_only_role", message: "Rules are read-only for Executives." }, 403);
+
 const shouldFail = (req: Request) => new URL(req.url).searchParams.get("fail") === "1";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const denied = forbidden(req);
+  if (denied) return denied;
   let body: unknown;
   try {
     body = await req.json();
@@ -35,7 +46,9 @@ export async function POST(req: Request) {
   return json({ rule });
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
+  const denied = forbidden(req);
+  if (denied) return denied;
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return json({ message: "Missing id", issues: [] }, 400);
 

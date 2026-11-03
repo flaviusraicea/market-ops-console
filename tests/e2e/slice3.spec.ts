@@ -110,7 +110,7 @@ test("the header keeps one row and the same height from portfolio to Germany · 
     [
       page.getByRole("combobox", { name: "Product" }),
       page.getByRole("combobox", { name: "Period" }),
-      page.getByRole("radiogroup", { name: "View mode" }),
+      page.getByRole("radiogroup", { name: "View" }),
       page.getByRole("button", { name: /Switch to (dark|light) theme/ }),
     ].map(async (l) => {
       const b = (await l.boundingBox())!;

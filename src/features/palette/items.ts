@@ -42,7 +42,7 @@ type BuildState = {
 };
 
 const MODE_LABEL: Record<Mode, string> = {
-  overview: "Switch to Executive overview",
+  executive: "Switch to Executive overview",
   analyst: "Switch to Analyst deep-dive",
 };
 
@@ -93,7 +93,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
     });
   }
 
-  const otherMode: Mode = state.mode === "analyst" ? "overview" : "analyst";
+  const otherMode: Mode = state.mode === "analyst" ? "executive" : "analyst";
   groups.push(
     {
       id: "views",

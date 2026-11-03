@@ -1,5 +1,5 @@
 import type { Context } from "@/domain";
-import { AlertsSection } from "./AlertsSection";
+import { ConnectedAlertsSection } from "./AlertsSection";
 import { overviewVM, regionBarsVM } from "@/features/overview/viewModel";
 import { ErrorBoundary } from "@/features/shell/ErrorBoundary";
 import { DatasetProvider } from "@/lib/context/dataset";
@@ -64,7 +64,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
         </div>
         <ErrorBoundary widget="alerts">
           <DatasetProvider dataset={lightDataset(ds)}>
-            <AlertsSection />
+            <ConnectedAlertsSection />
           </DatasetProvider>
         </ErrorBoundary>
       </Sheet>

@@ -15,7 +15,7 @@ import {
 const ds = parseDataset(raw);
 const base: Context = {
   period: "2026-05" as Period,
-  mode: "overview",
+  mode: "executive",
   metric: "attainment",
   basis: "month",
 };
@@ -107,7 +107,7 @@ describe("overview view model", () => {
   });
 
   it("the executive map ignores the URL metric and reads attainment", () => {
-    const map = overviewVM(ds, { ...base, mode: "overview", metric: "growth" }).map;
+    const map = overviewVM(ds, { ...base, mode: "executive", metric: "growth" }).map;
     expect(map.metric).toBe("attainment");
     expect(map.values["de"]?.label).toBe("92.0% attainment");
   });
