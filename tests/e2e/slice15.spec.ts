@@ -274,11 +274,14 @@ test("the info button names the figure in sentence case", async ({ page }) => {
   await expect(page.getByRole("button", { name: "About Germany revenue" })).toBeVisible();
 });
 
-test("Analyst shows tile provenance as visible text", async ({ page }) => {
+test("Analyst says the strip provenance once, as visible text", async ({ page }) => {
   await open(page, "/?mode=analyst");
+  const line = page.locator('[data-slot="kpi-provenance-line"]');
+  await expect(line).toHaveText("Derived · sum of series · Source data.json");
+  await expect(line).toBeVisible();
+  // Said once for the strip: the tiles carry no caption of their own.
   const tile = page.getByRole("group", { name: "FORECAST ATTAINMENT" });
-  await expect(tile.getByText("Derived · sum of series")).toBeVisible();
-  await expect(tile.locator("[title]")).toHaveCount(0);
+  await expect(tile.getByText("Derived · sum of series")).toHaveCount(0);
 });
 
 test.describe("on a touch screen", () => {

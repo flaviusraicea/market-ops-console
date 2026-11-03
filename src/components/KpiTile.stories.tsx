@@ -113,7 +113,32 @@ export const Strip: Story = {
   play: async ({ canvasElement }) => {
     const delta = canvasElement.querySelector('[data-slot="kpi-delta"]')!;
     await expect(delta).toHaveTextContent("+7.3%vs May 2025");
-    await expect(within(canvasElement).getByText("Derived · sum of series")).toBeVisible();
+    // The strip says its provenance once, below the row; the cell carries none of its own.
+    await expect(within(canvasElement).queryByText("Derived · sum of series")).toBeNull();
     await expect(canvasElement.querySelector("[title]")).toBeNull();
+  },
+};
+
+/** At a market or product the fourth tile is its status: the shared badge, with a one-line caption. */
+export const Status: Story = {
+  args: {
+    label: "STATUS",
+    headline: "Off track",
+    status: { status: "off_track", label: "Off track" },
+    delta: { direction: "flat", value: "Attainment 92.0% · Growth -1.2%", comparison: "" },
+    provenance: "Source · data.json",
+  },
+  decorators: [
+    (Story) => (
+      <div className="w-56 p-4">
+        <Story />
+      </div>
+    ),
+  ],
+  play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector('[data-slot="status-badge"]')).not.toBeNull();
+    const caption = canvasElement.querySelector('[data-slot="kpi-delta"]')!;
+    await expect(caption).toHaveAttribute("title", "Attainment 92.0% · Growth -1.2%");
+    await expect(caption.getBoundingClientRect().height).toBeLessThanOrEqual(18);
   },
 };

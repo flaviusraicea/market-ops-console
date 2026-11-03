@@ -427,33 +427,77 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   animation: sheet-out var(--dur-base) var(--ease-in) forwards;
 }
 
-/* Reduced motion: the overlay cross-fades and does not move. */
+/* Mount fade for things that appear without an exit: the chart tooltip (100 ms) and the saved badge (150 ms). */
+.fade-in {
+  animation: scrim-in var(--fade-dur, var(--dur-fast)) var(--ease-out);
+}
+
+/* The assistant panel slides 16 px in and fades as it opens. The columns around it switch at once. */
+@keyframes panel-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+}
+.panel-enter {
+  animation: panel-in var(--dur-enter) var(--spring-smooth);
+}
+
+/* Reduced motion: overlays cross-fade over a fixed 200 ms (popovers 150 ms) and do not move. Opacity is not
+   motion, so these durations are literal: the duration tokens are 0 under reduced motion. The selectors are more
+   specific than the blanket rule above and carry !important to beat its 0.01ms. */
 @media (prefers-reduced-motion: reduce) {
   [data-slot="dialog-content"][data-state],
   [data-slot="command-dialog"][data-state],
+  [data-slot="bottom-sheet-content"][data-state],
+  .panel-enter {
+    animation-name: scrim-in;
+    animation-duration: 200ms !important;
+    animation-timing-function: var(--ease-out);
+    transform: none;
+  }
   [data-slot="dropdown-menu-content"][data-state],
   [data-slot="select-content"][data-state],
   [data-slot="tooltip-content"][data-state] {
     animation-name: scrim-in;
+    animation-duration: 150ms !important;
+    animation-timing-function: var(--ease-out);
+    transform: none;
   }
   [data-slot="dialog-content"][data-state="closed"],
   [data-slot="command-dialog"][data-state="closed"],
+  [data-slot="bottom-sheet-content"][data-state="closed"],
   [data-slot="dropdown-menu-content"][data-state="closed"],
   [data-slot="select-content"][data-state="closed"],
   [data-slot="tooltip-content"][data-state="closed"] {
     animation-name: scrim-out;
-  }
-  [data-slot="bottom-sheet-content"][data-state="open"] {
-    animation-name: scrim-in;
-  }
-  [data-slot="bottom-sheet-content"][data-state="closed"] {
-    animation-name: scrim-out;
+    animation-timing-function: var(--ease-in);
   }
 }
-html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state="open"],
-html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state="open"],
-html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state="open"] {
+html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state],
+html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state],
+html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state],
+html[data-reduced-motion="true"] .panel-enter {
   animation-name: scrim-in;
+  animation-duration: 200ms !important;
+  transform: none;
+}
+html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state="closed"] {
+  animation-name: scrim-out;
+}
+html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state],
+html[data-reduced-motion="true"] [data-slot="select-content"][data-state],
+html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state] {
+  animation-name: scrim-in;
+  animation-duration: 150ms !important;
+  transform: none;
+}
+html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="select-content"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="closed"] {
+  animation-name: scrim-out;
 }
 
 /*

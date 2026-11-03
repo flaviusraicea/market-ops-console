@@ -42,6 +42,8 @@ export type KpiTileVM = {
   provenance: string;
   /** Accessible name of the info button, in sentence case, for example "About Germany revenue". */
   infoLabel: string;
+  /** The status tile shows this badge in place of a figure. */
+  status?: { status: Status; label: string };
   trend?: { actual: number[]; forecast: number[]; label: string };
 };
 
@@ -180,6 +182,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
     attention = {
       label: "STATUS",
       headline: STATUS_LABEL[only.kpis.status],
+      status: { status: only.kpis.status, label: STATUS_LABEL[only.kpis.status] },
       delta: {
         direction: "flat",
         value: `Attainment ${formatPct(k.attainmentPct, { sign: false })} · Growth ${formatPct(k.growthPct, { sign: true })}`,

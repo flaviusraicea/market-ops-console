@@ -2,6 +2,8 @@ import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Minus } from "@/components/i
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { InfoTip } from "@/components/InfoTip";
+import { StatusBadge } from "@/components/StatusBadge";
+import type { Status } from "@/domain";
 import { Sparkline } from "@/components/charts/Sparkline";
 
 export type Direction = "up" | "down" | "flat";
@@ -19,7 +21,9 @@ export type KpiTileProps = {
   infoLabel?: string;
   /** Monthly actuals with the forecast beside them, drawn as a small line under the headline. */
   trend?: { actual: readonly number[]; forecast: readonly number[]; label: string } | undefined;
-  /** `strip` is the Analyst ledger cell: no card, one line of eyebrow, headline and delta, provenance in a tooltip. */
+  /** The status tile shows the status badge in place of a figure; `headline` still holds its text. */
+  status?: { status: Status; label: string };
+  /** `strip` is the Analyst ledger cell: the same content as the tile, without its own card. */
   variant?: "tile" | "strip";
   className?: string;
 };
@@ -41,52 +45,22 @@ export function KpiTile({
   provenance,
   infoLabel = "About this figure",
   trend,
+  status,
   variant = "tile",
   className,
 }: KpiTileProps) {
   const Icon = DELTA_ICON[delta.direction];
-  if (variant === "strip") {
-    return (
-      <div
-        role="group"
-        aria-label={label}
-        className={cn("flex min-w-0 flex-col gap-0.5 px-[var(--pad-card)] py-2", className)}
-      >
-        <Eyebrow as="p">{label}</Eyebrow>
-        <p className="flex flex-wrap items-baseline gap-x-2">
-          <span
-            data-slot="kpi-headline"
-            className="num font-[family-name:var(--font-display)] text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-semibold tracking-[var(--text-kpi-ls)]"
-          >
-            {headline}
-          </span>
-          <span
-            data-slot="kpi-delta"
-            data-direction={delta.direction}
-            className="num inline-flex items-center gap-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]"
-          >
-            <Icon
-              aria-hidden
-              className={cn("size-3 shrink-0", DELTA_STYLE[delta.direction])}
-              strokeWidth={ICON_STROKE}
-            />
-            <span className={cn("font-medium", DELTA_STYLE[delta.direction])}>{delta.value}</span>
-            {delta.comparison ? <span className="text-ink-muted">{delta.comparison}</span> : null}
-          </span>
-        </p>
-        <p className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
-          {provenance}
-        </p>
-      </div>
-    );
-  }
   return (
     <div
       role="group"
       data-slot="kpi"
       aria-label={label}
       className={cn(
-        "@container/kpi flex min-w-0 flex-col gap-1 rounded-card layer-card p-[var(--pad-card)]",
+        "@container/kpi flex min-w-0 flex-col gap-1",
+        // The Overview tile is its own card; the Analyst cell is one section of the ruled strip.
+        variant === "tile"
+          ? "rounded-card layer-card p-[var(--pad-card)]"
+          : "px-[var(--pad-card)] py-3",
         className,
       )}
     >
@@ -102,13 +76,19 @@ export function KpiTile({
           label
         )}
       </Eyebrow>
-      <div className="-mr-1.5 flex items-center justify-between gap-1">
-        <p
-          data-slot="kpi-headline"
-          className="num font-[family-name:var(--font-display)] text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-semibold tracking-[var(--text-kpi-ls)]"
-        >
-          {headline}
-        </p>
+      <div className="-mr-1.5 flex min-h-[var(--text-kpi-lh)] items-center justify-between gap-1">
+        {status ? (
+          <p data-slot="kpi-headline" className="min-w-0">
+            <StatusBadge status={status.status} label={status.label} size="md" />
+          </p>
+        ) : (
+          <p
+            data-slot="kpi-headline"
+            className="num font-[family-name:var(--font-display)] text-[length:var(--text-kpi)] leading-[var(--text-kpi-lh)] font-semibold tracking-[var(--text-kpi-ls)]"
+          >
+            {headline}
+          </p>
+        )}
         <InfoTip label={infoLabel}>{provenance}</InfoTip>
       </div>
       {trend ? (
@@ -117,9 +97,16 @@ export function KpiTile({
       <p
         data-slot="kpi-delta"
         data-direction={delta.direction}
-        className="num flex flex-wrap items-center gap-x-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]"
+        {...(status ? { title: delta.value } : {})}
+        className={cn(
+          "num flex items-center gap-x-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
+          // The status tile's caption is one line; the full text is in its title.
+          status ? "min-w-0" : "flex-wrap",
+        )}
       >
-        <span className="inline-flex min-w-0 items-start gap-x-1">
+        <span
+          className={cn("inline-flex min-w-0 gap-x-1", status ? "items-center" : "items-start")}
+        >
           <Icon
             aria-hidden
             className={cn(
@@ -128,7 +115,9 @@ export function KpiTile({
             )}
             strokeWidth={ICON_STROKE}
           />
-          <span className={cn("font-medium", DELTA_STYLE[delta.direction])}>{delta.value}</span>
+          <span className={cn("font-medium", DELTA_STYLE[delta.direction], status && "truncate")}>
+            {delta.value}
+          </span>
         </span>
         {delta.comparison ? (
           <>
@@ -137,9 +126,11 @@ export function KpiTile({
           </>
         ) : null}
       </p>
-      <span data-slot="kpi-provenance" className="sr-only">
-        {provenance}
-      </span>
+      {variant === "tile" ? (
+        <span data-slot="kpi-provenance" className="sr-only">
+          {provenance}
+        </span>
+      ) : null}
     </div>
   );
 }
