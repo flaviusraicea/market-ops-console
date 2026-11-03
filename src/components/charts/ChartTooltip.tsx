@@ -103,7 +103,17 @@ export function ChartTooltip({
   left,
   top,
   onHover,
-}: TooltipContent & { left: number; top: number; onHover?: (inside: boolean) => void }) {
+  keepInside = false,
+}: TooltipContent & {
+  left: number;
+  top: number;
+  onHover?: (inside: boolean) => void;
+  /**
+   * For a chart whose anchor is a point and whose frame clips: the box drops below the point, or is held
+   * inside the frame. Off for cells, where the anchor is the cell's top edge and below would cover the cell.
+   */
+  keepInside?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   // Near either edge of the chart the box slides inward to stay whole (a phone's plot is narrow); the caret
   // keeps pointing at the mark.
@@ -119,6 +129,11 @@ export function ChartTooltip({
     el.style.setProperty("--caret-shift", `${-shift}px`);
     // Too near the top for the box to sit above the mark: it drops below the mark when there is more room
     // there, and in a short chart that fits neither side it is held inside the chart rather than clipped.
+    if (!keepInside) {
+      el.dataset.flip = "false";
+      el.style.marginTop = "";
+      return;
+    }
     const h = el.offsetHeight;
     const above = top - 8 - h;
     const below = top + 8;

@@ -328,7 +328,13 @@ function LineSvg({
         </svg>
       ) : null}
       {tip.open && tip.content ? (
-        <ChartTooltip {...tip.content} left={tip.left} top={tip.top} onHover={tip.hover} />
+        <ChartTooltip
+          {...tip.content}
+          left={tip.left}
+          top={tip.top}
+          onHover={tip.hover}
+          keepInside
+        />
       ) : null}
     </div>
   );
