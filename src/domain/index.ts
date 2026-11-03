@@ -6,3 +6,4 @@ export * from "./periods";
 export * from "./metrics";
 export * from "./citations";
 export * from "./status";
+export * from "./assistantPrefs";

@@ -112,6 +112,7 @@
   --page-max: 1280px;
   --gutter: 16px;
   --assistant-w: 380px;
+  --below-header: calc(var(--header-h) + 16px);
 
   /* Motion (section 5) */
   --dur-fast: 150ms;

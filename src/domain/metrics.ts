@@ -39,12 +39,17 @@ export function variance(t: Totals): number {
   return Math.round(t.actual - t.forecast);
 }
 
+/** Change from one month's revenue to the next, percent with one decimal. */
+export function changePct(current: number, before: number): number {
+  return round1((current / before - 1) * 100);
+}
+
 export function momChangePct(ds: Dataset, entity: Entity, period: Period): number | undefined {
   const prev = previousPeriod(ds, period);
   if (!prev) return undefined;
   const cur = totals(factsFor(ds, { entity, periods: [period] })).actual;
   const before = totals(factsFor(ds, { entity, periods: [prev] })).actual;
-  return round1((cur / before - 1) * 100);
+  return changePct(cur, before);
 }
 
 export function kpiFor(
