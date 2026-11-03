@@ -59,7 +59,21 @@ test("views, products and theme commands", async ({ page }) => {
   await page.keyboard.press("Control+k");
   await input(page).fill("toggle theme");
   await page.keyboard.press("Enter");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", /dark|light/);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  await page.keyboard.press("Control+k");
+  await input(page).fill("reduce motion");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("html")).toHaveAttribute("data-reduced-motion", "true");
+});
+
+test("Ctrl+K inside the palette keeps the real opener for Escape", async ({ page }) => {
+  await page.goto("/");
+  await opener(page).click();
+  await expect(input(page)).toBeFocused();
+  await page.keyboard.press("Control+k");
+  await page.keyboard.press("Escape");
+  await expect(opener(page)).toBeFocused();
 });
 
 test("an unmatched query offers to ask it", async ({ page }) => {
@@ -85,7 +99,9 @@ test.describe("phone", () => {
     // Dispatched, not clicked: below 1024 px the map still overflows the page until slice 20.
     await opener(page).dispatchEvent("click");
     const box = await palette(page).boundingBox();
+    expect(box?.x).toBe(0);
     expect(box?.y).toBe(0);
+    expect(box?.width).toBe(390);
     expect(Math.round(box?.height ?? 0)).toBe(844);
     await input(page).fill("germ");
     await palette(page)

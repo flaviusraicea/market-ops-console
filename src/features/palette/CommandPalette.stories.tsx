@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
+import { useState } from "react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { withDataset } from "../../../.storybook/decorators";
@@ -8,6 +9,20 @@ const meta = {
   title: "features/palette/CommandPalette",
   component: CommandPalette,
   decorators: [withDataset],
+  // Stateful, so closing the palette runs the focus hand-off that calls onSelect.
+  render: (args) => {
+    const [open, setOpen] = useState(args.open);
+    return (
+      <CommandPalette
+        {...args}
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          args.onOpenChange(next);
+        }}
+      />
+    );
+  },
   args: {
     open: true,
     onOpenChange: fn(),
@@ -42,7 +57,9 @@ export const Open: Story = {
     );
 
     await userEvent.keyboard("{Enter}");
-    await expect(args.onSelect).not.toHaveBeenCalled(); // runs after the close, see onCloseAutoFocus
+    await waitFor(() =>
+      expect(args.onSelect).toHaveBeenCalledWith({ kind: "market", marketId: "de" }),
+    );
     await expect(args.onOpenChange).toHaveBeenCalledWith(false);
   },
 };

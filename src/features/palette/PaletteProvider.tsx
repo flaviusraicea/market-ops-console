@@ -13,7 +13,11 @@ import {
 } from "react";
 
 import { useAskWhy } from "@/features/assistant/askWhy";
+import { hrefFor } from "@/lib/context/href";
+import { applyContextChange } from "@/lib/context/invariants";
+import { useConsoleMeta } from "@/lib/context/meta";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
+import { isMotionOverrideOn, toggleMotionOverride } from "@/lib/motion";
 import { useTheme } from "@/lib/theme";
 import type { PaletteAction } from "./items";
 
@@ -31,7 +35,7 @@ export function usePalette() {
 /** Moves focus to the dashboard once the new view has rendered: the verdict heading, else the main region. */
 function focusDashboard() {
   const target = document.getElementById("verdict-h") ?? document.getElementById("main");
-  target?.focus({ preventScroll: false });
+  target?.focus();
 }
 
 /** Mounted once in Layout: owns the ⌘K / Ctrl+K shortcut, the open state and what each choice does. */
@@ -39,18 +43,27 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const { ctx, setContext, isPending } = useConsoleContext();
+  const meta = useConsoleMeta();
   const { ask } = useAskWhy();
   const { resolved, setTheme } = useTheme();
   const [everOpened, setEverOpened] = useState(false);
 
   const opener = useRef<HTMLElement | null>(null);
+  const isOpen = useRef(false);
+
+  const changeOpen = useCallback((next: boolean) => {
+    isOpen.current = next;
+    setOpen(next);
+  }, []);
 
   const openPalette = useCallback(() => {
+    // Already open (for example ⌘K pressed inside it): keep the real opener.
+    if (isOpen.current) return;
     opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setReducedMotion(document.documentElement.getAttribute("data-reduced-motion") === "true");
+    setReducedMotion(isMotionOverrideOn());
     setEverOpened(true);
-    setOpen(true);
-  }, []);
+    changeOpen(true);
+  }, [changeOpen]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -74,17 +87,16 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
 
   const navigate = useCallback(
     (patch: Parameters<typeof setContext>[0]) => {
+      const change = applyContextChange(meta, ctx, patch);
+      // A patch that changes nothing never starts a transition, so focus moves now instead of waiting for one.
+      if (!change.ok || hrefFor(meta, change.next) === hrefFor(meta, ctx)) {
+        focusDashboard();
+        return;
+      }
       focusAfterNav.current = true;
       setContext(patch);
-      // Selecting what is already selected writes nothing, so nothing will settle: move focus anyway.
-      window.setTimeout(() => {
-        if (focusAfterNav.current) {
-          focusAfterNav.current = false;
-          focusDashboard();
-        }
-      }, 400);
     },
-    [setContext],
+    [meta, ctx, setContext],
   );
 
   const onSelect = useCallback(
@@ -108,13 +120,9 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
         case "theme":
           setTheme(resolved === "light" ? "dark" : "light");
           break;
-        case "motion": {
-          const root = document.documentElement;
-          if (root.getAttribute("data-reduced-motion") === "true")
-            root.removeAttribute("data-reduced-motion");
-          else root.setAttribute("data-reduced-motion", "true");
+        case "motion":
+          toggleMotionOverride();
           break;
-        }
       }
     },
     [ask, navigate, resolved, setTheme],
@@ -127,7 +135,7 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
       {everOpened ? (
         <CommandPalette
           open={open}
-          onOpenChange={setOpen}
+          onOpenChange={changeOpen}
           onSelect={onSelect}
           onDismiss={() => opener.current?.focus()}
           mode={ctx.mode}

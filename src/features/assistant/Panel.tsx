@@ -84,16 +84,14 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
 
   return (
     <div className="relative flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)] lg:sticky lg:top-4 lg:max-h-[calc(100vh-var(--header-h)-32px)]">
-      <div className="flex items-start gap-x-3 pr-[var(--control-h)]">
-        <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1 flex-1">
-          <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
-            <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
-            Assistant
-          </Eyebrow>
-          <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-            Answers are AI-generated. Numbers link to source.
-          </span>
-        </div>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pr-[var(--control-h)]">
+        <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
+          <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
+          Assistant
+        </Eyebrow>
+        <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+          Answers are AI-generated. Numbers link to source.
+        </span>
       </div>
       <Composer
         value={draft}

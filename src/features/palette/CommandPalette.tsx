@@ -144,7 +144,7 @@ export function CommandPalette({
                       <span
                         className={cn(
                           "shrink-0 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
-                          item.icon === "market" ? "text-accent" : "text-ink-2",
+                          item.tone === "accent" ? "text-accent" : "text-ink-2",
                         )}
                       >
                         {item.meta}
@@ -156,8 +156,8 @@ export function CommandPalette({
             </Command.Group>
           ))}
         </Command.List>
-        <div className="flex items-center justify-between gap-4 border-t border-border bg-surface-2 px-4 py-2.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
-          <span className="flex items-center gap-3 max-lg:hidden" aria-hidden>
+        <div className="flex items-center justify-between gap-4 border-t border-border bg-surface-2 px-4 py-2.5 max-lg:hidden text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
+          <span className="flex items-center gap-3" aria-hidden>
             <span className="flex items-center gap-1">
               <Kbd>↑</Kbd>
               <Kbd>↓</Kbd> navigate
@@ -169,7 +169,7 @@ export function CommandPalette({
               <Kbd>esc</Kbd> close
             </span>
           </span>
-          <span className="flex items-center gap-1.5 max-lg:hidden" aria-hidden>
+          <span className="flex items-center gap-1.5" aria-hidden>
             Command palette · <Kbd>⌘K</Kbd>
           </span>
         </div>

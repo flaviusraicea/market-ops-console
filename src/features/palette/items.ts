@@ -1,5 +1,12 @@
 import { defaultFilter } from "@/components/ui/command";
-import { STATUS_LABEL, marketsIn, type Dataset, type Mode, type RegionId } from "@/domain";
+import {
+  STATUS_LABEL,
+  entityName,
+  marketsIn,
+  type Dataset,
+  type Mode,
+  type RegionId,
+} from "@/domain";
 import { SUGGESTIONS } from "@/features/assistant/Suggestions";
 
 export type PaletteAction =
@@ -16,11 +23,13 @@ export type PaletteIcon = "market" | "region" | "product" | "view" | "ask" | "th
 export type PaletteItem = {
   id: string;
   label: string;
-  /** Right-aligned text. `accent` is used for market status in the markets group. */
+  /** Right-aligned text. */
   meta?: string;
+  /** `accent` colours the meta text (market status). */
+  tone?: "accent";
   icon: PaletteIcon;
   /** Extra words the fuzzy filter also matches on. */
-  keywords?: readonly string[];
+  keywords?: string[];
   action: PaletteAction;
 };
 
@@ -39,7 +48,7 @@ const MODE_LABEL: Record<Mode, string> = {
 
 /** The palette's full catalogue, in display order. Pure: the component filters and renders it. */
 export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
-  const regionName = (id: string) => ds.regions.find((r) => r.id === id)?.name ?? id;
+  const regionName = (regionId: RegionId) => entityName(ds, { kind: "region", regionId });
 
   const groups: PaletteGroup[] = [
     {
@@ -49,6 +58,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
         id: `market:${m.id}`,
         label: `Go to ${m.name}`,
         meta: `${regionName(m.regionId)} · ${STATUS_LABEL[m.kpis.status].toLowerCase()}`,
+        tone: "accent" as const,
         icon: "market" as const,
         keywords: [m.iso2, m.iso3],
         action: { kind: "market" as const, marketId: m.id },
@@ -142,9 +152,7 @@ export function filterGroups(groups: PaletteGroup[], query: string): PaletteGrou
   const kept = groups
     .map((g) => ({
       ...g,
-      items: g.items.filter(
-        (item) => defaultFilter(item.label, q, item.keywords ? [...item.keywords] : []) > 0,
-      ),
+      items: g.items.filter((item) => defaultFilter(item.label, q, item.keywords ?? []) > 0),
     }))
     .filter((g) => g.items.length > 0);
 

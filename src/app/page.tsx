@@ -53,11 +53,7 @@ export default async function Page({ searchParams }: PageProps) {
                 {ctx.mode === "analyst" ? <Analyst ctx={ctx} /> : <Overview ctx={ctx} />}
               </Suspense>
             }
-            assistant={
-              <DatasetProvider dataset={lightDataset(ds)}>
-                <Panel context={panelContextVM(ds, ctx)} />
-              </DatasetProvider>
-            }
+            assistant={<Panel context={panelContextVM(ds, ctx)} />}
           />
         </DatasetProvider>
       </NavigationProvider>
