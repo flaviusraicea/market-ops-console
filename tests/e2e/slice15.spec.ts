@@ -14,6 +14,7 @@ test("the first h2 is the verdict", async ({ page }) => {
 test("the status strip has 13 chips in order and Germany drills", async ({ page }) => {
   await page.goto("/");
   const strip = page.getByRole("group", { name: "Market status by region" });
+  await expect(strip.locator("ul button")).toHaveCount(13);
   const names = await strip
     .locator("ul button")
     .evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")?.split(",")[0]));
@@ -204,6 +205,8 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     await page.getByRole("region", { name: "Needs attention" }).waitFor();
+    // Measure once the enter animations have settled, not mid-slide.
+    await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
     const overflow = await page.evaluate(() => {
       // The header's own overflow at phone width belongs to the mobile slice.
       const main = document.getElementById("main")!;
