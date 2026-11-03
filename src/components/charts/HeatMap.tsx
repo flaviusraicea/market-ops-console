@@ -204,7 +204,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
                       aria-label={`${row.name}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast`}
                       data-period={cell.period}
                       data-market={row.id}
-                      className={cn("h-6 cursor-pointer rounded-[2px]")}
+                      className="tween-fill h-6 cursor-pointer rounded-[2px]"
                       style={{
                         background: `var(${attainmentDiverging(cell.value)})`,
                         ...(isSelected ? { boxShadow: "inset 0 0 0 2px var(--accent)" } : {}),

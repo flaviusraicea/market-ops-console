@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/components/cn";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { ConnectedAssistantRail } from "./AssistantRail";
+import { DashboardColumn } from "./DashboardColumn";
 import { useAssistantRail } from "./railState";
 
 /**
@@ -47,9 +48,7 @@ export function ShellGrid({
         open && "xl:grid-cols-[minmax(0,1fr)_var(--assistant-w)]",
       )}
     >
-      <section aria-label="Dashboard" className="min-w-0">
-        {dashboard}
-      </section>
+      <DashboardColumn>{dashboard}</DashboardColumn>
       <aside aria-labelledby="assistant-h" className="min-w-0">
         <ConnectedAssistantRail />
         {assistant}

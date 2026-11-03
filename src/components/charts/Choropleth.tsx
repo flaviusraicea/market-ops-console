@@ -195,7 +195,7 @@ function MapSvg({
               fill={`var(${scheme === "status" ? STATUS_FILL[v.status] : colourFor(metric, v.value, max)})`}
               stroke={isSelected ? "var(--accent)" : "var(--surface)"}
               strokeWidth={isSelected ? 2 : 1}
-              className="cursor-pointer"
+              className="tween-fill cursor-pointer"
               onMouseEnter={(e) => onMouse(i, e)}
               onMouseMove={(e) => onMouse(i, e)}
               onMouseLeave={tip.hide}

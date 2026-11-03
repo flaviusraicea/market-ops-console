@@ -1,3 +1,5 @@
+export const REDUCED_MOTION_KEY = "mo.reduced-motion";
+
 /** True when the OS asks for reduced motion or the console's own override is on. Client only. */
 export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
@@ -9,8 +11,28 @@ export function isMotionOverrideOn(): boolean {
   return document.documentElement.getAttribute("data-reduced-motion") === "true";
 }
 
-export function toggleMotionOverride(): void {
+/**
+ * Turns the console's Reduce motion switch on or off. The attribute on <html> zeroes the duration tokens
+ * (tokens.css); the choice is kept in localStorage and re-applied before first paint by the script in layout.tsx.
+ */
+export function setReducedMotionOverride(on: boolean): void {
   const root = document.documentElement;
-  if (isMotionOverrideOn()) root.removeAttribute("data-reduced-motion");
-  else root.setAttribute("data-reduced-motion", "true");
+  if (on) root.setAttribute("data-reduced-motion", "true");
+  else root.removeAttribute("data-reduced-motion");
+  try {
+    if (on) window.localStorage.setItem(REDUCED_MOTION_KEY, "true");
+    else window.localStorage.removeItem(REDUCED_MOTION_KEY);
+  } catch {
+    /* storage unavailable: the choice lasts for this page view only */
+  }
 }
+
+/** Flips the switch (the palette's "Turn reduce motion on/off") and remembers it. */
+export function toggleMotionOverride(): void {
+  setReducedMotionOverride(!isMotionOverrideOn());
+}
+
+/** The element that a keyboard drill lands on: the page's own heading, marked by the view that renders it. */
+export const PAGE_HEADING_ATTR = "data-page-heading";
+/** Spread onto the heading that a keyboard drill should focus (DashboardColumn finds it by the attribute). */
+export const pageHeadingProps = { [PAGE_HEADING_ATTR]: "", tabIndex: -1 } as const;
