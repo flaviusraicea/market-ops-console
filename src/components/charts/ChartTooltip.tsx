@@ -153,7 +153,7 @@ export function ChartTooltip({
         // reaches the action without crossing a neighbour.
         action &&
           "after:absolute after:top-full after:left-0 after:h-2 after:w-full data-[flip=true]:after:top-auto data-[flip=true]:after:bottom-full",
-        "group/tip absolute z-10 min-w-40 -translate-x-1/2 -translate-y-full rounded-control border border-border bg-surface px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] shadow-popover",
+        "group/tip absolute z-10 min-w-40 -translate-x-1/2 -translate-y-full rounded-control layer-overlay px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
       )}
       style={{ left, top: top - 8 }}
     >
@@ -187,7 +187,7 @@ export function ChartTooltip({
       ) : null}
       <span
         aria-hidden
-        className="absolute top-full left-[calc(50%+var(--caret-shift,0px))] -mt-[4px] size-[8px] -translate-x-1/2 rotate-45 border-r border-b border-border bg-surface group-data-[flip=true]/tip:top-auto group-data-[flip=true]/tip:bottom-full group-data-[flip=true]/tip:-mt-0 group-data-[flip=true]/tip:-mb-[4px] group-data-[flip=true]/tip:border-t group-data-[flip=true]/tip:border-l group-data-[flip=true]/tip:border-r-0 group-data-[flip=true]/tip:border-b-0"
+        className="absolute top-full left-[calc(50%+var(--caret-shift,0px))] -mt-[4px] size-[8px] -translate-x-1/2 rotate-45 border-r border-b border-border bg-surface-overlay group-data-[flip=true]/tip:top-auto group-data-[flip=true]/tip:bottom-full group-data-[flip=true]/tip:-mt-0 group-data-[flip=true]/tip:-mb-[4px] group-data-[flip=true]/tip:border-t group-data-[flip=true]/tip:border-l group-data-[flip=true]/tip:border-r-0 group-data-[flip=true]/tip:border-b-0"
       />
     </div>
   );

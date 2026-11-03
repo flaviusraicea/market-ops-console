@@ -70,7 +70,7 @@ test("OS dark preference with no storage uses the dark tokens", async ({ browser
   await page.goto("/");
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.*/);
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe("rgb(22, 21, 18)");
+  expect(bg).toBe("rgb(15, 19, 24)");
   await context.close();
 });
 

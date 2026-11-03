@@ -4,6 +4,8 @@
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-grid: var(--grid);
@@ -19,6 +21,9 @@
   --color-ok-text: var(--ok-text);
   --color-ok-bg: var(--ok-bg);
   --color-ok-mark: var(--ok-mark);
+  --color-ok-display: var(--ok-display);
+  --color-warn-display: var(--warn-display);
+  --color-bad-display: var(--bad-display);
   --color-warn-text: var(--warn-text);
   --color-warn-bg: var(--warn-bg);
   --color-warn-mark: var(--warn-mark);
@@ -61,7 +66,31 @@
   --radius-card: var(--radius-card);
   --radius-pill: var(--radius-pill);
   --radius-sheet: var(--radius-sheet);
-  --shadow-popover: var(--shadow-popover);
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-overlay: var(--shadow-overlay);
+  --shadow-header: var(--shadow-header);
+  --shadow-toolbar: var(--shadow-toolbar);
+  --shadow-basin: var(--shadow-basin);
+}
+
+/* Elevation layers (design-system.md 3.1): one recipe per layer, so a surface asks for its layer by name and the
+   border, tone and shadow can never drift apart. Radius stays with the component. Every layer keeps its 1 px border:
+   a shadow is never the only edge (forced-colors mode drops shadows). */
+@utility layer-card {
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+@utility layer-raised {
+  border: 1px solid var(--border);
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-raised);
+}
+@utility layer-overlay {
+  border: 1px solid var(--border);
+  background-color: var(--surface-overlay);
+  box-shadow: var(--shadow-overlay);
 }
 
 body {

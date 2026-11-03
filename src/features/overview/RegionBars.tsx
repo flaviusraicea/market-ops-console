@@ -52,9 +52,7 @@ export function RegionBars({
       aria-labelledby="regions-h"
       className={cn(
         "flex h-full flex-col gap-3",
-        framed
-          ? "rounded-card border border-border bg-surface p-[var(--pad-card)]"
-          : "px-[var(--pad-card)] py-3",
+        framed ? "rounded-card layer-card p-[var(--pad-card)]" : "px-[var(--pad-card)] py-3",
       )}
     >
       <CardHeader

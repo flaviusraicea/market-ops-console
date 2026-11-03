@@ -30,7 +30,7 @@ export function AssistantRail({
   return (
     <div
       className={cn(
-        "relative flex h-fit w-12 flex-col items-center rounded-card border border-border bg-surface",
+        "relative flex h-fit w-12 flex-col items-center rounded-card layer-card",
         className,
       )}
     >

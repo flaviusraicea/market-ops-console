@@ -7,11 +7,15 @@
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Colour: light theme (section 3.1) */
-  --bg: #f1ede4;
+  /* Colour: light theme (section 3.1). Elevation, the display colours and the springs are described in docs/design-system.md. */
+  --bg: #e6e1d3;
   --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
   --surface-2: #e8e3d8;
-  --border: #bfb8a8;
+  --border: #cfc6b3;
+  --hairline: transparent;
+  --selected-edge: rgba(255, 255, 255, 0.7);
   --grid: #e3ded3;
   --ink: #1c1a17;
   --ink-2: #5b574f;
@@ -27,10 +31,13 @@
   --ok-mark: #2e8b57;
   --warn-text: #7a4e00;
   --warn-bg: #fbefd2;
-  --warn-mark: #b57a00;
+  --warn-mark: #9e6a00;
   --bad-text: #a32d2d;
   --bad-bg: #f9e1e1;
   --bad-mark: #c2362b;
+  --ok-display: #1f8a4c;
+  --warn-display: #9a6200;
+  --bad-display: #c2362b;
   --on-bad: #ffffff;
   --bad-hover: #a32d2d;
   --ai-bg: #eeeaf9;
@@ -59,7 +66,15 @@
   --div-p1: #b7c7de;
   --div-p2: #7f9fc9;
   --div-p3: #2f5f9e;
-  --shadow-popover: 0 1px 2px rgba(28, 26, 23, 0.06), 0 4px 12px rgba(28, 26, 23, 0.08);
+  /* Elevation (token-sheet.md): card, raised, overlay, plus the header, the Analyst toolbar and the map basin. */
+  --shadow-card:
+    0 1px 1px rgba(28, 26, 23, 0.05), 0 3px 8px rgba(28, 26, 23, 0.07),
+    0 18px 40px -14px rgba(28, 26, 23, 0.22);
+  --shadow-raised: 0 2px 4px rgba(28, 26, 23, 0.07), 0 14px 30px -8px rgba(28, 26, 23, 0.28);
+  --shadow-overlay: 0 2px 6px rgba(28, 26, 23, 0.08), 0 24px 56px -16px rgba(28, 26, 23, 0.35);
+  --shadow-header: 0 6px 20px -12px rgba(28, 26, 23, 0.18);
+  --shadow-toolbar: 0 8px 14px -12px rgba(28, 26, 23, 0.3);
+  --shadow-basin: inset 0 2px 10px rgba(28, 26, 23, 0.1), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
   --shimmer: rgba(255, 255, 255, 0.35);
   --map-land: #e8e3d8;
 
@@ -119,19 +134,80 @@
   --below-header: calc(var(--header-h) + 16px);
 
   /* Motion (section 5) */
+  --dur-press: 100ms;
   --dur-fast: 150ms;
   --dur-base: 200ms;
   --dur-chart: 240ms;
-  /* A followed citation (motion-spec.md section 3, row 3): ring and tint fade in with the chart tweens, hold, then decay gently; opacity only. */
+  /* A followed citation: ring and tint fade in with the chart tweens, hold, then decay gently; opacity only. */
   --dur-land-in: 240ms;
   --dur-land-out: 800ms;
   --hold-highlight: 1500ms; /* read by JS once (useLanding), so reduced motion keeps the hold */
-  --ease: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --land-tint: color-mix(in srgb, var(--accent) 8%, transparent);
   /* The composer's one row: a line of text plus padding and border, so Send matches the box in either density. */
   --composer-row: calc(var(--text-body-lh) + 14px);
+  --dur-enter: 400ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  /* Apple-style springs as CSS linear(): critically damped (response 0.4 s), and a slight overshoot
+     (damping ratio 0.85, response 0.35 s) for the command palette only. */
+  --spring-smooth: linear(
+    0,
+    0.041 5%,
+    0.133 10%,
+    0.246 15%,
+    0.363 20%,
+    0.472 25%,
+    0.57 30%,
+    0.654 35%,
+    0.725 40%,
+    0.784 45%,
+    0.832 50%,
+    0.871 55%,
+    0.902 60%,
+    0.927 65%,
+    0.946 70%,
+    0.962 75%,
+    0.974 80%,
+    0.983 85%,
+    0.99 90%,
+    0.996 95%,
+    1
+  );
+  --spring-snappy: linear(
+    0,
+    0.047 4.2%,
+    0.154 8.3%,
+    0.287 12.5%,
+    0.423 16.7%,
+    0.549 20.8%,
+    0.658 25%,
+    0.749 29.2%,
+    0.821 33.3%,
+    0.877 37.5%,
+    0.919 41.7%,
+    0.95 45.8%,
+    0.971 50%,
+    0.985 54.2%,
+    0.994 58.3%,
+    1 62.5%,
+    1.003 66.7%,
+    1.004 70.8%,
+    1.004 75%,
+    1.004 79.2%,
+    1.003 83.3%,
+    1.002 87.5%,
+    1.001 91.7%,
+    1.001 95.8%,
+    1
+  );
+}
+
+@supports not (animation-timing-function: linear(0, 1)) {
+  :root {
+    --spring-smooth: var(--ease-out);
+    --spring-snappy: var(--ease-out);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -187,38 +263,45 @@ html[data-density="analyst"] {
 
 /* Colour: dark theme (section 3.2), explicit choice */
 :root[data-theme="dark"] {
-  --bg: #161512;
-  --surface: #201e1a;
-  --surface-2: #2a2722;
-  --border: #413d35;
-  --grid: #332f29;
-  --ink: #ece8e0;
-  --ink-2: #b5afa3;
-  --ink-muted: #9a9488;
-  --ink-disabled: #78726a;
-  --accent: #8fb4e6;
+  --bg: #0f1318;
+  --surface: #171c23;
+  --surface-raised: #1f2630;
+  --surface-2: #1f2630;
+  --surface-overlay: #242c36;
+  --border: #303a46;
+  --grid: #242c36;
+  --hairline: rgba(255, 255, 255, 0.05);
+  --selected-edge: rgba(255, 255, 255, 0.06);
+  --ink: #e6eaf0;
+  --ink-2: #aeb6c2;
+  --ink-muted: #8f98a6;
+  --ink-disabled: #6b7482;
+  --accent: #8db4e8;
+  --accent-hover: #a7c5ee;
+  --on-accent: #0f1318;
+  --accent-soft: #1d2a3c;
+  --focus: #8db4e8;
   --land-tint: color-mix(in srgb, var(--accent) 12%, transparent);
-  --accent-hover: #a9c6ee;
-  --on-accent: #161512;
-  --accent-soft: #243040;
-  --focus: #8fb4e6;
   --ok-text: #8fd9a8;
-  --ok-bg: #1c2e22;
+  --ok-bg: #15291f;
   --ok-mark: #5fbf84;
   --warn-text: #f0c978;
-  --warn-bg: #3a2e14;
+  --warn-bg: #2f2a14;
   --warn-mark: #e0a93a;
   --bad-text: #f3a1a1;
-  --bad-bg: #3a2020;
+  --bad-bg: #35201f;
   --bad-mark: #e36b5f;
-  --on-bad: #161512;
+  --ok-display: #8fd9a8;
+  --warn-display: #f0c978;
+  --bad-display: #f3a1a1;
+  --on-bad: #0f1318;
   --bad-hover: #f08a80;
-  --ai-bg: #272338;
-  --ai-border: #6e5bd9;
+  --ai-bg: #1f2133;
+  --ai-border: #7a68e0;
   --ai-label: #c3b6f5;
-  --series-actual: #ece8e0;
+  --series-actual: #e6eaf0;
   --series-forecast: #6291d4;
-  --series-prior: #9a9488;
+  --series-prior: #8f98a6;
   --cat-1: #6291d4;
   --cat-2: #d4753f;
   --cat-3: #279a80;
@@ -235,50 +318,68 @@ html[data-density="analyst"] {
   --div-n3: #e0875c;
   --div-n2: #b86a45;
   --div-n1: #7a4c35;
-  --div-0: #3a3730;
+  --div-0: #343c48;
   --div-p1: #3b5476;
   --div-p2: #5079b3;
   --div-p3: #86ace4;
-  --shadow-popover: none;
+  --shadow-card:
+    inset 0 1px 0 var(--hairline), 0 1px 2px rgba(0, 0, 0, 0.5),
+    0 14px 36px -12px rgba(0, 0, 0, 0.7);
+  --shadow-raised:
+    inset 0 1px 0 var(--hairline), 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 16px 36px -10px rgba(0, 0, 0, 0.7);
+  --shadow-overlay:
+    inset 0 1px 0 var(--hairline), 0 4px 10px rgba(0, 0, 0, 0.5),
+    0 32px 64px -16px rgba(0, 0, 0, 0.8);
+  --shadow-header: 0 6px 20px -12px rgba(0, 0, 0, 0.7);
+  --shadow-toolbar: 0 8px 14px -12px rgba(0, 0, 0, 0.8);
+  --shadow-basin: inset 0 2px 12px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
   --shimmer: rgba(255, 255, 255, 0.06);
-  --map-land: #2e2b25;
+  --map-land: #222a34;
 }
 
 /* Colour: dark theme, following the OS unless the user chose light */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #161512;
-    --surface: #201e1a;
-    --surface-2: #2a2722;
-    --border: #413d35;
-    --grid: #332f29;
-    --ink: #ece8e0;
-    --ink-2: #b5afa3;
-    --ink-muted: #9a9488;
-    --ink-disabled: #78726a;
-    --accent: #8fb4e6;
+    --bg: #0f1318;
+    --surface: #171c23;
+    --surface-raised: #1f2630;
+    --surface-2: #1f2630;
+    --surface-overlay: #242c36;
+    --border: #303a46;
+    --grid: #242c36;
+    --hairline: rgba(255, 255, 255, 0.05);
+    --selected-edge: rgba(255, 255, 255, 0.06);
+    --ink: #e6eaf0;
+    --ink-2: #aeb6c2;
+    --ink-muted: #8f98a6;
+    --ink-disabled: #6b7482;
+    --accent: #8db4e8;
+    --accent-hover: #a7c5ee;
+    --on-accent: #0f1318;
+    --accent-soft: #1d2a3c;
+    --focus: #8db4e8;
     --land-tint: color-mix(in srgb, var(--accent) 12%, transparent);
-    --accent-hover: #a9c6ee;
-    --on-accent: #161512;
-    --accent-soft: #243040;
-    --focus: #8fb4e6;
     --ok-text: #8fd9a8;
-    --ok-bg: #1c2e22;
+    --ok-bg: #15291f;
     --ok-mark: #5fbf84;
     --warn-text: #f0c978;
-    --warn-bg: #3a2e14;
+    --warn-bg: #2f2a14;
     --warn-mark: #e0a93a;
     --bad-text: #f3a1a1;
-    --bad-bg: #3a2020;
+    --bad-bg: #35201f;
     --bad-mark: #e36b5f;
-    --on-bad: #161512;
+    --ok-display: #8fd9a8;
+    --warn-display: #f0c978;
+    --bad-display: #f3a1a1;
+    --on-bad: #0f1318;
     --bad-hover: #f08a80;
-    --ai-bg: #272338;
-    --ai-border: #6e5bd9;
+    --ai-bg: #1f2133;
+    --ai-border: #7a68e0;
     --ai-label: #c3b6f5;
-    --series-actual: #ece8e0;
+    --series-actual: #e6eaf0;
     --series-forecast: #6291d4;
-    --series-prior: #9a9488;
+    --series-prior: #8f98a6;
     --cat-1: #6291d4;
     --cat-2: #d4753f;
     --cat-3: #279a80;
@@ -295,31 +396,46 @@ html[data-density="analyst"] {
     --div-n3: #e0875c;
     --div-n2: #b86a45;
     --div-n1: #7a4c35;
-    --div-0: #3a3730;
+    --div-0: #343c48;
     --div-p1: #3b5476;
     --div-p2: #5079b3;
     --div-p3: #86ace4;
-    --shadow-popover: none;
+    --shadow-card:
+      inset 0 1px 0 var(--hairline), 0 1px 2px rgba(0, 0, 0, 0.5),
+      0 14px 36px -12px rgba(0, 0, 0, 0.7);
+    --shadow-raised:
+      inset 0 1px 0 var(--hairline), 0 2px 4px rgba(0, 0, 0, 0.5),
+      0 16px 36px -10px rgba(0, 0, 0, 0.7);
+    --shadow-overlay:
+      inset 0 1px 0 var(--hairline), 0 4px 10px rgba(0, 0, 0, 0.5),
+      0 32px 64px -16px rgba(0, 0, 0, 0.8);
+    --shadow-header: 0 6px 20px -12px rgba(0, 0, 0, 0.7);
+    --shadow-toolbar: 0 8px 14px -12px rgba(0, 0, 0, 0.8);
+    --shadow-basin: inset 0 2px 12px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
     --shimmer: rgba(255, 255, 255, 0.06);
-    --map-land: #2e2b25;
+    --map-land: #222a34;
   }
 }
 
 /* Reduced motion: OS setting or the console's own override */
 @media (prefers-reduced-motion: reduce) {
   :root {
+    --dur-press: 0ms;
     --dur-fast: 0ms;
     --dur-base: 0ms;
     --dur-chart: 0ms;
+    --dur-enter: 0ms;
     --dur-land-in: 0ms;
     --dur-land-out: 0ms;
   }
 }
 
 html[data-reduced-motion="true"] {
+  --dur-press: 0ms;
   --dur-fast: 0ms;
   --dur-base: 0ms;
   --dur-chart: 0ms;
+  --dur-enter: 0ms;
   --dur-land-in: 0ms;
   --dur-land-out: 0ms;
 }

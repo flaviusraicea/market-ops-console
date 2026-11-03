@@ -56,7 +56,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
             "You asked:"
           )}
         </p>
-        <p className="max-w-[92%] rounded-card bg-surface-2 px-3 py-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink">
+        <p className="max-w-[92%] rounded-card border border-border bg-surface-2 px-3 py-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink">
           {question}
         </p>
       </div>
@@ -129,7 +129,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
 
 function Card({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 rounded-card border border-ai-border bg-ai-bg p-[var(--pad-card)]">
+    <div className="flex flex-col gap-3 rounded-card border border-ai-border bg-ai-bg shadow-card p-[var(--pad-card)]">
       {children}
     </div>
   );

@@ -18,7 +18,7 @@ export function Sheet({
     <div
       style={style}
       className={cn(
-        "flex min-w-0 flex-col divide-y divide-border rounded-card border border-border bg-surface",
+        "flex min-w-0 flex-col divide-y divide-border rounded-card layer-card",
         className,
       )}
     >

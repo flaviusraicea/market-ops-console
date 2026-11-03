@@ -50,7 +50,7 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
   return (
     <header
       className={cn(
-        "relative border-b border-border bg-surface",
+        "relative border-b border-border bg-surface shadow-header",
         mode === "analyst" && "sticky top-0 z-30",
       )}
     >
