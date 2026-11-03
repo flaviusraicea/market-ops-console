@@ -15,7 +15,7 @@ export function Suggestions({ onPick }: { onPick: (text: string) => void }) {
           <button
             type="button"
             onClick={() => onPick(text)}
-            className="flex h-10 w-full items-center justify-between gap-2 rounded-control border border-border bg-surface px-3 text-left text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink transition-colors duration-[var(--dur-fast)] hover:bg-surface-2"
+            className="lift press flex h-10 w-full items-center justify-between gap-2 rounded-control border border-border bg-surface px-3 text-left text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink transition-colors duration-[var(--dur-fast)] hover:bg-surface-2"
           >
             {text}
             <ArrowRight

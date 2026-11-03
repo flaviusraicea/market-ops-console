@@ -1,7 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { StatusGlyph } from "@/components/StatusGlyph";
+import { StatusBadge } from "@/components/StatusBadge";
 import type { RegionId } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { CardHeader } from "@/components/CardHeader";
@@ -85,10 +84,7 @@ export function RegionBars({
             />
             <div className="flex flex-col items-end gap-1">
               <p className="num font-medium text-ink">{row.attainment}</p>
-              <Badge variant={row.status}>
-                <StatusGlyph status={row.status} />
-                {row.statusLabel}
-              </Badge>
+              <StatusBadge status={row.status} label={row.statusLabel} size="sm" />
             </div>
           </li>
         ))}
