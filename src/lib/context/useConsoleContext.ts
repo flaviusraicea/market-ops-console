@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryStates } from "nuqs";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 
 import type { ContextPatch } from "@/domain";
 import { logEvent } from "@/lib/events";
@@ -24,14 +24,6 @@ export function useConsoleContext() {
   const [raw, setRaw] = useQueryStates(parsers, { shallow: false, scroll: false, startTransition });
 
   const ctx = useMemo(() => normalizeContext(meta, raw), [meta, raw]);
-
-  // An address without `mode` reads as the role's view. Once, on arrival, write it in (replacing, not pushing) so the
-  // link names the view. Later changes go through setContext, which always writes it.
-  const arrivalMode = useRef(raw.mode);
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).has("mode")) return;
-    void setRaw({ mode: arrivalMode.current }, { history: "replace", shallow: true });
-  }, [setRaw]);
 
   const setContext = useCallback(
     (partial: ContextPatch, opts?: SetContextOptions) => {
