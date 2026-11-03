@@ -6,8 +6,7 @@ import * as previewAnnotations from "./preview";
 setProjectAnnotations([a11yAddonAnnotations, previewAnnotations]);
 
 // Enter animations start at opacity 0, which `toBeVisible` reads as hidden. Stories assert structure and state;
-// the motion itself is checked in the e2e suite (reduced-motion and trace specs), so tests run without it.
+// the animations themselves is checked in the e2e suite (reduced-motion and trace specs), so tests run without it.
 const still = document.createElement("style");
-still.textContent =
-  "*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}";
+still.textContent = "*,*::before,*::after{animation:none!important}";
 document.head.append(still);
