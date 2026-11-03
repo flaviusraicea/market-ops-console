@@ -19,8 +19,13 @@ const pausedButton = (page: Page) =>
   page.getByRole("group", { name: "Live data" }).first().getByRole("button", { name: "Paused" });
 const railToggle = (page: Page) => page.getByRole("button", { name: "Open assistant" });
 const panel = (page: Page) => page.locator("#assistant-panel");
+/** What is selected, by its label: a selected row's figures move with Live, but which row is selected must not. */
 const selection = (page: Page) =>
-  page.locator('[aria-selected="true"], [aria-current="true"]').allInnerTexts();
+  page
+    .locator('[aria-selected="true"], [aria-current="true"]')
+    .evaluateAll((els) =>
+      els.map((el) => (el.querySelector("th, td") ?? el).textContent?.trim() ?? ""),
+    );
 
 /** Opens the page with the clock under the test's control, so every tick is one explicit step. */
 async function openWithClock(page: Page, url = ANALYST_DE) {

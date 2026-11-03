@@ -140,13 +140,7 @@ test("the radar has the five axes and the alert thresholds card follows the heat
 }) => {
   await open(page, EUROPE);
   const radar = card(page, /^Compare/);
-  for (const axis of [
-    "Attainment",
-    "Growth YoY",
-    "Share (given)",
-    "Month on month",
-    "Forecast accuracy",
-  ]) {
+  for (const axis of ["Attainment", "Growth YoY", "Share (given)", "Month on month", "Units YoY"]) {
     await expect(radar.locator(`[data-axis="${axis}"]`)).toBeVisible();
   }
   const heat = await card(page, /Attainment by month/).boundingBox();

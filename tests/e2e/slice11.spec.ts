@@ -261,8 +261,11 @@ test("a reader who scrolls up right after asking is not pulled back down (WCAG 2
   }
   const region = page.getByRole("region", { name: "Conversation" });
   const box = await boxOf(region);
+  const before = await region.evaluate((el) => el.scrollTop);
   await ask(page, "Give me a full summary");
-  // Wheel input lands inside the 500 ms follow window of the smooth scroll to the new card.
+  // Wait until the smooth scroll to the new card is under way, so the wheel input below lands inside its follow
+  // window and not before the window opens (which would make the test pass for the wrong reason, or flake).
+  await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBeGreaterThan(before);
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.wheel(0, -5000);
   await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBe(0);

@@ -245,7 +245,7 @@ describe("attention list", () => {
       ["Canada", "+10.7%"],
     ]);
     expect(vm.caption).toBe("Off track first, then at risk by attainment · All markets · May 2026");
-    // Only markets that are actually down are Falling; Italy at +0.3% is in neither column's bottom.
+    // Only markets that are actually down are Falling: Italy (+0.3%) is up, so it is not.
     expect(vm.falling.map((r) => [r.name, r.growth])).toEqual([
       ["Germany", "−9.7%"],
       ["Spain", "−4.6%"],

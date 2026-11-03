@@ -145,7 +145,7 @@ describe("analyst view model", () => {
       "Growth YoY",
       "Share (given)",
       "Month on month",
-      "Forecast accuracy",
+      "Units YoY",
     ]);
     expect(radar.series).toHaveLength(5);
     expect(radar.series.map((s) => s.name)).toEqual([
@@ -164,23 +164,23 @@ describe("analyst view model", () => {
     ]);
     for (let axis = 0; axis < 5; axis++) {
       const vals = radar.series.map((s) => s.values[axis]!);
-      expect(Math.min(...vals)).toBe(0);
-      expect(Math.max(...vals)).toBe(1);
+      expect(Math.min(...vals)).toBeCloseTo(0.115, 3);
+      expect(Math.max(...vals)).toBeCloseTo(0.885, 3);
     }
     expect(radar.series.find((s) => s.id === "de")?.raw).toEqual([
       "92.0%",
       "−9.7%",
       "8.9%",
       "+1.1%",
-      "92.0%",
+      "−9.9%",
     ]);
   });
 
-  it("radarVM: Germany month on month for March 2026 and forecast accuracy for May 2026", () => {
+  it("radarVM: Germany month on month for March 2026 and units year on year for May 2026", () => {
     const march = analystVM(ds, { ...europe, period: "2026-03" as Period }).radar;
     expect(march.series.find((s) => s.id === "de")?.raw[3]).toBe("−27.2%");
     const may = analystVM(ds, europe).radar;
-    expect(may.series.find((s) => s.id === "de")?.raw[4]).toBe("92.0%");
+    expect(may.series.find((s) => s.id === "de")?.raw[4]).toBe("−9.9%");
   });
 
   it("radarVM at the portfolio: four regions and the derived third axis", () => {
@@ -188,8 +188,28 @@ describe("analyst view model", () => {
     expect(radar.series).toHaveLength(4);
     expect(radar.axes).toEqual(RADAR_AXES_DERIVED);
     expect(radar.axes[2]).toBe("Revenue share (derived)");
-    const shares = radar.series.map((s) => Number.parseFloat(s.raw[2]));
+    const shares = radar.series.map((s) => Number.parseFloat(s.raw[2]!));
     expect(shares.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 0);
+  });
+
+  it("radarVM drops an axis nobody has a value for, and says so in the subtitle", () => {
+    // Units YoY needs the same month a year earlier, which the first twelve months lack.
+    const early = analystVM(ds, { ...europe, period: "2025-03" as Period }).radar;
+    expect(early.axes).toEqual(["Attainment", "Growth YoY", "Share (given)", "Month on month"]);
+    expect(early.subtitle).toContain("Units YoY unavailable before Jun 2025");
+    expect(
+      early.series.every((s) => s.values.length === 4 && s.values.every((v) => v !== null)),
+    ).toBe(true);
+    // From Jun 2025 the axis is back, with a value for every market.
+    const later = analystVM(ds, { ...europe, period: "2025-06" as Period }).radar;
+    expect(later.axes).toHaveLength(5);
+    expect(later.subtitle).not.toContain("unavailable");
+  });
+
+  it("radarVM market caption names units YoY as derived", () => {
+    expect(analystVM(ds, europe).radar.caption).toBe(
+      "May 2026 · Attainment, growth and units YoY derived · share from data.json",
+    );
   });
 
   it("MAT is disabled before there are 12 months, and Month is the basis in effect", () => {

@@ -14,6 +14,7 @@ import {
   marketsIn,
   changePct,
   momChangePct,
+  unitsYoyPct,
   periodIndex,
   totals,
   type Context,
@@ -43,16 +44,15 @@ export const RADAR_AXES_GIVEN = [
   "Growth YoY",
   "Share (given)",
   "Month on month",
-  "Forecast accuracy",
+  "Units YoY",
 ] as const;
 export const RADAR_AXES_DERIVED = [
   "Attainment",
   "Growth YoY",
   "Revenue share (derived)",
   "Month on month",
-  "Forecast accuracy",
+  "Units YoY",
 ] as const;
-export type RadarTuple<T> = [T, T, T, T, T];
 
 /** Spain's attainment cell explains why a market above 100% is still off track (preview-spec 9.2). */
 const OFF_TRACK_ABOVE_PLAN = (attainment: string, growth: string) =>
@@ -195,10 +195,10 @@ export type RadarSeriesVM = {
   name: string;
   /** A CSS custom property such as `--cat-1`. */
   color: string;
-  /** Normalised 0..1 per axis, in axis order. */
-  values: RadarTuple<number>;
+  /** Normalised per axis, in axis order; null where the market has no value. */
+  values: Array<number | null>;
   /** Formatted raw values, in axis order. */
-  raw: RadarTuple<string>;
+  raw: string[];
   selected: boolean;
 };
 
@@ -222,6 +222,8 @@ export type HeatCellVM = {
   display: string;
   actual: number;
   forecast: number;
+  /** The source's note when this month is a flagged anomaly for the market. */
+  anomaly?: string;
 };
 export type HeatRowVM = { id: string; name: string; cells: HeatCellVM[] };
 export type HeatMapVM = {
@@ -475,14 +477,21 @@ function timeSeriesVM(ds: Dataset, ctx: Context): TimeSeriesVM {
   };
 }
 
+/** Why a dropped radar axis has no value, appended to the card subtitle. */
+const UNAVAILABLE_NOTE: Record<string, string> = {
+  "Units YoY": "unavailable before Jun 2025",
+  "Month on month": "unavailable in the first month",
+};
+
+/** Each radar axis is padded by this share of its spread on both ends, so the weakest market is not pinned to the centre. */
+const RADAR_PAD = 0.15;
+
 function minMax(values: number[]): (v: number) => number {
   const lo = Math.min(...values);
   const hi = Math.max(...values);
-  return (v) => (hi === lo ? 0.5 : (v - lo) / (hi - lo));
+  const span = hi - lo;
+  return (v) => (span === 0 ? 0.5 : (v - lo + RADAR_PAD * span) / (span * (1 + 2 * RADAR_PAD)));
 }
-
-/** Forecast accuracy in percentage points, higher is better. */
-const accuracy = (attainmentPct: number) => 100 - Math.abs(attainmentPct - 100);
 
 function radarVM(ds: Dataset, ctx: Context): RadarVM {
   const atPortfolio = !ctx.region;
@@ -498,6 +507,7 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
           growth: k.growthPct,
           share: (k.totals.actual / portfolio.totals.actual) * 100,
           mom: momChangePct(ds, entity, ctx.period),
+          unitsYoy: unitsYoyPct(ds, entity, ctx.period),
           selected: false,
         };
       })
@@ -510,51 +520,61 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
           growth: k.growthPct,
           share: m.kpis.sharePct,
           mom: momChangePct(ds, { kind: "market", marketId: m.id }, ctx.period),
+          unitsYoy: unitsYoyPct(ds, { kind: "market", marketId: m.id }, ctx.period),
           selected: ctx.market === m.id,
         };
       });
 
   const byName = [...rawRows].sort((a, b) => a.name.localeCompare(b.name));
-  const norm = [
-    minMax(byName.map((r) => r.attainment)),
-    minMax(byName.map((r) => r.growth)),
-    minMax(byName.map((r) => r.share)),
-    minMax(byName.map((r) => r.mom ?? 0)),
-    minMax(byName.map((r) => accuracy(r.attainment))),
-  ] as const;
+  // One entry per axis: what a market scores, and how it reads. A market with no value is null on that axis.
+  const pct = (sign: boolean) => (v: number) => formatPct(v, { sign });
+  const given = atPortfolio ? RADAR_AXES_DERIVED : RADAR_AXES_GIVEN;
+  const measures: Array<{
+    label: string;
+    get: (r: (typeof byName)[number]) => number | undefined;
+    show: (v: number) => string;
+  }> = [
+    { label: given[0], get: (r) => r.attainment, show: pct(false) },
+    { label: given[1], get: (r) => r.growth, show: pct(true) },
+    { label: given[2], get: (r) => r.share, show: pct(false) },
+    { label: given[3], get: (r) => r.mom, show: pct(true) },
+    { label: given[4], get: (r) => r.unitsYoy, show: pct(true) },
+  ];
+  // An axis nobody has a value for is dropped for the period: a polygon would otherwise plot it at the midpoint.
+  const kept = measures.filter((m) => byName.some((r) => m.get(r) !== undefined));
+  const dropped = measures.filter((m) => !kept.includes(m)).map((m) => m.label);
+  const scaled = kept.map((m) =>
+    minMax(byName.flatMap((r) => (m.get(r) === undefined ? [] : [m.get(r)!]))),
+  );
   const series: RadarSeriesVM[] = byName.slice(0, 6).map((r, i) => ({
     id: r.id,
     name: r.name,
     color: `--cat-${i + 1}`,
-    values: [
-      norm[0](r.attainment),
-      norm[1](r.growth),
-      norm[2](r.share),
-      norm[3](r.mom ?? 0),
-      norm[4](accuracy(r.attainment)),
-    ],
-    raw: [
-      formatPct(r.attainment, { sign: false }),
-      formatPct(r.growth, { sign: true }),
-      formatPct(r.share, { sign: false }),
-      r.mom === undefined ? "n/a" : formatPct(r.mom, { sign: true }),
-      formatPct(accuracy(r.attainment), { sign: false }),
-    ],
+    values: kept.map((m, a) => {
+      const v = m.get(r);
+      return v === undefined ? null : scaled[a]!(v);
+    }),
+    raw: kept.map((m) => {
+      const v = m.get(r);
+      return v === undefined ? "n/a" : m.show(v);
+    }),
     selected: r.selected,
   }));
 
   const scope = atPortfolio
     ? "Regions"
     : `Markets · ${entityName(ds, { kind: "region", regionId: ctx.region! })}`;
-  const peers = byName.length;
+  const unavailable = dropped
+    .map((d) => ` · ${d} ${UNAVAILABLE_NOTE[d] ?? "unavailable"}`)
+    .join("");
   return {
     title: `${scope} compared`,
     subtitle: atPortfolio
-      ? `Regions${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · five axes, scaled across all ${peers} regions`
-      : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? ` markets · ${ALL_PRODUCTS}` : ""} · five axes, scaled across all ${peers} markets`,
-    caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod) : "Attainment and growth derived · share given"}`,
+      ? `Regions${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · Axes scaled to the compared regions${unavailable}`
+      : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? ` markets · ${ALL_PRODUCTS}` : ""} · Axes scaled to the compared markets${unavailable}`,
+    caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod) : kept.some((m) => m.label === "Units YoY") ? "Attainment, growth and units YoY derived · share from data.json" : "Attainment and growth derived · share from data.json"}`,
     allProducts: Boolean(ctx.product),
-    axes: atPortfolio ? RADAR_AXES_DERIVED : RADAR_AXES_GIVEN,
+    axes: kept.map((m) => m.label),
     series,
   };
 }
@@ -571,6 +591,7 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
       const value = attainmentPct(t);
       const momPct = before ? changePct(t.actual, before) : undefined;
       before = t.actual;
+      const anomaly = m.kpis.anomalies.find((a) => a.period === period);
       return {
         period,
         momPct,
@@ -578,6 +599,7 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
         display: formatPct(value, { sign: false }),
         actual: t.actual,
         forecast: t.forecast,
+        ...(anomaly ? { anomaly: anomaly.note } : {}),
       };
     });
     return { id: m.id, name: m.name, cells };

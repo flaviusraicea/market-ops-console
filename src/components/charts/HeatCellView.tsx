@@ -2,6 +2,7 @@
 
 import { memo, type FocusEvent, type KeyboardEvent, type MouseEvent } from "react";
 
+import { TriangleAlert } from "@/components/icons";
 import { formatPeriodAbbr } from "@/lib/format";
 import type { HeatCell } from "./HeatMap";
 import { attainmentDiverging } from "./scales";
@@ -44,10 +45,10 @@ export const HeatCellView = memo(function HeatCellView({
       aria-colindex={ci + 2}
       aria-selected={isSelected}
       tabIndex={isTabStop ? 0 : -1}
-      aria-label={`${rowName}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast`}
+      aria-label={`${rowName}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast${cell.anomaly ? ", anomaly" : ""}`}
       data-period={cell.period}
       data-market={rowId}
-      className="tween-fill h-6 cursor-pointer rounded-[2px]"
+      className="tween-fill relative h-6 cursor-pointer rounded-[2px]"
       style={{
         background: `var(${attainmentDiverging(cell.value)})`,
         ...(isSelected ? { boxShadow: "inset 0 0 0 2px var(--accent)" } : {}),
@@ -58,6 +59,18 @@ export const HeatCellView = memo(function HeatCellView({
       onMouseLeave={h.mouseLeave}
       onFocus={(e) => h.focus(e, ri, ci)}
       onBlur={h.blur}
-    />
+    >
+      {cell.anomaly ? (
+        // The mark is decorative: the cell's name already says anomaly. A surface halo keeps it legible on any fill.
+        <TriangleAlert
+          aria-hidden
+          className="pointer-events-none absolute top-0.5 right-0.5 size-2.5 text-ink"
+          strokeWidth={2.5}
+          style={{
+            filter: "drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface))",
+          }}
+        />
+      ) : null}
+    </div>
   );
 });

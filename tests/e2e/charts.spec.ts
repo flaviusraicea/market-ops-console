@@ -1,0 +1,98 @@
+import { expect, test, type Page } from "@playwright/test";
+
+import { open } from "./helpers";
+
+const EUROPE = "/?mode=analyst&region=eu";
+const OVERVIEW = "/?mode=executive";
+
+const card = (page: Page, name: RegExp | string) =>
+  page.getByRole("region", { name, exact: typeof name === "string" });
+
+test("the map draws a focus ring along the country for keyboard focus only, and has no native tooltip", async ({
+  page,
+}) => {
+  await open(page, OVERVIEW);
+  const map = page.getByRole("group", { name: /^Markets by / }).first();
+  await expect(map).toBeVisible();
+  // The accessible name is an aria-label; a <title> child would paint a native hover tooltip over the whole map.
+  expect(await map.locator("title").count()).toBe(0);
+
+  const market = map.getByRole("button").first();
+  // A click selects and focuses, but draws no ring.
+  await market.click();
+  await expect(map.locator("g[aria-hidden='true'] path")).toHaveCount(0);
+
+  // Arrow keys move focus: the ring is a stroke on a copy of the country, two paths (halo and ring).
+  await page.keyboard.press("ArrowRight");
+  await expect(map.locator("g[aria-hidden='true'] path")).toHaveCount(2);
+  await expect(map.locator("g[aria-hidden='true'] path").last()).toHaveAttribute(
+    "stroke",
+    "var(--focus)",
+  );
+  // The native outline is off, so no bounding rectangle is drawn around the path.
+  const outline = await map
+    .getByRole("button")
+    .evaluateAll((els) =>
+      els.map((el) => getComputedStyle(el).outlineStyle).filter((s) => s !== "none"),
+    );
+  expect(outline).toEqual([]);
+});
+
+test("the radar compares Units YoY, pads its axes and draws the selected market last", async ({
+  page,
+}) => {
+  await open(page, `${EUROPE}&market=de`);
+  const radar = card(page, /^Compare/);
+  await expect(radar.locator('[data-axis="Units YoY"]')).toBeVisible();
+  await expect(radar.getByText("Forecast accuracy")).toHaveCount(0);
+  await expect(radar.getByText("Axes scaled to the compared markets")).toBeVisible();
+  // No ring carries a number: 0.5 and 1.0 would read as values.
+  await expect(radar.locator("svg text", { hasText: /^(0\.5|1\.0)$/ })).toHaveCount(0);
+  // The selected market is the last polygon, so it sits on top.
+  const order = await radar
+    .locator("path[data-series]")
+    .evaluateAll((els) => els.map((el) => el.getAttribute("data-series")));
+  expect(order.at(-1)).toBe("de");
+  expect(order).toHaveLength(5);
+});
+
+test("the heat map marks the anomaly month in the grid, the tooltip and the table", async ({
+  page,
+}) => {
+  await open(page, EUROPE);
+  const heat = card(page, /Attainment by month/);
+  const cell = heat.locator('[data-market="de"][data-period="2026-03"]');
+  await expect(cell).toHaveAttribute("aria-label", /anomaly$/);
+  await expect(cell.locator("svg")).toHaveCount(1);
+  // One flagged month in the whole grid.
+  await expect(heat.locator('[role="gridcell"][aria-label$="anomaly"]')).toHaveCount(1);
+  await cell.hover();
+  await expect(page.getByRole("tooltip").first()).toContainText("Anomaly");
+  await expect(page.getByRole("tooltip").first()).toContainText("Revenue fell 27%");
+  await heat.getByRole("button", { name: /^View as table/ }).click();
+  await expect(heat.getByRole("row", { name: /Germany/ })).toContainText("anomaly");
+});
+
+test("the time-series table shows compact dollars with the exact figure on hover and highlights the selected month", async ({
+  page,
+}) => {
+  await open(page, `${EUROPE}&market=de`);
+  const series = card(page, /^Germany revenue/);
+  await series.getByRole("button", { name: /^View as table/ }).click();
+  const table = series.getByRole("table");
+  await expect(table.locator("caption")).toContainText("USD");
+  const selected = table.locator('tr[data-state="selected"]');
+  await expect(selected).toHaveCount(1);
+  await expect(selected).toHaveAttribute("data-period", "2026-05");
+  await expect(selected).toHaveAttribute("aria-current", "true");
+  const actual = selected.locator("td").nth(1);
+  await expect(actual).toHaveText(/^\$\d\.\d{2}M$/);
+  await expect(actual).toHaveAttribute("title", /^\$[\d,]+$/);
+});
+
+test("the radar drops Units YoY in the first year of data and says why", async ({ page }) => {
+  await open(page, `${EUROPE}&period=2025-03`);
+  const radar = card(page, /^Compare/);
+  await expect(radar.locator('[data-axis="Units YoY"]')).toHaveCount(0);
+  await expect(radar.getByText("Units YoY unavailable before Jun 2025")).toBeVisible();
+});
