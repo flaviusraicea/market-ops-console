@@ -140,6 +140,14 @@ export type Entity =
   | { kind: "market"; marketId: string }
   | { kind: "product"; marketId: string; productId: string };
 
+/** The wire form of an Entity, for requests that carry one. */
+export const EntitySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("portfolio") }),
+  z.object({ kind: z.literal("region"), regionId: RegionIdSchema }),
+  z.object({ kind: z.literal("market"), marketId: z.string() }),
+  z.object({ kind: z.literal("product"), marketId: z.string(), productId: z.string() }),
+]) satisfies z.ZodType<Entity>;
+
 export type Basis = "month" | "ytd" | "mat";
 /** periods is non-empty and ascending. */
 export type Scope = { entity: Entity; periods: readonly Period[] };

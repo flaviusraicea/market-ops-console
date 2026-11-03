@@ -1,5 +1,5 @@
 {
-  "note": "Canned answers for the mock assistant. The reference endpoint matches an incoming question against each fixture's `keywords` (first match wins, in array order), falls back to `default`, then streams `answer.text` token-by-token followed by a final event carrying `citations` and `confidence`. Citations reference real ids in data.json. See CONTRACT.md.",
+  "note": "Canned answers for the mock assistant. The reference endpoint matches an incoming question against each fixture's `keywords` (first match wins, in array order), falls back to `default`, then streams `answer.text` token-by-token followed by a final event carrying `citations` and `confidence`. Citations reference real ids in data.json. See CONTRACT.md. A fixture with a `scope` is preferred when the request's view matches it; one with a `template` has its text and citations filled from data.json by the route (src/lib/stream/pickFixture.ts).",
   "default": {
     "id": "default",
     "kind": "low_confidence",
@@ -23,6 +23,75 @@
           { "marketId": "br", "period": "2026-05", "label": "Brazil, latest period" }
         ],
         "confidence": "high"
+      }
+    },
+    {
+      "id": "at-risk-europe",
+      "keywords": [
+        "at risk",
+        "at-risk",
+        "risk this quarter",
+        "which markets",
+        "markets to watch"
+      ],
+      "scope": {
+        "entity": "region",
+        "regionId": "eu"
+      },
+      "kind": "normal",
+      "answer": {
+        "text": "As of May 2026, all five of Europe's markets are flagged in the data. Germany and Spain are off track, and Italy, the United Kingdom and France are at risk. Germany is furthest under forecast at 92.0% attainment, then Italy at 93.0%, the United Kingdom at 94.3% and France at 96.4%. Spain's flag sits oddly with its 104.5% attainment, so check its source row.",
+        "citations": [
+          {
+            "marketId": "de",
+            "period": "2026-05",
+            "label": "Germany, latest period"
+          },
+          {
+            "marketId": "es",
+            "period": "2026-05",
+            "label": "Spain, latest period"
+          },
+          {
+            "marketId": "it",
+            "period": "2026-05",
+            "label": "Italy, latest period"
+          },
+          {
+            "marketId": "gb",
+            "period": "2026-05",
+            "label": "United Kingdom, latest period"
+          },
+          {
+            "marketId": "fr",
+            "period": "2026-05",
+            "label": "France, latest period"
+          }
+        ],
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "dip-any-market",
+      "keywords": [
+        "dip",
+        "why did revenue",
+        "revenue fall",
+        "revenue drop",
+        "revenue decline",
+        "revenue change",
+        "change in",
+        "why is"
+      ],
+      "scope": {
+        "entity": "market"
+      },
+      "template": "market-month",
+      "kind": "normal",
+      "answer": {
+        "text": "{market}'s revenue in {period} was {actual} against a {forecast} forecast, {attainment} attainment{mom}.",
+        "citations": [],
+        "confidence": "medium"
       }
     },
     {

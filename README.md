@@ -33,11 +33,13 @@ Design and architecture documents live in `/docs` (copied from the design folder
 - `Which markets are at risk?` shows the "Differs from source" note: the assistant says 3 markets are at risk, data.json says 4 at risk and 2 off track.
 - `Why did Germany dip?` shows a sourced answer with a High confidence meter and clickable citations.
 - `Compare APAC and Europe` streams a comparison answer.
+- `Which markets are at risk?` asked at `/?region=eu` answers about Europe's five markets only; open Germany in Analyst mode and ask `Why did revenue dip?` to get that month's numbers.
 - `What will sales be next year?` is the abstain demo: the assistant declines, says what the data covers and offers a question it can answer.
 
 ## Assistant notes
 
 - Answers stream from `POST /api/chat` (Server-Sent Events) and can be stopped; a stopped answer keeps its text, is marked partial and carries no citations or confidence.
+- Every question carries the view it was asked from (entity and month, shown in the question echo), and the mock backend answers about that view: the same question gives a different, cited answer in Europe than in the portfolio. The backend is still a fake: no model and no retrieval. It matches keywords, prefers the canned answer written for the current view, and for one template answer fills in numbers read from `data.json`.
 - The conversation is kept in memory for the session only. A reload starts with an empty panel.
 
 ## Alert notes

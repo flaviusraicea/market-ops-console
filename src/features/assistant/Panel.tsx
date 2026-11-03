@@ -61,7 +61,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
     onSubmit?.(question);
     const entity = entityOf(ctx);
     const where = about ?? askContext(entity, entityName(ds, entity), ctx.period);
-    ask(question, where.label);
+    ask(question, where);
     setScrollSignal((n) => n + 1);
     // Focus stays in the textarea after Send (also when Send was clicked or a suggestion was picked).
     ref.current?.focus();
