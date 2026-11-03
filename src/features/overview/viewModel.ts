@@ -25,6 +25,7 @@ import {
   formatMonthName,
   formatMoneyCompact,
   formatMoneyFull,
+  formatOneDecimal,
   formatPct,
   formatPeriod,
   formatPeriodAbbr,
@@ -627,7 +628,7 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
       flagged === inRegion.length
         ? `All ${spell(flagged)}`
         : `${capitalise(spell(flagged))} of ${spell(inRegion.length)}`;
-    const gap = (100 - lowest.attainmentPct).toFixed(1);
+    const gap = formatOneDecimal(100 - lowest.attainmentPct);
     sentence = {
       lead: `${lowest.name} is the drag.`,
       rest: ` ${share} ${REGION_ADJECTIVE[lowest.id]} markets are flagged, and its attainment is ${gap} points under forecast.`,

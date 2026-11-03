@@ -8,6 +8,10 @@ These are the working documents behind the build, drafted with AI assistance and
 - [design-system.md](design-system.md): the Ledger tokens and components.
 - [industry-research.md](industry-research.md): the design aspects and the products they came from.
 
+## Testing
+
+Five checks come straight from the brief's wording: its four questions, no jank while streaming, safe rendering of model output, one formatting module, no LLM dependency.
+
 ## Decisions
 
 - [0001-nextjs-app-router.md](decisions/0001-nextjs-app-router.md): Next.js App Router

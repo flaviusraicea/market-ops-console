@@ -100,7 +100,7 @@ function sourceValue(ds: Dataset, entity: Entity, period: Period, withRevenue: b
 
   // The dashboard's own number: the precomputed market KPIs at the latest period.
   if (entity.kind === "market" && market && period === latestPeriod(ds)) {
-    const base = `${STATUS_LABEL[market.kpis.status]} · ${market.kpis.forecastAttainmentPct.toFixed(1)}% attainment`;
+    const base = `${STATUS_LABEL[market.kpis.status]} · ${formatPct(market.kpis.forecastAttainmentPct, { sign: false })} attainment`;
     return withRevenue ? `${base} · ${formatMoneyCompact(market.kpis.revenue)}` : base;
   }
 

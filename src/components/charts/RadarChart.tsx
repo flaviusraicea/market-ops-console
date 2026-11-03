@@ -12,9 +12,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatOneDecimal } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
 import { Legend } from "./Legend";
+import { svgPath } from "./svgPath";
 import { useChartKeyboard } from "./useChartKeyboard";
 
 export type RadarSeries = {
@@ -66,10 +68,10 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
     cy + Math.sin(angleOf(axis, n)) * radius * r,
   ];
   const poly = (rs: readonly number[]) =>
-    rs
-      .map((r, a) => point(a, r))
-      .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`)
-      .join(" ") + " Z";
+    svgPath(
+      rs.map((r, a) => point(a, r)),
+      true,
+    );
 
   const vertices = series.flatMap((s, si) => s.values.map((_, a) => ({ si, a })));
 
@@ -118,7 +120,7 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
               aria-hidden
               className="fill-ink-muted text-[length:var(--text-caption)]"
             >
-              {r.toFixed(1)}
+              {formatOneDecimal(r)}
             </text>
           </g>
         ))}

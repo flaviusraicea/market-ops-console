@@ -1,3 +1,5 @@
+import { svgPath } from "./svgPath";
+
 type SparklineProps = {
   values: readonly number[];
   /** A second line, dotted, drawn on the same scale (for example the forecast beside the actuals). */
@@ -32,13 +34,7 @@ export function Sparkline({
     PAD + i * step,
     height - PAD - ((v - lo) / span) * (height - PAD * 2),
   ];
-  const path = (series: readonly number[]) =>
-    series
-      .map((v, i) => {
-        const [x, y] = pt(v, i);
-        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(" ");
+  const path = (series: readonly number[]) => svgPath(series.map((v, i) => pt(v, i)));
   const d = path(values);
   const last = values.length ? pt(values[values.length - 1]!, values.length - 1) : undefined;
   const ring =
