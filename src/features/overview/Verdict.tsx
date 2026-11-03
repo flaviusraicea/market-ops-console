@@ -25,6 +25,8 @@ export function Verdict({ verdict }: { verdict: VerdictVM }) {
       </div>
       <h2
         id="verdict-h"
+        data-page-heading=""
+        tabIndex={-1}
         className="num font-display text-[length:var(--text-display)] leading-[var(--text-display-lh)] font-semibold tracking-[var(--text-display-ls)] text-balance text-ink"
       >
         {verdict.segments.map((segment, i) => (

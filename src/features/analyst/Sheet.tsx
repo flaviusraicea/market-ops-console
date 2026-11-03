@@ -29,6 +29,7 @@ export function SheetSection({
   className,
   children,
   landed = false,
+  pageHeading = false,
   sectionRef,
 }: {
   eyebrow: string;
@@ -39,12 +40,15 @@ export function SheetSection({
   children: ReactNode;
   /** A followed citation points at this section: show the landing ring. */
   landed?: boolean;
+  /** This heading is where focus goes after a keyboard drill (see DashboardColumn). */
+  pageHeading?: boolean;
   sectionRef?: Ref<HTMLElement>;
 }) {
   const id = useId();
   return (
     <section
       ref={sectionRef}
+      data-landing-target=""
       data-landed={landed ? "" : undefined}
       aria-labelledby={subtitle ? `${id} ${id}-sub` : id}
       className={cn("flex min-w-0 flex-col gap-2 p-[var(--pad-card)]", className)}
@@ -53,7 +57,10 @@ export function SheetSection({
         data-slot="card-header"
         className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1"
       >
-        <h3 className="flex min-w-0 flex-wrap items-baseline gap-x-3">
+        <h3
+          {...(pageHeading ? { "data-page-heading": "", tabIndex: -1 } : {})}
+          className="flex min-w-0 flex-wrap items-baseline gap-x-3"
+        >
           <Eyebrow id={id} className="text-ink">
             {eyebrow}
           </Eyebrow>

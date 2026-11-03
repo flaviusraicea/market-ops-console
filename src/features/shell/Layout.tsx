@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { AnswerStoreProvider } from "@/features/assistant/AnswerStore";
 import { AskWhyProvider } from "@/features/assistant/askWhy";
+import { DashboardColumn } from "./DashboardColumn";
 
 type LayoutProps = {
   header: ReactNode;
@@ -26,9 +27,7 @@ export function Layout({ header, dashboard, assistant }: LayoutProps) {
             id="main"
             className="grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_var(--assistant-w)]"
           >
-            <section aria-label="Dashboard" className="min-w-0">
-              {dashboard}
-            </section>
+            <DashboardColumn>{dashboard}</DashboardColumn>
             <aside aria-labelledby="assistant-h" className="min-w-0">
               <h2 id="assistant-h" className="sr-only">
                 Assistant

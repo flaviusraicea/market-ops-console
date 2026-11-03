@@ -3,6 +3,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { REDUCED_MOTION_KEY } from "@/lib/motion";
 import { WebVitals } from "@/lib/vitals";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -32,12 +33,14 @@ export const metadata: Metadata = {
 
 // Applies a stored theme before first paint so there is no flash.
 const THEME_SCRIPT = `try{var t=localStorage.getItem("mo.theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+// Same for the console's Reduce motion switch.
+const MOTION_SCRIPT = `try{if(localStorage.getItem("${REDUCED_MOTION_KEY}")==="true")document.documentElement.setAttribute("data-reduced-motion","true")}catch(e){}`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${ui.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + MOTION_SCRIPT }} />
       </head>
       <body>
         <Providers>

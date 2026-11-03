@@ -57,6 +57,7 @@ const signColour = (d: "up" | "down" | "flat") =>
 /** A focusable row that selects on Enter or Space, unless the key came from a control inside it. */
 function rowProps(selected: boolean, onSelect: () => void, landed = false) {
   return {
+    "data-landing-target": "",
     "data-landed": landed ? "" : undefined,
     tabIndex: 0,
     "aria-current": selected ? ("true" as const) : undefined,
@@ -365,6 +366,7 @@ export function MarketGrid({ grid }: { grid: GridVM }): ReactNode {
   return (
     <SheetSection
       eyebrow={grid.title}
+      pageHeading
       subtitle={subtitle}
       caption={grid.caption}
       landed={landing.active && kind !== "product" && kind !== "portfolio"}

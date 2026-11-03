@@ -2,7 +2,7 @@
 
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
-import { LinePath } from "@visx/shape";
+import { line } from "@visx/shape";
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 
 import { TriangleAlert, ICON_STROKE } from "@/components/icons";
@@ -167,6 +167,9 @@ function LineSvg({
     ? `${activePoint.name}: actual ${formatMoneyCompact(activePoint.actual)}, forecast ${formatMoneyCompact(activePoint.forecast)}, prior year ${formatMoneyCompact(activePoint.priorYear)}, attainment ${formatPct(activePoint.attainment, { sign: false })}`
     : "";
 
+  const seriesPath = (key: "actual" | "forecast" | "priorYear") =>
+    line<LinePoint>({ x: (_, i) => x(i), y: (p) => y(p[key]) })(points) ?? "";
+
   const series = [
     { key: "actual", color: "var(--series-actual)", width: 2, dash: undefined },
     { key: "forecast", color: "var(--series-forecast)", width: 2, dash: "6 4" },
@@ -227,20 +230,24 @@ function LineSvg({
             strokeWidth={1}
           />
         ) : null}
-        {series.map((s) => (
-          <LinePath<LinePoint>
-            key={s.key}
-            data={points as LinePoint[]}
-            x={(_, i) => x(i)}
-            y={(p) => y(p[s.key])}
-            data-series={s.key}
-            fill="none"
-            stroke={s.color}
-            strokeWidth={s.width}
-            strokeLinejoin="round"
-            {...(s.dash ? { strokeDasharray: s.dash } : {})}
-          />
-        ))}
+        {series.map((s) => {
+          const d = seriesPath(s.key);
+          return (
+            <path
+              key={s.key}
+              data-series={s.key}
+              className="tween-path"
+              d={d}
+              // The d attribute is the fallback; the CSS property is what transitions.
+              style={{ d: `path("${d}")` }}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={s.width}
+              strokeLinejoin="round"
+              {...(s.dash ? { strokeDasharray: s.dash } : {})}
+            />
+          );
+        })}
         {anomalies.map((a) => {
           const p = points[a.index];
           if (!p) return null;

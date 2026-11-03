@@ -164,8 +164,39 @@ html[data-reduced-motion="true"] .caret {
   text-decoration-style: solid;
 }
 
-/* A followed citation landed on this widget (slice 6): ring for two seconds. */
-[data-landed] {
-  outline: 2px solid var(--accent);
+/* Slice 17, the only motion besides the rail width and the disclosures: the page turns, marks interpolate,
+   a landed citation's ring fades in, holds, and fades out. The duration tokens are 0ms under reduced motion. */
+[data-slot="dashboard"] {
+  transition: opacity var(--dur-base) var(--ease);
+}
+[data-slot="dashboard"][data-pending="true"] {
+  opacity: 0.6;
+  transition-duration: var(--dur-fast);
+}
+
+/* Line paths tween `d` (Chromium, Firefox; Safari swaps instantly), cells and map shapes tween their fill. */
+.tween-path {
+  transition: d var(--dur-chart) var(--ease);
+}
+.tween-fill {
+  transition:
+    fill var(--dur-chart) var(--ease),
+    background-color var(--dur-chart) var(--ease);
+}
+
+/* A followed citation landed on this widget (slice 6): the ring fades in, holds while data-landed is set
+   (two seconds, useLanding), then fades out when it is removed. */
+[data-landing-target] {
+  outline: 2px solid transparent;
   outline-offset: -2px;
+  transition: outline-color var(--dur-base) var(--ease);
+}
+[data-landing-target][data-landed] {
+  outline-color: var(--accent);
+  transition-duration: var(--dur-fast);
+}
+@starting-style {
+  [data-landing-target][data-landed] {
+    outline-color: transparent;
+  }
 }
