@@ -54,8 +54,7 @@ const AskWhyContext = createContext<AskWhyValue>(NOOP);
 export function AskWhyProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<AskWhyRequest | null>(null);
   const sender = useRef<Sender | null>(null);
-  const rail = useAssistantRail();
-  const openRail = rail.openForEntry;
+  const { openForEntry: openRail } = useAssistantRail();
 
   const publish = useCallback(
     (text: string, fill: boolean, ctx?: AskContext, from?: string) => {

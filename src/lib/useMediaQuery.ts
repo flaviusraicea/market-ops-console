@@ -14,3 +14,8 @@ export function useMediaQuery(query: string): boolean {
     () => false,
   );
 }
+
+/** The widths where the assistant is a column or overlay rather than a block under the dashboard. */
+export const DESKTOP_QUERY = "(min-width: 1024px)";
+/** Desktop but narrower than 1280 px: the open assistant overlays the dashboard. */
+export const OVERLAY_QUERY = "(min-width: 1024px) and (max-width: 1279px)";

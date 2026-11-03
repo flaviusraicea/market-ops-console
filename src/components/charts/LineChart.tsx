@@ -16,7 +16,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatMoneyAxis, formatMoneyCompact, formatMoneyFull, formatPct } from "@/lib/format";
-import { momPct } from "@/lib/change";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame, type Margins } from "./Frame";
 import type { LegendItem } from "./Legend";
@@ -37,6 +36,8 @@ export type LinePoint = {
 export type LineAnomaly = {
   period: string;
   index: number;
+  /** Month-on-month change in revenue, percent. */
+  momPct: number | undefined;
   /** Short chart label, "−27% vs Feb". */
   label: string;
   /** Accessible name of the marker. */
@@ -63,8 +64,10 @@ type LineChartProps = {
    * Asks about an anomaly: its tooltip gains an action and Shift+Enter on the focused marker does the same.
    * `subject` names the entity in the action label.
    */
-  onAsk?: (anomaly: { period: string; momPct: number | null }) => void;
-  subject?: string;
+  ask?: {
+    subject: string;
+    onAsk: (anomaly: { period: string; momPct: number | undefined }) => void;
+  };
 };
 
 const HEIGHT = 260;
@@ -80,8 +83,7 @@ function LineSvg({
   title,
   desc,
   onPeriod,
-  onAsk,
-  subject,
+  ask,
 }: LineChartProps & { width: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const hintId = useId();
@@ -105,13 +107,11 @@ function LineSvg({
   const ticks = y.ticks(5);
   const x = (i: number) => step * (i + 0.5);
 
-  function askAbout(index: number) {
-    const p = points[index];
-    if (!p || !onAsk) return;
-    onAsk({ period: p.period, momPct: momPct(p.actual, points[index - 1]?.actual) });
+  function askAbout(a: LineAnomaly) {
+    ask?.onAsk({ period: a.period, momPct: a.momPct });
   }
 
-  function reveal(index: number, anchorY?: number, asking = false) {
+  function reveal(index: number, anchorY?: number, anomaly?: LineAnomaly) {
     const p = points[index];
     if (!p) return;
     setCursor(index);
@@ -124,12 +124,12 @@ function LineSvg({
           { label: "Prior year", value: formatMoneyCompact(p.priorYear) },
           { label: "Attainment", value: formatPct(p.attainment, { sign: false }) },
         ],
-        ...(asking && onAsk
+        ...(anomaly && ask
           ? {
               action: {
-                label: `Ask about ${subject ?? "this"}, ${p.name}`,
+                label: `Ask about ${ask.subject}, ${p.name}`,
                 hint: "⇧↩",
-                onActivate: () => askAbout(index),
+                onActivate: () => askAbout(anomaly),
               },
             }
           : {}),
@@ -344,12 +344,12 @@ function LineSvg({
                 aria-label={a.ariaLabel}
                 data-period={a.period}
                 className="pointer-events-auto cursor-pointer"
-                onFocus={() => reveal(a.index, y(p.actual), true)}
+                onFocus={() => reveal(a.index, y(p.actual), a)}
                 onBlur={() => {
                   setCursor(null);
                   tip.hideSoon();
                 }}
-                onMouseEnter={() => reveal(a.index, y(p.actual), true)}
+                onMouseEnter={() => reveal(a.index, y(p.actual), a)}
                 onMouseLeave={() => {
                   setCursor(null);
                   tip.hideSoon();
@@ -358,7 +358,7 @@ function LineSvg({
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    if (e.key === "Enter" && e.shiftKey && onAsk) askAbout(a.index);
+                    if (e.key === "Enter" && e.shiftKey && ask) askAbout(a);
                     else onPeriod(a.period);
                   }
                 }}

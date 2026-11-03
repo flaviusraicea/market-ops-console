@@ -11,7 +11,6 @@ import {
   type AskContext,
 } from "@/features/assistant/askWhy";
 import { askContext, askLabel, cellQuestion } from "@/features/assistant/questions";
-import { momPct } from "@/lib/change";
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <AskWhyProvider>{children}</AskWhyProvider>
@@ -25,7 +24,7 @@ const germany: AskContext = askContext(
 
 describe("cellQuestion", () => {
   it("says dip for a fall of 10 percent or more", () => {
-    expect(cellQuestion("Germany", "2026-03", -27)).toBe(
+    expect(cellQuestion("Germany", "2026-03", -27.2)).toBe(
       "Why did Germany's revenue dip in Mar 2026?",
     );
     expect(cellQuestion("Germany", "2026-03", -10)).toContain("dip");
@@ -35,11 +34,7 @@ describe("cellQuestion", () => {
       "Why did Germany's revenue change in Apr 2026?",
     );
     expect(cellQuestion("Germany", "2026-04", -9.9)).toContain("change");
-    expect(cellQuestion("Germany", "2024-06", null)).toContain("change");
-  });
-  it("computes month-on-month change", () => {
-    expect(momPct(73, 100)).toBeCloseTo(-27);
-    expect(momPct(73, undefined)).toBeNull();
+    expect(cellQuestion("Germany", "2024-06", undefined)).toContain("change");
   });
   it("labels the context", () => {
     expect(askLabel("Germany", "2026-05")).toBe("Germany · May 2026");

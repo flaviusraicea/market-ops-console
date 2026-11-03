@@ -3,77 +3,36 @@
 import {
   createContext,
   useCallback,
+  useRef,
+  type KeyboardEvent,
   useContext,
   useMemo,
   useState,
+  useEffect,
   useSyncExternalStore,
+  type RefObject,
   type ReactNode,
 } from "react";
 
-import type { Mode } from "@/domain";
-import { useMediaQuery } from "@/lib/useMediaQuery";
+import { parsePrefs, type Mode } from "@/domain";
+
+import { createStoredState } from "@/lib/storedState";
+import { DESKTOP_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 
 const STORAGE_KEY = "market-ops:assistant:v1";
-/** Overview opens with the assistant; Analyst starts with the rail collapsed. */
-const DEFAULTS: Record<Mode, boolean> = { overview: true, analyst: false };
-
-const listeners = new Set<() => void>();
-
-function readRaw(): string | null {
-  try {
-    return localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function subscribe(cb: () => void) {
-  listeners.add(cb);
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY) cb();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    listeners.delete(cb);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-function parse(raw: string | null): Record<Mode, boolean> {
-  try {
-    const value: unknown = raw ? JSON.parse(raw) : null;
-    if (value && typeof value === "object") {
-      const o = value as Record<string, unknown>;
-      return {
-        overview: typeof o["overview"] === "boolean" ? o["overview"] : DEFAULTS.overview,
-        analyst: typeof o["analyst"] === "boolean" ? o["analyst"] : DEFAULTS.analyst,
-      };
-    }
-  } catch {
-    // A corrupt value falls back to the defaults.
-  }
-  return DEFAULTS;
-}
+const stored = createStoredState(STORAGE_KEY, "local");
 
 function write(mode: Mode, open: boolean) {
-  const next = { ...parse(readRaw()), [mode]: open };
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // Storage can be blocked; the choice then lasts until the next load.
-  }
-  listeners.forEach((l) => l());
+  stored.write(JSON.stringify({ ...parsePrefs(stored.read()), [mode]: open }));
 }
 
-type FocusRequest = { target: "heading" | "rail"; nonce: number };
+export type FocusRequest = { target: "heading" | "rail"; nonce: number };
 
 type RailValue = {
-  /** Whether the assistant panel is open in this mode (desktop only; below 1024 px the panel is always in the page). */
+  /** Whether the panel is open in this mode. Desktop only: below 1024 px the panel is always in the page. */
   open: boolean;
-  /** Answers that finished while collapsed. */
   unread: number;
-  /** The rail toggle: open and move focus to the panel heading. */
   openFromRail: () => void;
   /** Open for an entry point such as Ask why; the panel moves focus to the composer itself. */
   openForEntry: () => void;
@@ -84,7 +43,7 @@ type RailValue = {
   /** An answer finished; counts as unread when the panel is collapsed. */
   noteAnswerDone: () => void;
   focusRequest: FocusRequest | null;
-  /** The always-mounted live region. undefined without a provider, null until it mounts. */
+  /** The always-mounted live region: undefined without a provider, null until it mounts. */
   liveHost: HTMLElement | null | undefined;
   setLiveHost: (el: HTMLElement | null) => void;
 };
@@ -109,9 +68,9 @@ export function AssistantRailProvider({ children }: { children: ReactNode }) {
   const { ctx } = useConsoleContext();
   const mode = ctx.mode;
   // Below 1024 px the panel is always in the page: nothing is collapsed, so nothing is unread or remembered.
-  const desktop = useMediaQuery("(min-width: 1024px)");
-  const raw = useSyncExternalStore(subscribe, readRaw, () => null);
-  const open = parse(raw)[mode];
+  const desktop = useMediaQuery(DESKTOP_QUERY);
+  const raw = useSyncExternalStore(stored.subscribe, stored.read, () => null);
+  const open = parsePrefs(raw)[mode];
   const [unread, setUnread] = useState(0);
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const [liveHost, setLiveHost] = useState<HTMLElement | null>(null);
@@ -179,4 +138,52 @@ export function AssistantRailProvider({ children }: { children: ReactNode }) {
 
 export function useAssistantRail(): RailValue {
   return useContext(RailContext);
+}
+
+/** Focuses `el` once per new request for `target`; a request made before this component mounted is ignored. */
+export function useFocusRequest(target: FocusRequest["target"], el: RefObject<HTMLElement | null>) {
+  const { focusRequest } = useAssistantRail();
+  const handled = useRef(focusRequest?.nonce);
+  useEffect(() => {
+    if (!focusRequest || focusRequest.nonce === handled.current) return;
+    handled.current = focusRequest.nonce;
+    if (focusRequest.target === target) el.current?.focus();
+  }, [focusRequest, target, el]);
+}
+
+/**
+ * The overlay behaviour of the open panel: Escape collapses it, and while it overlays the dashboard
+ * (1024 to 1279 px) Tab wraps inside it. Attach the returned handler to the panel.
+ */
+export function useOverlayKeys(
+  panelRef: RefObject<HTMLElement | null>,
+  { desktop, overlay, collapse }: { desktop: boolean; overlay: boolean; collapse: () => void },
+) {
+  return useCallback(
+    (e: KeyboardEvent<HTMLElement>) => {
+      if (!desktop) return;
+      if (e.key === "Escape" && !e.defaultPrevented) {
+        e.preventDefault();
+        collapse();
+        return;
+      }
+      if (e.key !== "Tab" || !overlay || !panelRef.current) return;
+      const items = [
+        ...panelRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea:not([readonly]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ].filter((el) => el.offsetParent !== null);
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    },
+    [panelRef, desktop, overlay, collapse],
+  );
 }

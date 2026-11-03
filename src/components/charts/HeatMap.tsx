@@ -12,15 +12,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/components/cn";
-import {
-  formatMoneyCompact,
-  formatMonthShort,
-  formatPct,
-  formatPeriodAbbr,
-  formatPeriodShort,
-} from "@/lib/format";
-import { momPct } from "@/lib/change";
+import { formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
+import { heatCellTooltip } from "./heatMapTooltip";
 import { attainmentDiverging } from "./scales";
 
 export type HeatCell = {
@@ -30,6 +24,8 @@ export type HeatCell = {
   display: string;
   actual: number;
   forecast: number;
+  /** Month-on-month change in revenue, percent; undefined for the first month. */
+  momPct: number | undefined;
 };
 export type HeatRow = { id: string; name: string; cells: readonly HeatCell[] };
 
@@ -42,13 +38,13 @@ type HeatMapProps = {
   onCell: (market: string, period: string) => void;
   /**
    * Asks about a cell: the tooltip gains an action and Shift+Enter on a focused cell does the same.
-   * `momPct` is the month-on-month change in revenue, or null for the first month.
+   * `momPct` is the month-on-month change in revenue, undefined for the first month.
    */
   onAsk?: (cell: {
     market: string;
     marketName: string;
     period: string;
-    momPct: number | null;
+    momPct: number | undefined;
   }) => void;
 };
 
@@ -63,7 +59,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const wrapRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
   const tip = useChartTooltip();
-  const shownRow = useRef(0);
+  const shown = useRef({ row: 0, col: 0 });
   const nCols = periods.length;
 
   const [pos, setPos] = useState<{ r: number; c: number }>({
@@ -79,44 +75,21 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const key = (row: number, col: number) => `${row}:${col}`;
 
   function askAbout(row: number, col: number) {
-    const cell = rows[row]?.cells[col];
-    if (!cell || !onAsk) return;
-    onAsk({
-      market: rows[row]!.id,
-      marketName: rows[row]!.name,
-      period: cell.period,
-      momPct: momPct(cell.actual, rows[row]?.cells[col - 1]?.actual),
-    });
+    const r = rows[row];
+    const cell = r?.cells[col];
+    if (!r || !cell || !onAsk) return;
+    onAsk({ market: r.id, marketName: r.name, period: cell.period, momPct: cell.momPct });
   }
 
   function reveal(row: number, col: number, el: Element) {
-    shownRow.current = row;
-    const cell = rows[row]?.cells[col];
+    shown.current = { row, col };
+    const r = rows[row];
+    const cell = r?.cells[col];
     const wrap = wrapRef.current?.getBoundingClientRect();
-    if (!cell || !wrap) return;
-    const prev = rows[row]?.cells[col - 1];
-    const mom = momPct(cell.actual, prev?.actual);
-    const change = mom === null ? "" : formatPct(mom, { sign: true });
+    if (!r || !cell || !wrap) return;
     const box = el.getBoundingClientRect();
     tip.show(
-      {
-        title: `${rows[row]!.name} · ${formatPeriodAbbr(cell.period)}`,
-        rows: [
-          { label: "Actual", value: formatMoneyCompact(cell.actual) },
-          { label: "Forecast", value: formatMoneyCompact(cell.forecast) },
-          { label: "Attainment", value: formatPct(cell.value, { sign: false }) },
-          ...(prev ? [{ label: `vs ${formatMonthShort(prev.period)}`, value: change }] : []),
-        ],
-        ...(onAsk
-          ? {
-              action: {
-                label: `Ask about ${rows[row]!.name}, ${formatPeriodAbbr(cell.period)}`,
-                hint: "⇧↩",
-                onActivate: () => askAbout(row, col),
-              },
-            }
-          : {}),
-      },
+      heatCellTooltip(r.name, cell, r.cells[col - 1], onAsk && (() => askAbout(row, col))),
       box.left - wrap.left + box.width / 2,
       box.top - wrap.top,
     );
@@ -158,8 +131,9 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
           askAbout(row, col);
           return;
         }
-        const cell = rows[row]?.cells[col];
-        if (cell) onCell(rows[row]!.id, cell.period);
+        const r = rows[row];
+        const cell = r?.cells[col];
+        if (r && cell) onCell(r.id, cell.period);
       }
     }
   }
@@ -239,11 +213,8 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
                       onKeyDown={(e) => onKeyDown(e, ri, ci)}
                       onMouseMove={(e: MouseEvent<HTMLDivElement>) => {
                         // While the pointer travels up to the tooltip action, the rows above the open tooltip stay quiet.
-                        if (tip.locked() && ri < shownRow.current) return;
-                        if (
-                          tip.open &&
-                          tip.content?.title === `${row.name} · ${formatPeriodAbbr(cell.period)}`
-                        )
+                        if (tip.locked() && ri < shown.current.row) return;
+                        if (tip.open && shown.current.row === ri && shown.current.col === ci)
                           return;
                         reveal(ri, ci, e.currentTarget);
                       }}

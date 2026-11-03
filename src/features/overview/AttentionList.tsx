@@ -9,6 +9,7 @@ import { Sparkline } from "@/components/charts/Sparkline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAskWhy, type AskContext } from "@/features/assistant/askWhy";
+import { askContext } from "@/features/assistant/questions";
 import type { Status } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import type { AttentionRowVM, AttentionVM, ProductRowVM, RankedRowVM } from "./viewModel";
@@ -81,11 +82,10 @@ function MarketRow({
           variant="secondary"
           aria-label={row.askWhy.aria}
           onClick={() =>
-            ask(row.askWhy.text, {
-              entity: { kind: "market", marketId: row.id },
-              period: ctx.period,
-              label: row.askWhy.about,
-            })
+            ask(
+              row.askWhy.text,
+              askContext({ kind: "market", marketId: row.id }, row.name, ctx.period),
+            )
           }
           className="max-md:min-h-11 max-md:min-w-11"
         >

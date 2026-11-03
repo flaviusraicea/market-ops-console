@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { entityName, entityOf } from "@/domain";
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ChevronRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useAssistantRail } from "@/features/shell/railState";
-import { useMediaQuery } from "@/lib/useMediaQuery";
+import { useAssistantRail, useFocusRequest, useOverlayKeys } from "@/features/shell/railState";
+import { DESKTOP_QUERY, OVERLAY_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { useDataset } from "@/lib/context/dataset";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { logEvent } from "@/lib/events";
@@ -45,28 +45,22 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
   const request = useAskWhyRequest();
   const ds = useDataset();
   const { ctx } = useConsoleContext();
-  const rail = useAssistantRail();
-  const { open, collapse, focusRequest } = rail;
-  const desktop = useMediaQuery("(min-width: 1024px)");
-  const overlay = useMediaQuery("(min-width: 1024px) and (max-width: 1279px)") && open;
+  const { open, collapse } = useAssistantRail();
+  const desktop = useMediaQuery(DESKTOP_QUERY);
+  const overlay = useMediaQuery(OVERLAY_QUERY) && open;
   const panelRef = useRef<HTMLDivElement>(null);
+  const onKeyDown = useOverlayKeys(panelRef, { desktop, overlay, collapse });
 
   const { answers, ask, stop, retry, isStreaming } = useAnswerMachine(stream);
   usePublishAnswers(answers);
 
-  /** `about` comes from an entry point; `fromComposer` is true only for the draft a prefill produced. */
-  function submit(question: string, about?: AskContext, fromComposer = false) {
+  /** `about` is the entry point a question came from; without one the question is about the view in the URL. */
+  function submit(question: string, about?: AskContext) {
     logEvent({ type: "ask", question });
     onSubmit?.(question);
-    // Typed with no entry point: the question is about the view in the URL.
     const entity = entityOf(ctx);
-    const where =
-      about ??
-      (fromComposer ? pending?.ctx : undefined) ??
-      askContext(entity, entityName(ds, entity), ctx.period);
+    const where = about ?? askContext(entity, entityName(ds, entity), ctx.period);
     ask(question, where.label);
-    // Only sending the composer text uses up its context; a sent Ask why leaves the draft and chip alone.
-    if (fromComposer) setPending(null);
     setScrollSignal((n) => n + 1);
     // Focus stays in the textarea after Send (also when Send was clicked or a suggestion was picked).
     ref.current?.focus();
@@ -98,7 +92,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
     const el = ref.current;
     el?.focus();
     // Below 1024 px the panel sits under the dashboard, so bring it into view.
-    if (el && !window.matchMedia("(min-width: 1024px)").matches) {
+    if (el && !window.matchMedia(DESKTOP_QUERY).matches) {
       el.scrollIntoView({
         block: "center",
         behavior: prefersReducedMotion() ? "instant" : "smooth",
@@ -107,45 +101,13 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
   }, [request]);
 
   // Opening from the rail toggle lands on the panel heading; entry points land in the composer (above).
-  const handledFocus = useRef(focusRequest?.nonce);
-  useEffect(() => {
-    if (!focusRequest || focusRequest.nonce === handledFocus.current) return;
-    handledFocus.current = focusRequest.nonce;
-    if (focusRequest.target === "heading") headingRef.current?.focus();
-  }, [focusRequest]);
+  useFocusRequest("heading", headingRef);
 
   // The Try button on an abstain card fills the composer like "Ask why" does, and leaves sending to the user.
   function fill(text: string) {
     setDraft(text);
     setPending(null);
     ref.current?.focus();
-  }
-
-  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    if (!desktop) return;
-    if (e.key === "Escape" && !e.defaultPrevented) {
-      e.preventDefault();
-      collapse();
-      return;
-    }
-    // The overlay is modal: Tab wraps inside it.
-    if (e.key === "Tab" && overlay && panelRef.current) {
-      const items = [
-        ...panelRef.current.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), textarea:not([readonly]), [tabindex]:not([tabindex="-1"])',
-        ),
-      ].filter((el) => el.offsetParent !== null);
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (!first || !last) return;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
   }
 
   return (
@@ -158,9 +120,8 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
         "flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)]",
         // From 1280 px the panel is sticky in its column; from 1024 to 1279 px it overlays the dashboard when open.
         "xl:sticky xl:max-h-[calc(100vh-var(--header-h)-32px)]",
-        // Analyst pins its header, so the panel sticks below it.
-        ctx.mode === "analyst" ? "xl:top-[calc(var(--header-h)+16px)]" : "xl:top-4",
-        "lg:max-xl:fixed lg:max-xl:top-[calc(var(--header-h)+16px)] lg:max-xl:right-4 lg:max-xl:bottom-4 lg:max-xl:z-50 lg:max-xl:w-[var(--assistant-w)] lg:max-xl:shadow-popover",
+        "xl:top-[var(--assistant-top)]",
+        "lg:max-xl:fixed lg:max-xl:top-[var(--below-header)] lg:max-xl:right-4 lg:max-xl:bottom-4 lg:max-xl:z-50 lg:max-xl:w-[var(--assistant-w)] lg:max-xl:shadow-popover",
         !open && "lg:hidden",
       )}
     >
@@ -201,7 +162,11 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
           // Editing the filled text drops the "Filled from" line; the About chip stays until sent or cleared.
           setPending((p) => (p?.note ? { ...p, note: null } : p));
         }}
-        onSubmit={(q) => submit(q, undefined, true)}
+        onSubmit={(q) => {
+          // Sending the composer text uses up the context a prefill gave it; a sent Ask why leaves the draft alone.
+          submit(q, pending?.ctx);
+          setPending(null);
+        }}
         disabled={isStreaming}
         textareaRef={ref}
         about={pending?.ctx.label ?? null}
@@ -210,7 +175,7 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
       />
       <AnswerList
         answers={answers}
-        context={context}
+        context={pending ? { ...context, about: null } : context}
         onPick={(q) => submit(q)}
         onTry={fill}
         onStop={stop}

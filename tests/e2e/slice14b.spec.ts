@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const URL = "/?mode=analyst";
 
@@ -38,6 +38,12 @@ test("the rail toggle opens the panel on its heading; Escape collapses and retur
   await expect(toggle(page)).toHaveAttribute("aria-expanded", "false");
 });
 
+async function boxOf(locator: Locator) {
+  const box = await locator.boundingBox();
+  if (!box) throw new Error("expected the element to be on screen");
+  return box;
+}
+
 test("Overview keeps the panel open and remembers each mode on its own", async ({ page }) => {
   await open(page, "/");
   await expect(page.locator("#assistant-panel")).toBeVisible();
@@ -46,7 +52,7 @@ test("Overview keeps the panel open and remembers each mode on its own", async (
   await page.goto("/?mode=analyst");
   await expect(toggle(page)).toHaveAttribute("aria-expanded", "false");
   await page.goto("/");
-  await expect(toggle(page)).toBeVisible();
+  await expect(toggle(page)).toHaveAttribute("aria-expanded", "false");
 });
 
 test("Ask why on the Germany row opens the panel, sends, and echoes where it was asked", async ({
@@ -79,6 +85,8 @@ test("Shift+Enter on a heat map cell fills the composer, sends nothing, then Ent
   await expect(
     page.getByText("Filled from the heat map cell. Edit, then press Enter."),
   ).toBeVisible();
+  // One subject at a time: the portfolio Context block gives way to the chip while a cell question is pending.
+  await expect(page.getByText("Context", { exact: true })).toHaveCount(0);
   await expect(page.getByText("You asked")).toHaveCount(0);
   await page.keyboard.press("Enter");
   await expect(page.getByText("You asked, about Germany · Mar 2026:")).toBeVisible();
@@ -100,13 +108,13 @@ test("a slow pointer reaches the tooltip action without the tooltip jumping to a
   await open(page);
   const cell = page.getByRole("gridcell", { name: /^Germany, Mar 2026/ });
   await cell.scrollIntoViewIfNeeded();
-  const box = (await cell.boundingBox())!;
+  const box = await boxOf(cell);
   const x = box.x + box.width / 2;
   await page.mouse.move(x - 20, box.y + box.height / 2);
   await page.mouse.move(x, box.y + box.height / 2, { steps: 5 });
   const action = page.getByRole("button", { name: "Ask about Germany, Mar 2026" });
   await expect(action).toBeVisible();
-  const target = (await action.boundingBox())!;
+  const target = await boxOf(action);
   // Straight up from the cell, in small steps, across the rows above.
   await page.mouse.move(x, target.y + target.height / 2, { steps: 25 });
   await expect(page.getByRole("tooltip")).toContainText("Germany · Mar 2026");

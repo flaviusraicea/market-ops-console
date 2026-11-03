@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef, type Ref } from "react";
 
 import { ChevronLeft, ICON_STROKE, Sparkles } from "@/components/icons";
 import { Eyebrow } from "@/components/Eyebrow";
 import { cn } from "@/components/cn";
-import { useConsoleContext } from "@/lib/context/useConsoleContext";
-import { useAssistantRail } from "./railState";
+import { useAssistantRail, useFocusRequest } from "./railState";
 
 type AssistantRailProps = {
-  /** Whether the panel is open. The toggle says so with `aria-expanded`. */
   open?: boolean;
-  /** Answers that finished while the panel was collapsed. */
   unread?: number;
   onToggle: () => void;
+  toggleRef?: Ref<HTMLButtonElement>;
   className?: string;
 };
 
@@ -25,6 +23,7 @@ export function AssistantRail({
   open = false,
   unread = 0,
   onToggle,
+  toggleRef,
   className,
 }: AssistantRailProps) {
   return (
@@ -35,6 +34,7 @@ export function AssistantRail({
       )}
     >
       <button
+        ref={toggleRef}
         type="button"
         id="assistant-toggle"
         aria-expanded={open}
@@ -63,26 +63,20 @@ export function AssistantRail({
 
 /** The rail wired to the shell's state. Takes focus back when the panel collapses. */
 export function ConnectedAssistantRail() {
-  const { open, unread, openFromRail, collapse, focusRequest } = useAssistantRail();
-  const { ctx } = useConsoleContext();
-  const ref = useRef<HTMLDivElement>(null);
-  const handled = useRef(focusRequest?.nonce);
-  useEffect(() => {
-    if (!focusRequest || focusRequest.nonce === handled.current) return;
-    handled.current = focusRequest.nonce;
-    if (focusRequest.target === "rail") ref.current?.querySelector("button")?.focus();
-  }, [focusRequest]);
+  const { open, unread, openFromRail, collapse } = useAssistantRail();
+  const toggle = useRef<HTMLButtonElement>(null);
+  useFocusRequest("rail", toggle);
   return (
     <div
-      ref={ref}
       // Visible from 1024 px; at 1280 px and up the open panel takes the whole column instead.
-      className={cn(
-        "sticky hidden lg:block",
-        ctx.mode === "analyst" ? "top-[calc(var(--header-h)+16px)]" : "top-4",
-        open && "xl:hidden",
-      )}
+      className={cn("sticky top-[var(--assistant-top)] hidden lg:block", open && "xl:hidden")}
     >
-      <AssistantRail open={open} unread={unread} onToggle={open ? collapse : openFromRail} />
+      <AssistantRail
+        open={open}
+        unread={unread}
+        toggleRef={toggle}
+        onToggle={open ? collapse : openFromRail}
+      />
     </div>
   );
 }

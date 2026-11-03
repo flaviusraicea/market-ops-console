@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAskWhy } from "@/features/assistant/askWhy";
-import { askLabel } from "@/features/assistant/questions";
+import { askContext } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useLanding } from "./useLanding";
 import { SheetSection } from "./Sheet";
@@ -251,11 +251,10 @@ function MarketRows({
               <AskWhyButton
                 label={r.askWhy.aria}
                 onAsk={() =>
-                  ask(r.askWhy.text, {
-                    entity: { kind: "market", marketId: r.id },
-                    period: ctx.period,
-                    label: askLabel(r.name, ctx.period),
-                  })
+                  ask(
+                    r.askWhy.text,
+                    askContext({ kind: "market", marketId: r.id }, r.name, ctx.period),
+                  )
                 }
               />
             </TableCell>

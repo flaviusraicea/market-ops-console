@@ -11,8 +11,8 @@ export function askLabel(name: string, period: string): string {
 }
 
 /** The question a heat map cell or anomaly marker fills in: `Why did Germany's revenue dip in Mar 2026?` */
-export function cellQuestion(name: string, period: string, momPct: number | null): string {
-  const word = momPct !== null && momPct <= DIP_PCT ? "dip" : "change";
+export function cellQuestion(name: string, period: string, momPct: number | undefined): string {
+  const word = momPct !== undefined && momPct <= DIP_PCT ? "dip" : "change";
   return `Why did ${name}'s revenue ${word} in ${formatPeriodAbbr(period)}?`;
 }
 

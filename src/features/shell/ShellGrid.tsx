@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
+import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { ConnectedAssistantRail } from "./AssistantRail";
 import { useAssistantRail } from "./railState";
 
@@ -19,6 +20,7 @@ export function ShellGrid({
   assistant: ReactNode;
 }) {
   const { open, collapse, setLiveHost } = useAssistantRail();
+  const mode = useConsoleContext().ctx.mode;
   // The stored choice lands right after hydration; the width transition starts only once it has, so a
   // reload does not animate from the default.
   const [ready, setReady] = useState(false);
@@ -37,6 +39,8 @@ export function ShellGrid({
       id="main"
       className={cn(
         "grid gap-[var(--gap)] lg:grid-cols-[minmax(0,1fr)_48px]",
+        // Analyst pins its header, so the assistant sticks below it.
+        mode === "analyst" ? "[--assistant-top:var(--below-header)]" : "[--assistant-top:1rem]",
         ready &&
           "lg:transition-[grid-template-columns] lg:duration-[var(--dur-base)] lg:ease-[var(--ease)]",
         open && "xl:grid-cols-[minmax(0,1fr)_var(--assistant-w)]",
