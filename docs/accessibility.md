@@ -204,6 +204,7 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 | `bad-text/surface` | text | 4.5:1 | 7.07:1 | 8.50:1 |
 | `ai-label/ai-bg` | text | 4.5:1 | 8.57:1 | 8.56:1 |
 | `ink/ai-bg` | text | 4.5:1 | 14.69:1 | 13.14:1 |
+| `ink-muted/ai-bg` | text | 4.5:1 | 5.19:1 | 5.45:1 |
 | `ink/accent-soft` | text | 4.5:1 | 14.45:1 | 12.01:1 |
 | `ink/bad-bg` | text | 4.5:1 | 13.96:1 | 12.62:1 |
 | `ink-2/bad-bg` | text | 4.5:1 | 5.78:1 | 7.45:1 |

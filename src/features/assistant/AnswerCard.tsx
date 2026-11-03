@@ -41,6 +41,17 @@ const PILL =
 
 const CAPTION = `${EYEBROW_CLASS} text-ink-muted`;
 
+/** A quiet state line, not an eyebrow: sentence case, no warning colour, no icon. */
+const STATE_NOTE =
+  "text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted";
+
+/** An answer that ended before its sources arrived says so in the header and where the citation chips go. */
+const NO_SOURCES_CAPTION = "Partial \u00b7 no sources";
+const NO_SOURCES_NOTE: Record<"stopped" | "failed", string> = {
+  stopped: "Stopped before sources arrived. Retry to get citations.",
+  failed: "Request failed before sources arrived. Retry to get citations.",
+};
+
 /** Design-system.md 6.5: question echo, then the AI card. */
 export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: AnswerCardProps) {
   const { status, text, question } = answer;
@@ -64,7 +75,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
         <>
           {text ? (
             <Card>
-              <CardHeader />
+              <CardHeader noSources />
               <AnswerText
                 body={[text]}
                 trailing={
@@ -77,6 +88,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
                   </>
                 }
               />
+              <p className={STATE_NOTE}>{NO_SOURCES_NOTE.failed}</p>
             </Card>
           ) : null}
           <Notice
@@ -119,6 +131,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
               </>
             }
           />
+          {status === "stopped" ? <p className={STATE_NOTE}>{NO_SOURCES_NOTE.stopped}</p> : null}
           {status === "done" && answer.kind !== "abstain" ? (
             <ChipArea answer={answer} isLatest={isLatest} />
           ) : null}
@@ -140,16 +153,19 @@ function Card({ children }: { children: ReactNode }) {
 
 /**
  * First row of the card, 24 px high in every state so nothing under it moves when the state changes. The AI label
- * is on the left (with a caption while streaming or after a stop); on the right Stop, then the confidence meter,
+ * is on the left (with a caption while streaming); on the right Stop, then the confidence meter,
  * or Retry, swap in place. One button serves Stop and Retry, so focus stays on it when Stop turns into Retry.
  */
 function CardHeader({
   status,
   confidence,
+  noSources = false,
   onStop,
   onRetry,
 }: {
   status?: Answer["status"];
+  /** The answer ended without sources: the right side says so, beside Retry when there is one. */
+  noSources?: boolean;
   confidence?: ConfidenceLevel | undefined;
   onStop?: () => void;
   onRetry?: () => void;
@@ -167,27 +183,24 @@ function CardHeader({
           AI-generated
         </Eyebrow>
         {streaming ? <span className={CAPTION}>STREAMING…</span> : null}
-        {stopped ? (
-          <>
-            <span className={CAPTION}>PARTIAL</span>
-            <span className="sr-only">No sources attached</span>
-          </>
+      </div>
+      <div className="flex items-center gap-x-1.5">
+        {stopped || noSources ? <span className={STATE_NOTE}>{NO_SOURCES_CAPTION}</span> : null}
+        {streaming || stopped ? (
+          <Button type="button" size="sm" variant="ghost" onClick={streaming ? onStop : onRetry}>
+            {streaming ? (
+              <>
+                <Square aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+                Stop
+              </>
+            ) : (
+              "Retry"
+            )}
+          </Button>
+        ) : confidence ? (
+          <ConfidenceMeter level={confidence} compact />
         ) : null}
       </div>
-      {streaming || stopped ? (
-        <Button type="button" size="sm" variant="ghost" onClick={streaming ? onStop : onRetry}>
-          {streaming ? (
-            <>
-              <Square aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-              Stop
-            </>
-          ) : (
-            "Retry"
-          )}
-        </Button>
-      ) : confidence ? (
-        <ConfidenceMeter level={confidence} compact />
-      ) : null}
     </div>
   );
 }

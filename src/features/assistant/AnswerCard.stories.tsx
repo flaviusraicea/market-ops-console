@@ -165,7 +165,10 @@ export const Stopped: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText("Stopped · partial answer")).toBeInTheDocument();
-    await expect(canvas.getByText("PARTIAL")).toBeInTheDocument();
+    await expect(canvas.getByText("Partial · no sources")).toBeInTheDocument();
+    await expect(
+      canvas.getByText("Stopped before sources arrived. Retry to get citations."),
+    ).toBeInTheDocument();
     await expect(canvasElement.querySelector(".caret")).toBeNull();
     await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
     await expect(canvas.queryByRole("img")).toBeNull();
@@ -200,6 +203,10 @@ export const FailedAfterTokens: Story = {
       dip.answer.text.slice(0, 60).trim(),
     );
     await expect(canvas.getByText("Failed \u00b7 partial answer")).toBeInTheDocument();
+    await expect(canvas.getByText("Partial \u00b7 no sources")).toBeInTheDocument();
+    await expect(
+      canvas.getByText("Request failed before sources arrived. Retry to get citations."),
+    ).toBeInTheDocument();
     await expect(canvas.getByRole("alert")).toHaveTextContent("Request failed");
     await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
   },
