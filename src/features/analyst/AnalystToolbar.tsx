@@ -1,7 +1,8 @@
 "use client";
 
 import { Eyebrow } from "@/components/Eyebrow";
-import { ICON_STROKE, Info } from "@/components/icons";
+import { ICON_STROKE, Info, TableIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ConnectedLiveToggle } from "@/features/live/LiveToggle";
 import { PeriodSelect } from "@/features/shell/PeriodSelect";
@@ -97,8 +98,18 @@ export function AnalystToolbar({
         <div className="shrink-0 md:hidden">
           <ConnectedLiveToggle />
         </div>
-        {/* Reserved for the All facts button (slice 12a). */}
-        <div data-slot="toolbar-end" className="shrink-0" />
+        <div data-slot="toolbar-end" className="shrink-0">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() =>
+              setContext({ facts: ctx.facts ? undefined : true }, { history: "replace" })
+            }
+          >
+            <TableIcon aria-hidden strokeWidth={ICON_STROKE} />
+            {ctx.facts ? "Hide facts" : "All facts"}
+          </Button>
+        </div>
       </div>
     </TooltipProvider>
   );

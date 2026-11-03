@@ -596,3 +596,39 @@ export function analystVM(ds: Dataset, ctx: Context): AnalystVM {
     heatMap: heatMapVM(ds, ctx),
   };
 }
+
+/** One source fact, flattened for the All facts table. Numbers stay numbers; the table formats them. */
+export type FactRowVM = {
+  market: string;
+  product: string;
+  period: string;
+  actual: number;
+  forecast: number;
+  priorYear: number;
+  units: number;
+  /** Actual over forecast, in percent, rounded like every other attainment figure. */
+  attainment: number;
+};
+
+export type FactsVM = {
+  /** The facts for the entity in view, all periods, in data.json order. */
+  rows: FactRowVM[];
+  /** Every fact in the dataset, for the "x of y facts" caption. */
+  total: number;
+};
+
+export function factsVM(ds: Dataset, ctx: Context): FactsVM {
+  const marketName = new Map(ds.markets.map((m) => [m.id, m.name]));
+  const productName = new Map(ds.products.map((p) => [p.id, p.name]));
+  const rows = factsFor(ds, { entity: entityOf(ctx), periods: ds.meta.periods }).map((f) => ({
+    market: marketName.get(f.marketId) ?? f.marketId,
+    product: productName.get(f.productId) ?? f.productId,
+    period: f.period,
+    actual: f.actual,
+    forecast: f.forecast,
+    priorYear: f.priorYear,
+    units: f.units,
+    attainment: attainmentPct(totals([f])),
+  }));
+  return { rows, total: ds.series.length };
+}
