@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { parseDataset, resolveCitation, type Period } from "@/domain";
+import { resolveCitation, type Period } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { targetToContext } from "@/features/assistant/targetToContext";
 
 const ds = parseDataset(raw);

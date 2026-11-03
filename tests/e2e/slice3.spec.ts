@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { open } from "./helpers";
+
 const GERMANY = { name: "Germany, off track, 92.0% attainment" };
 
 test("clicking Germany on the map drills in: URL, breadcrumb and revenue tile", async ({
@@ -25,7 +27,7 @@ test("selecting Veltrix adds product to the URL and the document title", async (
 });
 
 test("a deep link renders every part of the state", async ({ page }) => {
-  await page.goto("/?region=eu&market=de&product=veltrix&period=2026-03&mode=analyst");
+  await open(page, "/?region=eu&market=de&product=veltrix&period=2026-03&mode=analyst");
   const crumbs = page.getByRole("navigation", { name: "Drill path" });
   await expect(crumbs.locator("[aria-current=page]")).toHaveText("Veltrix");
   await expect(crumbs).toContainText("Europe");
@@ -61,7 +63,7 @@ test("Back twice returns to the original state and Forward re-applies it", async
 });
 
 test("the Portfolio breadcrumb clears the drill and keeps mode", async ({ page }) => {
-  await page.goto("/?region=eu&market=de&mode=analyst&period=2026-03");
+  await open(page, "/?region=eu&market=de&mode=analyst&period=2026-03");
   const link = page.getByRole("link", { name: "Portfolio" });
   await expect(link).toHaveAttribute("href", "/?period=2026-03&mode=analyst");
   await link.click();

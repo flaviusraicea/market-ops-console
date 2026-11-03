@@ -3,7 +3,7 @@ import { expect, fn, userEvent, within } from "storybook/test";
 
 import { portfolioMay, withDataset } from "../../../.storybook/decorators";
 import data from "@/data/data.json";
-import { parseDataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { StatusStrip } from "./StatusStrip";
 import { stripVM } from "./viewModel";
 

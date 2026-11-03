@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { parseDataset, type Period } from "@/domain";
+import { type Period } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { hrefFor } from "@/lib/context/href";
 import { metaFromDataset } from "@/lib/context/invariants";
 

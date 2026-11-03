@@ -1,4 +1,5 @@
-import { AlertRuleSchema, type AlertRule } from "@/domain";
+import { type AlertRule } from "@/domain";
+import { AlertRuleSchema } from "@/domain/alerts";
 import type { NextRequest } from "next/server";
 
 import { DEFAULT_ROLE, ROLE_COOKIE, canEditAlerts, parseRole } from "@/lib/roles";

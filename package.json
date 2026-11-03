@@ -16,9 +16,10 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "check:contrast": "tsx scripts/check-contrast.ts",
+    "check:budget": "tsx scripts/check-budget.ts",
     "docs:a11y": "tsx scripts/gen-a11y-docs.ts",
     "build:geo": "tsx scripts/build-geo.ts",
-    "ci": "pnpm lint && pnpm typecheck && pnpm check:contrast && pnpm docs:a11y --check && pnpm test && pnpm build && pnpm build-storybook"
+    "ci": "pnpm lint && pnpm typecheck && pnpm check:contrast && pnpm docs:a11y --check && pnpm test && pnpm build && pnpm check:budget && pnpm build-storybook"
   },
   "dependencies": {
     "@tailwindcss/postcss": "4.3.3",
@@ -87,5 +88,18 @@
   "engines": {
     "node": ">=22 <23",
     "pnpm": ">=10"
+  },
+  "budgets": {
+    "overview": {
+      "path": "/",
+      "jsKb": 250
+    },
+    "analyst": {
+      "path": "/?mode=analyst",
+      "jsKb": 350
+    },
+    "lazyChunkKb": 60,
+    "fontsKb": 110,
+    "cssKb": 20
   }
 }

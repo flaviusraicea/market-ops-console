@@ -5,7 +5,8 @@ import { useEffect, useId, useState } from "react";
 import { CardHeader } from "@/components/CardHeader";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { Notice } from "@/components/Notice";
-import { Choropleth, type MapGeo } from "@/components/charts/Choropleth";
+import type { MapGeo } from "@/components/charts/Choropleth";
+import { LazyChoropleth, MapSkeleton } from "@/components/charts/LazyChoropleth";
 import { Legend, type LegendItem } from "@/components/charts/Legend";
 import {
   ATTAINMENT_LEGEND,
@@ -16,7 +17,6 @@ import {
 import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
 import { StatusGlyph } from "@/components/StatusGlyph";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -27,6 +27,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Metric } from "@/domain";
+import { reportError } from "@/lib/events";
+import { GEO_URL } from "@/lib/geoAsset";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import type { OverviewVM } from "./viewModel";
 
@@ -45,7 +47,7 @@ let geoCache: Promise<MapGeo> | null = null;
 let geoLoaded: MapGeo | null = null;
 
 function loadGeo(): Promise<MapGeo> {
-  geoCache ??= fetch("/geo/markets.json")
+  geoCache ??= fetch(GEO_URL)
     .then((res) => {
       if (!res.ok) throw new Error(`Geometry request failed: ${res.status}`);
       return res.json() as Promise<MapGeo>;
@@ -56,6 +58,7 @@ function loadGeo(): Promise<MapGeo> {
     })
     .catch((err: unknown) => {
       geoCache = null; // allow a later mount to retry
+      reportError(err, { source: "fetch", route: GEO_URL });
       throw err;
     });
   return geoCache;
@@ -167,7 +170,7 @@ export function MapCard({
 
   const chart =
     geoState.status === "ready" ? (
-      <Choropleth
+      <LazyChoropleth
         geo={geoState.geo}
         values={map.values}
         metric={map.metric}
@@ -180,7 +183,7 @@ export function MapCard({
         onSelect={(market) => setContext({ market })}
       />
     ) : (
-      <Skeleton aria-hidden className="aspect-[2/1] w-full" />
+      <MapSkeleton height={MAP_HEIGHT} />
     );
 
   const legendEl = (

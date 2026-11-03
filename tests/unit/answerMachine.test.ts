@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import data from "@/data/data.json";
 import fixtures from "@/data/fixtures.json";
-import { CitationSchema, parseDataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
+import { CitationSchema } from "@/domain/stream";
 import {
   answerReducer,
   historyReducer,

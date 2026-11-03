@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -12,27 +14,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PERSONAS, ROLES, ROLE_LABEL, parseRole, type Role } from "@/lib/roles";
-import { useRole } from "@/lib/role";
+import { avatarTriggerProps } from "./avatarTrigger";
 
 export type AvatarMenuProps = {
   role: Role;
+  /** Opens on mount: the lazy wrapper mounts this after the first click. */
+  defaultOpen?: boolean;
+  /** How it was opened, so a keyboard open can focus the first item. */
+  openedBy?: "keyboard" | "pointer";
   onSwitch: (role: Role) => void;
   onSignOut: () => void;
 };
 
 /** Who is signed in, the one-click role switch and Sign out. The identity is a mock; see `src/lib/roles.ts`. */
-export function AvatarMenu({ role, onSwitch, onSignOut }: AvatarMenuProps) {
+export function AvatarMenu({ role, onSwitch, onSignOut, defaultOpen, openedBy }: AvatarMenuProps) {
   const user = PERSONAS[role];
+  // Radix focuses the first item only when it has seen a key press since it mounted, and the key press that
+  // opened this menu happened before this code was loaded. Replaying one key event right after mount restores
+  // what a keyboard user gets from a menu that was never lazy.
+  useEffect(() => {
+    if (openedBy === "keyboard") document.dispatchEvent(new KeyboardEvent("keydown", { key: "Shift" }));
+  }, [openedBy]);
   return (
     // Not modal: a header menu should not hide the rest of the page from assistive technology or lock scrolling.
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger
-        aria-label={`Signed in as ${user.name}, ${ROLE_LABEL[role]}. Account menu`}
-        // The initials are drawn from an attribute, not text: the accessible name is the full sentence, and
-        // text that is not part of it would fail WCAG 2.5.3 (Label in Name).
-        data-initials={user.initials}
-        className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[length:var(--text-label)] leading-none font-semibold text-accent after:content-[attr(data-initials)]"
-      />
+    <DropdownMenu modal={false} {...(defaultOpen ? { defaultOpen } : {})}>
+      <DropdownMenuTrigger {...avatarTriggerProps(role)} />
       <DropdownMenuContent>
         <div className="flex flex-col gap-1 px-2 py-1.5">
           <span className="font-semibold text-ink">{user.name}</span>
@@ -61,10 +67,4 @@ export function AvatarMenu({ role, onSwitch, onSignOut }: AvatarMenuProps) {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
-
-/** The header's menu, wired to the signed-in role. */
-export function ConnectedAvatarMenu() {
-  const { role, switchRole, signOut } = useRole();
-  return <AvatarMenu role={role} onSwitch={switchRole} onSignOut={signOut} />;
 }

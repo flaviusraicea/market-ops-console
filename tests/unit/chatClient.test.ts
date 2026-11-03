@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ChatContextSchema } from "@/domain";
+import { ChatContextSchema } from "@/domain/stream";
 import { askStream, ChatHttpError, type StreamEvent } from "@/lib/stream/chatClient";
 
 const enc = new TextEncoder();

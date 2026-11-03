@@ -3,7 +3,16 @@
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
 import { line } from "@visx/shape";
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
 
 import { TriangleAlert, ICON_STROKE } from "@/components/icons";
 import {
@@ -15,10 +24,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatMoneyAxis, formatMoneyCompact, formatMoneyFull, formatPct } from "@/lib/format";
+import { formatMoneyCompact, formatMoneyFull, formatPct } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame, type Margins } from "./Frame";
 import type { LegendItem } from "./Legend";
+import { LineGrid, LineSeries, type SeriesKey } from "./LineParts";
 
 export type LinePoint = {
   period: string;
@@ -72,7 +82,6 @@ type LineChartProps = {
 
 const HEIGHT = 260;
 const MARGIN: Margins = { top: 16, right: 16, bottom: 32, left: 48 };
-const X_LABELS = [0, 6, 12, 18, 23];
 
 function LineSvg({
   width,
@@ -102,10 +111,19 @@ function LineSvg({
   const active = moved && moved.from === selectedPeriod ? moved.index : selectedIndex;
   const [cursor, setCursor] = useState<number | null>(null);
 
-  const yMax = Math.max(...points.flatMap((p) => [p.actual, p.forecast, p.priorYear]), 1);
-  const y = scaleLinear<number>({ domain: [0, yMax], range: [innerH, 0], nice: 5 });
-  const ticks = y.ticks(5);
-  const x = (i: number) => step * (i + 0.5);
+  // Scales, ticks and path strings depend on the data and the width, not on the cursor, so they are built once
+  // per change and the memoised children below skip every tooltip and crosshair render.
+  const y = useMemo(() => {
+    const yMax = Math.max(...points.flatMap((p) => [p.actual, p.forecast, p.priorYear]), 1);
+    return scaleLinear<number>({ domain: [0, yMax], range: [innerH, 0], nice: 5 });
+  }, [points, innerH]);
+  const ticks = useMemo(() => y.ticks(5), [y]);
+  const x = useCallback((i: number) => step * (i + 0.5), [step]);
+  const paths = useMemo(() => {
+    const build = (key: SeriesKey) =>
+      line<LinePoint>({ x: (_, i) => x(i), y: (p) => y(p[key]) })(points as LinePoint[]) ?? "";
+    return { actual: build("actual"), forecast: build("forecast"), priorYear: build("priorYear") };
+  }, [points, x, y]);
 
   function askAbout(a: LineAnomaly) {
     ask?.onAsk({ period: a.period, momPct: a.momPct });
@@ -191,46 +209,10 @@ function LineSvg({
     ? `${activePoint.name}: actual ${formatMoneyCompact(activePoint.actual)}, forecast ${formatMoneyCompact(activePoint.forecast)}, prior year ${formatMoneyCompact(activePoint.priorYear)}, attainment ${formatPct(activePoint.attainment, { sign: false })}`
     : "";
 
-  const seriesPath = (key: "actual" | "forecast" | "priorYear") =>
-    line<LinePoint>({ x: (_, i) => x(i), y: (p) => y(p[key]) })(points) ?? "";
-
-  const series = [
-    { key: "actual", color: "var(--series-actual)", width: 2, dash: undefined },
-    { key: "forecast", color: "var(--series-forecast)", width: 2, dash: "6 4" },
-    { key: "priorYear", color: "var(--series-prior)", width: 1.5, dash: "2 3" },
-  ] as const;
-
   return (
     <div ref={wrapRef} className="relative" style={{ width, height: HEIGHT }}>
       <Frame width={width} height={HEIGHT} title={title} desc={desc} margin={MARGIN} role="group">
-        {ticks.map((t) => (
-          <g key={t}>
-            <line x1={0} x2={innerW} y1={y(t)} y2={y(t)} stroke="var(--grid)" strokeWidth={1} />
-            <text
-              x={-8}
-              y={y(t)}
-              dy="0.32em"
-              textAnchor="end"
-              className="fill-ink-muted text-[length:var(--text-caption)]"
-            >
-              {formatMoneyAxis(t)}
-            </text>
-          </g>
-        ))}
-        {X_LABELS.map((i) => {
-          const p = points[i];
-          return p ? (
-            <text
-              key={i}
-              x={x(i)}
-              y={innerH + 20}
-              textAnchor="middle"
-              className="fill-ink-muted text-[length:var(--text-caption)]"
-            >
-              {p.label}
-            </text>
-          ) : null;
-        })}
+        <LineGrid ticks={ticks} y={y} x={x} points={points} innerW={innerW} innerH={innerH} />
         {points[selectedIndex] ? (
           <line
             data-slot="selected-period"
@@ -254,58 +236,14 @@ function LineSvg({
             strokeWidth={1}
           />
         ) : null}
-        {series.map((s) => {
-          const d = seriesPath(s.key);
-          return (
-            <path
-              key={s.key}
-              data-series={s.key}
-              className="tween-path"
-              d={d}
-              // The d attribute is the fallback; the CSS property is what transitions.
-              style={{ d: `path("${d}")` }}
-              fill="none"
-              stroke={s.color}
-              strokeWidth={s.width}
-              strokeLinejoin="round"
-              {...(s.dash ? { strokeDasharray: s.dash } : {})}
-            />
-          );
-        })}
-        {anomalies.map((a) => {
-          const p = points[a.index];
-          if (!p) return null;
-          const ax = x(a.index);
-          const ay = y(p.actual);
-          // The label sits 28px above and 8px beside the marker, opening to the right; near the right
-          // edge it opens to the left so it is never clipped.
-          const dir = ax + 100 > innerW ? -1 : 1;
-          return (
-            <g key={a.period} aria-hidden>
-              <line
-                x1={ax + dir * 2}
-                y1={ay - 4}
-                x2={ax + dir * 8}
-                y2={ay - 26}
-                stroke="var(--bad-mark)"
-                strokeWidth={1}
-              />
-              <text
-                data-slot="anomaly-label"
-                x={ax + dir * 8}
-                y={ay - 28}
-                textAnchor={dir === 1 ? "start" : "end"}
-                fill="var(--bad-text)"
-                stroke="var(--surface)"
-                strokeWidth={3}
-                paintOrder="stroke"
-                className="text-[length:var(--text-label)] font-medium"
-              >
-                {a.label}
-              </text>
-            </g>
-          );
-        })}
+        <LineSeries
+          paths={paths}
+          anomalies={anomalies}
+          points={points}
+          x={x}
+          y={y}
+          innerW={innerW}
+        />
       </Frame>
       <div
         role="slider"

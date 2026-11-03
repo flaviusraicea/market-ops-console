@@ -1,13 +1,18 @@
+/// <reference types="vite/client" />
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import type { FeatureCollection } from "geojson";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 
 import { Notice } from "@/components/Notice";
-import geoJson from "../../../public/geo/markets.json";
 import { Choropleth, type MarketValue } from "./Choropleth";
 import { ViewAsTable } from "./ViewAsTable";
 
-const realGeo = geoJson as FeatureCollection;
+// The served file is named by its content hash, so it is found by pattern rather than by name.
+const geoModules = import.meta.glob<FeatureCollection>("../../../public/geo/markets.*.json", {
+  eager: true,
+  import: "default",
+});
+const realGeo = Object.values(geoModules)[0] as FeatureCollection;
 
 const square = (x: number, y: number, w: number, h: number) => ({
   type: "Polygon" as const,

@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { Notice } from "@/components/Notice";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/cn";
-import { evaluateRule } from "@/domain";
+import { evaluateRule } from "@/domain/alerts";
 import { useDataset } from "@/lib/context/dataset";
 import { DeleteAlertDialog } from "./DeleteAlertDialog";
 import { evaluationLine, ruleSentence, scopeToValue } from "./labels";

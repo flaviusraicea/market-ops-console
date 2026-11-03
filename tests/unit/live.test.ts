@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { kpiFor, parseDataset, type Context, type Period } from "@/domain";
+import { kpiFor, type Context, type Period } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { analystVM } from "@/features/analyst/viewModel";
 import { overviewVM } from "@/features/overview/viewModel";
 import { LIVE_BOUND, applyLiveOverlay, driftFactor } from "@/lib/live";

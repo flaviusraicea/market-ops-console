@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { parseDataset } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { applyContextChange, metaFromDataset } from "@/lib/context/invariants";
 import { parseContextFromSearchParams } from "@/lib/context/parsers";
 

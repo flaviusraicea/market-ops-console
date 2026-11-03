@@ -24,7 +24,7 @@ export const Portfolio: Story = {
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
     await expect(c.getByRole("radiogroup", { name: "Map metric" })).toBeVisible();
-    // The geometry loads from /geo/markets.json; the markets are buttons once it is in.
+    // The geometry loads from /geo/markets.<hash>.json; the markets are buttons once it is in.
     await expect(await c.findByRole("button", { name: /^Germany, / })).toBeVisible();
   },
 };

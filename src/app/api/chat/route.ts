@@ -9,7 +9,7 @@
 // Adjust the import below to wherever you put fixtures.json.
 
 import raw from "@/data/fixtures.json";
-import { ChatRequestSchema, FixturesFileSchema, SseEventSchema } from "@/domain";
+import { ChatRequestSchema, FixturesFileSchema, SseEventSchema } from "@/domain/stream";
 import { getDataset } from "@/lib/dataset";
 import { contextProblem, pickFixture } from "@/lib/stream/pickFixture";
 

@@ -14,6 +14,7 @@ import {
 import { claimTextFor } from "./inlineMap";
 import type { AskContext } from "./askWhy";
 import { useDataset } from "@/lib/context/dataset";
+import { reportError } from "@/lib/events";
 import { askStream, type AskStream } from "@/lib/stream/chatClient";
 
 export type Resolved = { citation: Citation; resolution: Resolution };
@@ -141,6 +142,8 @@ export function historyReducer(state: readonly Answer[], msg: HistoryMessage): A
   });
 }
 
+const STREAM_FAILURE = { source: "stream", route: "/api/chat" } as const;
+
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : "The assistant could not answer.";
 }
@@ -211,6 +214,7 @@ export function useAnswerMachine(stream: AskStream = askStream) {
                 });
                 break;
               case "error":
+                reportError(event.message, STREAM_FAILURE);
                 finish({ type: "ERROR", message: event.message });
                 break;
               case "aborted":
@@ -223,10 +227,15 @@ export function useAnswerMachine(stream: AskStream = askStream) {
           },
         });
         if (!settled) {
-          finish({ type: "ERROR", message: "The connection closed before the answer finished." });
+          const message = "The connection closed before the answer finished.";
+          reportError(message, STREAM_FAILURE);
+          finish({ type: "ERROR", message });
         }
       } catch (err) {
-        if (!settled) finish({ type: "ERROR", message: errorMessage(err) });
+        if (!settled) {
+          reportError(err, STREAM_FAILURE);
+          finish({ type: "ERROR", message: errorMessage(err) });
+        }
       }
     },
     [ds, stream],
