@@ -1,8 +1,8 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { open } from "./helpers";
 
-const germanyOnMap = (page: import("@playwright/test").Page) =>
+const germanyOnMap = (page: Page) =>
   page
     .getByRole("region", { name: /^Markets by status/ })
     .locator('[aria-label^="Germany, "]')
