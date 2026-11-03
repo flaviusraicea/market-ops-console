@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 
 import { breadcrumbTrail, entityName, entityOf } from "@/domain";
 import { Panel } from "@/features/assistant/Panel";
+import { Analyst } from "@/features/analyst/Analyst";
 import { Overview } from "@/features/overview/Overview";
 import { OverviewSkeleton } from "@/features/overview/OverviewSkeleton";
 import { panelContextVM } from "@/features/overview/viewModel";
@@ -48,7 +49,7 @@ export default async function Page({ searchParams }: PageProps) {
           }
           dashboard={
             <Suspense fallback={<OverviewSkeleton />}>
-              <Overview ctx={ctx} />
+              {ctx.mode === "analyst" ? <Analyst ctx={ctx} /> : <Overview ctx={ctx} />}
             </Suspense>
           }
           assistant={

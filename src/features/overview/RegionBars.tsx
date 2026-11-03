@@ -34,9 +34,12 @@ function Bar({ attainmentPct, label }: { attainmentPct: number; label: string })
 /** Attainment per region as bullet bars around 100%, plus one derived sentence about the weakest region. */
 export function RegionBars({
   bars,
+  framed = true,
   onSelect,
 }: {
   bars: RegionBarsVM;
+  /** The Analyst sheet draws its own dividers, so it asks for the bars without the card. */
+  framed?: boolean;
   onSelect?: (regionId: string) => void;
 }) {
   const { setContext } = useConsoleContext();
@@ -44,7 +47,12 @@ export function RegionBars({
   return (
     <section
       aria-labelledby="regions-h"
-      className="flex h-full flex-col gap-3 rounded-card border border-border bg-surface p-[var(--pad-card)]"
+      className={cn(
+        "flex h-full flex-col gap-3",
+        framed
+          ? "rounded-card border border-border bg-surface p-[var(--pad-card)]"
+          : "px-[var(--pad-card)] py-3",
+      )}
     >
       <CardHeader
         title="By region"

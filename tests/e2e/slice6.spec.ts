@@ -20,7 +20,7 @@ const march = (page: Page) =>
 const veltrix = (page: Page) =>
   page.getByRole("button", { name: "Go to Veltrix in Germany, Mar 2026" });
 
-const timeSeries = (page: Page) => page.getByRole("region", { name: /Revenue vs forecast/ });
+const timeSeries = (page: Page) => page.getByRole("region", { name: /revenue Actual vs forecast/ });
 
 test("following the March chip switches to Analyst and lands on the time series at March", async ({
   page,

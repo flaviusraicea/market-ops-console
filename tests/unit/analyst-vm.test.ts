@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
 import { parseDataset, type Context, type Period } from "@/domain";
-import { overviewVM } from "@/features/overview/viewModel";
+import { overviewVM, regionBarsVM } from "@/features/overview/viewModel";
 import { RADAR_AXES_DERIVED, RADAR_AXES_GIVEN, analystVM } from "@/features/analyst/viewModel";
 
 const ds = parseDataset(raw);
@@ -58,7 +58,8 @@ describe("analyst view model", () => {
     if (grid.kind !== "products") throw new Error("expected product rows");
     expect(grid.rows).toHaveLength(5);
     expect(grid.rows[0]?.name).toBe("Veltrix");
-    expect(grid.caption).toContain("Sorted by revenue");
+    expect(grid.summary).toBe("5 products · May 2026");
+    expect(grid.caption).toBe("Derived · sum of series");
     const veltrix = grid.rows.find((r) => r.id === "veltrix");
     expect(veltrix?.revenue).toBe("$0.57M");
     expect(veltrix?.attainment).toBe("92.7%");
@@ -76,8 +77,10 @@ describe("analyst view model", () => {
       label: "−27% vs Feb",
       ariaLabel: "Anomaly: March 2026 revenue fell 27 percent versus February",
     });
-    expect(ts.title).toBe("Germany");
-    expect(ts.subtitle).toBe("Revenue vs forecast vs prior year · Jun 2024 – May 2026 · USD");
+    expect(ts.title).toBe("Germany revenue");
+    expect(ts.subtitle).toBe(
+      "Actual vs forecast vs prior year · June 2024 – May 2026 · USD · Derived",
+    );
     expect(ts.chartTitle).toBe("Germany · Revenue vs forecast vs prior year");
     expect(ts.desc).toContain("Line chart of Germany monthly revenue from June 2024 to May 2026.");
     expect(ts.desc).toContain("Actual below forecast in 24 of 24 months");
@@ -87,7 +90,7 @@ describe("analyst view model", () => {
   it("timeSeriesVM has no anomaly outside a market, and keeps Germany's on a product", () => {
     expect(analystVM(ds, europe).timeSeries.anomalies).toHaveLength(0);
     const veltrix = analystVM(ds, { ...germany, product: "veltrix" }).timeSeries;
-    expect(veltrix.title).toBe("Germany · Veltrix");
+    expect(veltrix.title).toBe("Germany · Veltrix revenue");
     expect(veltrix.chartTitle).toBe("Germany · Veltrix · Revenue vs forecast vs prior year");
     expect(veltrix.anomalies).toHaveLength(1);
   });
@@ -194,9 +197,63 @@ describe("grid follows the selected period", () => {
     const de = grid.rows.find((r) => r.id === "de");
     expect(de?.revenue).toBe("$1.21M");
     expect(de?.attainment).toBe("92.2%");
-    expect(grid.caption).toBe(
-      "5 markets · March 2026 · Sorted by revenue · Derived · sum of series",
+    expect(grid.summary).toBe("5 markets · March 2026");
+    expect(grid.caption).toBe("Derived · sum of series");
+  });
+});
+
+describe("ledger grid (slice 14a)", () => {
+  it("the portfolio total row sums the markets: revenue, forecast, prior year, attainment, growth, units", () => {
+    const grid = analystVM(ds, base).grid;
+    expect(grid.total).toEqual({
+      label: "Portfolio",
+      revenue: "$22.85M",
+      forecast: "$22.75M",
+      priorYear: "$21.29M",
+      attainment: "100.4%",
+      growth: "+7.3%",
+      growthDirection: "up",
+      units: "103,868",
+    });
+  });
+
+  it("the Europe total row is labelled with the region and the market rows carry region, forecast, prior year, units", () => {
+    const grid = analystVM(ds, europe).grid;
+    if (grid.kind !== "markets") throw new Error("expected market rows");
+    expect(grid.total.label).toBe("Europe");
+    const de = grid.rows.find((r) => r.id === "de");
+    expect(de).toMatchObject({ regionId: "eu", regionName: "Europe", units: "7,618" });
+    expect(de?.forecast).toMatch(/^\$\d/);
+    expect(de?.priorYear).toMatch(/^\$\d/);
+    expect(de?.sort.forecast).toBeGreaterThan(0);
+    expect(de?.sort.priorYear).toBeGreaterThan(0);
+  });
+
+  it("the market grid's eyebrow is Markets at the portfolio and names the region in one", () => {
+    expect(analystVM(ds, base).grid.title).toBe("Markets");
+    expect(analystVM(ds, europe).grid.title).toBe("Markets · Europe");
+    expect(analystVM(ds, base).grid.note).toBe("Status and share are latest month only");
+  });
+
+  it("the product grid has forecast, prior year and a market total", () => {
+    const grid = analystVM(ds, germany).grid;
+    if (grid.kind !== "products") throw new Error("expected product rows");
+    expect(grid.total.label).toBe("Germany");
+    expect(grid.rows[0]?.forecast).toMatch(/^\$\d/);
+    expect(grid.rows[0]?.priorYear).toMatch(/^\$\d/);
+  });
+
+  it("region bars: four regions in dataset order and the Europe sentence", () => {
+    const bars = regionBarsVM(ds, { ...base, period: "2026-05" as Period });
+    expect(bars.rows.map((r) => [r.name, r.revenue, r.attainment])).toEqual([
+      ["North America", "$4.4M", "101.0%"],
+      ["Europe", "$7.1M", "95.4%"],
+      ["APAC", "$9.5M", "104.9%"],
+      ["LATAM", "$1.9M", "98.0%"],
+    ]);
+    expect(bars.sentence.lead).toBe("Europe is the drag.");
+    expect(bars.sentence.rest).toBe(
+      " All five European markets are flagged, and its attainment is 4.6 points under forecast.",
     );
-    expect(grid.caption).not.toContain("Latest month");
   });
 });

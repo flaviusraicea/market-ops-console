@@ -143,6 +143,7 @@
 html[data-density="analyst"] {
   --space-unit: 4px;
   --gap: 8px;
+  --gap-section: 16px;
   --pad-card: 12px;
   --pad-cell-y: 7px;
   --pad-cell-x: 12px;
@@ -152,8 +153,10 @@ html[data-density="analyst"] {
   --header-h: 48px;
   --text-body: 13px;
   --text-body-lh: 18px;
-  --text-kpi: 22px;
-  --text-kpi-lh: 26px;
+  --text-title: 20px;
+  --text-title-lh: 26px;
+  --text-kpi: 20px;
+  --text-kpi-lh: 24px;
   --grid-cols: 3;
 }
 

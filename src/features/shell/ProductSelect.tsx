@@ -12,18 +12,24 @@ const ALL = "__all";
 
 export type ProductOption = { id: string; name: string };
 
-/** Shown only when a market is selected. Choosing "All products" clears the product. */
+/** Header: shown only when a market is selected. Analyst toolbar: always shown, disabled without a market. Choosing "All products" clears the product. */
 export function ProductSelect({
   product,
   products,
   onChange,
+  disabled = false,
 }: {
   product: string | undefined;
   products: readonly ProductOption[];
   onChange: (product: string | undefined) => void;
+  disabled?: boolean;
 }) {
   return (
-    <Select value={product ?? ALL} onValueChange={(v) => onChange(v === ALL ? undefined : v)}>
+    <Select
+      value={product ?? ALL}
+      disabled={disabled}
+      onValueChange={(v) => onChange(v === ALL ? undefined : v)}
+    >
       <SelectTrigger aria-label="Product" className="min-w-[136px]">
         <SelectValue />
       </SelectTrigger>
