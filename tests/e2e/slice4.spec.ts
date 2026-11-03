@@ -26,12 +26,18 @@ test("the Europe grid has five rows in order with statuses, and the status toolt
 
 test("Spain's attainment info icon explains why it is off track above plan", async ({ page }) => {
   await page.goto(EUROPE);
-  await card(page, "Markets · Europe")
-    .getByRole("button", { name: "Status note for Spain" })
-    .focus();
-  await expect(page.getByRole("tooltip").first()).toContainText(
-    "Off track despite 104.5% attainment. The status rule is not documented in the data; growth is −4.6%.",
-  );
+  const note = card(page, "Markets · Europe").getByRole("button", {
+    name: "Status note for Spain",
+  });
+  // Focus can land before the page has hydrated, so retry until the tooltip opens.
+  await expect(async () => {
+    await note.blur();
+    await note.focus();
+    await expect(page.getByRole("tooltip").first()).toContainText(
+      "Off track despite 104.5% attainment. The status rule is not documented in the data; growth is −4.6%.",
+      { timeout: 1000 },
+    );
+  }).toPass();
 });
 
 test("activating the Germany row with Enter selects Germany and shows the March anomaly marker", async ({
