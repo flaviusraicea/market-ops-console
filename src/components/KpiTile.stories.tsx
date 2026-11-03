@@ -90,6 +90,7 @@ export const Derived: Story = {
     headline: "100.4%",
     delta: { direction: "up", value: "+$0.10M", comparison: "vs forecast" },
     provenance: "Derived · sum of series",
+    infoLabel: "About forecast attainment",
   },
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
@@ -112,9 +113,7 @@ export const Strip: Story = {
   play: async ({ canvasElement }) => {
     const delta = canvasElement.querySelector('[data-slot="kpi-delta"]')!;
     await expect(delta).toHaveTextContent("+7.3%vs May 2025");
-    await expect(canvasElement.querySelector("p[title]")).toHaveAttribute(
-      "title",
-      "Derived · sum of series",
-    );
+    await expect(within(canvasElement).getByText("Derived · sum of series")).toBeVisible();
+    await expect(canvasElement.querySelector("[title]")).toBeNull();
   },
 };

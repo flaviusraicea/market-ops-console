@@ -35,6 +35,8 @@ export type KpiTileVM = {
   headline: string;
   delta: { direction: "up" | "down" | "flat"; value: string; comparison: string };
   provenance: string;
+  /** Accessible name of the info button, in sentence case, for example "About Germany revenue". */
+  infoLabel: string;
   trend?: { actual: number[]; forecast: number[]; label: string };
 };
 
@@ -134,6 +136,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
       comparison: `vs ${prior}`,
     },
     provenance,
+    infoLabel: `About ${entity.kind === "portfolio" ? "portfolio" : entityName(ds, entity)} revenue`,
     trend: revenueTrend(ds, entity, ctx.period),
   };
   const attainment: KpiTileVM = {
@@ -145,6 +148,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
       comparison: "vs forecast",
     },
     provenance,
+    infoLabel: "About forecast attainment",
   };
   const growth: KpiTileVM = {
     label: "GROWTH, YEAR ON YEAR",
@@ -155,6 +159,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
       comparison: `vs ${year - 1}`,
     },
     provenance,
+    infoLabel: "About year-on-year growth",
   };
 
   const inScope = marketsIn(ds, entity);
@@ -170,6 +175,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
         comparison: "",
       },
       provenance: SOURCE,
+      infoLabel: "About status",
     };
   } else {
     const c = statusCounts(ds, entity);
@@ -182,6 +188,7 @@ function tilesFor(ds: Dataset, ctx: Context): KpiTileVM[] {
         comparison: "",
       },
       provenance: SOURCE,
+      infoLabel: "About markets needing attention",
     };
   }
   return [revenue, attainment, growth, attention];
@@ -197,22 +204,24 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
     return { m, k };
   });
 
+  // Only Analyst has a metric control, so the executive map always reads attainment.
+  const metric = ctx.mode === "analyst" ? ctx.metric : "attainment";
   const values: OverviewVM["map"]["values"] = {};
   for (const { m, k } of entries) {
     const display =
-      ctx.metric === "attainment"
+      metric === "attainment"
         ? formatPct(k.attainmentPct, { sign: false })
-        : ctx.metric === "revenue"
+        : metric === "revenue"
           ? formatMoneyCompact(k.totals.actual)
           : formatPct(k.growthPct, { sign: true });
     const value =
-      ctx.metric === "attainment"
+      metric === "attainment"
         ? k.attainmentPct
-        : ctx.metric === "revenue"
+        : metric === "revenue"
           ? k.totals.actual
           : k.growthPct;
     const suffix =
-      ctx.metric === "attainment" ? "attainment" : ctx.metric === "revenue" ? "revenue" : "growth";
+      metric === "attainment" ? "attainment" : metric === "revenue" ? "revenue" : "growth";
     values[m.id] = {
       name: m.name,
       value,
@@ -247,7 +256,7 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
     caption: `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]}${matFallback ? " · MAT unavailable, showing Month" : ""}`,
     tiles: tilesFor(ds, ctx),
     map: {
-      metric: ctx.metric,
+      metric,
       selected: ctx.market,
       focus,
       periodLabel: formatPeriod(ctx.period),

@@ -14,6 +14,7 @@ import {
   type LegendBin,
 } from "@/components/charts/scales";
 import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
+import { StatusGlyph } from "@/components/StatusGlyph";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -36,12 +37,6 @@ export const METRIC_LABEL: Record<Metric, string> = {
 };
 
 const MAP_HEIGHT = 320;
-
-const DOT: Record<string, string> = {
-  on_track: "bg-ok-mark",
-  at_risk: "bg-warn-mark",
-  off_track: "bg-bad-mark",
-};
 
 export type GeoState =
   { status: "loading" } | { status: "error" } | { status: "ready"; geo: MapGeo };
@@ -119,7 +114,7 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
             <TableCell className="text-ink-2">{r.region}</TableCell>
             <TableCell>
               <Badge variant={r.status}>
-                <span aria-hidden className={`size-2 rounded-pill ${DOT[r.status]}`} />
+                <StatusGlyph status={r.status} />
                 {r.statusLabel}
               </Badge>
             </TableCell>
@@ -134,9 +129,9 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
 }
 
 const STATUS_LEGEND: LegendItem[] = [
-  { label: "On track", swatch: "fill", color: "--ok-mark" },
-  { label: "At risk", swatch: "fill", color: "--warn-mark" },
-  { label: "Off track", swatch: "fill", color: "--bad-mark" },
+  { label: "On track", swatch: "status", status: "on_track" },
+  { label: "At risk", swatch: "status", status: "at_risk" },
+  { label: "Off track", swatch: "status", status: "off_track" },
 ];
 
 /** The executive map answers "where is the trouble", so it is coloured by status; Analyst keeps the metric. */

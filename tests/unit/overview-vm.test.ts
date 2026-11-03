@@ -98,11 +98,18 @@ describe("overview view model", () => {
     expect(map.rows.map((r) => r.name)).toEqual([...map.rows.map((r) => r.name)].sort());
   });
 
-  it("the map follows the metric", () => {
-    const rev = overviewVM(ds, { ...base, metric: "revenue" }).map;
+  it("Analyst's map follows the metric", () => {
+    const analyst = { ...base, mode: "analyst" } as const;
+    const rev = overviewVM(ds, { ...analyst, metric: "revenue" }).map;
     expect(rev.values["de"]?.label).toBe("$1.68M revenue");
-    const growth = overviewVM(ds, { ...base, metric: "growth" }).map;
+    const growth = overviewVM(ds, { ...analyst, metric: "growth" }).map;
     expect(growth.values["de"]?.label).toBe("−9.7% growth");
+  });
+
+  it("the executive map ignores the URL metric and reads attainment", () => {
+    const map = overviewVM(ds, { ...base, mode: "overview", metric: "growth" }).map;
+    expect(map.metric).toBe("attainment");
+    expect(map.values["de"]?.label).toBe("92.0% attainment");
   });
 });
 
