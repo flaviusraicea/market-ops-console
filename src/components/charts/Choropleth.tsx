@@ -141,6 +141,11 @@ function MapSvg({
       if (id) onSelect(id);
     },
     onMove: (i) => pathRefs.current[i]?.focus(),
+    // Tab lands on the selected market, not the first one in the list.
+    initialIndex: Math.max(
+      markets.findIndex((f) => marketIdOf(f) === selected),
+      0,
+    ),
   });
 
   function onFocus(index: number, e: FocusEvent<SVGPathElement>) {

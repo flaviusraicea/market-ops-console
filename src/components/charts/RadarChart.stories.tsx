@@ -90,13 +90,14 @@ export const Europe: Story = {
 export const ViewAsTableState: Story = {
   render: () => (
     <ViewAsTable
+      subject="the radar chart"
       chart={<RadarChart axes={axes} series={series} title={title} desc={desc} />}
       table={<RadarChartTable caption={title} axes={axes} series={series} />}
     />
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("button", { name: "View as table" }));
+    await userEvent.click(canvas.getByRole("button", { name: /^View as table/ }));
     await expect(canvas.getAllByRole("row")).toHaveLength(6);
   },
 };

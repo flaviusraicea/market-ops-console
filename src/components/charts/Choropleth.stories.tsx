@@ -156,7 +156,7 @@ export const Unavailable: Story = {
     <div className="flex flex-col gap-3">
       <Notice title="Map unavailable">The market table below has the same data.</Notice>
       <ViewAsTable
-        forced
+        subject="the markets map" forced
         chart={null}
         table={
           <table>

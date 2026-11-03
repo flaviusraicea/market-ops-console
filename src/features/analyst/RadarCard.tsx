@@ -10,6 +10,7 @@ export function RadarCard({ vm, rowLabel }: { vm: RadarVM; rowLabel: string }) {
   return (
     <SheetSection eyebrow="Compare" subtitle={vm.subtitle} caption={vm.caption}>
       <ViewAsTable
+        subject="the compare radar chart"
         chart={<RadarChart axes={vm.axes} series={vm.series} title={vm.title} desc={desc} />}
         table={
           <RadarChartTable

@@ -218,7 +218,7 @@ Two density scales, switched by `html[data-density="overview"]` (default) and `h
 | `--space-unit` | 8 px | 4 px |
 | `--gap` (between widgets) | 16 px | 8 px |
 | `--pad-card` | 20 px | 12 px |
-| `--pad-cell-y` | 12 px | 7 px |
+| `--pad-cell-y` | 12 px | 2 px (rows are held to `--row-h` by `height`; cell padding only keeps a 24 px sparkline or a 28 px button inside 32) |
 | `--pad-cell-x` | 16 px | 12 px |
 | `--row-h` (table and list rows) | 44 px | 32 px |
 | `--control-h` (buttons, inputs, select) | 36 px | 28 px |

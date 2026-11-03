@@ -1038,14 +1038,15 @@ export const Europe: Story = {
 export const ViewAsTableState: Story = {
   render: () => (
     <ViewAsTable
+      subject="the heat map"
       chart={<HeatMap rows={rows} periods={periods} label="Attainment" onCell={() => {}} />}
       table={<HeatMapTable caption="Attainment by month" rows={rows} periods={periods} />}
     />
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("button", { name: "View as table" }));
-    await expect(canvas.getByRole("button", { name: "View as chart" })).toHaveAttribute(
+    await userEvent.click(canvas.getByRole("button", { name: /^View as table/ }));
+    await expect(canvas.getByRole("button", { name: /^View as chart/ })).toHaveAttribute(
       "aria-pressed",
       "true",
     );

@@ -209,6 +209,7 @@ export function MapCard({
                 pressed={pressed}
                 controls={tableId}
                 onPressedChange={setPressed}
+                subject="the markets map"
               />
             )}
           </>
