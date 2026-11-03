@@ -73,3 +73,47 @@ export async function germanyAnswer(page: Page) {
     timeout: 5000,
   });
 }
+
+declare global {
+  interface Window {
+    __shift: number;
+    __frameGaps: number[];
+    __sampling: boolean;
+  }
+}
+
+/** Sums layout-shift entries (without recent input) from before the first paint. Returns a reader for the total. */
+export async function trackShifts(page: Page) {
+  await page.addInitScript(() => {
+    window.__shift = 0;
+    new PerformanceObserver((list) => {
+      // lib.dom has no LayoutShift type, so the entries are read through the shape the spec gives them.
+      for (const entry of list.getEntries() as unknown as Array<{
+        value: number;
+        hadRecentInput: boolean;
+      }>)
+        if (!entry.hadRecentInput) window.__shift += entry.value;
+    }).observe({ type: "layout-shift", buffered: true });
+  });
+  return () => page.evaluate(() => window.__shift);
+}
+
+/** Starts sampling the gap between animation frames. Returns a function that stops it and gives the gaps in ms. */
+export async function sampleFrames(page: Page) {
+  await page.evaluate(() => {
+    window.__frameGaps = [];
+    window.__sampling = true;
+    let last = performance.now();
+    const tick = (t: number) => {
+      window.__frameGaps.push(t - last);
+      last = t;
+      if (window.__sampling) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  return () =>
+    page.evaluate(() => {
+      window.__sampling = false;
+      return window.__frameGaps.slice(1);
+    });
+}

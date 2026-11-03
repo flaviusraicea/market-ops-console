@@ -17,6 +17,8 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-[var(--control-h)]",
+        // The chip height: for a control that sits inside a row of text-sized parts, such as a card header.
+        sm: "h-[var(--chip-h)] px-2",
         icon: "size-[var(--control-h)] px-0",
       },
     },

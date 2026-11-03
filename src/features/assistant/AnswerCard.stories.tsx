@@ -165,7 +165,7 @@ export const Stopped: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText("Stopped · partial answer")).toBeInTheDocument();
-    await expect(canvas.getByText("PARTIAL · NO SOURCES ATTACHED")).toBeInTheDocument();
+    await expect(canvas.getByText("PARTIAL")).toBeInTheDocument();
     await expect(canvasElement.querySelector(".caret")).toBeNull();
     await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
     await expect(canvas.queryByRole("img")).toBeNull();

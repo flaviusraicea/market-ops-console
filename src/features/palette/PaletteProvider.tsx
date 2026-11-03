@@ -21,7 +21,8 @@ import { isMotionOverrideOn, toggleMotionOverride } from "@/lib/motion";
 import { useTheme } from "@/lib/theme";
 import type { PaletteAction } from "./items";
 
-// The palette and cmdk stay out of the first bundle; the chunk loads on first open.
+// The palette and cmdk stay out of the first bundle (the script budget counts every byte on load); the chunk loads
+// when a modifier key goes down, just before the shortcut is complete.
 const CommandPalette = dynamic(() => import("./CommandPalette").then((m) => m.CommandPalette), {
   ssr: false,
 });
@@ -67,6 +68,9 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      // The modifier goes down a moment before K. Mounting the palette closed starts its chunk loading, so the open
+      // itself is not the first time it runs. The first Ctrl or ⌘ press of any kind loads it.
+      if (e.key === "Control" || e.key === "Meta") setEverOpened(true);
       if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
         openPalette();
