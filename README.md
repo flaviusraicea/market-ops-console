@@ -4,6 +4,8 @@ A market operations console: portfolio performance, forecast attainment and an a
 
 **Live deployment:** https://market-ops-console-bay.vercel.app/
 
+**Scope:** designed for desktop (1024 px and up), usable on tablet and phone. On a phone the Overview works fully and Analyst is readable (wide tables scroll inside their own region; the assistant is a bottom sheet), not built for operating.
+
 ## Quick setup
 
 - Node 22 (`engines` in `package.json`) and pnpm 10.

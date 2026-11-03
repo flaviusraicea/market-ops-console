@@ -167,12 +167,12 @@ test("between 1024 and 1279 px the open panel overlays with a scrim that closes 
   await expect(panel).toBeHidden();
 });
 
-test("below 1024 px there is no rail and the panel sits under the dashboard", async ({ page }) => {
+test("below 1024 px there is no rail and the assistant is a bottom bar", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await open(page);
-  await expect(toggle(page)).toBeHidden();
-  await expect(page.locator("#assistant-panel")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Collapse assistant" })).toBeHidden();
+  await expect(toggle(page)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Ask the assistant" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Collapse assistant" })).toHaveCount(0);
 });
 
 for (const theme of ["light", "dark"] as const) {

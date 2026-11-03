@@ -232,7 +232,7 @@ export function RadarChartTable({
   series: readonly RadarSeries[];
 }) {
   return (
-    <Table scrollLabel={`${caption}, scrollable`}>
+    <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
       <TableCaption className="sr-only">{caption}</TableCaption>
       <TableHeader>
         <TableRow>

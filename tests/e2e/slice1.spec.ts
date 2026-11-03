@@ -57,12 +57,11 @@ test("tab order on a drilled earlier period", async ({ page }) => {
   ]);
 });
 
-test("assistant stacks below the dashboard at 390 px", async ({ page }) => {
+test("at 390 px the assistant is a bottom bar, not a column", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  const section = await page.locator('section[aria-label="Dashboard"]').boundingBox();
-  const aside = await page.locator('aside[aria-labelledby="assistant-h"]').boundingBox();
-  expect(aside!.y).toBeGreaterThanOrEqual(section!.y + section!.height);
+  await expect(page.getByRole("button", { name: "Ask the assistant" })).toBeVisible();
+  await expect(page.locator('aside[aria-labelledby="assistant-h"]')).toHaveCount(0);
 });
 
 test("OS dark preference with no storage uses the dark tokens", async ({ browser }) => {

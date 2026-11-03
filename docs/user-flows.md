@@ -248,7 +248,7 @@ Acceptance
 - E2E: Given the theme toggle is activated, then `html[data-theme="dark"]` is set and persists across reload; given storage is cleared and the OS prefers light, then the attribute is absent and the background is `#F1EDE4`.
 - E2E: Given `prefers-reduced-motion: reduce`, then no element has a running animation (checked via `getAnimations()`).
 - E2E: axe reports zero violations on `/`, `/?mode=analyst&region=eu&market=de`, and the assistant with an open answer, in both themes.
-- E2E: Given 390 px, 768 px, 1024 px and 1440 px widths, then there is no horizontal page scroll and the assistant panel is below the dashboard under 1024 px.
+- E2E: Given 390 px, 768 px, 1024 px and 1440 px widths, then there is no horizontal page scroll and, under 1024 px, the assistant is a bottom bar that opens a sheet.
 
 ---
 

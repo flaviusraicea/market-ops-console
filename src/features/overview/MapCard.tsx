@@ -13,7 +13,11 @@ import {
   revenueLegend,
   type LegendBin,
 } from "@/components/charts/scales";
-import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
+import {
+  TableView,
+  ViewAsTableToggle,
+  useTableFirstOnPhone,
+} from "@/components/charts/ViewAsTable";
 import { StatusGlyph } from "@/components/StatusGlyph";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -87,7 +91,7 @@ export function legendFor(map: OverviewVM["map"]): LegendBin[] {
 
 export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
   return (
-    <Table scrollLabel="Markets table">
+    <Table stickyFirst scrollLabel="Markets table">
       <TableCaption className="sr-only">
         Markets, {map.periodLabel}. {map.provenance}
       </TableCaption>
@@ -145,7 +149,7 @@ export function MapCard({
   const { setContext } = useConsoleContext();
   const geoState = useGeo();
   const tableId = useId();
-  const [pressed, setPressed] = useState(false);
+  const { pressed, auto, phone, toggle } = useTableFirstOnPhone();
   const metricLabel = METRIC_LABEL[map.metric];
 
   const byStatus = scheme === "status";
@@ -208,8 +212,9 @@ export function MapCard({
               <ViewAsTableToggle
                 pressed={pressed}
                 controls={tableId}
-                onPressedChange={setPressed}
+                onPressedChange={toggle}
                 subject="the markets map"
+                {...(phone ? { chartLabel: "View map" } : {})}
               />
             )}
           </>
@@ -221,6 +226,7 @@ export function MapCard({
       <TableView
         id={tableId}
         pressed={showTable}
+        auto={auto && !forced}
         chart={
           forced ? null : (
             <>

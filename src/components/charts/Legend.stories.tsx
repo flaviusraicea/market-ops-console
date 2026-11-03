@@ -46,10 +46,12 @@ export const Status: Story = {
 export const Bins: Story = {
   args: {
     label: "Attainment bins",
-    items: ["--div-n3", "--div-n2", "--div-n1", "--div-0", "--div-p1", "--div-p2", "--div-p3"].map((color, i) => ({
-      label: ["< 90%", "90–95%", "95–99%", "99–101%", "101–105%", "105–110%", "> 110%"][i] ?? "",
-      swatch: "fill" as const,
-      color,
-    })),
+    items: ["--div-n3", "--div-n2", "--div-n1", "--div-0", "--div-p1", "--div-p2", "--div-p3"].map(
+      (color, i) => ({
+        label: ["< 90%", "90–95%", "95–99%", "99–101%", "101–105%", "105–110%", "> 110%"][i] ?? "",
+        swatch: "fill" as const,
+        color,
+      }),
+    ),
   },
 };

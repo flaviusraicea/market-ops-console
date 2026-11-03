@@ -9,7 +9,13 @@ import { formatClock, formatPeriod } from "@/lib/format";
  * Where the figures come from. With Live on it reads `LIVE · UPDATED 12:04:05` and the dot pulses; paused after
  * a tick it says the figures are simulated and when they stopped.
  */
-export function DataStamp({ latestPeriod }: { latestPeriod: string }) {
+export function DataStamp({
+  latestPeriod,
+  className,
+}: {
+  latestPeriod: string;
+  className?: string;
+}) {
   const state = useLiveState();
   const { live, updatedAt } = state;
   const clock = updatedAt ? formatClock(updatedAt) : null;
@@ -17,7 +23,7 @@ export function DataStamp({ latestPeriod }: { latestPeriod: string }) {
     return (
       <Eyebrow
         title="Simulated figures for the latest month. Reload to return to the saved data."
-        className="inline-flex items-center gap-1.5"
+        className={cn("inline-flex items-center gap-1.5", className)}
       >
         <span
           aria-hidden
@@ -31,7 +37,7 @@ export function DataStamp({ latestPeriod }: { latestPeriod: string }) {
   return (
     <Eyebrow
       title={`Source: data.json, latest period ${latestPeriod}`}
-      className="inline-flex items-center gap-1.5"
+      className={cn("inline-flex items-center gap-1.5", className)}
     >
       <span aria-hidden className="size-1.5 rounded-pill bg-ok-mark" />
       Data through {formatPeriod(latestPeriod)}

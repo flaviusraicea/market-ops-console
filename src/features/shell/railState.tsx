@@ -27,11 +27,17 @@ function write(mode: Mode, open: boolean) {
   stored.write(JSON.stringify({ ...parsePrefs(stored.read()), [mode]: open }));
 }
 
+export type SheetState = { open: boolean; via: "bar" | "entry"; n: number };
+
 export type FocusRequest = { target: "heading" | "rail"; nonce: number };
 
 type RailValue = {
-  /** Whether the panel is open in this mode. Desktop only: below 1024 px the panel is always in the page. */
+  /** Whether the panel is open in this mode. Desktop only: below 1024 px the assistant is the bottom sheet. */
   open: boolean;
+  /** Below 1024 px: whether the assistant sheet is open, and what opened it. */
+  sheet: SheetState;
+  openSheet: (via: SheetState["via"]) => void;
+  closeSheet: () => void;
   unread: number;
   openFromRail: () => void;
   /** Open for an entry point such as Ask why; the panel moves focus to the composer itself. */
@@ -50,6 +56,9 @@ type RailValue = {
 
 const NOOP: RailValue = {
   open: true,
+  sheet: { open: false, via: "bar", n: 0 },
+  openSheet: () => {},
+  closeSheet: () => {},
   unread: 0,
   openFromRail: () => {},
   openForEntry: () => {},
@@ -72,6 +81,7 @@ export function AssistantRailProvider({ children }: { children: ReactNode }) {
   const raw = useSyncExternalStore(stored.subscribe, stored.read, () => null);
   const open = parsePrefs(raw)[mode];
   const [unread, setUnread] = useState(0);
+  const [sheet, setSheet] = useState<SheetState>({ open: false, via: "bar", n: 0 });
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const [liveHost, setLiveHost] = useState<HTMLElement | null>(null);
 
@@ -91,26 +101,37 @@ export function AssistantRailProvider({ children }: { children: ReactNode }) {
     setOpen(true);
     requestFocus("heading");
   }, [setOpen, requestFocus]);
+  const openSheet = useCallback((via: SheetState["via"]) => {
+    setSheet((s) => ({ open: true, via, n: s.open ? s.n : s.n + 1 }));
+    setUnread(0);
+  }, []);
+  const closeSheet = useCallback(() => setSheet((s) => (s.open ? { ...s, open: false } : s)), []);
   const openForEntry = useCallback(() => {
     if (desktop) setOpen(true);
-  }, [desktop, setOpen]);
+    else openSheet("entry");
+  }, [desktop, setOpen, openSheet]);
   const openIn = useCallback(
     (target: Mode) => {
       if (desktop) write(target, true);
+      // A followed citation lands on a chart: the sheet gets out of its way.
+      else closeSheet();
     },
-    [desktop],
+    [desktop, closeSheet],
   );
   const collapse = useCallback(() => {
     setOpen(false);
     requestFocus("rail");
   }, [setOpen, requestFocus]);
   const noteAnswerDone = useCallback(() => {
-    if (desktop && !open) setUnread((n) => n + 1);
-  }, [desktop, open]);
+    if (desktop ? !open : !sheet.open) setUnread((n) => n + 1);
+  }, [desktop, open, sheet.open]);
 
   const value = useMemo<RailValue>(
     () => ({
       open,
+      sheet,
+      openSheet,
+      closeSheet,
       unread,
       openFromRail,
       openForEntry,
@@ -123,6 +144,9 @@ export function AssistantRailProvider({ children }: { children: ReactNode }) {
     }),
     [
       open,
+      sheet,
+      openSheet,
+      closeSheet,
       unread,
       openFromRail,
       openForEntry,

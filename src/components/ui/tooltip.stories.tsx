@@ -35,6 +35,8 @@ export const OpensOnFocus: Story = {
   play: async ({ canvasElement }) => {
     await userEvent.tab();
     await expect(within(canvasElement).getByRole("button", { name: "Status rule" })).toHaveFocus();
-    await waitFor(() => expect(within(document.body).getAllByRole("tooltip").length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(within(document.body).getAllByRole("tooltip").length).toBeGreaterThan(0),
+    );
   },
 };

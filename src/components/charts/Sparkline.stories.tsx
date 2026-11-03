@@ -23,7 +23,9 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByRole("img", { name: /12-month revenue trend/ })).toBeVisible();
+    await expect(
+      within(canvasElement).getByRole("img", { name: /12-month revenue trend/ }),
+    ).toBeVisible();
   },
 };
 

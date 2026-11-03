@@ -16,7 +16,11 @@ const meta = {
   args: {
     subject: "revenue by market",
     toolbar: <span className="text-[length:var(--text-label)] text-ink-2">Revenue by market</span>,
-    chart: <p role="img" aria-label="Chart placeholder">Chart</p>,
+    chart: (
+      <p role="img" aria-label="Chart placeholder">
+        Chart
+      </p>
+    ),
     table: (
       <table>
         <caption className="sr-only">Revenue by market</caption>
@@ -41,7 +45,9 @@ export const Toggle: Story = {
     const toggle = c.getByRole("button", { name: "View as table of revenue by market" });
     await expect(toggle).toHaveAttribute("aria-pressed", "false");
     await userEvent.click(toggle);
-    await expect(c.getByRole("button", { name: /^View as chart of revenue by market/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      c.getByRole("button", { name: /^View as chart of revenue by market/ }),
+    ).toHaveAttribute("aria-pressed", "true");
     await expect(c.getByRole("table")).toBeVisible();
   },
 };

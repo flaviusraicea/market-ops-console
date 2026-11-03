@@ -112,3 +112,24 @@ export const Germany: Story = {
     ).toBeInTheDocument();
   },
 };
+
+/** Under 768 px: two rows. Row 1 is the wordmark, the drill path, theme and account; row 2 the period and mode switch. */
+export const Phone: Story = {
+  args: { trail: breadcrumbTrail(ds, germany) },
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+    nuqs: { searchParams: "region=eu&market=de" },
+  },
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.ownerDocument.documentElement;
+    await expect(root.scrollWidth).toBeLessThanOrEqual(root.clientWidth);
+    const canvas = within(canvasElement);
+    const period = canvas.getByRole("combobox", { name: "Period" });
+    const account = canvas.getByRole("button", { name: /^Signed in as/ });
+    await expect(period.getBoundingClientRect().top).toBeGreaterThan(
+      account.getBoundingClientRect().bottom - 1,
+    );
+    await expect(account.getBoundingClientRect().right).toBeLessThanOrEqual(root.clientWidth);
+  },
+};

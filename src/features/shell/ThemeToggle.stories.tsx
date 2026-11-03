@@ -22,7 +22,9 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const root = document.documentElement;
     const was = root.getAttribute("data-theme");
-    const toggle = within(canvasElement).getByRole("button", { name: /^Switch to (dark|light) theme$/ });
+    const toggle = within(canvasElement).getByRole("button", {
+      name: /^Switch to (dark|light) theme$/,
+    });
     const label = toggle.getAttribute("aria-label");
     await userEvent.click(toggle);
     await waitFor(() => expect(toggle).not.toHaveAttribute("aria-label", label ?? ""));

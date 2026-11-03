@@ -42,6 +42,7 @@ export function CitationChip({
         aria-pressed={pressed}
         aria-describedby={description ? descriptionId : undefined}
         disabled={unresolved}
+        data-chip
         onClick={onFollow}
         className={cn(
           "inline-flex h-[var(--chip-h)] items-center gap-1 rounded-pill border px-2.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] transition-colors duration-[var(--dur-fast)]",

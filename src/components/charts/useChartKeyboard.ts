@@ -14,7 +14,13 @@ type Options = {
 };
 
 /** Roving focus over a list of marks: one tab stop, arrows move, Enter or Space activates. */
-export function useChartKeyboard({ count, columns, onActivate, onMove, initialIndex = 0 }: Options) {
+export function useChartKeyboard({
+  count,
+  columns,
+  onActivate,
+  onMove,
+  initialIndex = 0,
+}: Options) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
 
   const move = useCallback(

@@ -5,7 +5,6 @@ import { dataset as ds, portfolioMay, withDataset } from "../../../.storybook/de
 import { MapCard } from "./MapCard";
 import { overviewVM } from "./viewModel";
 
-
 const meta = {
   title: "features/overview/MapCard",
   component: MapCard,
@@ -28,6 +27,8 @@ export const ByStatus: Story = {
 
 export const ByMetric: Story = {
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByRole("radiogroup", { name: "Map metric" })).toBeVisible();
+    await expect(
+      within(canvasElement).getByRole("radiogroup", { name: "Map metric" }),
+    ).toBeVisible();
   },
 };
