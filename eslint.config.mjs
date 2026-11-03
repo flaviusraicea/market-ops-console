@@ -41,6 +41,7 @@ const componentPackages = [
   "react-dom",
   "lucide-react",
   "radix-ui",
+  "cmdk",
   "class-variance-authority",
   "clsx",
   "tailwind-merge",

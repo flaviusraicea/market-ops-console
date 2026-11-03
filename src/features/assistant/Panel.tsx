@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { entityName, entityOf } from "@/domain";
+import { PaletteButton } from "@/features/palette/PaletteButton";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { useDataset } from "@/lib/context/dataset";
@@ -82,15 +83,17 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)] lg:sticky lg:top-4 lg:max-h-[calc(100vh-var(--header-h)-32px)]">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
-          <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
-          Assistant
-        </Eyebrow>
-        <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-          Answers are AI-generated. Numbers link to source.
-        </span>
+    <div className="relative flex flex-col gap-4 rounded-card border border-border bg-surface p-[var(--pad-card)] lg:sticky lg:top-4 lg:max-h-[calc(100vh-var(--header-h)-32px)]">
+      <div className="flex items-start gap-x-3 pr-[var(--control-h)]">
+        <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-3 gap-y-1 flex-1">
+          <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
+            <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
+            Assistant
+          </Eyebrow>
+          <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+            Answers are AI-generated. Numbers link to source.
+          </span>
+        </div>
       </div>
       <Composer
         value={draft}
@@ -99,6 +102,10 @@ export function Panel({ context, onSubmit, stream }: PanelProps) {
         disabled={isStreaming}
         textareaRef={ref}
       />
+      {/* After the composer in the DOM so the composer stays first in tab order; placed top right. */}
+      <div className="absolute top-[calc(var(--pad-card)-8px)] right-[calc(var(--pad-card)-8px)]">
+        <PaletteButton />
+      </div>
       <AnswerList
         answers={answers}
         context={context}

@@ -36,28 +36,30 @@ export default async function Page({ searchParams }: PageProps) {
   return (
     <ConsoleMetaProvider meta={meta}>
       <NavigationProvider>
-        <Layout
-          header={
-            <Header
-              trail={breadcrumbTrail(ds, ctx)}
-              products={ds.products.map((p) => ({ id: p.id, name: p.name }))}
-              period={ctx.period}
-              periods={ds.meta.periods}
-              latestPeriod={ds.meta.latestPeriod}
-              mode={ctx.mode}
-            />
-          }
-          dashboard={
-            <Suspense fallback={<OverviewSkeleton />}>
-              {ctx.mode === "analyst" ? <Analyst ctx={ctx} /> : <Overview ctx={ctx} />}
-            </Suspense>
-          }
-          assistant={
-            <DatasetProvider dataset={lightDataset(ds)}>
-              <Panel context={panelContextVM(ds, ctx)} />
-            </DatasetProvider>
-          }
-        />
+        <DatasetProvider dataset={lightDataset(ds)}>
+          <Layout
+            header={
+              <Header
+                trail={breadcrumbTrail(ds, ctx)}
+                products={ds.products.map((p) => ({ id: p.id, name: p.name }))}
+                period={ctx.period}
+                periods={ds.meta.periods}
+                latestPeriod={ds.meta.latestPeriod}
+                mode={ctx.mode}
+              />
+            }
+            dashboard={
+              <Suspense fallback={<OverviewSkeleton />}>
+                {ctx.mode === "analyst" ? <Analyst ctx={ctx} /> : <Overview ctx={ctx} />}
+              </Suspense>
+            }
+            assistant={
+              <DatasetProvider dataset={lightDataset(ds)}>
+                <Panel context={panelContextVM(ds, ctx)} />
+              </DatasetProvider>
+            }
+          />
+        </DatasetProvider>
       </NavigationProvider>
     </ConsoleMetaProvider>
   );

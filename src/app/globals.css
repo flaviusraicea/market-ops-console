@@ -78,6 +78,11 @@ body {
   outline-offset: 2px;
 }
 
+/* The palette's search field is the whole top row of the dialog; the caret and the highlighted row mark focus (mock: no ring). */
+[cmdk-input]:focus-visible {
+  outline: none;
+}
+
 /* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */
 .num {
   font-variant-numeric: tabular-nums lining-nums;
