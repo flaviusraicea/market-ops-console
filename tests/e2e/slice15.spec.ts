@@ -68,6 +68,7 @@ test("the attention list ranks the flagged markets and Ask why sends", async ({ 
   await expect(page.getByRole("region", { name: "Conversation" })).toContainText(
     "Why did Germany's revenue dip?",
   );
+  await expect(page.getByText("You asked, about Germany · May 2026:")).toBeVisible();
   await expect(page.getByRole("list", { name: "Citations" })).toBeVisible({ timeout: 8000 });
   await expect(composer).toBeFocused();
 });

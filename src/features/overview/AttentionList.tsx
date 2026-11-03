@@ -35,7 +35,7 @@ type Props = {
   /** Replaces the default, which drills into the market through the URL. */
   onSelect?: (marketId: string) => void;
   /** Replaces the default, which puts the question in the assistant and sends it. */
-  onAsk?: (text: string) => void;
+  onAsk?: (text: string, about: string) => void;
 };
 
 function Growth({ pct, children, rising }: { pct: number; children: string; rising?: boolean }) {
@@ -53,7 +53,7 @@ function MarketRow({
 }: {
   row: RankedRowVM;
   select: (id: string) => void;
-  ask: (text: string) => void;
+  ask: (text: string, about: string) => void;
 }) {
   return (
     <tr role="row" className={cn(ROW, MOBILE_ROW)}>
@@ -79,7 +79,7 @@ function MarketRow({
           type="button"
           variant="secondary"
           aria-label={row.askWhy.aria}
-          onClick={() => ask(row.askWhy.text)}
+          onClick={() => ask(row.askWhy.text, row.askWhy.about)}
           className="max-md:min-h-11 max-md:min-w-11"
         >
           <Sparkles aria-hidden className="size-3.5 text-ai-label" strokeWidth={ICON_STROKE} />

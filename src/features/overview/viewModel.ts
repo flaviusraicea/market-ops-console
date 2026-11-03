@@ -491,7 +491,7 @@ export type AttentionRowVM = {
 
 export type RankedRowVM = AttentionRowVM & {
   rank: number;
-  askWhy: { aria: string; text: string };
+  askWhy: { aria: string; text: string; about: string };
 };
 
 export type ProductRowVM = {
@@ -558,7 +558,11 @@ export function attentionVM(ds: Dataset, ctx: Context): AttentionVM {
         { ...b.row, attainment: b.attainment },
       ),
     )
-    .map((s, i) => ({ ...s.row, rank: i + 1, askWhy: askWhyPrompt(s.market) }));
+    .map((s, i) => ({
+      ...s.row,
+      rank: i + 1,
+      askWhy: { ...askWhyPrompt(s.market), about: `${s.market.name} · ${period}` },
+    }));
 
   const rising = [...scoped]
     .sort((a, b) => b.row.growthPct - a.row.growthPct)

@@ -245,6 +245,7 @@ describe("attention list", () => {
     const germany = vm.rows[0];
     expect(germany?.spark).toHaveLength(12);
     expect(germany?.askWhy.text).toBe("Why did Germany's revenue dip?");
+    expect(germany?.askWhy.about).toBe("Germany · May 2026");
     expect(vm.rows.find((r) => r.id === "es")?.askWhy.text).toBe("Why is Spain off track?");
   });
 

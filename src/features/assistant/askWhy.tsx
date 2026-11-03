@@ -15,11 +15,11 @@ import {
 export type AskWhyRequest = { text: string; fill: boolean; nonce: number };
 
 /** Sends a question for the panel. Returns false when it cannot, for example while an answer streams. */
-type Sender = (text: string) => boolean;
+type Sender = (text: string, about?: string) => boolean;
 
 type AskWhyValue = {
   prefill: (text: string) => void;
-  ask: (text: string) => void;
+  ask: (text: string, about?: string) => void;
   request: AskWhyRequest | null;
   registerSender: (sender: Sender) => () => void;
 };
@@ -45,7 +45,7 @@ export function AskWhyProvider({ children }: { children: ReactNode }) {
   const prefill = useCallback((text: string) => publish(text, true), [publish]);
   // Falls back to filling the composer when the panel is busy or not mounted.
   const ask = useCallback(
-    (text: string) => publish(text, !(sender.current?.(text) ?? false)),
+    (text: string, about?: string) => publish(text, !(sender.current?.(text, about) ?? false)),
     [publish],
   );
   const registerSender = useCallback((next: Sender) => {
@@ -62,8 +62,11 @@ export function AskWhyProvider({ children }: { children: ReactNode }) {
   return <AskWhyContext.Provider value={value}>{children}</AskWhyContext.Provider>;
 }
 
-/** `prefill` fills the composer and focuses it, leaving the sending to the user. `ask` also sends. */
-export function useAskWhy(): { prefill: (text: string) => void; ask: (text: string) => void } {
+/** `prefill` fills the composer and focuses it, leaving the sending to the user. `ask` also sends; `about` says where it was asked from. */
+export function useAskWhy(): {
+  prefill: (text: string) => void;
+  ask: (text: string, about?: string) => void;
+} {
   const { prefill, ask } = useContext(AskWhyContext);
   return { prefill, ask };
 }
@@ -80,5 +83,5 @@ export function useRegisterAskSender(send: Sender) {
   useEffect(() => {
     latest.current = send;
   });
-  useEffect(() => registerSender((text) => latest.current(text)), [registerSender]);
+  useEffect(() => registerSender((text, about) => latest.current(text, about)), [registerSender]);
 }
