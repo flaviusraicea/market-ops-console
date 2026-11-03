@@ -144,7 +144,7 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 - **Skip link** is the first stop and moves focus to `#main`.
 - **Drilling** (breadcrumb, map, status strip, palette) keeps the page and moves focus to the verdict heading `#verdict-h` when the navigation came from the palette, so the new context is read first.
 - **Rail and panel** (slice 14): opening with the rail toggle moves focus to the panel heading; opening from an entry point (`Ask why`, a heat map cell, an anomaly marker, the palette) moves focus to the composer. Between 1024 and 1279 px the open panel overlays the dashboard with a scrim and Tab wraps inside it; from 1280 px it pushes the dashboard and does not trap.
-- **Live region** for "Answer complete", "Answer stopped" and "Answer failed" stays mounted while the panel is collapsed, so the announcement is not lost.
+- **Live region** for "Answer complete", "Answer stopped, no sources" and "Request failed, no sources" stays mounted while the panel is collapsed, so the announcement is not lost.
 - **Palette** (slice 18) is a modal dialog: focus starts in its input, is trapped inside, and returns to the opener on `Esc` or on a command that does not move focus elsewhere.
 
 
@@ -204,6 +204,7 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 | `bad-text/surface` | text | 4.5:1 | 7.07:1 | 8.50:1 |
 | `ai-label/ai-bg` | text | 4.5:1 | 8.57:1 | 8.56:1 |
 | `ink/ai-bg` | text | 4.5:1 | 14.69:1 | 13.14:1 |
+| `ink-muted/ai-bg` | text | 4.5:1 | 5.19:1 | 5.45:1 |
 | `ink/accent-soft` | text | 4.5:1 | 14.45:1 | 12.01:1 |
 | `ink/bad-bg` | text | 4.5:1 | 13.96:1 | 12.62:1 |
 | `ink-2/bad-bg` | text | 4.5:1 | 5.78:1 | 7.45:1 |

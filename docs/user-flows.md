@@ -126,7 +126,7 @@ Steps
 1. Click the chip "Why did Germany dip?" or type it and press Send.
 2. The question echoes above a new answer card. Tokens appear one by one with the caret; the card header shows STREAMING… beside the AI label and Stop on the right.
 3. The `done` event arrives: caret disappears, three citation chips and the High confidence meter render, Show sources is available.
-4. Alternative: press Stop mid-stream. The text stays, a "Stopped · partial answer" pill appears, no chips, no meter, the card header shows PARTIAL and Retry (screen readers also hear that no sources are attached).
+4. Alternative: press Stop mid-stream. The text stays, a "Stopped · partial answer" pill appears, no chips, no meter, the card header shows "Partial · no sources" beside Retry, and a line where the chips would be says "Stopped before sources arrived. Retry to get citations." A stream that fails after text gets the same caption with "Request failed before sources arrived. Retry to get citations.").
 5. Retry re-sends the same question.
 
 States: idle, streaming, done, stopped. Send is disabled while streaming; the textarea keeps focus after Send.

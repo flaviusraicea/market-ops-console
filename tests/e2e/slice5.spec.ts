@@ -52,11 +52,16 @@ test("Stop keeps the partial text with a pill and no chips or meter, then Retry 
   await stop.click();
 
   await expect(page.getByText("Stopped · partial answer")).toBeVisible();
-  await expect(page.getByText("PARTIAL", { exact: true })).toBeVisible();
+  await expect(page.getByText("Partial · no sources", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Stopped before sources arrived. Retry to get citations."),
+  ).toBeVisible();
+  const axe = await new AxeBuilder({ page }).analyze();
+  expect(axe.violations).toEqual([]);
   await expect(page.getByRole("list", { name: "Citations" })).toHaveCount(0);
   await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(0);
   await expect(page.locator(".caret")).toHaveCount(0);
-  await expect(page.getByRole("status")).toHaveText("Answer stopped");
+  await expect(page.getByRole("status")).toHaveText("Answer stopped, no sources");
   // Stop turns into Retry on the same button, so focus stays on it.
   await expect(page.getByRole("button", { name: "Retry" })).toBeFocused();
 
@@ -97,7 +102,7 @@ test("the forced error fixture shows the failure notice and Retry", async ({ pag
   await page.goto("/");
   await ask(page, "force error");
   await expect(page.getByRole("alert").filter({ hasText: "Request failed" })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("Answer failed");
+  await expect(page.getByRole("status")).toHaveText("Request failed, no sources");
   await expect(page.getByRole("button", { name: "Retry" })).toBeVisible();
 });
 

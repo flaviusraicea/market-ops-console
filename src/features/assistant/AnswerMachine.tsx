@@ -47,8 +47,8 @@ const MachineContext = createContext<MachineValue | null>(null);
 
 const ANNOUNCEMENT: Partial<Record<Answer["status"], string>> = {
   done: "Answer complete",
-  stopped: "Answer stopped",
-  failed: "Answer failed",
+  stopped: "Answer stopped, no sources",
+  failed: "Request failed, no sources",
 };
 
 /**
