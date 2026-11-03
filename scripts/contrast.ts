@@ -61,7 +61,7 @@ const LARGE = pairs("ok-display/ok-bg, warn-display/warn-bg, bad-display/bad-bg"
 // Visibility, not WCAG text contrast: the land must read against the card (floor 1.15:1).
 const LAND = pairs("map-land/surface");
 const DECORATIVE = pairs(
-  "border/surface, border/bg, border/surface-raised, grid/surface, surface-2/surface, ai-border/ai-bg, bg/surface, surface-raised/surface, surface-overlay/surface",
+  "border/surface, border/bg, border/surface-raised, grid/surface, surface-2/surface, bg/surface, surface-raised/surface, surface-overlay/surface",
 );
 
 export type Row = {
@@ -99,6 +99,7 @@ function check(theme: string, map: Map<string, string>) {
   run(GRAPHIC, "graphic", 3);
   // Dark only: the AI surface border must stay a 3:1 boundary on its own fill (light is decorative; the label carries it).
   if (theme === "dark") run(pairs("ai-border/ai-bg"), "graphic", 3);
+  else run(pairs("ai-border/ai-bg"), "decorative", null);
   run(LAND, "non-text", 1.15);
   run(DECORATIVE, "decorative", null);
 

@@ -215,22 +215,22 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 | `focus/bg` | graphic | 3:1 | 6.58:1 | 8.72:1 |
 | `focus/surface-raised` | graphic | 3:1 | 8.59:1 | 7.13:1 |
 | `focus/surface-overlay` | graphic | 3:1 | 8.59:1 | 6.60:1 |
-| `series-actual/surface` | graphic | 3:1 | 17.36:1 | 14.01:1 |
+| `series-actual/surface` | graphic | 3:1 | 17.36:1 | 14.18:1 |
 | `series-forecast/surface` | graphic | 3:1 | 6.46:1 | 5.31:1 |
-| `series-prior/surface` | graphic | 3:1 | 4.39:1 | 5.68:1 |
+| `series-prior/surface` | graphic | 3:1 | 4.39:1 | 5.88:1 |
 | `cat-1/surface` | graphic | 3:1 | 6.46:1 | 5.31:1 |
 | `cat-2/surface` | graphic | 3:1 | 4.13:1 | 5.23:1 |
 | `cat-3/surface` | graphic | 3:1 | 3.99:1 | 4.91:1 |
 | `cat-4/surface` | graphic | 3:1 | 3.25:1 | 5.30:1 |
 | `cat-5/surface` | graphic | 3:1 | 5.25:1 | 4.73:1 |
 | `cat-6/surface` | graphic | 3:1 | 4.20:1 | 5.41:1 |
+| `ai-border/ai-bg` | decorative | none | 2.91:1 |  |
 | `map-land/surface` | non-text | 1.15:1 | 1.28:1 | 1.18:1 |
 | `border/surface` | decorative | none | 1.70:1 | 1.48:1 |
 | `border/bg` | decorative | none | 1.30:1 | 1.61:1 |
 | `border/surface-raised` | decorative | none | 1.70:1 | 1.32:1 |
 | `grid/surface` | decorative | none | 1.34:1 | 1.21:1 |
 | `surface-2/surface` | decorative | none | 1.28:1 | 1.12:1 |
-| `ai-border/ai-bg` | decorative | none | 2.91:1 | 3.69:1 |
 | `bg/surface` | decorative | none | 1.31:1 | 1.09:1 |
 | `surface-raised/surface` | decorative | none | 1.00:1 | 1.12:1 |
 | `surface-overlay/surface` | decorative | none | 1.00:1 | 1.21:1 |

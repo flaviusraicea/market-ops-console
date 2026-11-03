@@ -13,7 +13,7 @@ Approved by Flavius on 2026-11-02: Direction A "Ledger, sharpened" (light defaul
 
 ## 0.1 Settled questions from the preview rounds
 
-- Focus ring always equals the accent: `--focus: #174A94` light, `#8FB4E6` dark.
+- Focus ring always equals the accent: `--focus: #174A94` light, `#8DB4E8` dark.
 - Inset wells and table header rows use `--surface-2 #E8E3D8` (1.28:1 vs white cards). `--ink-muted` darkened to `#66615A` so captions on wells stay at 4.92:1.
 - `--bad-hover` and `--on-bad` are tokens. Dark `--on-bad` is `#0F1318`.
 - Danger buttons exist for destructive confirms only (delete an alert). Never for Retry.
@@ -76,12 +76,12 @@ Every ratio below is WCAG 2.x contrast, computed and checked. Text tokens meet 4
 |---|---|---|---|
 | `--bg` | `#E6E1D3` | Page background, warm paper one step darker so white cards lift | see `docs/accessibility.md` |
 | `--surface` | `#FFFFFF` | Cards, table, header | — |
-| `--surface-2` | `#E8E3D8` | Inset wells, table header row, skeletons | 1.28:1 vs surface, 1.10:1 vs bg (decorative) |
+| `--surface-2` | `#E8E3D8` | Inset wells, table header row, skeletons | decorative; ratios in `docs/accessibility.md` |
 | `--border` | `#CFC6B3` | All 1 px borders; shadow is never the only edge | see `docs/accessibility.md` |
 | `--grid` | `#E3DED3` | Chart grid lines only | 1.34:1 vs surface (decorative) |
-| `--ink` | `#1C1A17` | Primary text, headline numbers, the "actual" line | 17.36:1 on surface, 14.9:1 on bg |
-| `--ink-2` | `#5B574F` | Secondary text | 7.19:1 on surface, 6.15:1 on bg, 5.62:1 on surface-2 |
-| `--ink-muted` | `#66615A` | Captions, provenance, axis labels, placeholders | 6.14:1 on surface, 5.25:1 on bg, 4.92:1 on surface-2 |
+| `--ink` | `#1C1A17` | Primary text, headline numbers, the "actual" line | see `docs/accessibility.md` |
+| `--ink-2` | `#5B574F` | Secondary text | see `docs/accessibility.md` |
+| `--ink-muted` | `#66615A` | Captions, provenance, axis labels, placeholders | see `docs/accessibility.md` |
 | `--ink-disabled` | `#8E887C` | Disabled control text only | 3.52:1 on surface (allowed: disabled) |
 
 **Accent (interaction only: links, primary button, focus ring, selected state, forecast line)**
@@ -172,7 +172,7 @@ Three layers carry depth, and every surface keeps its 1 px border so a shadow is
 
 | Token | Hex | Verified contrast |
 |---|---|---|
-| `--ok-text` | `#8FD9A8` | 8.65:1 on ok-bg, 10.03:1 on surface |
+| `--ok-text` | `#8FD9A8` | see `docs/accessibility.md` |
 | `--ok-bg` | `#15291F` | — |
 | `--ok-mark` | `#5FBF84` | 7.35:1 on surface |
 | `--warn-text` | `#F0C978` | 8.43:1 on warn-bg, 10.56:1 on surface |
@@ -194,7 +194,7 @@ Three layers carry depth, and every surface keeps its 1 px border so a shadow is
 
 **Data series**
 
-`--series-actual #ECE8E0` (13.62:1) · `--series-forecast #6291D4` (5.17:1) · `--series-prior #9A9488` (5.52:1)
+`--series-actual #E6EAF0` · `--series-forecast #6291D4` · `--series-prior #8F98A6` (ratios in `docs/accessibility.md`)
 
 **Categorical (validated for the dark surface, all checks pass, first three pass all-pairs)**
 

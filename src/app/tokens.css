@@ -7,13 +7,15 @@
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Colour: light theme (section 3.1; elevation and display colours from design-refresh direction A) */
+  /* Colour: light theme (section 3.1). Elevation, the display colours and the springs are described in docs/design-system.md. */
   --bg: #e6e1d3;
   --surface: #ffffff;
   --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
   --surface-2: #e8e3d8;
   --border: #cfc6b3;
   --hairline: transparent;
+  --selected-edge: rgba(255, 255, 255, 0.7);
   --grid: #e3ded3;
   --ink: #1c1a17;
   --ink-2: #5b574f;
@@ -70,14 +72,11 @@
     0 18px 40px -14px rgba(28, 26, 23, 0.22);
   --shadow-raised: 0 2px 4px rgba(28, 26, 23, 0.07), 0 14px 30px -8px rgba(28, 26, 23, 0.28);
   --shadow-overlay: 0 2px 6px rgba(28, 26, 23, 0.08), 0 24px 56px -16px rgba(28, 26, 23, 0.35);
-  --shadow-popover: var(--shadow-overlay);
-  --shadow-header: 0 1px 0 var(--border), 0 6px 20px -12px rgba(28, 26, 23, 0.18);
+  --shadow-header: 0 6px 20px -12px rgba(28, 26, 23, 0.18);
   --shadow-toolbar: 0 8px 14px -12px rgba(28, 26, 23, 0.3);
   --shadow-basin: inset 0 2px 10px rgba(28, 26, 23, 0.1), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
   --shimmer: rgba(255, 255, 255, 0.35);
   --map-land: #e8e3d8;
-  --surface-overlay: #ffffff;
-  --selected-edge: rgba(255, 255, 255, 0.7);
 
   /* Type scale (section 2): size / line / weight / letter-spacing */
   --text-display: 32px;
@@ -139,7 +138,7 @@
   --dur-fast: 150ms;
   --dur-base: 200ms;
   --dur-chart: 240ms;
-  /* A followed citation (motion-spec.md section 3, row 3): ring and tint fade in with the chart tweens, hold, then decay gently; opacity only. */
+  /* A followed citation: ring and tint fade in with the chart tweens, hold, then decay gently; opacity only. */
   --dur-land-in: 240ms;
   --dur-land-out: 800ms;
   --hold-highlight: 1500ms; /* read by JS once (useLanding), so reduced motion keeps the hold */
@@ -151,7 +150,7 @@
   --dur-enter: 400ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
   /* Apple-style springs as CSS linear(): critically damped (response 0.4 s), and a slight overshoot
-     (damping ratio 0.85, response 0.35 s) for the command palette only (motion-spec.md section 2). */
+     (damping ratio 0.85, response 0.35 s) for the command palette only. */
   --spring-smooth: linear(
     0,
     0.041 5%,
@@ -206,8 +205,8 @@
 
 @supports not (animation-timing-function: linear(0, 1)) {
   :root {
-    --spring-smooth: var(--ease);
-    --spring-snappy: var(--ease);
+    --spring-smooth: var(--ease-out);
+    --spring-snappy: var(--ease-out);
   }
 }
 
@@ -300,9 +299,9 @@ html[data-density="analyst"] {
   --ai-bg: #1f2133;
   --ai-border: #7a68e0;
   --ai-label: #c3b6f5;
-  --series-actual: #ece8e0;
+  --series-actual: #e6eaf0;
   --series-forecast: #6291d4;
-  --series-prior: #9a9488;
+  --series-prior: #8f98a6;
   --cat-1: #6291d4;
   --cat-2: #d4753f;
   --cat-3: #279a80;
@@ -332,8 +331,7 @@ html[data-density="analyst"] {
   --shadow-overlay:
     inset 0 1px 0 var(--hairline), 0 4px 10px rgba(0, 0, 0, 0.5),
     0 32px 64px -16px rgba(0, 0, 0, 0.8);
-  --shadow-popover: var(--shadow-overlay);
-  --shadow-header: 0 1px 0 var(--border), 0 6px 20px -12px rgba(0, 0, 0, 0.7);
+  --shadow-header: 0 6px 20px -12px rgba(0, 0, 0, 0.7);
   --shadow-toolbar: 0 8px 14px -12px rgba(0, 0, 0, 0.8);
   --shadow-basin: inset 0 2px 12px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
   --shimmer: rgba(255, 255, 255, 0.06);
@@ -379,9 +377,9 @@ html[data-density="analyst"] {
     --ai-bg: #1f2133;
     --ai-border: #7a68e0;
     --ai-label: #c3b6f5;
-    --series-actual: #ece8e0;
+    --series-actual: #e6eaf0;
     --series-forecast: #6291d4;
-    --series-prior: #9a9488;
+    --series-prior: #8f98a6;
     --cat-1: #6291d4;
     --cat-2: #d4753f;
     --cat-3: #279a80;
@@ -411,8 +409,7 @@ html[data-density="analyst"] {
     --shadow-overlay:
       inset 0 1px 0 var(--hairline), 0 4px 10px rgba(0, 0, 0, 0.5),
       0 32px 64px -16px rgba(0, 0, 0, 0.8);
-    --shadow-popover: var(--shadow-overlay);
-    --shadow-header: 0 1px 0 var(--border), 0 6px 20px -12px rgba(0, 0, 0, 0.7);
+    --shadow-header: 0 6px 20px -12px rgba(0, 0, 0, 0.7);
     --shadow-toolbar: 0 8px 14px -12px rgba(0, 0, 0, 0.8);
     --shadow-basin: inset 0 2px 12px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
     --shimmer: rgba(255, 255, 255, 0.06);

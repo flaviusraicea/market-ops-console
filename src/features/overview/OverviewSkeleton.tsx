@@ -3,7 +3,7 @@ import { cn } from "@/components/cn";
 
 function Tile() {
   return (
-    <div className="flex flex-col gap-1 rounded-card border border-border bg-surface shadow-card p-[var(--pad-card)]">
+    <div className="flex flex-col gap-1 rounded-card layer-card p-[var(--pad-card)]">
       <Skeleton className="h-[11px] w-24" />
       <Skeleton className="mt-1 h-7 w-32" />
       <Skeleton className="mt-1 h-3 w-20" />
@@ -29,11 +29,11 @@ export function OverviewSkeleton({ busy = true }: { busy?: boolean }) {
         <Tile />
         <Tile />
       </div>
-      <div className="rounded-card border border-border bg-surface shadow-card p-[var(--pad-card)]">
+      <div className="rounded-card layer-card p-[var(--pad-card)]">
         <Skeleton className="mb-3 h-4 w-40" />
         <Skeleton className="aspect-video w-full" />
       </div>
-      <div className="flex flex-col gap-3 rounded-card border border-border bg-surface shadow-card p-[var(--pad-card)]">
+      <div className="flex flex-col gap-3 rounded-card layer-card p-[var(--pad-card)]">
         <Skeleton className="h-4 w-32" />
         {Array.from({ length: 6 }, (_, i) => (
           <Skeleton key={i} className="h-4 w-full" />

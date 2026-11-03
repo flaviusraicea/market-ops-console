@@ -20,7 +20,7 @@ export function SignIn({ onPick }: { onPick: (role: Role) => void }) {
       >
         <section
           aria-labelledby="sign-in-heading"
-          className="flex w-full max-w-md flex-col gap-5 rounded-card border border-border bg-surface-overlay p-6 shadow-overlay"
+          className="flex w-full max-w-md flex-col gap-5 rounded-card layer-overlay p-6"
         >
           <h1
             id="sign-in-heading"

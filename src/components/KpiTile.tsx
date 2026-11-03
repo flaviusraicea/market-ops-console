@@ -86,7 +86,7 @@ export function KpiTile({
       data-slot="kpi"
       aria-label={label}
       className={cn(
-        "@container/kpi flex min-w-0 flex-col gap-1 rounded-card border border-border bg-surface shadow-card p-[var(--pad-card)]",
+        "@container/kpi flex min-w-0 flex-col gap-1 rounded-card layer-card p-[var(--pad-card)]",
         className,
       )}
     >

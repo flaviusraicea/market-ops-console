@@ -153,7 +153,7 @@ export function ChartTooltip({
         // reaches the action without crossing a neighbour.
         action &&
           "after:absolute after:top-full after:left-0 after:h-2 after:w-full data-[flip=true]:after:top-auto data-[flip=true]:after:bottom-full",
-        "group/tip absolute z-10 min-w-40 -translate-x-1/2 -translate-y-full rounded-control border border-border bg-surface-overlay px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] shadow-overlay",
+        "group/tip absolute z-10 min-w-40 -translate-x-1/2 -translate-y-full rounded-control layer-overlay px-2.5 py-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
       )}
       style={{ left, top: top - 8 }}
     >

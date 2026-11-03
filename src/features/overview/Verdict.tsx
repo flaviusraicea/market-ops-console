@@ -6,7 +6,7 @@ import { DataStamp } from "@/features/shell/DataStamp";
 import type { VerdictVM } from "./viewModel";
 
 // Headline words only: the brighter display colours on their tinted wash read at distance, where the body status
-// text (tuned for 12 to 14 px) looks black. Large text, so WCAG asks 3:1 (a11y-spec.md).
+// text (tuned for 12 to 14 px) looks black. Large text, so WCAG asks 3:1.
 const WASH = "rounded-[4px] px-[0.08em] [box-decoration-break:clone]";
 const STATUS_TEXT = {
   on_track: `text-ok-display bg-ok-bg ${WASH}`,

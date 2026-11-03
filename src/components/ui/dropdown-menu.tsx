@@ -29,7 +29,7 @@ function DropdownMenuContent({
         sideOffset={sideOffset}
         align={align}
         className={cn(
-          "z-50 min-w-60 overflow-hidden rounded-card border border-border bg-surface-overlay p-1 text-ink shadow-overlay",
+          "z-50 min-w-60 overflow-hidden rounded-card layer-overlay p-1 text-ink",
           className,
         )}
         {...props}

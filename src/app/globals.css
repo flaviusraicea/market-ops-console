@@ -69,10 +69,28 @@
   --shadow-card: var(--shadow-card);
   --shadow-raised: var(--shadow-raised);
   --shadow-overlay: var(--shadow-overlay);
-  --shadow-popover: var(--shadow-popover);
   --shadow-header: var(--shadow-header);
   --shadow-toolbar: var(--shadow-toolbar);
   --shadow-basin: var(--shadow-basin);
+}
+
+/* Elevation layers (design-system.md 3.1): one recipe per layer, so a surface asks for its layer by name and the
+   border, tone and shadow can never drift apart. Radius stays with the component. Every layer keeps its 1 px border:
+   a shadow is never the only edge (forced-colors mode drops shadows). */
+@utility layer-card {
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+@utility layer-raised {
+  border: 1px solid var(--border);
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-raised);
+}
+@utility layer-overlay {
+  border: 1px solid var(--border);
+  background-color: var(--surface-overlay);
+  box-shadow: var(--shadow-overlay);
 }
 
 body {
