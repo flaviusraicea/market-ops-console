@@ -68,12 +68,9 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      // The modifier goes down a moment before K: start fetching the chunk and mount the palette closed, so the
-      // open itself is not the first time it runs. Nothing loads for a visitor who never reaches for the shortcut.
-      if (e.key === "Control" || e.key === "Meta") {
-        void import("./CommandPalette");
-        setEverOpened(true);
-      }
+      // The modifier goes down a moment before K. Mounting the palette closed starts its chunk loading, so the open
+      // itself is not the first time it runs. The first Ctrl or ⌘ press of any kind loads it.
+      if (e.key === "Control" || e.key === "Meta") setEverOpened(true);
       if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
         openPalette();

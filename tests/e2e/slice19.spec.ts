@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { open } from "./helpers";
+import { open, trackShifts } from "./helpers";
 
 // Turbopack names chunks by hash, so each lazy module is recognised by a string that only it contains.
 const MARKERS = {
@@ -27,22 +27,6 @@ function watchScripts(page: Page) {
       texts.some((t) => t.includes(MARKERS[k])),
     );
   };
-}
-
-/** Sums layout-shift entries (without recent input) from before the first paint. */
-async function trackShifts(page: Page) {
-  await page.addInitScript(() => {
-    const w = window as unknown as { __shift: number };
-    w.__shift = 0;
-    new PerformanceObserver((list) => {
-      for (const e of list.getEntries() as unknown as Array<{
-        value: number;
-        hadRecentInput: boolean;
-      }>)
-        if (!e.hadRecentInput) w.__shift += e.value;
-    }).observe({ type: "layout-shift", buffered: true });
-  });
-  return () => page.evaluate(() => (window as unknown as { __shift: number }).__shift);
 }
 
 test("Overview downloads none of the Analyst code or the palette until they are asked for", async ({
