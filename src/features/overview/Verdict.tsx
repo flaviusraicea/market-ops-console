@@ -22,7 +22,9 @@ export function Verdict({ verdict }: { verdict: VerdictVM }) {
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-x-4">
         <Eyebrow>{verdict.eyebrow}</Eyebrow>
-        <InfoTip label="About this verdict">{verdict.caption}</InfoTip>
+        <InfoTip label="About this verdict" className="mr-3">
+          {verdict.caption}
+        </InfoTip>
         <span className="sr-only">{verdict.caption}</span>
       </div>
       {/* The header's stamp is hidden under 768 px; the Overview carries it here instead. */}

@@ -15,6 +15,8 @@ const iPad = onChromium(devices["iPad (gen 7)"]!);
 
 const OVERVIEW = "/";
 const ANALYST = "/?mode=analyst&region=eu&market=de";
+// A drilled market adds the product select and the breadcrumb trail to the header: the widest header there is.
+const DRILL = "/?region=eu&market=de";
 const WCAG = ["wcag2a", "wcag2aa", "wcag21aa"];
 
 const bar = (page: Page) => page.getByRole("button", { name: /^Ask the assistant/ });
@@ -30,7 +32,7 @@ for (const [name, profile] of [
 ] as const) {
   test.describe(`${name}: nothing scrolls sideways`, () => {
     test.use(profile);
-    for (const url of [OVERVIEW, ANALYST]) {
+    for (const url of [OVERVIEW, DRILL, ANALYST]) {
       test(url, async ({ page }) => {
         await open(page, url);
         expect(await overflow(page)).toBeLessThanOrEqual(0);
@@ -48,13 +50,13 @@ for (const [name, profile] of [
     test("no eyebrow in a tile is clipped", async ({ page }) => {
       await open(page, OVERVIEW);
       const clipped = await page.evaluate(() =>
-        [...document.querySelectorAll<HTMLElement>('[role="group"] > p:first-child')]
-          .filter((el) => el.offsetWidth > 0 && el.closest("[class*='kpi']"))
+        [...document.querySelectorAll<HTMLElement>('[data-slot="kpi"] > p:first-child')]
+          .filter((el) => el.offsetWidth > 0)
           .filter(
             (el) =>
               el.scrollWidth > el.clientWidth + 1 ||
               el.getBoundingClientRect().right >
-                (el.closest("[class*='kpi']") as HTMLElement).getBoundingClientRect().right,
+                (el.closest('[data-slot="kpi"]') as HTMLElement).getBoundingClientRect().right,
           )
           .map((el) => el.textContent),
       );
@@ -135,6 +137,26 @@ test.describe("phone", () => {
     expect(scrolled.left).toBeGreaterThanOrEqual(scrolled.max - 1);
   });
 
+  test("Analyst: the map section also starts as a table with a View map toggle", async ({
+    page,
+  }) => {
+    await open(page, "/?mode=analyst");
+    const toggle = page.getByRole("button", { name: "View map", exact: true });
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await toggle.click();
+    await expect(page.getByRole("button", { name: /^View as table/ }).first()).toBeVisible();
+  });
+
+  test("nothing scrolls sideways at 375 px on Overview, a drilled market and Analyst", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    for (const url of [OVERVIEW, DRILL, ANALYST]) {
+      await open(page, url);
+      expect(await overflow(page), url).toBeLessThanOrEqual(0);
+    }
+  });
+
   test("Overview: the map card shows the table first and the toggle reads View map", async ({
     page,
   }) => {
@@ -162,6 +184,21 @@ test.describe("phone", () => {
     await page.keyboard.press("Escape");
     await expect(sheet(page)).toBeHidden();
     await expect(bar(page)).toBeFocused();
+  });
+
+  test("a visible Close button closes the sheet and focus returns to the bar; the draft survives", async ({
+    page,
+  }) => {
+    await open(page, OVERVIEW);
+    await bar(page).tap();
+    await composer(page).fill("What about Spain?");
+    const close = sheet(page).getByRole("button", { name: "Close assistant" });
+    expect((await close.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await close.tap();
+    await expect(sheet(page)).toBeHidden();
+    await expect(bar(page)).toBeFocused();
+    await bar(page).tap();
+    await expect(composer(page)).toHaveValue("What about Spain?");
   });
 
   test("Ask why on a mover opens the sheet on its question, and does not raise the keyboard", async ({
@@ -233,7 +270,11 @@ test.describe("phone", () => {
           .filter(({ box }) => box.width > 0 && box.height > 0)
           .filter(({ el, box }) => {
             const chip = el.hasAttribute("data-chip");
-            return box.height < (chip ? 36 : 44) - 0.5 || box.width < (chip ? 36 : 44) - 0.5;
+            // A small control may borrow its 44 px target from an ::after layer (data-hit).
+            const hit = el.hasAttribute("data-hit") ? getComputedStyle(el, "::after") : null;
+            const w = hit ? parseFloat(hit.width) : box.width;
+            const h = hit ? parseFloat(hit.height) : box.height;
+            return h < (chip ? 36 : 44) - 0.5 || w < (chip ? 36 : 44) - 0.5;
           })
           .map(
             ({ el, box }) =>

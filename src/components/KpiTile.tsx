@@ -83,6 +83,7 @@ export function KpiTile({
   return (
     <div
       role="group"
+      data-slot="kpi"
       aria-label={label}
       className={cn(
         "@container/kpi flex min-w-0 flex-col gap-1 rounded-card border border-border bg-surface p-[var(--pad-card)]",
@@ -118,12 +119,17 @@ export function KpiTile({
         data-direction={delta.direction}
         className="num flex flex-wrap items-center gap-x-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]"
       >
-        <Icon
-          aria-hidden
-          className={cn("size-3.5 shrink-0", DELTA_STYLE[delta.direction])}
-          strokeWidth={ICON_STROKE}
-        />
-        <span className={cn("font-medium", DELTA_STYLE[delta.direction])}>{delta.value}</span>
+        <span className="inline-flex min-w-0 items-start gap-x-1">
+          <Icon
+            aria-hidden
+            className={cn(
+              "mt-[calc((1lh-0.875rem)/2)] size-3.5 shrink-0",
+              DELTA_STYLE[delta.direction],
+            )}
+            strokeWidth={ICON_STROKE}
+          />
+          <span className={cn("font-medium", DELTA_STYLE[delta.direction])}>{delta.value}</span>
+        </span>
         {delta.comparison ? (
           <>
             {" "}

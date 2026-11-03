@@ -5,10 +5,11 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
+  type Dispatch,
   type ReactNode,
+  type SetStateAction,
 } from "react";
 import { createPortal } from "react-dom";
 
@@ -31,7 +32,15 @@ type MachineValue = Machine & {
   /** Bumped on every question or retry, so the list can bring the newest card into view. */
   submitCount: number;
   bumpSubmit: () => void;
+  /** The composer's text, kept here so it outlives the panel (the phone sheet unmounts it on close). */
+  draft: string;
+  setDraft: (text: string) => void;
+  /** Where a prefilled question came from, until it is sent or cleared. `note` is the composer's helper line. */
+  pending: Pending | null;
+  setPending: Dispatch<SetStateAction<Pending | null>>;
 };
+
+type Pending = { ctx: AskContext; note: string | null };
 
 const MachineContext = createContext<MachineValue | null>(null);
 
@@ -60,24 +69,15 @@ export function AnswerMachineProvider({
   const [submitCount, setSubmitCount] = useState(0);
   const bumpSubmit = useCallback(() => setSubmitCount((n) => n + 1), []);
 
-  const { ask } = machine;
-  const view = useRef({ ctx, ds });
-  useEffect(() => {
-    view.current = { ctx, ds };
-  });
-  const submitRef = useRef<(question: string, about?: AskContext) => void>(() => {});
-  useEffect(() => {
-    submitRef.current = (question, about) => {
-      const { ctx: c, ds: d } = view.current;
-      logEvent({ type: "ask", question });
-      const entity = entityOf(c);
-      ask(question, about ?? askContext(entity, entityName(d, entity), c.period));
-      setSubmitCount((n) => n + 1);
-    };
-  });
-  const submit = useCallback((question: string, about?: AskContext) => {
-    submitRef.current(question, about);
-  }, []);
+  const [draft, setDraft] = useState("");
+  const [pending, setPending] = useState<Pending | null>(null);
+
+  function submit(question: string, about?: AskContext) {
+    logEvent({ type: "ask", question });
+    const entity = entityOf(ctx);
+    machine.ask(question, about ?? askContext(entity, entityName(ds, entity), ctx.period));
+    setSubmitCount((n) => n + 1);
+  }
 
   // An "Ask why" button sends through here, so it works while no panel is mounted.
   useRegisterAskSender((text, about) => {
@@ -101,10 +101,16 @@ export function AnswerMachineProvider({
     }
   }, [machine.answers, noteAnswerDone]);
 
-  const value = useMemo(
-    () => ({ ...machine, submit, submitCount, bumpSubmit }),
-    [machine, submit, submitCount, bumpSubmit],
-  );
+  const value = {
+    ...machine,
+    submit,
+    submitCount,
+    bumpSubmit,
+    draft,
+    setDraft,
+    pending,
+    setPending,
+  };
   const announced = <span key={announcement.n}>{announcement.text}</span>;
   return (
     <MachineContext.Provider value={value}>

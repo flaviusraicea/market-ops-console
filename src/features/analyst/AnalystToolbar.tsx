@@ -37,7 +37,7 @@ export function AnalystToolbar({
       <div
         role="toolbar"
         aria-label="Analyst controls"
-        className="sticky top-[var(--header-h)] z-20 mb-[var(--gap-section)] flex h-10 items-center justify-between gap-4 overflow-x-auto border-b border-border bg-bg max-md:snap-x"
+        className="sticky top-[var(--header-h)] z-20 mb-[var(--gap-section)] flex min-h-10 items-center pointer-coarse:min-h-12 justify-between gap-4 overflow-x-auto border-b border-border bg-bg max-md:snap-x"
       >
         <div className="flex shrink-0 items-center gap-x-5">
           <div className="flex items-center gap-2 max-md:snap-start">

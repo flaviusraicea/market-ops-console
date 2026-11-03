@@ -75,7 +75,7 @@ export function SheetSection({
           ) : null}
         </h3>
         {caption || actions ? (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
             {caption ? (
               <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
                 {caption}

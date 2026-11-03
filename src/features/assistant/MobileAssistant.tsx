@@ -55,7 +55,7 @@ export function MobileAssistant({ panel }: { panel: ReactNode }) {
           // The panel puts focus in the composer itself when the person asked to type; otherwise the sheet
           // takes it, so no keyboard rises over an answer.
           e.preventDefault();
-          if (!focusComposer) (e.currentTarget as HTMLElement).focus();
+          if (!focusComposer && e.currentTarget instanceof HTMLElement) e.currentTarget.focus();
         }}
       >
         <div className="flex min-h-0 flex-1 flex-col">

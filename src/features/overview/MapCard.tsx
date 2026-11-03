@@ -149,7 +149,7 @@ export function MapCard({
   const { setContext } = useConsoleContext();
   const geoState = useGeo();
   const tableId = useId();
-  const { pressed, auto, phone, toggle } = useTableFirstOnPhone();
+  const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
   const metricLabel = METRIC_LABEL[map.metric];
 
   const byStatus = scheme === "status";
@@ -214,7 +214,7 @@ export function MapCard({
                 controls={tableId}
                 onPressedChange={toggle}
                 subject="the markets map"
-                {...(phone ? { chartLabel: "View map" } : {})}
+                {...viewMap}
               />
             )}
           </>

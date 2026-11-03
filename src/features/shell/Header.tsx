@@ -81,7 +81,7 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
             onPeriod={(p) => setContext({ period: p as Period })}
           />
         </div>
-        <div className="flex shrink-0 items-center gap-x-3 max-md:contents">
+        <div className="flex items-center gap-x-3 max-md:contents md:max-lg:min-w-0 md:max-lg:flex-wrap md:max-lg:justify-end lg:shrink-0">
           {ctx.market && mode !== "analyst" ? (
             <div className="max-md:hidden">
               <ProductSelect

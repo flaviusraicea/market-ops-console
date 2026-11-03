@@ -54,7 +54,8 @@ export function useTableFirstOnPhone() {
     pressed,
     /** True while the person has not chosen, so the view follows the width. */
     auto: choice === null,
-    phone,
+    /** Spread onto the toggle: on a phone the chart view is called "View map", elsewhere the default label stays. */
+    viewMap: phone ? { chartLabel: "View map" } : {},
     toggle: (next: boolean) => setChoice(next ? "table" : "chart"),
   };
 }

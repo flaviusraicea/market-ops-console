@@ -6,6 +6,7 @@ import { TAB_ORDERS } from "./tabOrder";
 
 const OVERVIEW = "/";
 const ANALYST = "/?mode=analyst&region=eu&market=de";
+const DRILL = "/?region=eu&market=de";
 const THEMES = ["light", "dark"] as const;
 const WIDTHS = [390, 768, 1024, 1280, 1440] as const;
 const WCAG = ["wcag2a", "wcag2aa", "wcag21aa"];
@@ -174,7 +175,7 @@ test.describe("axe, WCAG 2.1 AA", () => {
 });
 
 test.describe("responsive", () => {
-  for (const url of [OVERVIEW, ANALYST]) {
+  for (const url of [OVERVIEW, DRILL, ANALYST]) {
     for (const width of WIDTHS) {
       test(`${url} has no horizontal scroll at ${width} px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });

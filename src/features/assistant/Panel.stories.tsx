@@ -6,6 +6,8 @@ import data from "@/data/data.json";
 import { parseDataset, type Period } from "@/domain";
 import { panelContextVM } from "@/features/overview/viewModel";
 import type { AskStream } from "@/lib/stream/chatClient";
+import type { ComponentProps } from "react";
+import { AnswerMachineProvider } from "./AnswerMachine";
 import { Panel } from "./Panel";
 import { AskWhyProvider, useAskWhy } from "./askWhy";
 
@@ -15,13 +17,27 @@ const quiet: AskStream = () => new Promise(() => {});
 const meta = {
   title: "features/assistant/Panel",
   component: Panel,
-  decorators: [withDataset],
+  // The panel reads the session's machine; a story swaps the network stream through its `stream` arg.
+  decorators: [
+    (Story, { args }) => (
+      <AskWhyProvider>
+        <AnswerMachineProvider stream={args.stream}>
+          <Story />
+        </AnswerMachineProvider>
+      </AskWhyProvider>
+    ),
+    withDataset,
+  ],
+  render: ({ stream, ...args }) => {
+    void stream; // read by the decorator above
+    return <Panel {...args} />;
+  },
   args: {
     context: panelContextVM(parseDataset(data), portfolioMay),
     onSubmit: fn(),
     stream: quiet,
   },
-} satisfies Meta<typeof Panel>;
+} satisfies Meta<ComponentProps<typeof Panel> & { stream: AskStream }>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -160,10 +176,10 @@ function Row() {
 export const OpenFromRow: Story = {
   decorators: [
     (Story) => (
-      <AskWhyProvider>
+      <>
         <Row />
         <Story />
-      </AskWhyProvider>
+      </>
     ),
   ],
   play: async ({ canvasElement }) => {

@@ -24,7 +24,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
   const { setContext } = useConsoleContext();
   const geoState = useGeo();
   const tableId = useId();
-  const { pressed, auto, phone, toggle } = useTableFirstOnPhone();
+  const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
   const metricLabel = METRIC_LABEL[map.metric];
   const forced = geoState.status === "error";
   const showTable = forced || pressed;
@@ -50,7 +50,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
               controls={tableId}
               onPressedChange={toggle}
               subject="the markets map"
-              {...(phone ? { chartLabel: "View map" } : {})}
+              {...viewMap}
             />
           )}
         </>

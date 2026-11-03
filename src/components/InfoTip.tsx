@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+import { cn } from "@/components/cn";
 import { Info, ICON_STROKE } from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -9,7 +10,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
  * A small info button whose tooltip opens on hover and keyboard focus, and toggles on click or tap.
  * Radix tooltips ignore touch, so the open state is held here and the click drives it.
  */
-export function InfoTip({ label, children }: { label: string; children: string }) {
+export function InfoTip({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: string;
+  /** For a tip at the edge of the page: a margin keeps its 44 px hit area inside the gutter. */
+  className?: string;
+}) {
   const [open, setOpen] = useState(false);
   const clicking = useRef(false);
   const openedAt = useRef(0);
@@ -32,6 +42,7 @@ export function InfoTip({ label, children }: { label: string; children: string }
           <button
             type="button"
             aria-label={label}
+            data-hit=""
             onPointerDown={() => {
               pointer.current = performance.now();
             }}
@@ -43,7 +54,10 @@ export function InfoTip({ label, children }: { label: string; children: string }
               pointer.current = null;
               setOpen((o) => (openedByThisTap ? true : !o));
             }}
-            className="inline-flex size-5 items-center justify-center rounded-control text-ink-muted hover:text-ink"
+            className={cn(
+              "relative inline-flex size-5 items-center justify-center rounded-control text-ink-muted after:absolute after:-inset-3 hover:text-ink",
+              className,
+            )}
           >
             <Info aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
           </button>

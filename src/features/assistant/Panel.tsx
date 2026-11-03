@@ -11,10 +11,9 @@ import { Button } from "@/components/ui/button";
 import { useAssistantRail, useFocusRequest, useOverlayKeys } from "@/features/shell/railState";
 import { DESKTOP_QUERY, OVERLAY_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { COARSE_QUERY } from "@/lib/useMediaQuery";
-import type { AskStream } from "@/lib/stream/chatClient";
 import { AnswerList } from "./AnswerList";
 import { useAskWhyRequest, type AskContext } from "./askWhy";
-import { AnswerMachineProvider, useAnswerMachineContext } from "./AnswerMachine";
+import { useAnswerMachineContext } from "./AnswerMachine";
 import { Composer } from "./Composer";
 import type { PanelContext } from "./EmptyState";
 
@@ -22,8 +21,6 @@ type PanelProps = {
   /** What the empty state says about the current view. */
   context: PanelContext;
   onSubmit?: (question: string) => void;
-  /** Replaces the network stream; stories and tests use it, in a panel with no machine above it. */
-  stream?: AskStream;
 };
 
 /**
@@ -53,19 +50,11 @@ export function PanelPlacement({ value, children }: { value: Placement; children
   return <PlacementContext.Provider value={value}>{children}</PlacementContext.Provider>;
 }
 
+/** The panel reads the session's answer machine, so it must sit under `AnswerMachineProvider` (Layout provides it). */
 export function Panel(props: PanelProps) {
   const machine = useAnswerMachineContext();
-  if (machine) return <PanelBody {...props} machine={machine} />;
-  return (
-    <AnswerMachineProvider {...(props.stream ? { stream: props.stream } : {})}>
-      <PanelWithOwnMachine {...props} />
-    </AnswerMachineProvider>
-  );
-}
-
-function PanelWithOwnMachine(props: PanelProps) {
-  const machine = useAnswerMachineContext();
-  return machine ? <PanelBody {...props} machine={machine} /> : null;
+  if (!machine) throw new Error("Panel must be rendered inside AnswerMachineProvider");
+  return <PanelBody {...props} machine={machine} />;
 }
 
 function PanelBody({
@@ -76,9 +65,9 @@ function PanelBody({
   const { variant, focusComposer, skipRequestsUpTo } = useContext(PlacementContext);
   const sheet = variant === "sheet";
   const live = useLiveState();
-  const [draft, setDraft] = useState("");
-  // Where a prefilled question came from, until it is sent or cleared. `note` is the composer's helper line.
-  const [pending, setPending] = useState<{ ctx: AskContext; note: string | null } | null>(null);
+  // The draft and where a prefilled question came from live in the machine's provider, so closing the phone
+  // sheet does not lose what was typed.
+  const { draft, setDraft, pending, setPending } = machine;
   const ref = useRef<HTMLTextAreaElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const request = useAskWhyRequest();

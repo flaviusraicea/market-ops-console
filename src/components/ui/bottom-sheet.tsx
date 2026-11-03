@@ -4,6 +4,7 @@ import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { cn } from "@/components/cn";
+import { ICON_STROKE, X } from "@/components/icons";
 
 /** A modal that rises from the bottom edge (phones): scrim, drag-handle decoration, focus trap, Escape and scrim close. */
 function BottomSheet(props: React.ComponentProps<typeof DialogPrimitive.Root>) {
@@ -38,8 +39,15 @@ function BottomSheetContent({
         {...props}
       >
         <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
-        <div aria-hidden className="flex shrink-0 justify-center pt-2">
-          <span className="h-1 w-9 rounded-pill bg-border" />
+        <div className="relative flex h-11 shrink-0 items-start justify-center pt-2">
+          <span aria-hidden className="h-1 w-9 rounded-pill bg-border" />
+          <DialogPrimitive.Close
+            aria-label={`Close ${title.toLowerCase()}`}
+            data-slot="bottom-sheet-close"
+            className="absolute top-0 right-1 inline-flex size-11 items-center justify-center rounded-control text-ink-2 transition-colors duration-[var(--dur-fast)] hover:bg-surface-2 hover:text-ink"
+          >
+            <X aria-hidden className="size-5" strokeWidth={ICON_STROKE} />
+          </DialogPrimitive.Close>
         </div>
         {children}
       </DialogPrimitive.Content>

@@ -263,7 +263,8 @@ html[data-reduced-motion="true"] .live-dot {
   @media (pointer: coarse) {
     :where(button, a[href], select, summary, [role="button"], [role="radio"], [role="tab"]):not(
       .sr-only-focusable,
-      [data-chip]
+      [data-chip],
+      [data-hit]
     ) {
       min-height: 44px;
       min-width: 44px;
