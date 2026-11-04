@@ -110,6 +110,8 @@ test("series legends sit on their own row under the title at every width, scale 
       const region = card(page, name);
       const legend = region.getByRole("list", { name: label });
       const header = region.locator('[data-slot="card-header"]');
+      // The toggle belongs to the title row, not to a row of its own between the legend and the chart.
+      await expect(header.getByRole("button", { name: /^View as table/ })).toBeVisible();
       const chart = region.getByRole("group").first();
       const h = await header.boundingBox();
       const l = await legend.boundingBox();
@@ -127,5 +129,6 @@ test("series legends sit on their own row under the title at every width, scale 
     const sc = await scale.boundingBox();
     if (!g || !sc) throw new Error("heat map grid or scale not laid out");
     expect(sc.y).toBeGreaterThanOrEqual(g.y + g.height - 1);
+    expect(sc.y - (g.y + g.height)).toBeGreaterThanOrEqual(11);
   }
 });

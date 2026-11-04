@@ -389,7 +389,7 @@ Used by the chart and the differs-from-source chip. Box: `--surface`, border, ra
 
 Card, title `Germany · Revenue vs forecast vs prior year`, caption to the right `Jun 2024 – May 2026 · USD · Source · data.json`. The legend is its own row under the title and subtitle; `View as table` stays in the title row on the right.
 
-- Legend items: 16 × 2 px line sample in the series style (solid / dashed / dotted) then the name in `--text-label` `--ink-2`: `Actual`, `Forecast`, `Prior year`. Static, not interactive.
+- Legend items: 16 × 2 px line sample in the series style (solid / dashed / dotted; 16 px so a dash pattern reads), a 6 px gap, then the name in `--text-label` `--ink-2`: `Actual`, `Forecast`, `Prior year`. Static, not interactive.
 - `View as table` is a ghost button with lucide `table` 14 px, `aria-pressed`, `aria-controls` the table id. Pressing it hides the SVG (`hidden` attribute) and shows the table, and swaps the label to `View as chart`. Keyboard reachable, one click.
 
 SVG: `viewBox 0 0 720 260`, width 100 %, `role="img"`, `aria-labelledby` the title and a `<desc>` that reads: `Line chart of Germany monthly revenue from June 2024 to May 2026. Actual tracks below forecast throughout, with a sharp dip to 1.21 million in March 2026, 27 percent below February. Table available via View as table.`
