@@ -140,9 +140,18 @@ describe("/api/chat follows the view the question was asked from", () => {
       context: { entity: { kind: "market", marketId: "fr" }, period: "2026-05" },
     });
     expect(text).toMatch(/^I can't say why France is at risk\. /);
-    expect(text).toContain("96.4% attainment");
+    expect(text).toContain("96.4% attainment and +");
+    expect(text).toContain("growth as of May 2026");
     expect(text).toContain(STATUS_RULE_TEXT);
     expect(done).toMatchObject({ kind: "abstain", citations: [] });
+  });
+
+  it("does not answer about the market in view when the question names two others", async () => {
+    const { text } = await ask({
+      question: "Why is Italy at risk compared with France?",
+      context: { entity: { kind: "market", marketId: "es" }, period: "2026-05" },
+    });
+    expect(text).not.toMatch(/Spain/);
   });
 
   it("does not abstain on a question about several markets from a market view", async () => {

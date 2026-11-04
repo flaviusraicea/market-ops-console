@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { cn } from "@/components/cn";
-import { Info, ICON_STROKE } from "@/components/icons";
+import { Info, TriangleAlert, ICON_STROKE } from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
@@ -13,10 +13,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export function InfoTip({
   label,
   children,
+  tone = "info",
   className,
 }: {
   label: string;
   children: string;
+  /** `warn` is the "Differs from source" mark: the same warn triangle the answer cards use. */
+  tone?: "info" | "warn";
   /** For a tip at the edge of the page: a margin keeps its 44 px hit area inside the gutter. */
   className?: string;
 }) {
@@ -55,11 +58,18 @@ export function InfoTip({
               setOpen((o) => (openedByThisTap ? true : !o));
             }}
             className={cn(
-              "relative inline-flex size-5 items-center justify-center rounded-control text-ink-muted after:absolute after:-inset-3 hover:text-ink",
+              "relative inline-flex size-5 items-center justify-center rounded-control after:absolute after:-inset-3",
+              tone === "warn"
+                ? "text-warn-mark hover:text-warn-text"
+                : "text-ink-muted hover:text-ink",
               className,
             )}
           >
-            <Info aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+            {tone === "warn" ? (
+              <TriangleAlert aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+            ) : (
+              <Info aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+            )}
           </button>
         </TooltipTrigger>
         <TooltipContent className="max-w-72">{children}</TooltipContent>

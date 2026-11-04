@@ -46,7 +46,7 @@ Design and architecture documents live in `/docs` (copied from the design folder
 
 ## Data inconsistency: reported vs summed attainment
 
-For May 2026 `data.json` states each market's forecast attainment twice: in `kpis` (the reported figure) and implicitly in `series` (actual over forecast, summed over the market's products). They disagree for all 13 markets, by up to 1.1 points. Revenue and growth agree. Neither is changed. The reported figure leads everywhere a headline is shown (KPI tiles, verdict, badges, narrative, Markets table). Where a sum is the point, the footer of a market's products table and the heat map cells for the latest month, the sum is shown with a "Differs from source" note: `Series sum 93.8% · reported KPI 93.0%`.
+For May 2026 `data.json` states each market's forecast attainment twice: in `kpis` (the reported figure) and implicitly in `series` (actual over forecast, summed over the market's products). They disagree for all 13 markets, by up to 1.1 points. Revenue and growth agree. Neither is changed. The reported figure leads everywhere a headline is shown (KPI tiles, verdict, badges, narrative, Markets table). Where a sum is the point, the footer of a market's products table and the heat map cells for the latest month, the sum is shown with a "Differs from source" warning mark and the note `Series sum 93.8% · reported KPI 93.0%`. The Attainment tile's money delta is the series' own variance, so it carries the same mark. The heat map marks its latest column once, in the header, with a legend line.
 
 | Market         | Reported KPI | Series sum |
 | -------------- | ------------ | ---------- |

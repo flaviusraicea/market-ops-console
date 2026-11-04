@@ -35,16 +35,6 @@ export function driftFactor(marketId: string, tick: number): number {
   return factor;
 }
 
-/**
- * A market keeps the status data.json gives it (Spain's disagrees with the published rule, and the app flags
- * that) until the simulated figures move the rule's own verdict; only then does the status follow the rule.
- */
-function liveStatus(m: Market, attainment: number, growth: number): Market["kpis"]["status"] {
-  const saved = statusForDerived(m.kpis.forecastAttainmentPct, m.kpis.growthPct);
-  const now = statusForDerived(attainment, growth);
-  return now === saved ? m.kpis.status : now;
-}
-
 const round1 = (x: number) => Math.round(x * 10) / 10;
 
 /**
@@ -80,7 +70,7 @@ export function applyLiveOverlay(ds: Dataset, tick: number): Dataset {
         revenue: Math.round(m.kpis.revenue * factor),
         growthPct: growth,
         forecastAttainmentPct: attainment,
-        status: liveStatus(m, attainment, growth),
+        status: statusForDerived(attainment, growth),
       },
     };
   });

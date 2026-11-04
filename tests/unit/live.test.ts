@@ -78,7 +78,7 @@ describe("live overlay", () => {
   });
 
   it("follows the published rule once the drift crosses a threshold", () => {
-    // Mexico sits 0.05 points above plan: a small downward drift takes it below 100 %, so it becomes at risk.
+    // A synthetic edge case: a market 0.1 points above plan. A small downward drift takes it below 100 %, so it becomes at risk.
     const edge = {
       ...ds,
       markets: ds.markets.map((m) =>

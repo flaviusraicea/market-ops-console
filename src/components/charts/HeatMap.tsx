@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/components/cn";
 import { ICON_STROKE, TriangleAlert } from "@/components/icons";
+import { InfoTip } from "@/components/InfoTip";
 import { formatMonthShort, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { HeatCellView, type CellHandlers } from "./HeatCellView";
@@ -40,6 +41,8 @@ type HeatMapProps = {
   /** The cell shown as selected, usually (ctx.market, ctx.period). */
   selected?: { market: string; period: string } | undefined;
   label: string;
+  /** Set when the latest month's cells differ from the reported figures: a warn mark beside that column header. */
+  differsNote?: string | undefined;
   onCell: (market: string, period: string) => void;
   /**
    * Asks about a cell: the tooltip gains an action and Shift+Enter on a focused cell does the same.
@@ -60,7 +63,15 @@ const PAGE = 6;
  * Markets by month, coloured by forecast attainment (ADR 0008). A roving-tabindex grid: one tab stop,
  * arrows move, PageUp and PageDown jump six months, Enter selects the cell.
  */
-export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatMapProps) {
+export function HeatMap({
+  rows,
+  periods,
+  selected,
+  label,
+  differsNote,
+  onCell,
+  onAsk,
+}: HeatMapProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
   const tip = useChartTooltip();
@@ -186,6 +197,14 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
 
   return (
     <div ref={wrapRef} className="relative">
+      {differsNote ? (
+        // Outside the grid, so the roving tab stop stays one; it sits over the latest month's column header.
+        <div className="absolute -top-0.5 right-0 z-[2]">
+          <InfoTip label="Differs from source: latest month" tone="warn">
+            {differsNote}
+          </InfoTip>
+        </div>
+      ) : null}
       <div ref={scrollRef} className="overflow-x-auto">
         <div
           role="grid"

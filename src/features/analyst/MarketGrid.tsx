@@ -237,12 +237,16 @@ function TotalRow({
         <TableCell className="text-right num">{total.forecast}</TableCell>
         <TableCell className="text-right num">{total.priorYear}</TableCell>
         <TableCell className="text-right num">
-          {total.attainment}
-          {total.attainmentNote ? (
-            <InfoTip label={`Differs from source: ${total.label} attainment`}>
-              {total.attainmentNote}
-            </InfoTip>
-          ) : null}
+          <AttainmentSlot
+            figure={total.attainment}
+            note={
+              total.attainmentNote ? (
+                <InfoTip label={`Differs from source: ${total.label} attainment`} tone="warn">
+                  {`Differs from source: ${total.attainmentNote}`}
+                </InfoTip>
+              ) : null
+            }
+          />
         </TableCell>
         <TableCell className={cn("text-right num", signColour(total.growthDirection))}>
           {total.growth}
@@ -252,6 +256,16 @@ function TotalRow({
         <TableCell colSpan={trailing} />
       </TableRow>
     </TableFooter>
+  );
+}
+
+/** The figure plus a fixed 16 px trailing slot, so a row with a note and a row without keep their decimals aligned. */
+function AttainmentSlot({ figure, note }: { figure: string; note?: ReactNode }) {
+  return (
+    <span className="inline-flex items-center justify-end gap-0.5">
+      {figure}
+      <span className="inline-flex size-4 items-center justify-center [&>*]:shrink-0">{note}</span>
+    </span>
   );
 }
 
@@ -302,7 +316,9 @@ function ProductRows({
             <TableCell className="text-right num">{r.revenue}</TableCell>
             <TableCell className="text-right num">{r.forecast}</TableCell>
             <TableCell className="text-right num">{r.priorYear}</TableCell>
-            <TableCell className="text-right num">{r.attainment}</TableCell>
+            <TableCell className="text-right num">
+              <AttainmentSlot figure={r.attainment} />
+            </TableCell>
             <TableCell className={cn("text-right num", signColour(r.growthDirection))}>
               {r.growth}
             </TableCell>

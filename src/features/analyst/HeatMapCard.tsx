@@ -6,6 +6,7 @@ import { HeatMap, HeatMapTable } from "@/components/charts/HeatMap";
 import { Legend } from "@/components/charts/Legend";
 import { ATTAINMENT_LEGEND } from "@/components/charts/scales";
 import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
+import { ICON_STROKE, TriangleAlert } from "@/components/icons";
 import { toPeriod } from "@/domain";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext, cellQuestion } from "@/features/assistant/questions";
@@ -45,6 +46,7 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
                 periods={vm.periods}
                 selected={vm.selected}
                 label={vm.title}
+                differsNote={vm.differsNote}
                 onCell={(market, period) => setContext({ market, period: toPeriod(period) })}
                 onAsk={({ market, marketName, period, momPct }) =>
                   prefill(
@@ -71,6 +73,16 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
             }))}
           />
         )}
+        {vm.differsNote ? (
+          <p className="flex items-center gap-1.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
+            <TriangleAlert
+              aria-hidden
+              className="size-3 shrink-0 text-warn-mark"
+              strokeWidth={ICON_STROKE}
+            />
+            <span>beside a month: differs from source</span>
+          </p>
+        ) : null}
       </div>
     </SheetSection>
   );

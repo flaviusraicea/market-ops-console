@@ -60,13 +60,6 @@ export const HeatCellView = memo(function HeatCellView({
       onFocus={(e) => h.focus(e, ri, ci)}
       onBlur={h.blur}
     >
-      {cell.differs ? (
-        // Decorative: the cell's name and its tooltip carry the note. A bottom-left tick, so it never meets the anomaly mark.
-        <span
-          aria-hidden
-          className="pointer-events-none absolute bottom-0.5 left-0.5 size-1.5 rounded-pill border border-ink bg-transparent"
-        />
-      ) : null}
       {cell.anomaly ? (
         // The mark is decorative: the cell's name already says anomaly. A surface halo keeps it legible on any fill.
         <TriangleAlert

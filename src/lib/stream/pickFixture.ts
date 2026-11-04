@@ -104,8 +104,14 @@ export function pickFixture(
   // "Why is Spain off track?" asks for a cause. Only a curated answer has one; otherwise the data cannot say.
   const broader =
     /\bmarkets\b|portfolio/.test(q) || ds.regions.some((r) => q.includes(r.name.toLowerCase()));
+  // The market in view answers only when the question names no market; two named markets are no single target.
+  const named = ds.markets.filter((m) => q.includes(m.name.toLowerCase()));
   const whyTarget =
-    namedMarket ?? (broader ? undefined : ds.markets.find((m) => m.id === view?.entity.marketId));
+    named.length === 1
+      ? named[0]
+      : named.length === 0 && !broader
+        ? ds.markets.find((m) => m.id === view?.entity.marketId)
+        : undefined;
   const whyStatus = /\bwhy\b/.test(q) && STATUS_WORDS.test(q);
   if (whyStatus && whyTarget && !hits.some((f) => f.marketId === whyTarget.id))
     return fillStatusWhyAbstain(ds, whyTarget);
@@ -180,11 +186,11 @@ function fillMarketStatus(ds: Dataset, market: Market): Fixture {
 
 /** The abstain card for "why is X <status>" when nothing in the data explains it: it says what the data does hold. */
 function fillStatusWhyAbstain(ds: Dataset, market: Market): Fixture {
-  const { status, forecastAttainmentPct } = market.kpis;
+  const { status, forecastAttainmentPct, growthPct } = market.kpis;
   const text =
-    `I can't say why ${market.name} is ${STATUS_LABEL[status].toLowerCase()}. The data records its status and ` +
-    `${formatPct(forecastAttainmentPct, { sign: false })} attainment as of ${formatPeriodAbbr(ds.meta.latestPeriod)}, ` +
-    `but not the drivers behind them. ${STATUS_RULE_TEXT}`;
+    `I can't say why ${market.name} is ${STATUS_LABEL[status].toLowerCase()}. The data records its status, ` +
+    `${formatPct(forecastAttainmentPct, { sign: false })} attainment and ${formatPct(growthPct, { sign: true })} growth as of ` +
+    `${formatPeriodAbbr(ds.meta.latestPeriod)}, but not the drivers behind them. ${STATUS_RULE_TEXT}`;
   return {
     id: "status-why-abstain",
     kind: "abstain",

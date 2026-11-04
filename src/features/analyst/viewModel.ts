@@ -31,6 +31,7 @@ import {
   formatMonthName,
   formatMonthShort,
   formatMoneyCompact,
+  formatPairNote,
   formatPct,
   formatPeriod,
   formatPeriodAbbr,
@@ -243,6 +244,8 @@ export type HeatMapVM = {
   selected: { market: string; period: Period } | undefined;
   /** The line under the chart: which cell is outlined and how to ask about one. */
   hint: string;
+  /** Set when any latest-month cell differs from the reported KPI: the tooltip beside the latest column header. */
+  differsNote?: string;
 };
 
 export type AnalystVM = {
@@ -292,18 +295,12 @@ function sparkFor(ds: Dataset, entity: Entity, anomalyPeriod?: string): SparkVM 
   };
 }
 
-/** `Series sum 93.8% · reported KPI 93.0%`, the note beside a sum that differs from the reported figure. */
-function pairNote(pair: { series: number; reported: number }): string {
-  const pct = (n: number) => formatPct(n, { sign: false });
-  return `Series sum ${pct(pair.series)} · reported KPI ${pct(pair.reported)}`;
-}
-
 function totalFor(ds: Dataset, entity: Entity, period: Period, label: string): GridTotalVM {
   const t = totals(factsFor(ds, { entity, periods: [period] }));
   const growth = growthPct(t);
   const pair = entity.kind === "market" ? attainmentPair(ds, entity.marketId, period) : undefined;
   return {
-    ...(pair ? { attainmentNote: pairNote(pair) } : {}),
+    ...(pair ? { attainmentNote: formatPairNote(pair) } : {}),
     label,
     revenue: formatMoneyCompact(t.actual),
     forecast: formatMoneyCompact(t.forecast),
@@ -608,7 +605,7 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
       const pair = attainmentPair(ds, m.id, period);
       return {
         period,
-        ...(pair ? { differs: pairNote(pair) } : {}),
+        ...(pair ? { differs: formatPairNote(pair) } : {}),
         momPct,
         value,
         display: formatPct(value, { sign: false }),
@@ -630,6 +627,12 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
     periods,
     rows,
     selected,
+    ...(rows.some((r) => r.cells.some((c) => c.differs))
+      ? {
+          differsNote:
+            "Latest month: series sums differ from reported KPIs · see the Markets grid footer",
+        }
+      : {}),
     hint: `${picked && selected ? `${formatPeriodAbbr(selected.period)} is the outlined cell in the ${picked.name} row. ` : ""}Shift+Enter on a focused cell asks about it.`,
   };
 }

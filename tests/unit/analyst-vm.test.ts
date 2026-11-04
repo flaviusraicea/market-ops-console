@@ -319,4 +319,10 @@ describe("reported vs summed attainment (Differs from source)", () => {
     expect(germany.cells.slice(0, -1).every((c) => c.differs === undefined)).toBe(true);
     expect(rows.every((r) => r.cells.at(-1)?.differs !== undefined)).toBe(true);
   });
+
+  it("explains the latest column once, in the header, and not for a past month", () => {
+    expect(analystVM(ds, ctx).heatMap.differsNote).toBe(
+      "Latest month: series sums differ from reported KPIs · see the Markets grid footer",
+    );
+  });
 });
