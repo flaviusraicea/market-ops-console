@@ -56,7 +56,7 @@ function rowProps(selected: boolean, onSelect: () => void, landed = false) {
     "data-landing-target": "",
     "data-landed": landed ? "" : undefined,
     tabIndex: 0,
-    "aria-current": selected ? ("true" as const) : undefined,
+    "aria-selected": selected ? ("true" as const) : undefined,
     "data-state": selected ? "selected" : undefined,
     className: "group cursor-pointer",
     onClick: (e: React.MouseEvent) => {

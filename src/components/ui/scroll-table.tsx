@@ -12,7 +12,7 @@ const SCROLL_CLASS =
 
 /** A pinned body cell (`data-pin`) keeps its row's tint, so scrolled columns slide under it. */
 export const PIN_CELL_CLASS =
-  "bg-surface [tr:hover_&]:bg-surface-2 [tr[data-state=selected]_&]:bg-accent-soft";
+  "bg-surface [tr:hover_&]:bg-surface-2 [tr[data-state=selected]_&]:bg-surface-2 [tr[data-state=selected]_&]:font-semibold";
 /** A pinned header cell in a tinted header row: the tint, and the same tint for its fade. */
 export const PIN_HEAD_TINTED_CLASS = "bg-surface-2 [--pin-bg:var(--surface-2)]";
 

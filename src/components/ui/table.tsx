@@ -9,7 +9,7 @@ export const TABLE_CLASS = "w-full caption-bottom text-[length:var(--text-body)]
 
 /** Where the table is wider than its card, the first column stays in view while the rest scrolls. */
 export const STICKY_FIRST_CLASS =
-  "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-accent-soft [&_thead_tr>:first-child]:bg-surface-2";
+  "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:font-semibold [&_thead_tr>:first-child]:bg-surface-2";
 
 /**
  * `stickyFirst` pins the first column (for a table that scrolls sideways on a phone). `scrollLabel` makes the
@@ -75,7 +75,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "h-[var(--row-h)] border-b border-border transition-colors duration-[var(--dur-fast)] hover:bg-surface-2 data-[state=selected]:selected-row",
+        "h-[var(--row-h)] border-b border-border transition-colors duration-[var(--dur-fast)] hover:bg-surface-2 data-[state=selected]:bg-surface-2",
         className,
       )}
       {...props}
