@@ -45,8 +45,8 @@
   --ai-bg: #eeeaf9;
   --ai-border: #8f7fd0;
   --ai-label: #43318f;
-  --series-actual: #1c1a17;
-  --series-forecast: #2f5f9e;
+  --series-actual: var(--accent);
+  --series-forecast: var(--ink-muted);
   --series-prior: #7d786e;
   --cat-1: #2f5f9e;
   --cat-2: #c2622e;
@@ -307,8 +307,8 @@ html[data-density="analyst"] {
   --ai-bg: #1f2133;
   --ai-border: #7a68e0;
   --ai-label: #c3b6f5;
-  --series-actual: #e6eaf0;
-  --series-forecast: #6291d4;
+  --series-actual: var(--accent);
+  --series-forecast: var(--ink-muted);
   --series-prior: #8f98a6;
   --cat-1: #6291d4;
   --cat-2: #d4753f;
@@ -386,8 +386,8 @@ html[data-density="analyst"] {
     --ai-bg: #1f2133;
     --ai-border: #7a68e0;
     --ai-label: #c3b6f5;
-    --series-actual: #e6eaf0;
-    --series-forecast: #6291d4;
+    --series-actual: var(--accent);
+    --series-forecast: var(--ink-muted);
     --series-prior: #8f98a6;
     --cat-1: #6291d4;
     --cat-2: #d4753f;

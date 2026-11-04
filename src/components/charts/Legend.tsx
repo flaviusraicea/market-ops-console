@@ -30,7 +30,7 @@ function Swatch(item: Extract<LegendItem, { color: string }>) {
       />
     );
   }
-  const dash = swatch === "line-dashed" ? "6 4" : swatch === "line-dotted" ? "2 3" : undefined;
+  const dash = swatch === "line-dashed" ? "4 4" : swatch === "line-dotted" ? "2 3" : undefined;
   return (
     <svg aria-hidden width="16" height="2" viewBox="0 0 16 2" className="shrink-0">
       <line
