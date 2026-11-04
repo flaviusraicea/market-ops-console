@@ -2,6 +2,7 @@ import { analystVM } from "@/features/analyst/viewModel";
 import {
   attentionVM,
   overviewVM,
+  whatChangedVM,
   regionBarsVM,
   stripVM,
   verdictVM,
@@ -63,6 +64,7 @@ export const engine = {
   strip: memoLast(stripVM),
   attention: memoLast(attentionPinned),
   regionBars: memoLast(regionBarsVM),
+  whatChanged: memoLast((ds, ctx) => whatChangedVM(ds, ctx).text),
 };
 
 export type LiveEngine = typeof engine;

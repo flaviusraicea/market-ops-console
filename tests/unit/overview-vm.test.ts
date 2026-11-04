@@ -366,6 +366,24 @@ describe("region bars", () => {
   });
 });
 
+describe("attainment tile delta note", () => {
+  it("marks the series-based variance beside the reported headline for a market's latest month", () => {
+    const tile = overviewVM(ds, { ...base, region: "eu", market: "it" }).tiles[1];
+    expect(tile?.headline).toBe("93.0%");
+    expect(tile?.deltaNote).toBe(
+      "Differs from source: variance from series sum (93.8%) · reported KPI 93.0%",
+    );
+  });
+
+  it("says nothing for a past month or a portfolio, where the headline is the sum", () => {
+    expect(overviewVM(ds, base).tiles[1]?.deltaNote).toBeUndefined();
+    expect(
+      overviewVM(ds, { ...base, region: "eu", market: "it", period: "2026-04" as Period }).tiles[1]
+        ?.deltaNote,
+    ).toBeUndefined();
+  });
+});
+
 describe("what changed", () => {
   it("picks the market furthest from plan", () => {
     expect(whatChangedVM(ds, base).text).toBe(
@@ -374,6 +392,61 @@ describe("what changed", () => {
     expect(whatChangedVM(ds, { ...base, region: "latam" }).text).toBe(
       "Brazil is furthest from plan: 96.0% of forecast and +2.0% on last year.",
     );
+  });
+
+  it("names the lowest market, not the largest gap in either direction", () => {
+    // China sits at 106.0% and APAC is entirely above plan, so no market is "furthest from plan".
+    expect(whatChangedVM(ds, { ...base, region: "apac" }).text).toMatch(
+      /^All markets are at or above plan; closest is \w[\w ]* at \d+\.\d%\.$/,
+    );
+  });
+
+  it("speaks about the one market in a market view, not about a set of markets", () => {
+    expect(whatChangedVM(ds, { ...base, region: "eu", market: "es" }).text).toBe(
+      "Spain is at or above plan at 104.5%.",
+    );
+    expect(whatChangedVM(ds, { ...base, region: "eu", market: "it" }).text).toMatch(
+      /^Italy is below plan: 93\.0% of forecast and \+0\.3% on last year\.?/,
+    );
+  });
+
+  it("cites a dip only when it is not after the selected month", () => {
+    const early = whatChangedVM(ds, {
+      ...base,
+      region: "eu",
+      market: "de",
+      period: "2025-04" as Period,
+    });
+    expect(early.text).not.toMatch(/drop in/);
+    const at = whatChangedVM(ds, {
+      ...base,
+      region: "eu",
+      market: "de",
+      period: "2026-03" as Period,
+    });
+    expect(at.text).toMatch(/drop in March/);
+  });
+
+  it("recomputes for the product when a market and a product are selected", () => {
+    const text = whatChangedVM(ds, {
+      ...base,
+      region: "eu",
+      market: "de",
+      product: "veltrix",
+    }).text;
+    expect(text).toMatch(/^Veltrix in Germany is /);
+    expect(text).not.toMatch(/drop in/);
+  });
+
+  it("credits an above-plan figure to the product in the market, not to the market", () => {
+    const text = whatChangedVM(ds, {
+      ...base,
+      region: "eu",
+      market: "es",
+      product: "veltrix",
+    }).text;
+    expect(text).toMatch(/^Veltrix in Spain is at or above plan at \d+\.\d%\.$/);
+    expect(text).not.toMatch(/104\.5%/);
   });
 
   it("labels the panel context", () => {

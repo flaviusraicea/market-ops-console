@@ -9,6 +9,7 @@ import {
   effectiveBasis,
   entityName,
   entityOf,
+  attainmentPair,
   kpiFor,
   marketsIn,
   momChangePct,
@@ -41,6 +42,8 @@ export type KpiTileVM = {
   headline: string;
   delta: { direction: "up" | "down" | "flat"; value: string; comparison: string };
   provenance: string;
+  /** Set when the delta rests on the series sum while the headline is the reported KPI. */
+  deltaNote?: string;
   /** What the figure is and how it is computed: the first lines of the info popover. */
   definition: string;
   /** Accessible name of the info button, in sentence case, for example "About Germany revenue". */
@@ -148,6 +151,11 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
   const latest = atLatest(ds, ctx);
   const provenance = k.provenance === "source" ? sourceLabel(ds, latest) : derivedLabel(ds, latest);
   const name = entityName(ds, entity).toUpperCase();
+  // The headline is the reported KPI; the money delta is the series' own variance, which implies the series sum.
+  const pair =
+    entity.kind === "market" && basis === "month"
+      ? attainmentPair(ds, entity.marketId, ctx.period)
+      : undefined;
   const prior = formatPeriod(sameMonthLastYear(ctx.period));
   const year = Number(ctx.period.slice(0, 4));
 
@@ -175,6 +183,11 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
       comparison: "vs forecast",
     },
     provenance,
+    ...(pair
+      ? {
+          deltaNote: `Differs from source: variance from series sum (${formatPct(pair.series, { sign: false })}) · reported KPI ${formatPct(pair.reported, { sign: false })}`,
+        }
+      : {}),
     definition: "Actual revenue as a share of forecast. Attainment = actual ÷ forecast.",
     infoLabel: "About forecast attainment",
   };
@@ -746,23 +759,46 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
   };
 }
 
-/** The market in scope furthest from plan, as one sentence for the panel's empty state. */
+/**
+ * The panel's "What changed" sentence (Derived), a pure function of the data. Several markets in scope: the one
+ * furthest below plan, or, when none is, the closest to falling below. One market (a market view, with or
+ * without a product): that market against plan. A dip is only cited when it is not after the selected month.
+ */
 export function whatChangedVM(ds: Dataset, ctx: Context): { text: string } {
-  const candidates = marketsIn(ds, entityOf(ctx)).map((market) => ({
+  const productName = ctx.product ? ds.products.find((p) => p.id === ctx.product)?.name : undefined;
+  const entity = entityOf(ctx);
+  const candidates = marketsIn(ds, entity).map((market) => ({
     market,
-    k: kpiFor(ds, { kind: "market", marketId: market.id }, ctx.period, "month"),
+    k: kpiFor(
+      ds,
+      ctx.product
+        ? { kind: "product", marketId: market.id, productId: ctx.product }
+        : { kind: "market", marketId: market.id },
+      ctx.period,
+      "month",
+    ),
   }));
-  const furthest = candidates.reduce((a, b) =>
-    Math.abs(b.k.attainmentPct - 100) > Math.abs(a.k.attainmentPct - 100) ? b : a,
-  );
-  const { market, k } = furthest;
-  let text = `${market.name} is furthest from plan: ${formatPct(k.attainmentPct, { sign: false })} of forecast and ${formatPct(k.growthPct, { sign: true })} on last year`;
-  const dip = market.kpis.anomalies.find((a) => a.type === "dip");
-  const mom = dip
-    ? momChangePct(ds, { kind: "market", marketId: market.id }, dip.period)
-    : undefined;
+  const lowest = candidates.reduce((a, b) => (b.k.attainmentPct < a.k.attainmentPct ? b : a));
+  const pct = (n: number) => formatPct(n, { sign: false });
+  const { market, k } = lowest;
+  // A product is only ever selected inside a market, so the subject names both.
+  const subject = productName ? `${productName} in ${market.name}` : market.name;
+  const alone = candidates.length === 1;
+  if (k.attainmentPct >= 100) {
+    return {
+      text: alone
+        ? `${subject} is at or above plan at ${pct(k.attainmentPct)}.`
+        : `All markets are at or above plan; closest is ${market.name} at ${pct(k.attainmentPct)}.`,
+    };
+  }
+  let text = `${subject} is ${alone ? "below plan" : "furthest from plan"}: ${pct(k.attainmentPct)} of forecast and ${formatPct(k.growthPct, { sign: true })} on last year`;
+  const dip = ctx.product ? undefined : market.kpis.anomalies.find((a) => a.type === "dip");
+  const mom =
+    dip && dip.period <= ctx.period
+      ? momChangePct(ds, { kind: "market", marketId: market.id }, dip.period)
+      : undefined;
   if (dip && mom !== undefined) {
-    text += `, after a ${formatPct(Math.abs(mom), { sign: false })} drop in ${formatMonthName(dip.period)}`;
+    text += `, after a ${pct(Math.abs(mom))} drop in ${formatMonthName(dip.period)}`;
   }
   return { text: `${text}.` };
 }

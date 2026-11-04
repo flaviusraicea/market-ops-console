@@ -59,6 +59,11 @@ export function formatPct(n: number, { sign }: { sign: boolean }): string {
   return `${formatOneDecimal(n, { sign })}%`;
 }
 
+/** `Series sum 93.8% · reported KPI 93.0%`: the two attainment figures data.json gives for one market and month. */
+export function formatPairNote(pair: { series: number; reported: number }): string {
+  return `Series sum ${formatPct(pair.series, { sign: false })} · reported KPI ${formatPct(pair.reported, { sign: false })}`;
+}
+
 export function formatPeriod(p: string): string {
   const { y, m } = parts(p);
   return `${monthLong.format(new Date(Date.UTC(y, m - 1, 1)))} ${y}`;

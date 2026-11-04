@@ -7,3 +7,4 @@ export const tiles = (e: Engine, ds: Ds, cx: Cx) => e.overview(ds, cx).tiles;
 export const tilesProvenance = (e: Engine, ds: Ds, cx: Cx) => e.overview(ds, cx).tilesProvenance;
 export const map = (e: Engine, ds: Ds, cx: Cx) => e.overview(ds, cx).map;
 export const regionBars = (e: Engine, ds: Ds, cx: Cx) => e.regionBars(ds, cx);
+export const whatChanged = (e: Engine, ds: Ds, cx: Cx) => e.whatChanged(ds, cx);

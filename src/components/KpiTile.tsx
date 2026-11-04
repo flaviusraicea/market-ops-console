@@ -15,6 +15,8 @@ export type KpiTileProps = {
   shortLabel?: string;
   headline: string;
   delta: { direction: Direction; value: string; comparison: string };
+  /** Set when the delta rests on a different figure than the headline: a warn mark with this tooltip beside it. */
+  deltaNote?: string;
   /** For example "Source · data.json" or "Derived · sum of series". */
   provenance: string;
   /** What the figure is and how it is computed; the info popover shows it above the provenance. */
@@ -45,6 +47,7 @@ export function KpiTile({
   headline,
   delta,
   provenance,
+  deltaNote,
   definition,
   infoLabel = "About this figure",
   trend,
@@ -129,6 +132,11 @@ export function KpiTile({
             {" "}
             <span className="whitespace-nowrap text-ink-muted">{delta.comparison}</span>
           </>
+        ) : null}
+        {deltaNote ? (
+          <InfoTip label="Differs from source: forecast variance" tone="warn">
+            {deltaNote}
+          </InfoTip>
         ) : null}
       </p>
       {variant === "tile" ? (

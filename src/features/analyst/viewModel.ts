@@ -4,6 +4,7 @@ import {
   sourceLabel,
   STATUS_RULE_TEXT,
   askWhyPrompt,
+  attainmentPair,
   attainmentPct,
   effectiveBasis,
   entityName,
@@ -30,6 +31,7 @@ import {
   formatMonthName,
   formatMonthShort,
   formatMoneyCompact,
+  formatPairNote,
   formatPct,
   formatPeriod,
   formatPeriodAbbr,
@@ -127,6 +129,8 @@ export type GridTotalVM = {
   growth: string;
   growthDirection: "up" | "down" | "flat";
   units: string;
+  /** Set when the footer's series sum differs from the reported KPI: `Series sum 93.8% · reported KPI 93.0%`. */
+  attainmentNote?: string;
 };
 
 type GridBase = {
@@ -224,6 +228,10 @@ export type HeatCellVM = {
   forecast: number;
   /** The source's note when this month is a flagged anomaly for the market. */
   anomaly?: string;
+  /** Set when this cell's series sum differs from the reported KPI: `Series sum 92.2% · reported KPI 92.0%`. */
+  differs?: string;
+  /** The reported KPI alone (`92.0%`), for the cell's short accessible name. */
+  reported?: string;
 };
 export type HeatRowVM = { id: string; name: string; cells: HeatCellVM[] };
 export type HeatMapVM = {
@@ -238,6 +246,8 @@ export type HeatMapVM = {
   selected: { market: string; period: Period } | undefined;
   /** The line under the chart: which cell is outlined and how to ask about one. */
   hint: string;
+  /** Set when any latest-month cell differs from the reported KPI: the tooltip beside the latest column header. */
+  differsNote?: string;
 };
 
 export type AnalystVM = {
@@ -290,7 +300,9 @@ function sparkFor(ds: Dataset, entity: Entity, anomalyPeriod?: string): SparkVM 
 function totalFor(ds: Dataset, entity: Entity, period: Period, label: string): GridTotalVM {
   const t = totals(factsFor(ds, { entity, periods: [period] }));
   const growth = growthPct(t);
+  const pair = entity.kind === "market" ? attainmentPair(ds, entity.marketId, period) : undefined;
   return {
+    ...(pair ? { attainmentNote: formatPairNote(pair) } : {}),
     label,
     revenue: formatMoneyCompact(t.actual),
     forecast: formatMoneyCompact(t.forecast),
@@ -594,8 +606,12 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
       const momPct = before ? changePct(t.actual, before) : undefined;
       before = t.actual;
       const anomaly = m.kpis.anomalies.find((a) => a.period === period);
+      const pair = attainmentPair(ds, m.id, period);
       return {
         period,
+        ...(pair
+          ? { differs: formatPairNote(pair), reported: formatPct(pair.reported, { sign: false }) }
+          : {}),
         momPct,
         value,
         display: formatPct(value, { sign: false }),
@@ -617,6 +633,12 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
     periods,
     rows,
     selected,
+    ...(rows.some((r) => r.cells.some((c) => c.differs))
+      ? {
+          differsNote:
+            "Latest month: series sums differ from reported KPIs · see the Markets grid footer",
+        }
+      : {}),
     hint: `${picked && selected ? `${formatPeriodAbbr(selected.period)} is the outlined cell in the ${picked.name} row. ` : ""}Shift+Enter on a focused cell asks about it.`,
   };
 }

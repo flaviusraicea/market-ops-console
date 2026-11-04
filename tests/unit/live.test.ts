@@ -43,7 +43,7 @@ describe("live overlay", () => {
     expect(next.regions).toEqual(ds.regions);
   });
 
-  it("keeps every market within 8 % of its saved revenue over 100 ticks", () => {
+  it("keeps every market within 0.3 % of its saved revenue over 100 ticks", () => {
     for (const m of ds.markets) {
       for (let tick = 0; tick <= 100; tick++) {
         const factor = driftFactor(m.id, tick);
@@ -59,29 +59,50 @@ describe("live overlay", () => {
     }
   });
 
-  it("moves a market by at most 2 % in one tick", () => {
-    for (const m of ds.markets) {
-      for (let tick = 1; tick <= 50; tick++) {
-        const step = driftFactor(m.id, tick) / driftFactor(m.id, tick - 1);
-        expect(Math.abs(step - 1)).toBeLessThanOrEqual(0.02 + 1e-9);
+  it("flips no market status within a minute of live ticks", () => {
+    for (let tick = 1; tick <= 12; tick++) {
+      const next = applyLiveOverlay(ds, tick);
+      for (const m of ds.markets) {
+        expect(next.markets.find((x) => x.id === m.id)?.kpis.status).toBe(m.kpis.status);
       }
     }
   });
 
-  it("recomputes status with the published rule: Spain leaves off track once its growth is not negative", () => {
-    // Spain is in the fixture, so a missing market is a broken fixture and should fail loudly.
-    const spain = (d: typeof ds) => d.markets.find((m) => m.id === "es")!;
-    expect(spain(ds).kpis.status).toBe("off_track");
-    let found: ReturnType<typeof applyLiveOverlay> | undefined;
-    for (let tick = 1; tick <= 400 && !found; tick++) {
-      const candidate = applyLiveOverlay(ds, tick);
-      if (spain(candidate).kpis.growthPct >= 0) found = candidate;
+  it("moves a market by at most 0.1 % in one tick", () => {
+    for (const m of ds.markets) {
+      for (let tick = 1; tick <= 50; tick++) {
+        const step = driftFactor(m.id, tick) / driftFactor(m.id, tick - 1);
+        expect(Math.abs(step - 1)).toBeLessThanOrEqual(0.001 + 1e-9);
+      }
     }
-    expect(found, "Spain's growth reaches 0 within 400 ticks").toBeDefined();
-    // Spain sits above 92.5 % attainment, so with growth not negative the rule moves it to on track (above plan) or at risk.
-    const k = spain(found!).kpis;
-    expect(k.forecastAttainmentPct).toBeGreaterThan(92.5);
-    expect(k.status).toBe(k.forecastAttainmentPct < 100 ? "at_risk" : "on_track");
+  });
+
+  it("follows the published rule once the drift crosses a threshold", () => {
+    // A synthetic edge case: a market 0.1 points above plan. A small downward drift takes it below 100 %, so it becomes at risk.
+    const edge = {
+      ...ds,
+      markets: ds.markets.map((m) =>
+        m.id === "mx"
+          ? {
+              ...m,
+              kpis: {
+                ...m.kpis,
+                forecastAttainmentPct: 100.1,
+                growthPct: 4,
+                status: "on_track" as const,
+              },
+            }
+          : m,
+      ),
+    };
+    const mx = (d: typeof ds) => d.markets.find((m) => m.id === "mx")!;
+    let crossed: ReturnType<typeof applyLiveOverlay> | undefined;
+    for (let tick = 1; tick <= 400 && !crossed; tick++) {
+      const candidate = applyLiveOverlay(edge, tick);
+      if (mx(candidate).kpis.forecastAttainmentPct < 100) crossed = candidate;
+    }
+    expect(crossed, "Mexico drifts under plan within 400 ticks").toBeDefined();
+    expect(mx(crossed!).kpis.status).toBe("at_risk");
   });
 
   it("scales the given figures instead of re-deriving them, so there is no jump at the first tick", () => {
@@ -93,9 +114,9 @@ describe("live overlay", () => {
       if (!now) continue;
       const factor = driftFactor(m.id, 1);
       expect(now.revenue).toBe(Math.round(was.revenue * factor));
-      // One tick moves a market by at most 2 %, so given figures stay within a hair of that.
+      // One tick moves a market by at most 0.1 %, so given figures stay within a hair of that.
       expect(Math.abs(now.forecastAttainmentPct - was.forecastAttainmentPct)).toBeLessThanOrEqual(
-        was.forecastAttainmentPct * 0.02 + 0.1,
+        was.forecastAttainmentPct * 0.001 + 0.1,
       );
     }
   });
