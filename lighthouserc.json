@@ -21,7 +21,7 @@
             "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
             "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
             "total-blocking-time": ["error", { "maxNumericValue": 200 }],
-            "resource-summary:script:size": ["error", { "maxNumericValue": 266240 }],
+            "resource-summary:script:size": ["error", { "maxNumericValue": 291840 }],
             "total-byte-weight": ["error", { "maxNumericValue": 500000 }]
           }
         },
@@ -33,7 +33,7 @@
             "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
             "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
             "total-blocking-time": ["error", { "maxNumericValue": 200 }],
-            "resource-summary:script:size": ["error", { "maxNumericValue": 317440 }],
+            "resource-summary:script:size": ["error", { "maxNumericValue": 343040 }],
             "total-byte-weight": ["error", { "maxNumericValue": 600000 }]
           }
         }

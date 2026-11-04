@@ -15,16 +15,19 @@ import type { ResolvedTarget } from "@/domain";
 import { useFollowed, useLatestAnswer } from "@/features/assistant/AnswerStore";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { cssMs, onScrollIntent, prefersReducedMotion } from "@/lib/motion";
+import { landingWidget, type LandingWidget } from "./landingWidget";
 
 export type Landing = {
   /** The ring and tint are showing (they fade in, hold, fade out; see globals.css). */
   active: boolean;
   target: ResolvedTarget | undefined;
+  /** The one widget this citation lands on: only it rings and registers as the scroll target. */
+  widget: LandingWidget | undefined;
   /** The widget the page scrolls to for this landing. Set from a ref callback or an effect. */
   register: (el: HTMLElement | null) => void;
 };
 
-const NONE: Landing = { active: false, target: undefined, register: () => {} };
+const NONE: Landing = { active: false, target: undefined, widget: undefined, register: () => {} };
 const LandingContext = createContext<Landing>(NONE);
 
 /** Layout has to be this still before the page scrolls: lazy widgets swap in for their skeletons. */
@@ -54,6 +57,7 @@ export function LandingProvider({ children }: { children: ReactNode }) {
       ? latest.citations[ctx.cite]?.resolution
       : undefined;
   const target = resolution?.ok ? resolution.target : undefined;
+  const widget = target ? landingWidget(target) : undefined;
   const key = target && followed ? `${followed.answerId}:${followed.n}:${ctx.cite}` : undefined;
 
   const [element, register] = useState<HTMLElement | null>(null);
@@ -97,10 +101,19 @@ export function LandingProvider({ children }: { children: ReactNode }) {
         frame = requestAnimationFrame(() => {
           if (phase !== "scroll") return;
           const smooth = !prefersReducedMotion();
-          element.scrollIntoView({ block: "nearest", behavior: smooth ? "smooth" : "auto" });
-          if (!smooth) return show();
-          window.addEventListener("scrollend", show, { once: true, signal });
-          later(show, SCROLL_END_FALLBACK_MS);
+          void import("./landingScroll").then(
+            ({ scrollToCentre }) => {
+              if (phase !== "scroll" || signal.aborted) return;
+              scrollToCentre(element, smooth);
+              if (!smooth) return show();
+              window.addEventListener("scrollend", show, { once: true, signal });
+              later(show, SCROLL_END_FALLBACK_MS);
+            },
+            // The chunk failed to load (offline): ring the widget where it is rather than not at all.
+            () => {
+              if (phase === "scroll" && !signal.aborted) show();
+            },
+          );
         });
       });
     };
@@ -128,8 +141,8 @@ export function LandingProvider({ children }: { children: ReactNode }) {
   const active = key !== undefined && shownKey === key;
   const registerElement = useCallback((el: HTMLElement | null) => register(el), []);
   const value = useMemo(
-    () => ({ active, target, register: registerElement }),
-    [active, target, registerElement],
+    () => ({ active, target, widget, register: registerElement }),
+    [active, target, widget, registerElement],
   );
   return <LandingContext.Provider value={value}>{children}</LandingContext.Provider>;
 }
@@ -138,11 +151,23 @@ export function useLanding(): Landing {
   return useContext(LandingContext);
 }
 
-/** Registers the widget a landing scrolls to. */
-export function useLandingTarget(ref: { current: HTMLElement | null }) {
-  const { register } = useLanding();
-  useEffect(() => {
-    register(ref.current);
-    return () => register(null);
-  }, [register, ref]);
+/**
+ * A callback ref for a widget that can be a landing's target. It registers the element only while this widget is
+ * the one the citation names, so the page never scrolls to (or rings) a second widget.
+ */
+export function useLandingRef(widget: LandingWidget) {
+  const { widget: landed, register } = useLanding();
+  const match = landed === widget;
+  return useCallback(
+    (el: HTMLElement | null) => {
+      if (match) register(el);
+    },
+    [match, register],
+  );
+}
+
+/** True while the ring shows on `widget`: the citation names it and the landing is active. */
+export function useIsLanded(widget: LandingWidget) {
+  const { active, widget: landed } = useLanding();
+  return active && landed === widget;
 }

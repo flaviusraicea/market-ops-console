@@ -48,6 +48,7 @@ Each row gives the problem, the choice, and the alternative turned down with the
 | A non-trivial form whose rules hold on the server too ([0010](docs/decisions/0010-forms-react-hook-form-zod.md))                                                 | react-hook-form with one zod schema shared by the form, the route handler and the mutation                                                                                                                                                                  | A native form with zod on submit, which needs hand wiring for inline errors per field                                                                                         |
 | A non-trivial assistant surface without a model                                                                                                                  | `/api/chat` streams scripted fixtures as Server-Sent Events: deterministic, offline and testable. A real LLM would plug in behind the same event contract                                                                                                   | Calling a hosted model, which needs a key, costs per request and makes tests and demos non-deterministic                                                                      |
 | Tests for logic, components, journeys and accessibility ([0006](docs/decisions/0006-storybook-component-tests.md), [0011](docs/decisions/0011-testing-stack.md)) | Vitest for domain logic, Storybook stories with play functions and axe in real Chromium for components, Playwright with axe against the production build for journeys                                                                                       | Jest with Testing Library in jsdom, which has no real layout, focus or CSS to test against                                                                                    |
+| Bundle size must not creep back after tuning                                                                                                                     | Budgets: 275 KB Executive / 325 KB Analyst gzip, hard fail; derived from Lighthouse ≥ 90 on throttled mobile plus 10% headroom                                                                                                                              | Warning-only, which is no gate; tracking the current size, which means churn                                                                                                  |
 
 ## Try it
 
@@ -86,6 +87,7 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 ## Roles (mock)
 
 - You are signed in automatically as **Executive** (Dana Whitfield). The avatar at the right of the header shows who you are and switches to **Analyst** (Sam Okafor) in one click; `Sign out` opens a mock SSO screen with the two personas. Both roles see every page and all of the data.
+- Auth is a mock SSO: sign-out clears the session and the next visit signs you in again as Executive.
 - The role changes three things: the view a URL without `mode` opens on (`/` is the Executive overview for an Executive and the Analyst deep-dive for an Analyst; a `mode` in a shared link always wins), whether alert rules can be edited, and the sign-in screen. Executives read the rules; the fields are disabled and `POST`/`DELETE /api/alerts` answer `403 read_only_role`, so the rule holds where the data is written, not only in the UI.
 - Nothing about it is real: no password, token or server session. The role is one cookie (`market-ops-role`, set by `src/proxy.ts` on a first visit and changed by `POST /api/session`).
 - Real SSO would add an OIDC provider, a server session and role claims in the token. Region scoping would come with it: a Regional lead would see only their region's markets, and the Context invariants already make that a one-line filter in `marketsIn`.
@@ -107,7 +109,7 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 
 ## Limits and with more time
 
-- JS budgets 250/300 KB gzip are enforced in CI; both pages sit within 2% of them, and the next headroom comes from server components for static card shells (with more time).
+- JS budgets 275/325 KB gzip are enforced in CI (warning at 90%). With more time: trim the bundle with visx tree-shaking and a d3-geo projection subset, and move static card shells to server components.
 - The assistant is scripted on purpose: `/api/chat` streams fixture answers over Server-Sent Events, with no LLM behind it. A real model would plug in behind the same `/api/chat` event contract.
 - Numbers, money and month names use one fixed locale, en-US, and USD, the data's currency, so output is the same in every test, screenshot and browser (`src/lib/format.ts`). A real product would take the locale from the user.
 - Following a citation from Executive to Analyst mounts the Analyst view in one long task: about 170 to 210 ms at 4× CPU slowdown and about 50 ms at 1×. With more time: split the static card shells into server components so less of that mount runs on the client.
@@ -117,7 +119,7 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 - With more time: stack the Analyst rows at docked widths of 1152 px and below. There the radar now draws near its minimum size (a 36 px spoke at 1024 px).
 - With more time: the Analyst toolbar's More menu. Below 1200 px the toolbar scrolls sideways as a fallback; a More menu would fold the lowest-priority controls instead.
 - With more time: the KPI tiles on a four-row layout (label, value, trend or segment bar, status line), so every tile has the same rows. Today only Revenue carries a sparkline.
-- With more time: the radar's "Compare · N markets" picker (approved, deferred): up to four markets, a legend that dims a series, and a `compare` URL parameter. Today the radar compares the markets in scope, in four colours.
+- With more time: compare up to four markets on the radar (spec written), through a "Compare · N markets" picker (approved, deferred) with a legend that dims a series, and a `compare` URL parameter. Today the radar compares the markets in scope, in four colours.
 - With more time: the radar should use a fixed portfolio-wide scale per axis with a reference ring, so shapes stay comparable whichever markets are compared. Today each axis is scaled between the lowest and highest compared value.
 - With more time: citation chips on grid rows and KPIs should scroll to the matching time-series row.
 - With more time: the assistant panel animation runs at about 30 fps on a 4× slower CPU during the 400 ms move (clean at 1×). Next step: freeze table column widths and contain the cards during the transition.

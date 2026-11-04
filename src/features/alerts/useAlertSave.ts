@@ -140,11 +140,7 @@ export function useAlertSave(api: AlertApi = alertApi, initial?: readonly AlertR
     onSettled: () => settle(),
   });
 
-  const status: SaveStatus = save.isPending
-    ? "saving"
-    : savedAt !== null && !failure
-      ? "saved"
-      : "idle";
+  const status: SaveStatus = save.isPending ? "saving" : savedAt !== null ? "saved" : "idle";
 
   return {
     rules: list.data ?? [],

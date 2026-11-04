@@ -20,9 +20,10 @@ import {
   LABEL_GAP,
   NO_DATA,
   RadarMarks,
+  SHORT_LABEL_BELOW,
   angleOf,
+  labelLines,
   pointAt,
-  splitLabel,
   type Geometry,
 } from "./RadarMarks";
 import { useChartKeyboard } from "./useChartKeyboard";
@@ -49,6 +50,8 @@ type RadarChartProps = {
 const HEIGHT = 340;
 /** Room kept around the ring for the axis labels, in px. */
 const LABEL_RESERVE = 56;
+/** The reserve when the labels are short names. */
+const SHORT_LABEL_RESERVE = 32;
 /** A label's width estimate per character at --text-label (12px Inter, medium); errs wide. */
 const CHAR_PX = 7;
 const EDGE_PX = 4;
@@ -58,12 +61,17 @@ const EDGE_PX = 4;
  * cross the chart's edge, down to a 24 px floor. A narrow card (the panel open) draws a smaller radar, not a clipped
  * one, until the floor is reached.
  */
-export function fitRadius(width: number, axes: readonly string[]): number {
-  let radius = Math.min(width, HEIGHT) / 2 - LABEL_RESERVE;
+export function fitRadius(
+  width: number,
+  axes: readonly string[],
+  short = width < SHORT_LABEL_BELOW,
+): number {
+  let radius = Math.min(width, HEIGHT) / 2 - (short ? SHORT_LABEL_RESERVE : LABEL_RESERVE);
   axes.forEach((label, a) => {
     const cos = Math.abs(Math.cos(angleOf(a, axes.length)));
     if (cos < 0.3) return; // top and bottom labels are centred on their spoke
-    const text = Math.max(...splitLabel(label).map((l) => l.length), NO_DATA.length) * CHAR_PX;
+    const text =
+      Math.max(...labelLines(label, short).map((l) => l.length), NO_DATA.length) * CHAR_PX;
     radius = Math.min(radius, (width / 2 - EDGE_PX - text) / cos - LABEL_GAP);
   });
   return Math.max(radius, 24);
@@ -80,9 +88,11 @@ const RadarSvg = memo(function RadarSvg({
   const dotRefs = useRef<Array<SVGCircleElement | null>>([]);
   const tip = useChartTooltip();
   const n = axes.length;
+  // The card's width, not the viewport's: the docked panel narrows the card at the same window size.
+  const short = width < SHORT_LABEL_BELOW;
   const geometry = useMemo<Geometry>(
-    () => ({ cx: width / 2, cy: HEIGHT / 2, radius: fitRadius(width, axes), n }),
-    [width, axes, n],
+    () => ({ cx: width / 2, cy: HEIGHT / 2, radius: fitRadius(width, axes, short), n }),
+    [width, axes, n, short],
   );
   const point = useCallback((axis: number, r: number) => pointAt(geometry, axis, r), [geometry]);
 
@@ -124,7 +134,7 @@ const RadarSvg = memo(function RadarSvg({
   return (
     <div ref={wrapRef} className="relative" style={{ width, height: HEIGHT }}>
       <Frame width={width} height={HEIGHT} title={title} desc={desc} role="group">
-        <RadarMarks axes={axes} series={series} geometry={geometry} />
+        <RadarMarks axes={axes} series={series} geometry={geometry} short={short} />
         {vertices.map(({ si, a }, index) => {
           const s = series[si]!;
           const [x, y] = point(a, s.values[a]!);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
+import { useId, useState } from "react";
 
 import { LineChart, LineChartTable, SERIES_LEGEND } from "@/components/charts/LineChart";
 import { Legend } from "@/components/charts/Legend";
@@ -8,7 +8,7 @@ import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext, cellQuestion } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
-import { useLanding, useLandingTarget } from "./useLanding";
+import { useLanding, useIsLanded, useLandingRef } from "./useLanding";
 import { toPeriod } from "@/domain";
 import { SheetSection } from "./Sheet";
 import type { TimeSeriesVM } from "./viewModel";
@@ -17,13 +17,12 @@ export function TimeSeriesCard({ vm, className }: { vm: TimeSeriesVM; className?
   const { setContext } = useConsoleContext();
   const { prefill } = useAskWhy();
   const landing = useLanding();
-  const ref = useRef<HTMLElement>(null);
   const tableId = useId();
   const [pressed, setPressed] = useState(false);
-  const landed = landing.active;
+  const landed = useIsLanded("timeseries");
 
-  // The page scrolls here when a citation lands on this chart.
-  useLandingTarget(ref);
+  // The page scrolls here when a citation with a month lands on this chart.
+  const ref = useLandingRef("timeseries");
 
   return (
     <SheetSection

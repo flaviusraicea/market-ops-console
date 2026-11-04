@@ -15,6 +15,20 @@ export function splitLabel(label: string): string[] {
   }
   return [label.slice(0, best), label.slice(best + 1)];
 }
+/** Below this card width the axis names shorten so they fit beside the ring; the full name stays as the label's title. */
+export const SHORT_LABEL_BELOW = 304;
+const SHORT_LABELS: Record<string, string> = {
+  Attainment: "Attain",
+  "Growth YoY": "Growth",
+  "Share (given)": "Share",
+  "Revenue share (derived)": "Rev share",
+  "Month on month": "MoM",
+  "Units YoY": "Units",
+};
+/** The lines an axis label is drawn on: one short name in a narrow card, else the full name split over two lines. */
+export const labelLines = (label: string, short: boolean): string[] =>
+  short ? [SHORT_LABELS[label] ?? label] : splitLabel(label);
+
 export const RINGS = [0.5, 1];
 /** The second line under the label of an axis with no value this period. */
 export const NO_DATA = "no data";
@@ -61,10 +75,12 @@ export const RadarMarks = memo(function RadarMarks({
   axes,
   series,
   geometry,
+  short = false,
 }: {
   axes: readonly string[];
   series: readonly RadarSeries[];
   geometry: Geometry;
+  short?: boolean;
 }) {
   const { cx, cy, n } = geometry;
   const hasSelection = series.some((s) => s.selected);
@@ -93,7 +109,7 @@ export const RadarMarks = memo(function RadarMarks({
         const cos = Math.cos(angleOf(a, n));
         const sin = Math.sin(angleOf(a, n));
         const anchor = Math.abs(cos) < 0.3 ? "middle" : cos > 0 ? "start" : "end";
-        const lines = empty[a] ? [...splitLabel(label), NO_DATA] : splitLabel(label);
+        const lines = empty[a] ? [...labelLines(label, short), NO_DATA] : labelLines(label, short);
         const extra = (lines.length - 1) * 1.1;
         // Top labels grow upwards, bottom labels downwards, side labels stay centred on the axis.
         const dy = sin < -0.5 ? `${-0.2 - extra}em` : sin > 0.5 ? "0.9em" : `${0.32 - extra / 2}em`;
@@ -115,6 +131,7 @@ export const RadarMarks = memo(function RadarMarks({
               textAnchor={anchor}
               className={`${partial[a] ? "fill-ink-muted" : "fill-ink-2"} text-[length:var(--text-label)] font-medium`}
             >
+              <title>{label}</title>
               {lines.map((line, i) =>
                 line === NO_DATA ? (
                   <tspan

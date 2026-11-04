@@ -22,7 +22,7 @@ import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { SortHead } from "./SortHead";
-import { useLanding } from "./useLanding";
+import { useIsLanded, useLandingRef } from "./useLanding";
 import { SheetSection } from "./Sheet";
 import type {
   GridTotalVM,
@@ -321,18 +321,18 @@ function AttainmentSlot({ figure, note }: { figure: string; note?: ReactNode }) 
 function ProductRows({
   rows,
   total,
-  landed,
   sort,
   onSort,
 }: {
   rows: ProductRowVM[];
   total: GridTotalVM;
-  landed: boolean;
   sort: Sort;
   onSort: (next: Sort) => void;
 }) {
   const { ctx, setContext } = useConsoleContext();
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
+  const landed = useIsLanded("productRow");
+  const rowRef = useLandingRef("productRow");
   return (
     <>
       <ColGroup cols={PRODUCT_COLS} />
@@ -364,6 +364,7 @@ function ProductRows({
           return (
             <TableRow
               key={r.id}
+              {...(selected ? { ref: rowRef } : {})}
               {...rowProps(selected, () => setContext({ product: r.id }), landed && selected)}
             >
               <TableCell data-pin="start" className={cn(PINNED_CELL, "font-medium text-ink")}>
@@ -398,11 +399,9 @@ export function MarketGrid({ grid }: { grid: GridVM }): ReactNode {
 }
 
 function MarketGridBody({ grid }: { grid: GridVM }): ReactNode {
-  const landing = useLanding();
   const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
-  const kind = landing.target?.entity.kind;
-  // A product citation rings the selected product row; any other kind rings the section (market, region).
-  const productLanding = landing.active && kind === "product";
+  // A citation without a month rings the selected product row, or the whole section for a market or region.
+  const sectionRef = useLandingRef("gridSection");
   const subtitle = [grid.summary, `Sorted by ${SORT_LABEL[sort.key]}`, grid.note]
     .filter(Boolean)
     .join(" · ");
@@ -412,7 +411,8 @@ function MarketGridBody({ grid }: { grid: GridVM }): ReactNode {
       pageHeading
       subtitle={subtitle}
       caption={grid.caption}
-      landed={landing.active && kind !== "product" && kind !== "portfolio"}
+      landed={useIsLanded("gridSection")}
+      sectionRef={sectionRef}
     >
       <ScrollTable
         scrollLabel={`${grid.title}, scrollable`}
@@ -427,13 +427,7 @@ function MarketGridBody({ grid }: { grid: GridVM }): ReactNode {
             <MarketRows rows={grid.rows} total={grid.total} sort={sort} onSort={setSort} />
           </TooltipProvider>
         ) : (
-          <ProductRows
-            rows={grid.rows}
-            total={grid.total}
-            landed={productLanding}
-            sort={sort}
-            onSort={setSort}
-          />
+          <ProductRows rows={grid.rows} total={grid.total} sort={sort} onSort={setSort} />
         )}
       </ScrollTable>
     </SheetSection>

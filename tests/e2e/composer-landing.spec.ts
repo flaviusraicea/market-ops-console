@@ -73,16 +73,16 @@ test("grows with a pasted multi-line question, caps at four rows, and shrinks ba
 
 const series = timeSeries;
 
-/** Counts scrollIntoView calls on landing targets, to prove a landing scrolls once. */
+/** Counts the landing's window.scrollTo calls, to prove a landing scrolls once. */
 async function countLandingScrolls(page: Page) {
   await page.addInitScript(() => {
     const w = window as unknown as { landingScrolls: number };
     w.landingScrolls = 0;
-    const original = Element.prototype.scrollIntoView;
-    Element.prototype.scrollIntoView = function (...args) {
-      if (this.hasAttribute("data-landing-target")) w.landingScrolls += 1;
-      return original.apply(this, args as []);
-    };
+    const original = window.scrollTo.bind(window);
+    window.scrollTo = ((...args: unknown[]) => {
+      w.landingScrolls += 1;
+      return (original as (...a: unknown[]) => void)(...args);
+    }) as typeof window.scrollTo;
   });
 }
 const landingScrolls = (page: Page) =>
