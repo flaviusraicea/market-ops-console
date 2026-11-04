@@ -25,13 +25,13 @@ test("the four KPI tiles show the portfolio figures", async ({ page }) => {
   }
 });
 
-test("the attention tile uses the flat icon and ink-2, not a status colour", async ({ page }) => {
+test("the attention tile is a plain count in ink-2, with no direction icon", async ({ page }) => {
   await page.goto("/");
   const delta = page
     .getByRole("group", { name: "NEEDS ATTENTION" })
     .locator('[data-slot="kpi-delta"]');
   await expect(delta).toHaveAttribute("data-direction", "flat");
-  await expect(delta.locator("svg")).toHaveClass(/lucide-minus/);
+  await expect(delta.locator("svg")).toHaveCount(0);
 });
 
 test("Germany is on the map, focusable, and Enter drills in", async ({ page }) => {

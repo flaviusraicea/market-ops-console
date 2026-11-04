@@ -73,11 +73,12 @@ export const Flat: Story = {
     label: "NEEDS ATTENTION",
     headline: "6 of 13",
     delta: { direction: "flat", value: "4 at risk · 2 off track", comparison: "" },
+    plainDelta: true,
     provenance: "Source · data.json",
   },
   play: async ({ canvasElement }) => {
     const delta = canvasElement.querySelector('[data-slot="kpi-delta"]')!;
-    await expect(delta.querySelector("svg")).toHaveClass("lucide-minus");
+    await expect(delta.querySelector("svg")).toBeNull();
     await expect(within(delta as HTMLElement).getByText("4 at risk · 2 off track")).toHaveClass(
       "text-ink-2",
     );
