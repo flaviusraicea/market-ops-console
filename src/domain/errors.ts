@@ -1,4 +1,5 @@
-import { z } from "./zod";
+import "./zod";
+import { z } from "zod";
 
 /** Where a reported failure came from: a render boundary, a window event, or a failed stream or request. */
 export const ERROR_SOURCES = ["boundary", "window", "promise", "stream", "fetch"] as const;
