@@ -69,6 +69,7 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
           // The scale starts at the plot's first month column, past the market names.
           <div
             className="md:pl-[var(--heat-inset)]"
+            // CSSProperties has no index for custom properties
             style={{ "--heat-inset": HEAT_PLOT_INSET } as CSSProperties}
           >
             <Legend

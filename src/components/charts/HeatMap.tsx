@@ -22,6 +22,7 @@ import { ScrollTable } from "@/components/ui/scroll-table";
 import { cn } from "@/components/cn";
 import { ICON_STROKE, TriangleAlert } from "@/components/icons";
 import { formatMonthShort, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
+import { PHONE_QUERY } from "@/lib/useMediaQuery";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { HeatCellView, type CellHandlers } from "./HeatCellView";
 import { heatCellTooltip } from "./heatMapTooltip";
@@ -65,6 +66,24 @@ const CELL_GAP = "2px";
 /** Where the first month column starts: past the market names and one gap. A legend under the plot starts here. */
 export const HEAT_PLOT_INSET = `calc(${NAME_COL} + ${CELL_GAP})`;
 const PAGE = 6;
+/** Month label steps, smallest first: every third month, then every sixth, then once a year. */
+const LABEL_STEPS = [3, 6, 12] as const;
+/** The least room between two month labels. */
+const LABEL_GAP = 8;
+
+/**
+ * The smallest step at which every month label keeps LABEL_GAP to the next. Labels count back from the latest
+ * month; each starts at its column's left edge except the last, which ends at the grid's right edge, so the last
+ * pair is the tightest: the one before it starts (step + 1) columns from the end.
+ */
+export function monthLabelStep(pitch: number, labelWidth: number): number {
+  return (
+    LABEL_STEPS.find(
+      (step) =>
+        step * pitch - labelWidth >= LABEL_GAP && (step + 1) * pitch - 2 * labelWidth >= LABEL_GAP,
+    ) ?? 12
+  );
+}
 
 /**
  * Markets by month, coloured by forecast attainment (ADR 0008). A roving-tabindex grid: one tab stop,
@@ -84,6 +103,31 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   }, []);
   const shown = useRef({ row: 0, col: 0 });
   const nCols = periods.length;
+
+  // The label step follows the grid's own width, which the docked assistant narrows: measured from a month
+  // column and the widest label, so it holds for any font or locale. Every third month until measured.
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState<number>(LABEL_STEPS[0]);
+  useEffect(() => {
+    const row = headerRef.current;
+    const grid = row?.parentElement;
+    if (!row || !grid) return;
+    const measure = () => {
+      // Phones keep every third month: their labels are the month alone, and the grid scrolls sideways.
+      if (window.matchMedia(PHONE_QUERY).matches) return setStep(LABEL_STEPS[0]);
+      const cols = row.querySelectorAll<HTMLElement>("[data-month]");
+      const first = cols[0]?.getBoundingClientRect();
+      const second = cols[1]?.getBoundingClientRect();
+      if (!first || !second) return;
+      let widest = 0;
+      for (const label of row.querySelectorAll<HTMLElement>("[data-month-label]"))
+        widest = Math.max(widest, label.getBoundingClientRect().width);
+      setStep(monthLabelStep(second.left - first.left, widest));
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(grid);
+    return () => ro.disconnect();
+  }, []);
 
   const [pos, setPos] = useState<{ r: number; c: number }>({
     r: Math.max(
@@ -217,10 +261,10 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
             {
               gridTemplateColumns: `${NAME_COL} repeat(${nCols}, minmax(0, 1fr))`,
               "--heat-gap": CELL_GAP,
-            } as CSSProperties
+            } as CSSProperties // CSSProperties has no index for custom properties
           }
         >
-          <div role="row" aria-rowindex={1} className="contents">
+          <div ref={headerRef} role="row" aria-rowindex={1} className="contents">
             <div
               role="columnheader"
               aria-colindex={1}
@@ -233,14 +277,16 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
                 key={p}
                 role="columnheader"
                 aria-colindex={i + 2}
+                data-month=""
                 className="relative h-4 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
               >
                 <span className="sr-only">{formatPeriodAbbr(p)}</span>
-                {/* Every third month counted back from the latest, so the last column is always labelled; its
+                {/* Every step-th month counted back from the latest, so the last column is always labelled; its
                     label ends at the grid's right edge instead of running past it. */}
-                {(nCols - 1 - i) % 3 === 0 ? (
+                {(nCols - 1 - i) % step === 0 ? (
                   <span
                     aria-hidden
+                    data-month-label=""
                     className={cn(
                       "absolute bottom-0 whitespace-nowrap",
                       i === nCols - 1 ? "right-0" : "left-0",

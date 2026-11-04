@@ -127,6 +127,9 @@ function MapSvg({
   const tip = useChartTooltip();
   // Index of the market whose focus ring is drawn: keyboard focus only, so a click does not leave a ring behind.
   const [ringIndex, setRingIndex] = useState<number | null>(null);
+  // The shown market's bottom edge (or the pointer), so a tooltip for a market at the top of a drilled frame
+  // drops below it instead of opening under the card header.
+  const [tipBottom, setTipBottom] = useState(0);
 
   const { land, markets } = useMemo(() => {
     const land = geo.features.find((f) => f.properties?.["kind"] === "land");
@@ -186,6 +189,12 @@ function MapSvg({
     const ty = y0 - k * y;
     // Hold the old view before paint, then start the move two frames later: the drill also re-renders the
     // other charts, and a transition that starts in the same frames as that commit drops frames.
+    // While it moves, the group drops its strokes and draws fast, because each frame repaints the whole SVG.
+    const done = () => {
+      delete g.dataset["moving"];
+      g.removeEventListener("transitionend", done);
+    };
+    g.dataset["moving"] = "";
     g.style.transition = "none";
     g.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
     let second = 0;
@@ -193,11 +202,16 @@ function MapSvg({
       second = requestAnimationFrame(() => {
         g.style.transition = "transform var(--dur-chart) var(--ease-out)";
         g.style.transform = "";
+        // Under reduced motion the duration is 0 and no transitionend fires.
+        if (parseFloat(getComputedStyle(g).transitionDuration) > 0)
+          g.addEventListener("transitionend", done);
+        else done();
       });
     });
     return () => {
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);
+      done();
       g.style.transform = "";
     };
   }, [scale, translate, width, height, cutFrame]);
@@ -215,8 +229,8 @@ function MapSvg({
       markets.map((f) => {
         const m = mainland(f);
         const [x, y] = path.centroid(m);
-        const top = path.bounds(m)[0][1];
-        return { x, top, inView: x >= 0 && x <= width && y >= 0 && y <= height };
+        const [[, top], [, bottom]] = path.bounds(m);
+        return { x, top, bottom, inView: x >= 0 && x <= width && y >= 0 && y <= height };
       }),
     [markets, path, width, height],
   );
@@ -265,7 +279,10 @@ function MapSvg({
     onMove: (k) => pathRefs.current[reachable[k] ?? -1]?.focus(),
     // Tab lands on the selected market, not the first one in the list.
     initialIndex: Math.max(
-      reachable.findIndex((i) => marketIdOf(markets[i]!) === selected),
+      reachable.findIndex((i) => {
+        const f = markets[i];
+        return !!f && marketIdOf(f) === selected;
+      }),
       0,
     ),
   });
@@ -274,12 +291,15 @@ function MapSvg({
     keyboard.setActiveIndex(Math.max(reachable.indexOf(index), 0));
     setRingIndex(e.currentTarget.matches(":focus-visible") ? index : null);
     const a = anchors[index];
-    if (a) showFor(index, a.x, Math.max(a.top, 0));
+    if (!a) return;
+    setTipBottom(a.bottom);
+    showFor(index, a.x, Math.max(a.top, 0));
   }
 
   function onMouse(index: number, e: MouseEvent<SVGPathElement>) {
     // The pointer in the wrapper's own coordinates, where the tooltip is positioned.
     const r = (wrapRef.current ?? e.currentTarget).getBoundingClientRect();
+    setTipBottom(e.clientY - r.top);
     showFor(index, e.clientX - r.left, e.clientY - r.top);
   }
 
@@ -372,7 +392,7 @@ function MapSvg({
         ) : null}
       </Frame>
       {tip.open && tip.content ? (
-        <ChartTooltip {...tip.content} left={tip.left} top={tip.top} />
+        <ChartTooltip {...tip.content} left={tip.left} top={tip.top} bottom={tipBottom} />
       ) : null}
     </div>
   );
