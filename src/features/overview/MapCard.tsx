@@ -212,7 +212,7 @@ export function MapCard({
   return (
     <section
       aria-labelledby="map-h"
-      className="flex h-full flex-col gap-3 rounded-card layer-card p-[var(--pad-card)]"
+      className="flex h-full flex-col gap-3 rounded-sheet layer-card p-[var(--pad-card)]"
     >
       <CardHeader
         title={byStatus ? "Markets by status" : `Markets by ${metricLabel.toLowerCase()}`}

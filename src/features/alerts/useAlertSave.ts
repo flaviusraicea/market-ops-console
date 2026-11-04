@@ -9,7 +9,7 @@ import { ReadOnlyRoleError, alertApi, type AlertApi } from "./api";
 import { scopeToValue } from "./labels";
 import { subscribeToRules } from "./storage";
 
-export const ALERTS_KEY = ["alerts"] as const;
+const ALERTS_KEY = ["alerts"] as const;
 
 export const DEFAULT_THRESHOLDS = { growth: 0, attainment: 95 } as const;
 
@@ -169,7 +169,6 @@ export function useAlertSave(api: AlertApi = alertApi) {
 
   return {
     rules: (list.data ?? []) as RuleRow[],
-    isLoading: list.isPending,
     status,
     savedAt,
     failure,

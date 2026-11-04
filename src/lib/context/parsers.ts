@@ -21,7 +21,7 @@ const parseAsFlag = createParser<boolean>({
 const REGIONS = ["na", "eu", "apac", "latam"] as const;
 
 /** Validates against meta.periods and clamps unknown values to the latest period. */
-export function parseAsPeriod(meta: ConsoleMeta) {
+function parseAsPeriod(meta: ConsoleMeta) {
   return createParser<string>({
     parse: (v) => clampPeriodTo(meta, v),
     serialize: (v) => v,
@@ -77,4 +77,36 @@ export function parseContextFromSearchParams(
     facts: first(searchParams.facts) === "1" ? true : undefined,
   };
   return normalizeContext(metaFromDataset(ds, defaultMode), raw);
+}
+
+const CONTEXT_KEYS = [
+  "region",
+  "market",
+  "product",
+  "period",
+  "mode",
+  "metric",
+  "basis",
+  "cite",
+  "facts",
+] as const satisfies readonly (keyof Context)[];
+
+/** How a Context field reads in the URL; `facts` is the flag `1`. */
+function urlValue(ctx: Context, key: (typeof CONTEXT_KEYS)[number]): string | undefined {
+  const value = ctx[key];
+  if (value === undefined) return undefined;
+  if (key === "facts") return value ? "1" : undefined;
+  return String(value);
+}
+
+/**
+ * True when a Context parameter in the URL did not survive parsing: an unknown market, a period outside the data,
+ * a product without its market. The page then replaces the address with the one it is actually showing, so the
+ * URL stays the single source of truth. Parameters it adds (a market's region, the mode) do not count.
+ */
+export function hasInvalidContextParams(searchParams: SearchParams, ctx: Context): boolean {
+  return CONTEXT_KEYS.some((key) => {
+    const raw = first(searchParams[key]);
+    return raw !== undefined && raw !== urlValue(ctx, key);
+  });
 }

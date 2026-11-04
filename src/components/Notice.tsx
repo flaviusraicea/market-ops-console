@@ -29,7 +29,7 @@ export function Notice({
       tabIndex={noticeRef ? -1 : undefined}
       role={neutral ? "note" : "alert"}
       className={cn(
-        "flex gap-3 rounded-card border p-[var(--pad-card)]",
+        "flex gap-3 rounded-sheet border p-[var(--pad-card)]",
         neutral
           ? "border-border bg-surface-2 shadow-[inset_4px_0_0_var(--accent)]"
           : "border-bad-mark bg-bad-bg shadow-[inset_4px_0_0_var(--bad-mark)]",

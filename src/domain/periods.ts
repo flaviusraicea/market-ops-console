@@ -13,10 +13,6 @@ export function latestPeriod(ds: Dataset): Period {
   return ds.meta.latestPeriod;
 }
 
-export function horizon(ds: Dataset): Period {
-  return latestPeriod(ds);
-}
-
 export function periodIndex(ds: Dataset, p: string): number {
   return ds.meta.periods.findIndex((x) => x === p);
 }
@@ -24,11 +20,6 @@ export function periodIndex(ds: Dataset, p: string): number {
 export function previousPeriod(ds: Dataset, p: Period): Period | undefined {
   const i = periodIndex(ds, p);
   return i > 0 ? ds.meta.periods[i - 1] : undefined;
-}
-
-export function clampPeriod(ds: Dataset, p: string): Period {
-  const i = periodIndex(ds, p);
-  return i >= 0 ? (ds.meta.periods[i] as Period) : latestPeriod(ds);
 }
 
 export function periodsForBasis(ds: Dataset, basis: Basis, endPeriod: Period): Period[] {

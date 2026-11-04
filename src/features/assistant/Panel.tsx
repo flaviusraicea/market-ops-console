@@ -129,7 +129,7 @@ function PanelBody({
           ? // The answer list's bottom fade ends in the panel's own background.
             "h-full min-h-0 bg-surface-overlay [--panel-bg:var(--surface-overlay)]"
           : [
-              "panel-enter rounded-card layer-raised",
+              "panel-enter rounded-sheet layer-raised",
               // From 1280 px the panel is sticky in its column; from 1024 to 1279 px it overlays the dashboard when open.
               "xl:sticky xl:max-h-[calc(100vh-var(--header-h)-32px)]",
               "xl:top-[var(--assistant-top)]",

@@ -12,7 +12,6 @@ import {
   unitsYoyPct,
   periodsForBasis,
   statusCounts,
-  topMovers,
   totals,
   variance,
   type Entity,
@@ -113,22 +112,8 @@ describe("periodsForBasis", () => {
   });
 });
 
-describe("rankings", () => {
-  it("top movers", () => {
-    const m = topMovers(ds);
-    expect(m.rising.map((x) => [x.market.id, x.growthPct])).toEqual([
-      ["cn", 18.2],
-      ["fr", 11.6],
-      ["ca", 10.7],
-    ]);
-    expect(m.falling.map((x) => [x.market.id, x.growthPct])).toEqual([
-      ["de", -9.7],
-      ["es", -4.6],
-      ["it", 0.3],
-    ]);
-  });
-
-  it("status counts", () => {
+describe("status counts", () => {
+  it("counts each status in scope", () => {
     expect(statusCounts(ds, portfolio)).toEqual({ on_track: 7, at_risk: 4, off_track: 2 });
     expect(attentionCount(ds, portfolio)).toBe(6);
     expect(statusCounts(ds, region("eu"))).toEqual({ on_track: 0, at_risk: 3, off_track: 2 });

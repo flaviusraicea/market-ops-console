@@ -7,7 +7,7 @@ const MARKERS = {
   alerts: "market-ops:alerts-open",
   lineChart: "chart-cursor",
   radarChart: "data-axis",
-  heatMap: "cursor-pointer rounded-[2px]",
+  heatMap: "cursor-pointer rounded-mark",
   commandPalette: "Go to a market, switch view",
   accountMenu: "Sign out",
   answerCard: "Show sources",

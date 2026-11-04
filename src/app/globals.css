@@ -63,10 +63,11 @@
   --font-display: var(--font-display);
   --font-ui: var(--font-ui);
   --font-mono: var(--font-mono);
-  --radius-control: var(--radius-control);
-  --radius-card: var(--radius-card);
-  --radius-pill: var(--radius-pill);
   --radius-sheet: var(--radius-sheet);
+  --radius-control: var(--radius-control);
+  --radius-menu: var(--radius-menu);
+  --radius-pill: var(--radius-pill);
+  --radius-mark: var(--radius-mark);
   --shadow-card: var(--shadow-card);
   --shadow-raised: var(--shadow-raised);
   --shadow-overlay: var(--shadow-overlay);

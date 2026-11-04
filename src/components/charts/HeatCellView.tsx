@@ -48,7 +48,7 @@ export const HeatCellView = memo(function HeatCellView({
       aria-label={`${rowName}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast${cell.anomaly ? ", anomaly" : ""}`}
       data-period={cell.period}
       data-market={rowId}
-      className="tween-fill relative h-6 cursor-pointer rounded-[2px]"
+      className="tween-fill relative h-6 cursor-pointer rounded-mark"
       style={{
         background: `var(${attainmentDiverging(cell.value)})`,
         ...(isSelected ? { boxShadow: "inset 0 0 0 2px var(--accent)" } : {}),
