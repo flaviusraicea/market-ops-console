@@ -122,3 +122,4 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 - With more time: compare up to four markets on the radar (spec written), through a "Compare · N markets" picker (approved, deferred) with a legend that dims a series, and a `compare` URL parameter. Today the radar compares the markets in scope, in four colours.
 - With more time: the radar should use a fixed portfolio-wide scale per axis with a reference ring, so shapes stay comparable whichever markets are compared. Today each axis is scaled between the lowest and highest compared value.
 - With more time: citation chips on grid rows and KPIs should scroll to the matching time-series row.
+- With more time: the assistant panel animation runs at about 30 fps on a 4× slower CPU during the 400 ms move (clean at 1×). Next step: freeze table column widths and contain the cards during the transition.

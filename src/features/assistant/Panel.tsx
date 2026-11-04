@@ -134,7 +134,7 @@ function PanelBody({
               "rounded-sheet layer-raised",
               // From 1024 px the panel is sticky in its column. ShellGrid's data-panel hides it once closed, after
               // its exit animation (globals.css).
-              "lg:sticky lg:max-h-[calc(100vh-var(--header-h)-32px)]",
+              "lg:sticky lg:max-h-[calc(100vh-var(--assistant-top)-16px)]",
               "lg:top-[var(--assistant-top)]",
             ],
       )}

@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  memo,
   useMemo,
   useRef,
   useState,
@@ -27,6 +28,7 @@ import {
 import { formatMoneyCompact, formatMoneyExact, formatPct } from "@/lib/format";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame, type Margins } from "./Frame";
+import { PanelMotion } from "./PanelMotion";
 import type { LegendItem } from "./Legend";
 import { LineGrid, LineSeries, type SeriesKey } from "./LineParts";
 
@@ -83,7 +85,7 @@ type LineChartProps = {
 const HEIGHT = 260;
 const MARGIN: Margins = { top: 16, right: 16, bottom: 32, left: 48 };
 
-function LineSvg({
+const LineSvg = memo(function LineSvg({
   width,
   points,
   anomalies,
@@ -222,7 +224,7 @@ function LineSvg({
     : "";
 
   return (
-    <div ref={wrapRef} className="relative" style={{ width, height: HEIGHT }}>
+    <div ref={wrapRef} data-chart-box className="relative" style={{ width, height: HEIGHT }}>
       <Frame width={width} height={HEIGHT} title={title} desc={desc} margin={MARGIN} role="group">
         <LineGrid ticks={ticks} y={y} x={x} points={points} innerW={innerW} innerH={innerH} />
         {points[selectedIndex] ? (
@@ -297,6 +299,7 @@ function LineSvg({
         <svg
           width={width}
           height={HEIGHT}
+          data-chart-marks
           className="pointer-events-none absolute inset-0"
           role="presentation"
         >
@@ -360,14 +363,20 @@ function LineSvg({
       ) : null}
     </div>
   );
-}
+});
 
 /** Design-system 6.10. Hover or arrow keys move the crosshair; activating a month calls onPeriod. */
 export function LineChart(props: LineChartProps) {
   return (
     <div className="w-full">
       <ParentSize debounceTime={50} parentSizeStyles={{ width: "100%", height: HEIGHT }}>
-        {({ width }) => (width > 0 ? <LineSvg {...props} width={width} /> : null)}
+        {({ width }) =>
+          width > 0 ? (
+            <PanelMotion width={width} height={HEIGHT} mode="stretch">
+              {(size) => <LineSvg {...props} width={size.width} />}
+            </PanelMotion>
+          ) : null
+        }
       </ParentSize>
     </div>
   );

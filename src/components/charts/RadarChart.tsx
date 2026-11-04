@@ -1,7 +1,7 @@
 "use client";
 
 import { ParentSize } from "@visx/responsive";
-import { useCallback, useMemo, useRef, type FocusEvent, type MouseEvent } from "react";
+import { memo, useCallback, useMemo, useRef, type FocusEvent, type MouseEvent } from "react";
 
 import {
   TableBody,
@@ -14,6 +14,7 @@ import {
 import { PIN_CELL_CLASS, PIN_HEAD_TINTED_CLASS, ScrollTable } from "@/components/ui/scroll-table";
 import { cn } from "@/components/cn";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
+import { PanelMotion } from "./PanelMotion";
 import { Frame } from "./Frame";
 import {
   LABEL_GAP,
@@ -76,7 +77,13 @@ export function fitRadius(
   return Math.max(radius, 24);
 }
 
-function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { width: number }) {
+const RadarSvg = memo(function RadarSvg({
+  width,
+  axes,
+  series,
+  title,
+  desc,
+}: RadarChartProps & { width: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef<Array<SVGCircleElement | null>>([]);
   const tip = useChartTooltip();
@@ -160,13 +167,19 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
       ) : null}
     </div>
   );
-}
+});
 
 /** Five-axis radar (design-system 6.10 pattern). Arrow keys walk the vertices, one tab stop. */
 export function RadarChart(props: RadarChartProps) {
   return (
     <ParentSize debounceTime={50} parentSizeStyles={{ width: "100%", height: HEIGHT }}>
-      {({ width }) => (width > 0 ? <RadarSvg {...props} width={width} /> : null)}
+      {({ width }) =>
+        width > 0 ? (
+          <PanelMotion width={width} height={HEIGHT} mode="hold">
+            {(size) => <RadarSvg {...props} width={size.width} />}
+          </PanelMotion>
+        ) : null
+      }
     </ParentSize>
   );
 }
