@@ -89,7 +89,7 @@ export function Composer({
 
   return (
     // A hairline under the composer separates what you type from the answers that scroll below it.
-    <div className="flex flex-col gap-2 border-b border-border pb-4">
+    <div className="relative flex flex-col gap-2 border-b border-border pb-5">
       {about ? (
         <div className="flex items-center gap-2">
           <Eyebrow>About</Eyebrow>
@@ -159,12 +159,12 @@ export function Composer({
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
         </Button>
       </form>
-      {/* The helper line exists only when it has something to say (the wait line while an answer streams, the counter
-          from 900 characters), so an idle composer has no empty band under it. */}
+      {/* The helper line (the wait line while an answer streams, the counter from 900 characters) sits in the
+          composer's bottom padding, out of flow, so showing it moves nothing and an idle composer has no band. */}
       {disabled || showCount ? (
         <div
           data-slot="composer-helper"
-          className="flex h-5 items-center justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
+          className="absolute inset-x-0 bottom-1 flex h-4 items-center justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
         >
           {disabled ? <p id="ask-wait">Wait for the answer, or Stop.</p> : <span />}
           {showCount ? (
