@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Notice } from "@/components/Notice";
-import type { ContextReset } from "@/lib/context/parsers";
+import type { ContextReset } from "@/lib/context/reset";
 
 /**
  * Tells the reader that the address they opened held a value the console does not have, and what it shows

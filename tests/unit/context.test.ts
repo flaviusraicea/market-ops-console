@@ -3,11 +3,8 @@ import { describe, expect, it } from "vitest";
 import raw from "@/data/data.json";
 import { parseDataset } from "@/domain/dataset";
 import { applyContextChange, metaFromDataset } from "@/lib/context/invariants";
-import {
-  describeContextReset,
-  hasInvalidContextParams,
-  parseContextFromSearchParams,
-} from "@/lib/context/parsers";
+import { hasInvalidContextParams, parseContextFromSearchParams } from "@/lib/context/parsers";
+import { describeContextReset } from "@/lib/context/reset";
 
 const ds = parseDataset(raw);
 

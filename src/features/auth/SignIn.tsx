@@ -3,6 +3,7 @@
 import { Eyebrow } from "@/components/Eyebrow";
 import { Button } from "@/components/ui/button";
 import { SlimHeader } from "@/features/shell/SlimHeader";
+import { ThemeToggle } from "@/features/shell/ThemeToggle";
 import { useRole } from "@/lib/role";
 import { PERSONAS, ROLES, ROLE_LABEL, type Role } from "@/lib/roles";
 
@@ -10,7 +11,9 @@ import { PERSONAS, ROLES, ROLE_LABEL, type Role } from "@/lib/roles";
 export function SignIn({ onPick }: { onPick: (role: Role) => void }) {
   return (
     <div className="flex min-h-dvh flex-col bg-bg text-ink">
-      <SlimHeader />
+      <SlimHeader>
+        <ThemeToggle />
+      </SlimHeader>
       <main id="main" className="grid flex-1 place-items-center px-[var(--gutter)] py-12">
         <section
           aria-labelledby="sign-in-heading"
