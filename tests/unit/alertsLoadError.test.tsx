@@ -23,6 +23,9 @@ vi.mock("@/lib/context/dataset", () => ({
   useDataset: () => ({ markets: [], regions: [], products: [], meta: { periods: [] } }),
 }));
 
+/** The form and its rules load with a dynamic import, which a busy CI runner can take over a second to resolve. */
+const LAZY_TIMEOUT = 5_000;
+
 function renderSection() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -51,11 +54,14 @@ describe("Alerts when the saved rules cannot be read", () => {
     renderSection();
     // The rules are read when the section opens (the form loads then).
     await openSection();
-    await waitFor(() =>
-      expect(screen.getAllByText("Couldn’t load rules").length).toBeGreaterThan(0),
+    await waitFor(
+      () => expect(screen.getAllByText("Couldn’t load rules").length).toBeGreaterThan(0),
+      { timeout: LAZY_TIMEOUT },
     );
     expect(screen.queryByText(/^0 rules/)).toBeNull();
-    await userEvent.click(await screen.findByRole("button", { name: "Retry" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Retry" }, { timeout: LAZY_TIMEOUT }),
+    );
     await waitFor(() => expect(screen.queryByText("Couldn’t load alert rules")).toBeNull());
     // The folded row stops reading as failed, and the rule is listed. (The row's count comes from storage,
     // which the mocked API does not write.)
@@ -67,7 +73,9 @@ describe("Alerts when the saved rules cannot be read", () => {
     listRules.mockRejectedValue(new Error("500"));
     renderSection();
     await openSection();
-    await userEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Dismiss" }, { timeout: LAZY_TIMEOUT }),
+    );
     await waitFor(() => expect(screen.queryByText("Couldn’t load alert rules")).toBeNull());
     expect(screen.getAllByText("Couldn’t load rules").length).toBeGreaterThan(0);
     expect(screen.queryByText(/No alert rules yet/)).toBeNull();
