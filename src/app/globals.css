@@ -457,7 +457,8 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
     --control-h: 32px;
     --gap: 12px;
     --text-body: 14px;
-    --text-body-lh: 20px;
+    /* 18 + the composer's 14 px of padding = one 32 px control, so the empty composer is level with Send. */
+    --text-body-lh: 18px;
   }
 }
 

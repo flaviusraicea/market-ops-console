@@ -143,7 +143,7 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 
 - **Skip link** is the first stop and moves focus to `#main`.
 - **Drilling** (breadcrumb, map, status strip, palette) keeps the page and moves focus to the verdict heading `#verdict-h` when the navigation came from the palette, so the new context is read first.
-- **Rail and panel** (slice 14): opening with the rail toggle moves focus to the panel heading; opening from an entry point (`Ask why`, a heat map cell, an anomaly marker, the palette) moves focus to the composer. Between 1024 and 1279 px the open panel overlays the dashboard with a scrim and Tab wraps inside it; from 1280 px it pushes the dashboard and does not trap.
+- **Rail and panel** (slice 14): opening with the rail toggle moves focus to the panel heading; opening from an entry point (`Ask why`, a heat map cell, an anomaly marker, the palette) moves focus to the composer. From 1024 px the open panel is docked beside the dashboard (320 px, 360 px from 1400 px): it never covers it, so it does not trap Tab, and Escape collapses it.
 - **Live region** for "Answer complete", "Answer stopped, no sources" and "Request failed, no sources" stays mounted while the panel is collapsed, so the announcement is not lost.
 - **Palette** (slice 18) is a modal dialog: focus starts in its input, is trapped inside, and returns to the opener on `Esc` or on a command that does not move focus elsewhere.
 
@@ -171,37 +171,37 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 <!-- contrast:start -->
 | Pair (foreground/background) | Kind | Needs | Light | Dark |
 | --- | --- | --- | --- | --- |
-| `ink/surface` | text | 4.5:1 | 17.36:1 | 14.18:1 |
-| `ink/bg` | text | 4.5:1 | 13.29:1 | 15.44:1 |
-| `ink-2/surface` | text | 4.5:1 | 7.19:1 | 8.37:1 |
-| `ink-2/bg` | text | 4.5:1 | 5.50:1 | 9.12:1 |
-| `ink-2/surface-2` | text | 4.5:1 | 5.62:1 | 7.45:1 |
-| `ink-muted/surface` | text | 4.5:1 | 6.14:1 | 5.88:1 |
-| `ink-muted/bg` | text | 4.5:1 | 4.70:1 | 6.40:1 |
+| `ink/surface` | text | 4.5:1 | 17.36:1 | 14.33:1 |
+| `ink/bg` | text | 4.5:1 | 13.29:1 | 16.02:1 |
+| `ink-2/surface` | text | 4.5:1 | 7.19:1 | 8.46:1 |
+| `ink-2/bg` | text | 4.5:1 | 5.50:1 | 9.46:1 |
+| `ink-2/surface-2` | text | 4.5:1 | 5.62:1 | 7.44:1 |
+| `ink-muted/surface` | text | 4.5:1 | 6.14:1 | 5.94:1 |
+| `ink-muted/bg` | text | 4.5:1 | 4.70:1 | 6.64:1 |
 | `ink-muted/surface-2` | text | 4.5:1 | 4.79:1 | 5.23:1 |
-| `accent/surface` | text | 4.5:1 | 8.59:1 | 8.01:1 |
-| `accent/bg` | text | 4.5:1 | 6.58:1 | 8.72:1 |
+| `accent/surface` | text | 4.5:1 | 8.59:1 | 8.09:1 |
+| `accent/bg` | text | 4.5:1 | 6.58:1 | 9.05:1 |
 | `accent/accent-soft` | text | 4.5:1 | 7.15:1 | 6.78:1 |
 | `on-accent/accent` | text | 4.5:1 | 8.59:1 | 8.72:1 |
-| `ink/surface-raised` | text | 4.5:1 | 17.36:1 | 12.62:1 |
-| `ink-2/surface-raised` | text | 4.5:1 | 7.19:1 | 7.45:1 |
+| `ink/surface-raised` | text | 4.5:1 | 17.36:1 | 12.60:1 |
+| `ink-2/surface-raised` | text | 4.5:1 | 7.19:1 | 7.44:1 |
 | `ink-muted/surface-raised` | text | 4.5:1 | 6.14:1 | 5.23:1 |
-| `accent/surface-raised` | text | 4.5:1 | 8.59:1 | 7.13:1 |
-| `ink/surface-overlay` | text | 4.5:1 | 17.36:1 | 11.68:1 |
-| `ink-2/surface-overlay` | text | 4.5:1 | 7.19:1 | 6.90:1 |
-| `ink-muted/surface-overlay` | text | 4.5:1 | 6.14:1 | 4.84:1 |
-| `accent/surface-overlay` | text | 4.5:1 | 8.59:1 | 6.60:1 |
-| `ok-text/surface-raised` | text | 4.5:1 | 6.52:1 | 9.18:1 |
-| `warn-text/surface-raised` | text | 4.5:1 | 7.20:1 | 9.67:1 |
-| `bad-text/surface-raised` | text | 4.5:1 | 7.07:1 | 7.56:1 |
-| `ai-label/surface-raised` | text | 4.5:1 | 10.12:1 | 8.22:1 |
+| `accent/surface-raised` | text | 4.5:1 | 8.59:1 | 7.12:1 |
+| `ink/surface-overlay` | text | 4.5:1 | 17.36:1 | 10.89:1 |
+| `ink-2/surface-overlay` | text | 4.5:1 | 7.19:1 | 6.43:1 |
+| `ink-muted/surface-overlay` | text | 4.5:1 | 6.14:1 | 4.51:1 |
+| `accent/surface-overlay` | text | 4.5:1 | 8.59:1 | 6.15:1 |
+| `ok-text/surface-raised` | text | 4.5:1 | 6.52:1 | 9.17:1 |
+| `warn-text/surface-raised` | text | 4.5:1 | 7.20:1 | 9.66:1 |
+| `bad-text/surface-raised` | text | 4.5:1 | 7.07:1 | 7.55:1 |
+| `ai-label/surface-raised` | text | 4.5:1 | 10.12:1 | 8.21:1 |
 | `ok-text/ok-bg` | text | 4.5:1 | 5.59:1 | 9.25:1 |
-| `ok-text/surface` | text | 4.5:1 | 6.52:1 | 10.32:1 |
+| `ok-text/surface` | text | 4.5:1 | 6.52:1 | 10.43:1 |
 | `warn-text/warn-bg` | text | 4.5:1 | 6.30:1 | 9.12:1 |
-| `warn-text/surface` | text | 4.5:1 | 7.20:1 | 10.87:1 |
+| `warn-text/surface` | text | 4.5:1 | 7.20:1 | 10.98:1 |
 | `warn-text/accent-soft` | text | 4.5:1 | 5.99:1 | 9.20:1 |
 | `bad-text/bad-bg` | text | 4.5:1 | 5.68:1 | 7.57:1 |
-| `bad-text/surface` | text | 4.5:1 | 7.07:1 | 8.50:1 |
+| `bad-text/surface` | text | 4.5:1 | 7.07:1 | 8.59:1 |
 | `ai-label/ai-bg` | text | 4.5:1 | 8.57:1 | 8.56:1 |
 | `ink/ai-bg` | text | 4.5:1 | 14.69:1 | 13.14:1 |
 | `ink-muted/ai-bg` | text | 4.5:1 | 5.19:1 | 5.45:1 |
@@ -212,43 +212,43 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 | `ok-display/ok-bg` | large text | 3:1 | 3.75:1 | 9.25:1 |
 | `warn-display/warn-bg` | large text | 3:1 | 4.46:1 | 9.12:1 |
 | `bad-display/bad-bg` | large text | 3:1 | 4.38:1 | 7.57:1 |
-| `ok-mark/surface` | graphic | 3:1 | 4.25:1 | 7.56:1 |
-| `warn-mark/surface` | graphic | 3:1 | 4.65:1 | 8.07:1 |
-| `bad-mark/surface` | graphic | 3:1 | 5.45:1 | 5.33:1 |
-| `ok-mark/bg` | graphic | 3:1 | 3.25:1 | 8.23:1 |
-| `warn-mark/bg` | graphic | 3:1 | 3.56:1 | 8.79:1 |
-| `bad-mark/bg` | graphic | 3:1 | 4.17:1 | 5.80:1 |
+| `ok-mark/surface` | graphic | 3:1 | 4.25:1 | 7.64:1 |
+| `warn-mark/surface` | graphic | 3:1 | 4.65:1 | 8.16:1 |
+| `bad-mark/surface` | graphic | 3:1 | 5.45:1 | 5.38:1 |
+| `ok-mark/bg` | graphic | 3:1 | 3.25:1 | 8.54:1 |
+| `warn-mark/bg` | graphic | 3:1 | 3.56:1 | 9.12:1 |
+| `bad-mark/bg` | graphic | 3:1 | 4.17:1 | 6.02:1 |
 | `bad-mark/bad-bg` | graphic | 3:1 | 4.38:1 | 4.74:1 |
-| `focus/surface` | graphic | 3:1 | 8.59:1 | 8.01:1 |
-| `focus/bg` | graphic | 3:1 | 6.58:1 | 8.72:1 |
-| `focus/surface-raised` | graphic | 3:1 | 8.59:1 | 7.13:1 |
-| `focus/surface-overlay` | graphic | 3:1 | 8.59:1 | 6.60:1 |
-| `series-actual/surface` | graphic | 3:1 | 8.59:1 | 8.01:1 |
-| `series-forecast/surface` | graphic | 3:1 | 7.19:1 | 8.37:1 |
-| `series-prior/surface` | graphic | 3:1 | 4.39:1 | 5.88:1 |
-| `cat-1/surface` | graphic | 3:1 | 6.46:1 | 5.31:1 |
-| `cat-2/surface` | graphic | 3:1 | 4.13:1 | 5.23:1 |
-| `cat-3/surface` | graphic | 3:1 | 3.99:1 | 4.91:1 |
-| `cat-4/surface` | graphic | 3:1 | 3.25:1 | 5.30:1 |
-| `cat-5/surface` | graphic | 3:1 | 5.25:1 | 4.73:1 |
-| `cat-6/surface` | graphic | 3:1 | 4.20:1 | 5.41:1 |
+| `focus/surface` | graphic | 3:1 | 8.59:1 | 8.09:1 |
+| `focus/bg` | graphic | 3:1 | 6.58:1 | 9.05:1 |
+| `focus/surface-raised` | graphic | 3:1 | 8.59:1 | 7.12:1 |
+| `focus/surface-overlay` | graphic | 3:1 | 8.59:1 | 6.15:1 |
+| `series-actual/surface` | graphic | 3:1 | 8.59:1 | 8.09:1 |
+| `series-forecast/surface` | graphic | 3:1 | 7.19:1 | 8.46:1 |
+| `series-prior/surface` | graphic | 3:1 | 4.39:1 | 5.94:1 |
+| `cat-1/surface` | graphic | 3:1 | 6.46:1 | 5.37:1 |
+| `cat-2/surface` | graphic | 3:1 | 4.13:1 | 5.28:1 |
+| `cat-3/surface` | graphic | 3:1 | 3.99:1 | 4.96:1 |
+| `cat-4/surface` | graphic | 3:1 | 3.25:1 | 5.36:1 |
+| `cat-5/surface` | graphic | 3:1 | 5.25:1 | 4.78:1 |
+| `cat-6/surface` | graphic | 3:1 | 4.20:1 | 5.46:1 |
 | `ai-border/ai-bg` | decorative | none | 2.91:1 |  |
-| `border-control/surface` | non-text | 3:1 | 4.32:1 | 4.47:1 |
-| `border-control/bg` | non-text | 3:1 | 3.31:1 | 4.87:1 |
-| `border-control/surface-2` | non-text | 3:1 | 3.38:1 | 3.98:1 |
+| `border-control/surface` | non-text | 3:1 | 4.32:1 | 4.52:1 |
+| `border-control/bg` | non-text | 3:1 | 3.31:1 | 5.05:1 |
+| `border-control/surface-2` | non-text | 3:1 | 3.38:1 | 3.97:1 |
 | `border-control/ai-bg` | non-text | 3:1 | 3.66:1 | 4.14:1 |
 | `border-control/accent-soft` | non-text | 3:1 | 3.60:1 | 3.78:1 |
-| `border-control/surface-raised` | non-text | 3:1 | 4.32:1 | 3.98:1 |
-| `border-control/surface-overlay` | non-text | 3:1 | 4.32:1 | 3.68:1 |
-| `map-land/surface` | non-text | 1.15:1 | 1.87:1 | 1.18:1 |
-| `border/surface` | decorative | none | 1.70:1 | 1.48:1 |
-| `border/bg` | decorative | none | 1.30:1 | 1.61:1 |
-| `border/surface-raised` | decorative | none | 1.70:1 | 1.32:1 |
-| `grid/surface` | decorative | none | 1.34:1 | 1.21:1 |
-| `surface-2/surface` | decorative | none | 1.28:1 | 1.12:1 |
-| `bg/surface` | decorative | none | 1.31:1 | 1.09:1 |
-| `surface-raised/surface` | decorative | none | 1.00:1 | 1.12:1 |
-| `surface-overlay/surface` | decorative | none | 1.00:1 | 1.21:1 |
+| `border-control/surface-raised` | non-text | 3:1 | 4.32:1 | 3.97:1 |
+| `border-control/surface-overlay` | non-text | 3:1 | 4.32:1 | 3.43:1 |
+| `map-land/surface` | non-text | 1.15:1 | 1.87:1 | 1.16:1 |
+| `border/surface` | decorative | none | 1.70:1 | 1.60:1 |
+| `border/bg` | decorative | none | 1.30:1 | 1.78:1 |
+| `border/surface-raised` | decorative | none | 1.70:1 | 1.40:1 |
+| `grid/surface` | decorative | none | 1.34:1 | 1.26:1 |
+| `surface-2/surface` | decorative | none | 1.28:1 | 1.14:1 |
+| `bg/surface` | decorative | none | 1.31:1 | 1.12:1 |
+| `surface-raised/surface` | decorative | none | 1.00:1 | 1.14:1 |
+| `surface-overlay/surface` | decorative | none | 1.00:1 | 1.32:1 |
 | `ai-border/ai-bg` | graphic | 3:1 |  | 3.69:1 |
 <!-- contrast:end -->
 

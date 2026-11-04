@@ -62,7 +62,7 @@ test("grows with a pasted multi-line question, caps at four rows, and shrinks ba
   await box(page).fill("one\ntwo\nthree");
   const three = (await boxOf(box(page))).height;
   expect(three).toBeGreaterThan(one + 20);
-  await box(page).fill("1\n2\n3\n4\n5\n6\n7\n8");
+  await box(page).fill("1\n2\n3\n4\n5\n6\n7\n8\n9\n10");
   const capped = (await boxOf(box(page))).height;
   expect(capped).toBeGreaterThan(three);
   expect(capped).toBeLessThanOrEqual(161);
