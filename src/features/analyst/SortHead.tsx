@@ -25,7 +25,7 @@ export function SortHead<K extends string>({
   firstDir?: "asc" | "desc";
   align?: "left" | "right";
   className?: string;
-  /** Pins the header with its column when the table scrolls sideways (see `Table`). */
+  /** Pins the header with its column when the table scrolls sideways (see `ScrollTable`). */
   pin?: "start";
 }) {
   const active = sort?.key === column;
