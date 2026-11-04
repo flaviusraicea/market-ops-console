@@ -104,23 +104,24 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 28. Orbispan $0.32M $0.35M $0.35M 91.9% −9.3% 1,157
 29. Calyx $0.23M $0.24M $0.26M 93.4% −10.9% 858
 30. Zephyra $0.15M $0.16M $0.16M 92.6% −10.0% 1,052
-31. Attainment
-32. View as table of the markets map
-33. Germany, off track, 92.0% attainment
-34. Drill into North America
-35. Drill into Europe
-36. Drill into APAC
-37. Drill into LATAM
-38. View as table of the Germany revenue chart
-39. Month
-40. Anomaly: March 2026 revenue fell 27 percent versus February
-41. View as table of the compare radar chart
-42. France, Attainment: 96.4%
-43. View as table of the attainment by month heat map
-44. Germany, May 2026, 92.2% of forecast
-45. Alerts0 rules · Growth below · Attainment below
-46. Open assistant
-47. Open command palette
+31. Differs from source: Germany attainment
+32. Attainment
+33. View as table of the markets map
+34. Germany, off track, 92.0% attainment
+35. Drill into North America
+36. Drill into Europe
+37. Drill into APAC
+38. Drill into LATAM
+39. View as table of the Germany revenue chart
+40. Month
+41. Anomaly: March 2026 revenue fell 27 percent versus February
+42. View as table of the compare radar chart
+43. France, Attainment: 96.4%
+44. View as table of the attainment by month heat map
+45. Germany, May 2026, 92.2% of forecast, differs from source: Series sum 92.2% · re
+46. Alerts0 rules · Growth below · Attainment below
+47. Open assistant
+48. Open command palette
 <!-- tab-order:end -->
 
 ### Shortcuts
