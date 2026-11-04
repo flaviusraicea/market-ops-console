@@ -69,8 +69,6 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
               <>
                 {geoState.status === "ready" ? (
                   <LazyChoropleth
-                    // The drill re-renders the heat map and the time series too: the frame cuts.
-                    cutFrame
                     geo={geoState.geo}
                     values={map.values}
                     metric={map.metric}

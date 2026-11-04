@@ -139,17 +139,9 @@ body {
 
 /* A map market draws its ring as a stroke along the country's outline (Choropleth), because a native outline on an
    SVG path boxes the bounding rectangle. */
+[data-focus-ring="stroke"]:focus,
 [data-focus-ring="stroke"]:focus-visible {
   outline: none;
-}
-
-/* The map's frame move repaints the whole SVG on each frame, so for its 240 ms the countries drop their strokes
-   and the group draws for speed (Choropleth). */
-[data-moving] path {
-  stroke: none;
-}
-[data-moving] {
-  shape-rendering: optimizeSpeed;
 }
 
 /* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */
