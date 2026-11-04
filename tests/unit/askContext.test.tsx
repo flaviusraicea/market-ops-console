@@ -60,4 +60,46 @@ describe("the view a question is about travels with it", () => {
     expect(sent).toHaveLength(2);
     expect(sent[1]).toEqual(sent[0]);
   });
+
+  it("labels a question by the market it names, not the page it was asked on", async () => {
+    const { stream } = recordingStream();
+    const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
+    await act(async () => result.current.ask("Why did Spain dip?", germany));
+    expect(result.current.answers[0]?.about).toBe("Spain · Mar 2026");
+  });
+
+  it("a follow-up keeps the place the previous answer was about", async () => {
+    const { sent, stream } = recordingStream();
+    const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
+    const canada: AskContext = {
+      entity: { kind: "market", marketId: "ca" },
+      period: PeriodSchema.parse("2026-05"),
+      label: "Canada · May 2026",
+    };
+    await act(async () => result.current.ask("Why did Spain dip?", canada));
+    await act(async () => result.current.ask("and in April?", canada));
+    expect(result.current.answers[1]?.about).toBe("Spain · Apr 2026");
+    expect(sent[1]?.context?.entity).toEqual({ kind: "market", marketId: "es" });
+  });
+
+  it("a follow-up after a question past the data keeps the month in view", async () => {
+    const { sent, stream } = recordingStream();
+    const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
+    await act(async () => result.current.ask("Why will Germany dip in Dec 2026?", germany));
+    await act(async () => result.current.ask("and also why?", germany));
+    expect(sent[1]?.context).toEqual({
+      entity: { kind: "market", marketId: "de" },
+      period: germany.period,
+    });
+  });
+
+  it("a second ask while the first is still loading is dropped, so a double click sends once", async () => {
+    const { sent, stream } = recordingStream();
+    const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
+    await act(async () => {
+      void result.current.ask("Why did Spain dip?", germany);
+      await result.current.ask("Why did Spain dip?", germany);
+    });
+    expect(sent).toHaveLength(1);
+  });
 });

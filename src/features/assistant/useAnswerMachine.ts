@@ -189,6 +189,7 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   const answersRef = useRef<readonly Answer[]>(answers);
   const flushers = useRef(new Map<string, () => void>());
   const seq = useRef(0);
+  const loadingScope = useRef(false);
 
   useEffect(() => {
     answersRef.current = answers;
@@ -297,24 +298,47 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   );
 
   const ask = useCallback(
-    (question: string, about?: AskContext) => {
+    async (question: string, about?: AskContext) => {
+      // Until this question's card exists nothing reads as streaming, so a double click would send it twice.
+      if (loadingScope.current) return;
       const id = `a${++seq.current}`;
       const controller = new AbortController();
-      const context = about?.period ? { entity: about.entity, period: about.period } : undefined;
+      // Read from the question as the answer's own picker reads it. The reader stays out of the first load; a lost
+      // download falls back to the view the question was asked from.
+      loadingScope.current = true;
+      const scope = await import("@/lib/stream/askedScope").catch(() => undefined);
+      loadingScope.current = false;
+      // A follow-up ("and in April?") names no place: it is about what the previous answer was about.
+      const prev = answersRef.current[answersRef.current.length - 1];
+      const inherited =
+        scope && prev?.context && scope.isFollowUp(ds, question)
+          ? scope.askedScope(ds, prev.question, prev.context)
+          : undefined;
+      const page = inherited?.entity
+        ? {
+            entity: inherited.entity,
+            // A previous question past the data claimed no month; the follow-up keeps that answer's month.
+            period: inherited.periods[inherited.periods.length - 1] ?? prev?.context?.period,
+          }
+        : about?.period
+          ? { entity: about.entity, period: about.period }
+          : undefined;
+      const context = page?.period ? { entity: page.entity, period: page.period } : undefined;
+      const label = scope?.askedLabel(ds, question, context) ?? about?.label;
       dispatch({
         id,
         action: {
           type: "ASK",
           id,
           question,
-          ...(about ? { about: about.label } : {}),
+          ...(label ? { about: label } : {}),
           ...(context ? { context } : {}),
           controller,
         },
       });
       void run(id, question, context, controller);
     },
-    [run],
+    [run, ds],
   );
 
   const stop = useCallback((id: string) => {

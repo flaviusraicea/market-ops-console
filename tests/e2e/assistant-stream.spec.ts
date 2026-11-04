@@ -84,7 +84,7 @@ test("asking twice keeps both echoes in order and the composer focused", async (
   await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(2, { timeout: 5000 });
   const echoes = page.locator('[data-slot="question-echo"]');
   await expect(echoes).toHaveText([
-    `Asked about Portfolio · May 2026${GERMANY}`,
+    `Asked about Germany · May 2026${GERMANY}`,
     "Asked about Portfolio · May 2026Which markets are at risk?",
   ]);
   await expect(box).toBeFocused();
@@ -160,4 +160,23 @@ test("axe finds no violations with an answer on screen", async ({ page }) => {
   await expect(page.getByRole("img", { name: /^High confidence/ })).toBeVisible({ timeout: 5000 });
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+});
+
+test("the echo names the market the question is about, not the page it was asked on", async ({
+  page,
+}) => {
+  await page.goto("/?region=na&market=ca");
+  await ask(page, GERMANY);
+  await expect(page.locator('[data-slot="question-echo"]')).toHaveText(
+    `Asked about Germany · May 2026${GERMANY}`,
+  );
+});
+
+test("an unknown market is named in the answer and the echo keeps the page", async ({ page }) => {
+  await page.goto("/?region=na&market=ca");
+  await ask(page, "Why did Narnia dip?");
+  await expect(page.getByText("I don't know a market called Narnia")).toBeVisible({
+    timeout: 5000,
+  });
+  await expect(page.locator('[data-slot="question-echo"]')).toContainText("Asked about Canada");
 });
