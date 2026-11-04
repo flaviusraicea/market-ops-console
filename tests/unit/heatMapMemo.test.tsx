@@ -36,7 +36,17 @@ const props = { rows, periods, label: "Attainment", onCell: vi.fn() };
 const CELLS = rows.length * periods.length;
 
 describe("HeatMap cells", () => {
-  beforeEach(() => colour.mockClear());
+  beforeEach(() => {
+    colour.mockClear();
+    // jsdom has no layout, so the month-label step keeps its default; the grid only needs the observer to exist.
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    );
+  });
   afterEach(cleanup);
 
   it("renders each cell once, then skips all of them when the parent re-renders with the same data", () => {
