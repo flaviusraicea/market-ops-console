@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+} from "react";
 
 import {
-  Table,
   TableBody,
   TableCaption,
   TableCell,
@@ -11,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PIN_CELL_CLASS, PIN_HEAD_TINTED_CLASS, ScrollTable } from "@/components/ui/scroll-table";
 import { cn } from "@/components/cn";
 import { ICON_STROKE, TriangleAlert } from "@/components/icons";
 import { formatMonthShort, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
@@ -54,6 +62,10 @@ type HeatMapProps = {
 };
 
 const NAME_COL = "6.5rem";
+/** The grid's gap between cells, and so between the name column and the first month. */
+const CELL_GAP = "2px";
+/** Where the first month column starts: past the market names and one gap. A legend under the plot starts here. */
+export const HEAT_PLOT_INSET = `calc(${NAME_COL} + ${CELL_GAP})`;
 let measureCanvas: HTMLCanvasElement | undefined;
 /** Width of the fade at a side that can still scroll, in px (Tailwind `w-6`). */
 const FADE = 24;
@@ -66,6 +78,8 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const wrapRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
   const tip = useChartTooltip();
+  // The shown cell's bottom edge, so a tooltip that would cover the card header can drop below the cell.
+  const [tipBottom, setTipBottom] = useState(0);
   const shown = useRef({ row: 0, col: 0 });
   const nCols = periods.length;
   const selectedCol = selected ? periods.indexOf(selected.period) : -1;
@@ -196,6 +210,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
     const r = rows[row];
     const cell = r?.cells[col];
     if (!r || !cell || !onAsk) return;
+    tip.hide();
     onAsk({ market: r.id, marketName: r.name, period: cell.period, momPct: cell.momPct });
   }
 
@@ -206,6 +221,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
     const wrap = wrapRef.current?.getBoundingClientRect();
     if (!r || !cell || !wrap) return;
     const box = el.getBoundingClientRect();
+    setTipBottom(box.bottom - wrap.top);
     tip.show(
       heatCellTooltip(r.name, cell, r.cells[col - 1], onAsk && (() => askAbout(row, col))),
       box.left - wrap.left + box.width / 2,
@@ -251,7 +267,10 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
         }
         const r = rows[row];
         const cell = r?.cells[col];
-        if (r && cell) onCell(r.id, cell.period);
+        if (r && cell) {
+          tip.hide();
+          onCell(r.id, cell.period);
+        }
       }
     }
   }
@@ -264,10 +283,13 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const handlers = useMemo<CellHandlers>(
     () => ({
       select: (row, col) => {
-        const { rows: rs, onCell: select } = latest.current;
+        const { rows: rs, onCell: select, tip: t } = latest.current;
         const rowData = rs[row];
         const cell = rowData?.cells[col];
-        if (rowData && cell) select(rowData.id, cell.period);
+        if (!rowData || !cell) return;
+        // A drill changes what the cell means: the tooltip goes with it.
+        t.hide();
+        select(rowData.id, cell.period);
       },
       keyDown: (e, row, col) => latest.current.onKeyDown(e, row, col),
       mouseMove: (e, row, col) => {
@@ -303,8 +325,13 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
           aria-label={label}
           aria-rowcount={rows.length + 1}
           aria-colcount={nCols + 1}
-          className="grid min-w-[26rem] gap-[2px] bg-surface"
-          style={{ gridTemplateColumns: `${NAME_COL} repeat(${nCols}, minmax(0, 1fr))` }}
+          className="grid min-w-[26rem] gap-[var(--heat-gap)] bg-surface"
+          style={
+            {
+              gridTemplateColumns: `${NAME_COL} repeat(${nCols}, minmax(0, 1fr))`,
+              "--heat-gap": CELL_GAP,
+            } as CSSProperties // CSSProperties has no index for custom properties
+          }
         >
           <div ref={headerRef} role="row" aria-rowindex={1} className="contents">
             <div
@@ -382,7 +409,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
           aria-hidden
           data-slot="scroll-fade"
           className="pointer-events-none absolute inset-y-0 w-6 bg-gradient-to-r from-surface to-transparent"
-          style={{ left: NAME_COL }}
+          style={{ left: HEAT_PLOT_INSET }}
         />
       ) : null}
       {edges.end ? (
@@ -393,7 +420,13 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
         />
       ) : null}
       {tip.open && tip.content ? (
-        <ChartTooltip {...tip.content} left={tip.left} top={tip.top} onHover={tip.hover} />
+        <ChartTooltip
+          {...tip.content}
+          left={tip.left}
+          top={tip.top}
+          bottom={tipBottom}
+          onHover={tip.hover}
+        />
       ) : null}
     </div>
   );
@@ -410,11 +443,11 @@ export function HeatMapTable({
   periods: readonly string[];
 }) {
   return (
-    <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
+    <ScrollTable scrollLabel={`${caption}, scrollable`}>
       <TableCaption className="sr-only">{caption}</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead scope="col" className="sticky left-0 bg-surface-2">
+          <TableHead scope="col" data-pin="start" className={PIN_HEAD_TINTED_CLASS}>
             Market
           </TableHead>
           {periods.map((p) => (
@@ -429,7 +462,11 @@ export function HeatMapTable({
           <TableRow key={row.id}>
             <TableHead
               scope="row"
-              className="sticky left-0 bg-surface text-[length:var(--text-body)] font-medium tracking-normal text-ink normal-case"
+              data-pin="start"
+              className={cn(
+                PIN_CELL_CLASS,
+                "text-[length:var(--text-body)] font-medium tracking-normal text-ink normal-case",
+              )}
             >
               {row.name}
             </TableHead>
@@ -451,6 +488,6 @@ export function HeatMapTable({
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </ScrollTable>
   );
 }
