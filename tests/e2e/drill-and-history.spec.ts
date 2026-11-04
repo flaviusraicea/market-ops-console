@@ -26,6 +26,20 @@ test("selecting Veltrix adds product to the URL and the document title", async (
   await expect(page).toHaveTitle(/Germany · Veltrix/);
 });
 
+test("a link with an unknown value is replaced by the address of what is shown", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.goto("/?region=eu&market=xx&period=2030-01&mode=executive");
+  await expect(page).toHaveURL(/\/\?region=eu&mode=executive$/);
+  await expect(
+    page.getByRole("navigation", { name: "Drill path" }).locator("[aria-current=page]"),
+  ).toHaveText("Europe");
+  // Replaced, not pushed: Back leaves the bad address behind.
+  await page.goBack();
+  await expect(page).toHaveURL(/\/\?mode=executive$/);
+});
+
 test("a deep link renders every part of the state", async ({ page }) => {
   await open(page, "/?region=eu&market=de&product=veltrix&period=2026-03&mode=analyst");
   const crumbs = page.getByRole("navigation", { name: "Drill path" });
