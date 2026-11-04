@@ -42,6 +42,8 @@ export type HeatCell = {
   anomaly?: string | undefined;
   /** Set when the series sum differs from the reported figure: the cell gets a mark and the tooltip a line. */
   differs?: string | undefined;
+  /** The reported figure on its own, for the cell's accessible name; the tooltip carries both. */
+  reported?: string | undefined;
 };
 export type HeatRow = { id: string; name: string; cells: readonly HeatCell[] };
 

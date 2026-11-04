@@ -326,6 +326,7 @@ describe("reported vs summed attainment (Differs from source)", () => {
     const { rows } = analystVM(ds, ctx).heatMap;
     const germany = rows.find((r) => r.id === "de")!;
     expect(germany.cells.at(-1)?.differs).toBe("Series sum 92.2% · reported KPI 92.0%");
+    expect(germany.cells.at(-1)?.reported).toBe("92.0%");
     expect(germany.cells.slice(0, -1).every((c) => c.differs === undefined)).toBe(true);
     expect(rows.every((r) => r.cells.at(-1)?.differs !== undefined)).toBe(true);
   });

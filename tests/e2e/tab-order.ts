@@ -126,7 +126,7 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "France, Attainment: 96.4%",
       "View as table of the attainment by month heat map",
       "Differs from source: latest month",
-      "Germany, May 2026, 92.2% of forecast, differs from source: Series sum 92.2% · re",
+      "Germany, May 2026, 92.2% of forecast, differs from source: reported KPI 92.0%",
       "AlertsNo rules",
       "Open assistant",
       "Open command palette",

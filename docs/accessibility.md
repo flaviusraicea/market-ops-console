@@ -120,7 +120,7 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 44. France, Attainment: 96.4%
 45. View as table of the attainment by month heat map
 46. Differs from source: latest month
-47. Germany, May 2026, 92.2% of forecast, differs from source: Series sum 92.2% · re
+47. Germany, May 2026, 92.2% of forecast, differs from source: reported KPI 92.0%
 48. AlertsNo rules
 49. Open assistant
 50. Open command palette

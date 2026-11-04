@@ -230,6 +230,8 @@ export type HeatCellVM = {
   anomaly?: string;
   /** Set when this cell's series sum differs from the reported KPI: `Series sum 92.2% · reported KPI 92.0%`. */
   differs?: string;
+  /** The reported KPI alone (`92.0%`), for the cell's short accessible name. */
+  reported?: string;
 };
 export type HeatRowVM = { id: string; name: string; cells: HeatCellVM[] };
 export type HeatMapVM = {
@@ -607,7 +609,9 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
       const pair = attainmentPair(ds, m.id, period);
       return {
         period,
-        ...(pair ? { differs: formatPairNote(pair) } : {}),
+        ...(pair
+          ? { differs: formatPairNote(pair), reported: formatPct(pair.reported, { sign: false }) }
+          : {}),
         momPct,
         value,
         display: formatPct(value, { sign: false }),
