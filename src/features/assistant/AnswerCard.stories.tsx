@@ -140,7 +140,7 @@ export const Disagreement: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvasElement.querySelector('[data-slot="question-echo"]')).toHaveTextContent(
-      "You asked, about Portfolio · May 2026:Which markets are at risk?",
+      "Asked about Portfolio · May 2026Which markets are at risk?",
     );
     const area = canvasElement.querySelector('[data-slot="chip-area"]') as HTMLElement;
     const note = area.firstElementChild as HTMLElement;
@@ -162,8 +162,9 @@ export const Stopped: Story = {
   args: { answer: stopped },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText("Stopped · partial answer")).toBeInTheDocument();
-    await expect(canvas.getByText("Partial · no sources")).toBeInTheDocument();
+    // The state sits in the header, in place of the confidence meter; the text has no trailing chip.
+    const header = canvasElement.querySelector('[data-slot="card-header"]') as HTMLElement;
+    await expect(within(header).getByText("Partial · stopped")).toBeInTheDocument();
     await expect(
       canvas.getByText("Stopped before sources arrived. Retry to get citations."),
     ).toBeInTheDocument();
@@ -180,11 +181,10 @@ export const Failed: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText(question)).toBeInTheDocument();
+    // The same AI card shell as every state: the failure is a line in the body, with Retry beside it.
     const alert = canvas.getByRole("alert");
-    await expect(within(alert).getByText("Request failed")).toBeInTheDocument();
-    await expect(
-      within(alert).getByText("The assistant could not answer. Nothing was changed."),
-    ).toBeInTheDocument();
+    await expect(alert).toHaveTextContent("Request failed · nothing was answered");
+    await expect(alert.closest(".bg-ai-bg")).not.toBeNull();
     await expect(canvas.queryByRole("img")).toBeNull();
     await userEvent.click(within(alert).getByRole("button", { name: "Retry" }));
     await expect(args.onRetry).toHaveBeenCalledOnce();
@@ -200,12 +200,10 @@ export const FailedAfterTokens: Story = {
     await expect(canvasElement.querySelector("p.font-display")).toHaveTextContent(
       dip.answer.text.slice(0, 60).trim(),
     );
-    await expect(canvas.getByText("Failed \u00b7 partial answer")).toBeInTheDocument();
-    await expect(canvas.getByText("Partial \u00b7 no sources")).toBeInTheDocument();
+    await expect(canvas.getByRole("alert")).toHaveTextContent("Request failed · partial answer");
     await expect(
       canvas.getByText("Request failed before sources arrived. Retry to get citations."),
     ).toBeInTheDocument();
-    await expect(canvas.getByRole("alert")).toHaveTextContent("Request failed");
     await expect(canvas.queryByRole("list", { name: "Citations" })).toBeNull();
   },
 };
