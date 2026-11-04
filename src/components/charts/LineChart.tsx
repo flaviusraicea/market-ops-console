@@ -246,6 +246,7 @@ function LineSvg({
           x={x}
           y={y}
           innerW={innerW}
+          innerH={innerH}
         />
       </Frame>
       <div

@@ -1,7 +1,6 @@
 "use client";
 
-import { useTooltip } from "@visx/tooltip";
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { cn } from "@/components/cn";
 import { Sparkles, ICON_STROKE } from "@/components/icons";
@@ -18,11 +17,14 @@ export type TooltipContent = {
 
 /** How long the tooltip waits before closing, so the pointer can travel from the mark to its action. */
 const HIDE_GRACE_MS = 150;
+/** The closest a flipping tooltip comes to the top of the viewport. */
+const COLLISION_PADDING = 16;
 
 /** Tooltip state for one chart. Positions are in the coordinates of the chart's relative wrapper. */
 export function useChartTooltip() {
-  const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, showTooltip, hideTooltip } =
-    useTooltip<TooltipContent>();
+  const [state, setState] = useState<{ content: TooltipContent; left: number; top: number } | null>(
+    null,
+  );
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hovering = useRef(false);
   const grace = useRef(false);
@@ -37,16 +39,16 @@ export function useChartTooltip() {
       cancelHide();
       // A tooltip without an action has nothing to hover, so a stale flag must not hold it open.
       if (!content.action) hovering.current = false;
-      showTooltip({ tooltipData: content, tooltipLeft: left, tooltipTop: top });
+      setState({ content, left, top });
     },
-    [cancelHide, showTooltip],
+    [cancelHide],
   );
 
   const hide = useCallback(() => {
     cancelHide();
     hovering.current = false;
-    hideTooltip();
-  }, [cancelHide, hideTooltip]);
+    setState(null);
+  }, [cancelHide]);
 
   // `hideSoon` closes after a short grace. The pointer entering the tooltip cancels it, and while the pointer
   // rests on the tooltip it stays open.
@@ -55,9 +57,9 @@ export function useChartTooltip() {
     grace.current = true;
     timer.current = setTimeout(() => {
       grace.current = false;
-      if (!hovering.current) hideTooltip();
+      if (!hovering.current) setState(null);
     }, HIDE_GRACE_MS);
-  }, [cancelHide, hideTooltip]);
+  }, [cancelHide]);
 
   const hover = useCallback(
     (inside: boolean) => {
@@ -73,20 +75,21 @@ export function useChartTooltip() {
 
   useEffect(() => cancelHide, [cancelHide]);
 
+  const open = state !== null;
   useEffect(() => {
-    if (!tooltipOpen) return;
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") hide();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [tooltipOpen, hide]);
+  }, [open, hide]);
 
   return {
-    open: tooltipOpen,
-    content: tooltipData,
-    left: tooltipLeft ?? 0,
-    top: tooltipTop ?? 0,
+    open,
+    content: state?.content,
+    left: state?.left ?? 0,
+    top: state?.top ?? 0,
     show,
     hide,
     hideSoon,
@@ -104,6 +107,7 @@ export function ChartTooltip({
   top,
   onHover,
   keepInside = false,
+  bottom,
 }: TooltipContent & {
   left: number;
   top: number;
@@ -113,6 +117,12 @@ export function ChartTooltip({
    * inside the frame. Off for cells, where the anchor is the cell's top edge and below would cover the cell.
    */
   keepInside?: boolean;
+  /**
+   * For a cell: the mark's bottom edge. The box sits above the mark and drops below it when above would
+   * cover what is over the chart (the card header and its View as table button) or come within 16 px of the
+   * top of the viewport.
+   */
+  bottom?: number | undefined;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   // Near either edge of the chart the box slides inward to stay whole (a phone's plot is narrow); the caret
@@ -130,6 +140,14 @@ export function ChartTooltip({
     // transform moves it without a layout pass (and without counting as a layout shift).
     // Too near the top for the box to sit above the mark: it drops below the mark when there is more room
     // there, and in a short chart that fits neither side it is held inside the chart rather than clipped.
+    if (bottom !== undefined) {
+      const h = el.offsetHeight;
+      const above = top - 8 - h;
+      const flip = above < 0 || parent.getBoundingClientRect().top + above < COLLISION_PADDING;
+      el.dataset.flip = String(flip);
+      el.style.transform = `translate(${left + shift}px, ${flip ? bottom + 8 + h : top - 8}px)`;
+      return;
+    }
     if (!keepInside) {
       el.style.transform = `translate(${left + shift}px, ${top - 8}px)`;
       return;
