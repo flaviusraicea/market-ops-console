@@ -115,3 +115,6 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 - `reportError` writes one JSON line per failure and `/api/vitals` one per vital, both to the server log. With more time: feed `reportError` to Sentry, which is one init call plus the DSN.
 - With more time: fold the Markets table's sparklines into the row at docked widths (assistant panel open), so the table keeps its trend column when it narrows.
 - With more time: stack the Analyst rows at docked widths of 1152 px and below. There the radar now draws near its minimum size (a 36 px spoke at 1024 px).
+- With more time: the Analyst toolbar's More menu. Below 1200 px the toolbar scrolls sideways as a fallback; a More menu would fold the lowest-priority controls instead.
+- With more time: the KPI tiles on a four-row layout (label, value, trend or segment bar, status line), so every tile has the same rows. Today only Revenue carries a sparkline.
+- With more time: the radar's "Compare · N markets" picker (approved, deferred): up to four markets, a legend that dims a series, and a `compare` URL parameter. Today the radar compares the markets in scope, in four colours.

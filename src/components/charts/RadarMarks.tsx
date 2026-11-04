@@ -87,6 +87,21 @@ export const RadarMarks = memo(function RadarMarks({
           />
         </g>
       ))}
+      {/* Scale ticks on the top spoke, so the rings read as 0, 50 and 100. */}
+      <g
+        aria-hidden="true"
+        className="fill-ink-muted text-[length:var(--text-caption)]"
+        textAnchor="start"
+      >
+        {[0, ...RINGS].map((r) => {
+          const [tx, ty] = pointAt(geometry, 0, r);
+          return (
+            <text key={r} x={tx + 4} y={ty} dy={r === 0 ? "-0.2em" : "0.32em"}>
+              {Math.round(r * 100)}
+            </text>
+          );
+        })}
+      </g>
       {axes.map((label, a) => {
         const [x, y] = pointAt(geometry, a, 1);
         const [lx, ly] = labelAt(geometry, a);

@@ -41,6 +41,16 @@ import { ALL_PRODUCTS } from "@/features/overview/viewModel";
 
 const MINUS = "−";
 
+/** Blue, teal, plum, green: the radar never uses the orange and gold categories, which read as status colours. A fifth and sixth market fall back to neutral inks. */
+const RADAR_COLORS = [
+  "--cat-1",
+  "--cat-3",
+  "--cat-5",
+  "--cat-6",
+  "--ink-2",
+  "--ink-muted",
+] as const;
+
 export const RADAR_AXES_GIVEN = [
   "Attainment",
   "Growth YoY",
@@ -563,7 +573,7 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
   const series: RadarSeriesVM[] = byName.slice(0, 6).map((r, i) => ({
     id: r.id,
     name: r.name,
-    color: `--cat-${i + 1}`,
+    color: RADAR_COLORS[i]!,
     values: measures.map((m, a) => {
       const v = m.get(r);
       return v === undefined ? null : scaled[a]!(v);
