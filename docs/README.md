@@ -30,3 +30,4 @@ Five checks come straight from the brief's wording: its four questions, no jank 
 - [0012-deploy-vercel.md](decisions/0012-deploy-vercel.md): Deploy on Vercel
 - [0013-performance-budgets.md](decisions/0013-performance-budgets.md): Performance budgets enforced in CI
 - [0014-content-security-policy.md](decisions/0014-content-security-policy.md): A nonce Content-Security-Policy and the standard security headers
+- [0015-chrome-ignores-density.md](decisions/0015-chrome-ignores-density.md): The header stays at Executive density in both modes

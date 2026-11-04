@@ -126,7 +126,8 @@ test("desktop: the panel is sticky, only the list scrolls, and New text appears 
     panelH: document.getElementById("assistant-panel")!.getBoundingClientRect().height,
   }));
   expect(overflow.scrolls).toBe(true);
-  expect(overflow.panelH).toBeLessThanOrEqual(640 - 56 - 32 + 1);
+  // Top is the sticky offset (header 56 + 8), bottom 16 clear: the panel lines up with the Analyst toolbar.
+  expect(overflow.panelH).toBeLessThanOrEqual(640 - 64 - 16 + 1);
   // The composer stays in view while the page is scrolled.
   await page.mouse.wheel(0, 400);
   await expect(box).toBeInViewport();

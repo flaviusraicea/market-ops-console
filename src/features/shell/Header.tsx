@@ -48,7 +48,7 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
   useDensity();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-surface shadow-header">
+    <header className="app-header sticky top-0 z-30 border-b border-border bg-surface shadow-header">
       <div
         aria-hidden
         data-slot="progress"

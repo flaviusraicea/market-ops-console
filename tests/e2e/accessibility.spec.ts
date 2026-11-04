@@ -68,12 +68,18 @@ test.describe("density", () => {
 
       await open(page, OVERVIEW);
       expect(await headerRow()).toBe(56);
+      const headerControlH = () =>
+        page
+          .locator("header.app-header")
+          .evaluate((el) => getComputedStyle(el).getPropertyValue("--control-h").trim());
+      expect(await headerControlH()).toBe("36px");
       expect(await px('[data-slot="kpi-headline"]', "fontSize")).toBe(28);
       expect(await px('[role="combobox"]', "height")).toBe(36);
       expect([await token("--row-h"), await token("--control-h")]).toEqual(["44px", "36px"]);
 
       await open(page, ANALYST);
       expect(await headerRow()).toBe(56);
+      expect(await headerControlH()).toBe("36px"); // chrome does not follow density
       expect(await px('[role="toolbar"]', "height")).toBe(48);
       expect(await px('[role="combobox"]', "height")).toBe(28);
       expect(await px("tbody tr", "height")).toBe(32);

@@ -67,4 +67,9 @@ export function toggleMotionOverride(): void {
 /** The element that a keyboard drill lands on: the page's own heading, marked by the view that renders it. */
 export const PAGE_HEADING_ATTR = "data-page-heading";
 /** Spread onto the heading that a keyboard drill should focus (DashboardColumn finds it by the attribute). */
-export const pageHeadingProps = { [PAGE_HEADING_ATTR]: "", tabIndex: -1 } as const;
+export const pageHeadingProps = {
+  [PAGE_HEADING_ATTR]: "",
+  tabIndex: -1,
+  // Focus arrives from code, so the element is not an operable control and draws no ring (WCAG 2.4.7).
+  "data-focus-ring": "none",
+} as const;

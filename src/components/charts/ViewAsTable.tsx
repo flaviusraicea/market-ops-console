@@ -67,13 +67,40 @@ export function TableView({
   chart,
   table,
   auto = false,
+  fixedBox = false,
 }: {
   id: string;
   pressed: boolean;
   chart: ReactNode;
   table: ReactNode;
   auto?: boolean;
+  /**
+   * The table renders inside a box the chart's size and scrolls vertically there, so toggling never changes the
+   * height of the card (or of the row of cards it sits in). The chart keeps its space while the table shows.
+   */
+  fixedBox?: boolean;
 }) {
+  if (fixedBox)
+    return (
+      <div className="relative grid grid-cols-[minmax(0,1fr)]">
+        <div
+          aria-hidden={pressed || undefined}
+          inert={pressed || undefined}
+          className={cn("[grid-area:1/1]", pressed && "invisible")}
+        >
+          {chart}
+        </div>
+        <div
+          id={id}
+          hidden={!pressed}
+          className="min-h-0 overflow-y-auto [grid-area:1/1] [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]"
+          // The grid sizes to the chart; the table never stretches it, however many rows it has.
+          style={{ contain: "size" }}
+        >
+          {table}
+        </div>
+      </div>
+    );
   return (
     <>
       <div hidden={auto ? undefined : pressed} className={cn(auto && "max-md:hidden")}>

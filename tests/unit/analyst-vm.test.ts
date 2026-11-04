@@ -122,11 +122,15 @@ describe("analyst view model", () => {
     );
   });
 
-  it("heatMapVM rows follow the grid's revenue order, at region and portfolio level", () => {
+  it("heatMapVM rows sort by revenue over the shown window, so a cell click never reorders them", () => {
     for (const ctx of [europe, base]) {
-      const vm = analystVM(ds, ctx);
-      if (vm.grid.kind !== "markets") throw new Error("expected market rows");
-      expect(vm.heatMap.rows.map((r) => r.id)).toEqual(vm.grid.rows.map((r) => r.id));
+      const rows = analystVM(ds, ctx).heatMap.rows;
+      const total = (r: (typeof rows)[number]) => r.cells.reduce((sum, c) => sum + c.actual, 0);
+      for (let i = 1; i < rows.length; i++)
+        expect(total(rows[i - 1]!)).toBeGreaterThanOrEqual(total(rows[i]!));
+      // The selected period changes with every click; the order must not.
+      const other = analystVM(ds, { ...ctx, period: "2025-06" as Period }).heatMap.rows;
+      expect(other.map((r) => r.id)).toEqual(rows.map((r) => r.id));
     }
     expect(analystVM(ds, europe).heatMap.caption).toContain("Sorted by revenue");
   });

@@ -74,6 +74,7 @@ export function ShellGrid({
     <main
       id="main"
       tabIndex={-1}
+      data-focus-ring="none"
       ref={mainRef}
       data-docked={docked ? "" : undefined}
       onTransitionEnd={onTransitionEnd}

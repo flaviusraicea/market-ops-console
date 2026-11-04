@@ -62,6 +62,59 @@ test("following the Veltrix chip selects the Veltrix row and titles the chart Ge
   await expect(page.locator("[data-landed]")).toHaveCount(1);
 });
 
+test("a chip in an older answer lands too: scrolled, centred and ringed once", async ({ page }) => {
+  await germanyAnswer(page);
+  // A second answer makes the first one older; its chips must still land.
+  await ask(page, "Why did Germany dip?");
+  const lists = page.getByRole("list", { name: "Citations" });
+  await expect(lists).toHaveCount(2, { timeout: 8000 });
+  await expect(lists.nth(1).getByRole("listitem")).toHaveCount(3);
+  await lists
+    .first()
+    .getByRole("button", { name: /^Go to Germany, Mar 2026/ })
+    .click();
+  await expect(page).toHaveURL(/cite=1/);
+  const series = timeSeries(page);
+  await expect(series).toHaveAttribute("data-landed", "");
+  await expect(series.getByRole("tooltip")).toContainText("Mar 2026");
+  await expect(series).toBeInViewport();
+  await expect(page.locator("[data-landed]")).toHaveCount(1);
+  const viewport = page.viewportSize()!.height;
+  await expect
+    .poll(
+      async () => {
+        const toolbar = await boxOf(page.getByRole("toolbar").first());
+        const card = await boxOf(series);
+        return Math.abs(
+          card.y - (toolbar.y + toolbar.height) - (viewport - (card.y + card.height)),
+        );
+      },
+      { timeout: 1500 },
+    )
+    .toBeLessThan(8);
+  await expect(series).not.toHaveAttribute("data-landed", "", { timeout: 4000 });
+});
+
+test("focus that arrives from code draws no ring, real controls keep theirs", async ({ page }) => {
+  await page.goto("/?mode=analyst");
+  await page.getByRole("main").waitFor();
+  const main = page.locator("#main");
+  await main.focus();
+  await expect(main).toHaveAttribute("data-focus-ring", "none");
+  await page.keyboard.press("Tab");
+  const outline = (loc: ReturnType<Page["locator"]>) =>
+    loc.evaluate((el) => getComputedStyle(el).outlineStyle);
+  await page.evaluate(() => document.getElementById("main")!.focus());
+  expect(await outline(main)).toBe("none");
+  const heading = page.locator("[data-page-heading]").first();
+  await expect(heading).toHaveAttribute("data-focus-ring", "none");
+  const button = page.getByRole("button").first();
+  await button.focus();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  expect(await button.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+});
+
 test("an inline citation moves focus to its chip", async ({ page }) => {
   await germanyAnswer(page);
   await page.getByRole("link", { name: "steepest drop in March" }).click();

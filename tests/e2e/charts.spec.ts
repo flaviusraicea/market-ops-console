@@ -60,14 +60,15 @@ test("the radar compares Units YoY, pads its axes and draws the selected market 
   expect(order).toHaveLength(5);
 });
 
-test("the heat map marks the anomaly month in the grid, the tooltip and the table", async ({
+test("the heat map flags the anomaly month in the cell name, the tooltip and the table", async ({
   page,
 }) => {
   await open(page, EUROPE);
   const heat = card(page, /Attainment by month/);
   const cell = heat.locator('[data-market="de"][data-period="2026-03"]');
   await expect(cell).toHaveAttribute("aria-label", /anomaly$/);
-  await expect(cell.locator("svg")).toHaveCount(1);
+  // No glyph in the cell: the name, the tooltip and the table carry the flag.
+  await expect(cell.locator("svg")).toHaveCount(0);
   // One flagged month in the whole grid.
   await expect(heat.locator('[role="gridcell"][aria-label$="anomaly"]')).toHaveCount(1);
   await cell.hover();

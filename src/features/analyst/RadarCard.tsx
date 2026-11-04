@@ -36,6 +36,7 @@ export function RadarCard({ vm, rowLabel }: { vm: RadarVM; rowLabel: string }) {
       <TableView
         id={tableId}
         pressed={pressed}
+        fixedBox
         chart={<RadarChart axes={vm.axes} series={vm.series} title={vm.title} desc={desc} />}
         table={
           <RadarChartTable

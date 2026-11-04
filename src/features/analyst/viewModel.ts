@@ -639,9 +639,9 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
 }
 
 function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
-  const markets = marketsByRevenue(ds, peerMarkets(ds, ctx), ctx.period).map(({ m }) => m);
+  const markets = peerMarkets(ds, ctx);
   const periods = ds.meta.periods as Period[];
-  const rows: HeatRowVM[] = markets.map((m) => {
+  const unsorted: HeatRowVM[] = markets.map((m) => {
     let before: number | undefined;
     const cells = periods.map((period) => {
       const t = totals(
@@ -667,6 +667,10 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
     });
     return { id: m.id, name: m.name, cells };
   });
+  // Revenue over the whole shown window, not the selected month: a cell click sets the period, and rows that
+  // re-sorted under the cursor would move the cell being clicked.
+  const windowRevenue = (row: HeatRowVM) => row.cells.reduce((sum, c) => sum + c.actual, 0);
+  const rows = [...unsorted].sort((a, b) => windowRevenue(b) - windowRevenue(a));
   const scope = ctx.region ? entityName(ds, { kind: "region", regionId: ctx.region }) : "Portfolio";
   const selected = ctx.market ? { market: ctx.market, period: ctx.period } : undefined;
   const picked = rows.find((r) => r.id === selected?.market);
