@@ -91,6 +91,13 @@
   background-color: var(--surface);
   box-shadow: var(--shadow-card);
 }
+/* The selected row of any list or table: a tint and a 3 px accent edge, so a selection reads the same everywhere. */
+@utility selected-row {
+  background-color: var(--accent-soft);
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    inset 0 1px 0 var(--selected-edge);
+}
 @utility layer-raised {
   border: 1px solid var(--border);
   background-color: var(--surface-raised);
@@ -519,6 +526,13 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   [data-panel="closed"] #assistant-panel {
     display: none;
   }
+}
+/* The rail waits for the panel to finish leaving, then fades in, so the two are never on screen together. */
+[data-panel="closing"] [data-slot="assistant-rail"] {
+  visibility: hidden;
+}
+[data-panel="closed"] [data-slot="assistant-rail"] {
+  animation: scrim-in var(--dur-base) var(--ease-out);
 }
 
 /* Reduced motion: overlays cross-fade over a fixed 200 ms (popovers 100 ms) and do not move. Opacity is not

@@ -115,13 +115,13 @@ function CardHeader({
   return (
     <div
       data-slot="card-header"
-      className="flex min-h-[var(--chip-h)] items-center justify-between gap-x-3"
+      className="flex min-h-[var(--chip-h)] flex-wrap items-center justify-between gap-x-3 gap-y-1"
     >
-      <div className="flex min-w-0 items-center gap-x-2.5">
+      <div className="flex shrink-0 items-center gap-x-2.5">
         <AiLabel />
         {streaming ? <span className={CAPTION}>STREAMING…</span> : null}
       </div>
-      <div className="flex items-center gap-x-1.5">
+      <div className="ml-auto flex items-center gap-x-1.5">
         {stopped ? <Badge variant="warn">{STOPPED_BADGE}</Badge> : null}
         {streaming || stopped ? (
           <Button
