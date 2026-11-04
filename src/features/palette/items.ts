@@ -23,6 +23,8 @@ export type PaletteIcon = "market" | "region" | "product" | "view" | "ask" | "th
 export type PaletteItem = {
   id: string;
   label: string;
+  /** What the query matches against: the label without its verb ("Go to", "Switch to", "Ask:"). */
+  name: string;
   /** Right-aligned text. */
   meta?: string;
   /** `accent` colours the meta text (market status). */
@@ -41,9 +43,13 @@ type BuildState = {
   reducedMotion: boolean;
 };
 
+const MODE_NAME: Record<Mode, string> = {
+  executive: "Executive overview",
+  analyst: "Analyst deep-dive",
+};
 const MODE_LABEL: Record<Mode, string> = {
-  executive: "Switch to Executive overview",
-  analyst: "Switch to Analyst deep-dive",
+  executive: `Switch to ${MODE_NAME.executive}`,
+  analyst: `Switch to ${MODE_NAME.analyst}`,
 };
 
 /** The palette's full catalogue, in display order. Pure: the component filters and renders it. */
@@ -57,6 +63,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
       items: ds.markets.map((m) => ({
         id: `market:${m.id}`,
         label: `Go to ${m.name}`,
+        name: m.name,
         meta: `${regionName(m.regionId)} · ${STATUS_LABEL[m.kpis.status].toLowerCase()}`,
         tone: "accent" as const,
         icon: "market" as const,
@@ -72,6 +79,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
         return {
           id: `region:${r.id}`,
           label: `Go to ${r.name}`,
+          name: r.name,
           meta: `${n} ${n === 1 ? "market" : "markets"}`,
           icon: "region" as const,
           action: { kind: "region" as const, regionId: r.id },
@@ -87,6 +95,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
       items: ds.products.map((p) => ({
         id: `product:${p.id}`,
         label: `Select ${p.name}`,
+        name: p.name,
         icon: "product" as const,
         action: { kind: "product" as const, productId: p.id },
       })),
@@ -102,6 +111,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
         {
           id: `mode:${otherMode}`,
           label: MODE_LABEL[otherMode],
+          name: MODE_NAME[otherMode],
           icon: "view",
           action: { kind: "mode", mode: otherMode },
         },
@@ -113,6 +123,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
       items: SUGGESTIONS.map((text) => ({
         id: `ask:${text}`,
         label: `Ask: ${text}`,
+        name: text,
         meta: "↵ asks",
         icon: "ask" as const,
         action: { kind: "ask" as const, text },
@@ -125,6 +136,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
         {
           id: "theme:toggle",
           label: "Toggle theme",
+          name: "Toggle theme",
           icon: "theme",
           keywords: ["dark", "light"],
           action: { kind: "theme" },
@@ -132,6 +144,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
         {
           id: "theme:motion",
           label: state.reducedMotion ? "Turn reduce motion off" : "Turn reduce motion on",
+          name: "Reduce motion",
           icon: "motion",
           keywords: ["animation"],
           action: { kind: "motion" },
@@ -142,30 +155,32 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
   return groups;
 }
 
-/** A match at the start of a word (cmdk scores these about 0.8 to 0.9). When any item has one, weaker matches drop. */
-const STRONG = 0.5;
-/** A run of the query inside a word ("ana" in Canada). Scattered letters score lower and never show. */
-const WEAK = 0.1;
-/** A keyword counts only when one of its words starts with the query: "ana" finds Analyst, not "animation". */
+/** A keyword whose word starts with the query ranks with a match at the start of the name. */
 const KEYWORD = 0.9;
 
-/** How well `item` matches `q`: cmdk's fuzzy score on the label, or a keyword's whole-word prefix. */
+const words = (text: string) =>
+  text
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+
+/**
+ * How well `item` matches `q`, or 0 when it does not. Only the name counts, never the verb before it, and only as a
+ * prefix: of the whole name, of a word in it, or of a word in a keyword. "gy" finds nothing rather than Italy, so
+ * Enter never drills into a market the reader did not mean. Among matches, cmdk's score keeps the best first.
+ */
 export function scoreItem(item: PaletteItem, q: string): number {
-  const label = defaultFilter(item.label, q, []);
   const needle = q.toLowerCase();
-  const keyword = (item.keywords ?? []).some((k) =>
-    k
-      .toLowerCase()
-      .split(/\s+/)
-      .some((word) => word.startsWith(needle)),
-  );
-  return Math.max(label, keyword ? KEYWORD : 0);
+  const name = item.name.toLowerCase();
+  const inName = name.startsWith(needle) || words(name).some((w) => w.startsWith(needle));
+  const inKeywords = (item.keywords ?? []).some((k) => words(k).some((w) => w.startsWith(needle)));
+  if (!inName && !inKeywords) return 0;
+  return Math.max(inName ? defaultFilter(item.name, q, []) : 0, inKeywords ? KEYWORD : 0);
 }
 
 /**
  * Applies the query and ranks what is left, so the highlighted first row is always the best match.
- * - Strong matches win: when any item matches at a word start, only those show; otherwise in-word runs show.
- * - Items are sorted by score inside their group, and groups by their best item. Ties keep catalogue order.
+ * Items are sorted by score inside their group, and groups by their best item; ties keep catalogue order.
  * A query that matches nothing offers `Ask: "{query}"`, so there is always a way forward.
  */
 export function filterGroups(groups: PaletteGroup[], query: string): PaletteGroup[] {
@@ -175,12 +190,10 @@ export function filterGroups(groups: PaletteGroup[], query: string): PaletteGrou
     ...g,
     items: g.items.map((item) => ({ item, score: scoreItem(item, q) })),
   }));
-  const best = Math.max(0, ...scored.flatMap((g) => g.items.map((i) => i.score)));
-  const floor = best >= STRONG ? STRONG : WEAK;
   const kept = scored
     .map((g) => {
       // Array.prototype.sort is stable, so equal scores keep catalogue order.
-      const items = g.items.filter((i) => i.score >= floor).sort((a, b) => b.score - a.score);
+      const items = g.items.filter((i) => i.score > 0).sort((a, b) => b.score - a.score);
       return { group: g, items, top: items[0]?.score ?? 0 };
     })
     .filter((g) => g.items.length > 0)
@@ -196,6 +209,7 @@ export function filterGroups(groups: PaletteGroup[], query: string): PaletteGrou
         {
           id: "ask:query",
           label: `Ask: "${q}"`,
+          name: q,
           meta: "↵ asks",
           icon: "ask",
           action: { kind: "ask", text: q },

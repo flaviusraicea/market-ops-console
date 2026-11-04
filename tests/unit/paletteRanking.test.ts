@@ -1,45 +1,48 @@
 import { describe, expect, it } from "vitest";
 
-import ds from "@/data/data.json";
-import type { Dataset, Mode } from "@/domain";
+import raw from "@/data/data.json";
+import type { Mode } from "@/domain";
+import { parseDataset } from "@/domain/dataset";
 import { buildGroups, filterGroups } from "@/features/palette/items";
 import { isApplePlatform } from "@/features/palette/useShortcutLabel";
 
+const ds = parseDataset(raw);
+
 const labels = (query: string, mode: Mode = "executive", hasMarket = false) =>
-  filterGroups(
-    buildGroups(ds as unknown as Dataset, { mode, hasMarket, reducedMotion: false }),
-    query,
-  ).flatMap((g) => g.items.map((i) => i.label));
+  filterGroups(buildGroups(ds, { mode, hasMarket, reducedMotion: false }), query).flatMap((g) =>
+    g.items.map((i) => i.label),
+  );
 
 describe("palette ranking", () => {
   it("puts the best match first: ana finds the Analyst view, not Canada", () => {
     expect(labels("ana")).toEqual(["Switch to Analyst deep-dive"]);
   });
 
-  it("drops weak matches once a word-start match exists: ger lists Germany, not the UK or France", () => {
-    expect(labels("ger")).toEqual(["Go to Germany", "Ask: Why did Germany dip?"]);
+  it("matches the name only, never the verb before it: ge finds Germany, not Europe", () => {
+    expect(labels("ge")).toEqual(["Go to Germany", "Ask: Why did Germany dip?"]);
+    expect(labels("go")).toEqual(['Ask: "go"']);
   });
 
-  it("falls back to in-word matches when nothing starts a word, never scattered letters", () => {
-    expect(labels("ana", "analyst")).toEqual(["Go to Canada"]);
+  it("matches only a prefix of the name or of a word in it, so scattered letters find nothing", () => {
+    expect(labels("gy")).toEqual(['Ask: "gy"']);
+    expect(labels("ta")).toEqual(['Ask: "ta"']);
+    expect(labels("ana", "analyst")).toEqual(['Ask: "ana"']);
   });
 
-  it("matches keywords only as whole-word prefixes", () => {
+  it("matches a keyword by the start of one of its words: ca finds Canada only", () => {
+    expect(labels("ca")).toEqual(["Go to Canada"]);
     expect(labels("dark")).toEqual(["Toggle theme"]);
     expect(labels("anim")).toEqual(["Turn reduce motion on"]);
-    expect(labels("nim")).not.toContain("Turn reduce motion on");
+    expect(labels("nim")).toEqual(['Ask: "nim"']);
   });
 
   it("orders groups by their best item, ties in catalogue order", () => {
     const groups = filterGroups(
-      buildGroups(ds as unknown as Dataset, {
-        mode: "executive",
-        hasMarket: true,
-        reducedMotion: false,
-      }),
-      "st",
+      buildGroups(ds, { mode: "executive", hasMarket: true, reducedMotion: false }),
+      "a",
     );
-    expect(groups.map((g) => g.id)).toEqual(["markets", "views"]);
+    expect(groups[0]?.id).toBe("markets");
+    expect(groups[0]?.items[0]?.label).toBe("Go to Australia");
   });
 
   it("ranks products by the same rule", () => {
