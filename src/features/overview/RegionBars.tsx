@@ -18,7 +18,7 @@ function Bar({ attainmentPct, label }: { attainmentPct: number; label: string })
     <div
       role="img"
       aria-label={label}
-      className="relative h-2 w-full min-w-[72px] rounded-pill bg-surface-2"
+      className="relative h-2 w-full min-w-[72px] rounded-none bg-surface-2"
     >
       <span
         aria-hidden
