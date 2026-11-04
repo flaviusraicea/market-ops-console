@@ -11,7 +11,6 @@ import {
 } from "react";
 
 import {
-  Table,
   TableBody,
   TableCaption,
   TableCell,
@@ -19,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PIN_CELL_CLASS, PIN_HEAD_TINTED_CLASS, ScrollTable } from "@/components/ui/scroll-table";
 import { cn } from "@/components/cn";
 import { ICON_STROKE, TriangleAlert } from "@/components/icons";
 import { formatMonthShort, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
@@ -443,11 +443,11 @@ export function HeatMapTable({
   periods: readonly string[];
 }) {
   return (
-    <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
+    <ScrollTable scrollLabel={`${caption}, scrollable`}>
       <TableCaption className="sr-only">{caption}</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead scope="col" className="sticky left-0 bg-surface-2">
+          <TableHead scope="col" data-pin="start" className={PIN_HEAD_TINTED_CLASS}>
             Market
           </TableHead>
           {periods.map((p) => (
@@ -462,7 +462,11 @@ export function HeatMapTable({
           <TableRow key={row.id}>
             <TableHead
               scope="row"
-              className="sticky left-0 bg-surface text-[length:var(--text-body)] font-medium tracking-normal text-ink normal-case"
+              data-pin="start"
+              className={cn(
+                PIN_CELL_CLASS,
+                "text-[length:var(--text-body)] font-medium tracking-normal text-ink normal-case",
+              )}
             >
               {row.name}
             </TableHead>
@@ -484,6 +488,6 @@ export function HeatMapTable({
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </ScrollTable>
   );
 }

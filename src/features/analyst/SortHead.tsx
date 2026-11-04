@@ -16,6 +16,7 @@ export function SortHead<K extends string>({
   firstDir = "desc",
   align = "right",
   className,
+  pin,
 }: {
   label: string;
   column: K;
@@ -24,12 +25,15 @@ export function SortHead<K extends string>({
   firstDir?: "asc" | "desc";
   align?: "left" | "right";
   className?: string;
+  /** Pins the header with its column when the table scrolls sideways (see `Table`). */
+  pin?: "start";
 }) {
   const active = sort?.key === column;
   const Icon = sort?.dir === "asc" ? ArrowUp : ArrowDown;
   return (
     <TableHead
       scope="col"
+      data-pin={pin}
       aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
       className={cn(align === "right" && "text-right", className)}
     >
