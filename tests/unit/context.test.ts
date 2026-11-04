@@ -55,6 +55,10 @@ describe("applyContextChange invariants", () => {
     const r = applyContextChange(meta, base as never, { market: "de" });
     expect(r.ok && r.next.region).toBe("eu");
   });
+  it("derives no region from a name on the object prototype", () => {
+    const r = applyContextChange(meta, base as never, { market: "constructor" });
+    expect(r.ok && r.next.region).toBeUndefined();
+  });
   it("rejects a product with no market", () => {
     const r = applyContextChange(meta, base as never, { product: "veltrix" });
     expect(r.ok).toBe(false);
@@ -92,5 +96,12 @@ describe("hasInvalidContextParams", () => {
     expect(invalid({ metric: "share" })).toBe(true);
     expect(invalid({ cite: "first" })).toBe(true);
     expect(invalid({ facts: "true" })).toBe(true);
+  });
+  it("treats names on the object prototype as unknown markets", () => {
+    for (const market of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+      expect(parseContextFromSearchParams(ds, { market }).market).toBeUndefined();
+      expect(parseContextFromSearchParams(ds, { market }).region).toBeUndefined();
+      expect(invalid({ market })).toBe(true);
+    }
   });
 });
