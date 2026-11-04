@@ -170,6 +170,10 @@ export function useAlertSave(api: AlertApi = alertApi) {
   return {
     rules: (list.data ?? []) as RuleRow[],
     isLoading: list.isPending,
+    /** The saved rules could not be read. Shown as a failed load, never as "0 rules". */
+    loadFailed: list.isError,
+    reloading: list.isFetching,
+    reload: useCallback(() => void list.refetch(), [list]),
     status,
     savedAt,
     failure,

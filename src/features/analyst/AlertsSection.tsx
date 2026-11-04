@@ -6,6 +6,7 @@ import { useId, useState, useSyncExternalStore } from "react";
 import { cn } from "@/components/cn";
 import { ChevronDown, ICON_STROKE } from "@/components/icons";
 import { Eyebrow } from "@/components/Eyebrow";
+import { PageNotice } from "@/components/PageNotice";
 import { Notice } from "@/components/Notice";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -57,7 +58,7 @@ export function AlertsSection({
             />
             <Eyebrow className="text-ink">Alerts</Eyebrow>
             <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-normal text-ink-muted">
-              {summaryOf(alerts.rules)}
+              {alerts.loadFailed ? "Couldn’t load rules" : summaryOf(alerts.rules)}
             </span>
           </CollapsibleTrigger>
         </h3>
@@ -86,15 +87,26 @@ export function AlertsSection({
               onDismiss={alerts.dismiss}
               onSwitchToAnalyst={onSwitchToAnalyst}
             />
-            <RuleList
-              rules={alerts.rules}
-              onDelete={alerts.remove}
-              deleteFailed={alerts.deleteFailed}
-              onDismissDeleteFailed={alerts.dismissDeleteFailed}
-              deleteReadOnly={alerts.deleteReadOnly}
-              onSwitchToAnalyst={onSwitchToAnalyst}
-              readOnly={readOnly}
-            />
+            {alerts.loadFailed ? (
+              <PageNotice
+                tone="error"
+                retrying={alerts.reloading}
+                onRetry={alerts.reload}
+                className="mb-0"
+              >
+                Couldn&rsquo;t load alert rules
+              </PageNotice>
+            ) : (
+              <RuleList
+                rules={alerts.rules}
+                onDelete={alerts.remove}
+                deleteFailed={alerts.deleteFailed}
+                onDismissDeleteFailed={alerts.dismissDeleteFailed}
+                deleteReadOnly={alerts.deleteReadOnly}
+                onSwitchToAnalyst={onSwitchToAnalyst}
+                readOnly={readOnly}
+              />
+            )}
           </div>
         </CollapsibleContent>
       </section>

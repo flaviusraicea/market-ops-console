@@ -1,12 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { ask, open } from "./helpers";
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-const notice = (page: import("@playwright/test").Page) =>
-  page.getByRole("status").filter({ hasText: "You’re offline" });
+const notice = (page: Page) => page.getByRole("status").filter({ hasText: "You’re offline" });
 
 test("a drill while offline keeps the view and the conversation, and Retry completes it once back online", async ({
   page,
