@@ -65,8 +65,8 @@ export const Live: Story = {
     const canvas = within(canvasElement);
     const advance = canvas.getByRole("button", { name: "Advance tick" });
     await waitFor(() => expect(advance).toBeEnabled());
-    // The whole row: a tick can move the revenue less than its three significant digits show.
-    const headline = () => canvasElement.textContent ?? "";
+    const headline = () =>
+      canvasElement.querySelector('[data-slot="kpi-headline"]')?.textContent?.trim() ?? "";
     const delta = () => canvasElement.querySelector('[data-slot="kpi-delta"]');
     // The drift is a few tenths of a percent, so the rounded portfolio headline may not move: the story checks
     // that the tiles are the ones computed from the drifted data, whatever they read.
