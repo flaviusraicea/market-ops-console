@@ -340,7 +340,7 @@ export function HeatMap({
       ) : null}
       <div
         ref={scrollRef}
-        className="overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]"
+        className="-m-1 overflow-x-auto p-1 [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]"
         onScroll={() => measureRef.current()}
       >
         <div

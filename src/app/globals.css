@@ -376,6 +376,46 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   transform: none;
 }
 
+/* Heat-map cell states (Fable ruling). Selected: an offset ring, a 2 px surface gap then 2 px ink, which clears 1.4.11
+   on every fill where the accent did not. Hover: a 2 px ink outline drawn inside the cell plus a small lift, so hover is
+   not a movement alone. Keyboard focus keeps the global ring, which differs from selection by colour and by the gap;
+   on a selected cell it steps outside the ink ring. Reduced motion keeps the outline and drops the lift. */
+.heat-cell {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.heat-cell:hover {
+  z-index: 1;
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+  transform: translateY(-1px) scale(1.08);
+}
+.heat-cell[aria-selected="true"],
+.heat-cell[aria-selected="true"]:hover {
+  z-index: 2;
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--ink);
+}
+.heat-cell:focus-visible,
+.heat-cell:hover:focus-visible {
+  z-index: 3;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.heat-cell[aria-selected="true"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .heat-cell:hover {
+    transform: none;
+  }
+}
+html[data-reduced-motion="true"] .heat-cell:hover {
+  transform: none;
+}
+
 /* Overlay enter and exit. Radix keeps an element mounted while its exit animation runs, so these are keyframe
    animations keyed on data-state. Enter eases on a spring (400 ms), exit is a short ease-in (200 ms). The dialog,
    palette and sheet use `transform`, the positioning utilities use `translate`, so the two never fight. */
