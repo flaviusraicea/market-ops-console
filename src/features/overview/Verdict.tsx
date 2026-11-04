@@ -28,32 +28,34 @@ const ATTENTION_TEXT = {
 export function Verdict({ verdict }: { verdict: VerdictVM }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-x-4">
-        <Eyebrow>{verdict.eyebrow}</Eyebrow>
-        <InfoTip label="About this verdict" className="mr-3">
-          {verdict.caption}
-        </InfoTip>
-        <span className="sr-only">{verdict.caption}</span>
-      </div>
+      <Eyebrow>{verdict.eyebrow}</Eyebrow>
       {/* The header's stamp is hidden under 768 px; the Overview carries it here instead. */}
       <DataStamp latestPeriod={verdict.latestPeriod} className="md:hidden" />
-      <h2
-        id="verdict-h"
-        {...pageHeadingProps}
-        className="num font-display outline-none text-[length:var(--text-display)] leading-[var(--text-display-lh)] font-semibold tracking-[var(--text-display-ls)] text-balance text-ink"
-      >
-        {verdict.segments.map((segment, i) => (
-          <span
-            key={i}
-            className={cn(
-              segment.role === "status" && STATUS_TEXT[verdict.status],
-              segment.role === "attention" && ATTENTION_TEXT[verdict.attention],
-            )}
-          >
-            {segment.text}
-          </span>
-        ))}
-      </h2>
+      {/* The ⓘ sits inline after the last word, so it reads as a footnote mark on the sentence, not a far-right control.
+          The heading keeps the global focus ring; its radius makes the ring follow the wrapped text. */}
+      <div className="text-balance">
+        <h2
+          id="verdict-h"
+          {...pageHeadingProps}
+          className="num font-display inline rounded-control text-[length:var(--text-display)] leading-[var(--text-display-lh)] font-semibold tracking-[var(--text-display-ls)] text-ink"
+        >
+          {verdict.segments.map((segment, i) => (
+            <span
+              key={i}
+              className={cn(
+                segment.role === "status" && STATUS_TEXT[verdict.status],
+                segment.role === "attention" && ATTENTION_TEXT[verdict.attention],
+              )}
+            >
+              {segment.text}
+            </span>
+          ))}
+        </h2>
+        <InfoTip label="About this verdict" className="ml-1.5 align-middle">
+          <span className="block">{verdict.caption}</span>
+          <span className="mt-1 block text-ink-muted">{verdict.statusRule}</span>
+        </InfoTip>
+      </div>
     </div>
   );
 }

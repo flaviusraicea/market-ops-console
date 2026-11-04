@@ -80,7 +80,7 @@ export function SheetSection({
       >
         <h3
           {...(pageHeading ? pageHeadingProps : {})}
-          className="flex min-w-0 flex-wrap items-baseline gap-x-3 md:flex-1"
+          className="flex min-w-0 flex-wrap items-baseline gap-x-3 rounded-control md:flex-1"
         >
           <Eyebrow id={id} className={allProducts ? "text-ink-2" : "text-ink"}>
             {eyebrow}

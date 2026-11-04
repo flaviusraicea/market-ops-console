@@ -30,7 +30,7 @@ export function EmptyState({
           <p className="font-medium text-ink">{context.about}</p>
         </div>
       ) : null}
-      <div className="flex flex-col gap-1 border-l-2 border-border pl-3">
+      <div className="flex flex-col gap-1">
         <p className="flex items-baseline gap-2">
           <Eyebrow>What changed</Eyebrow>
           <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
