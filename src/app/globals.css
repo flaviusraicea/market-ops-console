@@ -549,13 +549,22 @@ html[data-reduced-motion="true"] .heat-cell:hover {
     --panel-w: var(--assistant-w);
     transition-duration: var(--dur-enter);
   }
+  /* The rail and the panel share one grid cell, so the rail (back in the layout as soon as a close starts) sits
+     under the leaving panel instead of pushing it down. */
   .panel-column {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
     clip-path: inset(-60px -60px -60px 0);
   }
+  .panel-column > * {
+    grid-area: 1 / 1;
+  }
+  /* Right-anchored at its full width. A percentage margin, because an auto margin is treated as 0 once the panel
+     is wider than the column, which would anchor it left and push it past the viewport edge. */
   #assistant-panel {
     width: var(--assistant-w);
-    justify-self: end;
-    margin-left: auto;
+    margin-left: calc(100% - var(--assistant-w));
   }
 }
 @keyframes panel-fade-in {
@@ -571,7 +580,7 @@ html[data-reduced-motion="true"] .heat-cell:hover {
     display: none;
   }
 }
-/* Charts hold their width while the column moves (lib/panelMotion). A linear-x chart stretches horizontally only:
+/* Charts hold their width while the column moves (charts/PanelMotion). A linear-x chart stretches horizontally only:
    strokes stay their width, text and markers are hidden until the final render, then fade back. */
 [data-frozen="hold"] {
   display: flex;

@@ -1,7 +1,7 @@
 "use client";
 
 import { ParentSize } from "@visx/responsive";
-import { useCallback, useMemo, useRef, type FocusEvent, type MouseEvent } from "react";
+import { memo, useCallback, useMemo, useRef, type FocusEvent, type MouseEvent } from "react";
 
 import {
   TableBody,
@@ -69,7 +69,13 @@ export function fitRadius(width: number, axes: readonly string[]): number {
   return Math.max(radius, 24);
 }
 
-function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { width: number }) {
+const RadarSvg = memo(function RadarSvg({
+  width,
+  axes,
+  series,
+  title,
+  desc,
+}: RadarChartProps & { width: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef<Array<SVGCircleElement | null>>([]);
   const tip = useChartTooltip();
@@ -151,7 +157,7 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
       ) : null}
     </div>
   );
-}
+});
 
 /** Five-axis radar (design-system 6.10 pattern). Arrow keys walk the vertices, one tab stop. */
 export function RadarChart(props: RadarChartProps) {

@@ -3,7 +3,15 @@
 import { ParentSize } from "@visx/responsive";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
-import { useCallback, useMemo, useRef, useState, type FocusEvent, type MouseEvent } from "react";
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type FocusEvent,
+  type MouseEvent,
+} from "react";
 
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { PanelMotion } from "./PanelMotion";
@@ -95,7 +103,7 @@ function marketIdOf(f: Feature<Geometry>): string | undefined {
   return typeof id === "string" ? id : undefined;
 }
 
-function MapSvg({
+const MapSvg = memo(function MapSvg({
   width,
   height,
   geo,
@@ -323,7 +331,7 @@ function MapSvg({
       ) : null}
     </div>
   );
-}
+});
 
 /** World map with the portfolio's markets filled by a metric. Keyboard: Tab enters, arrows move, Enter selects. */
 export function Choropleth({ height: fixedHeight, ...props }: ChoroplethProps) {

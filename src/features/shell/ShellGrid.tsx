@@ -7,7 +7,7 @@ import { useHydrated } from "@/lib/useHydrated";
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { ConnectedAssistantRail } from "./AssistantRail";
 import { DashboardColumn } from "./DashboardColumn";
-import { setPanelMoving } from "@/lib/panelMotion";
+import { setPanelMoving } from "@/components/charts/PanelMotion";
 import { useAssistantRail } from "./railState";
 
 type Phase = "closed" | "opening" | "open" | "closing";
@@ -24,7 +24,7 @@ const REDUCED_FADE_MS = 150;
  *
  * Open and close animate the column itself: `--panel-w` runs 48 px to the docked width in one CSS transition, so
  * the dashboard and the panel move together. The panel keeps its full width and the column clips it on the left.
- * Charts hold their width during the move and re-render once at the end (lib/panelMotion).
+ * Charts hold their width during the move and re-render once at the end (charts/PanelMotion).
  */
 export function ShellGrid({
   dashboard,
@@ -45,6 +45,7 @@ export function ShellGrid({
   const moving = phase === "opening" || phase === "closing";
 
   const settle = () => setPhase((p) => (p === "opening" ? "open" : p === "closing" ? "closed" : p));
+  // Re-run on each phase, so a close that interrupts an open gets its own fallback instead of the open's.
   useEffect(() => {
     if (!moving) return;
     setPanelMoving(true);
@@ -55,12 +56,14 @@ export function ShellGrid({
       clearTimeout(timer);
       setPanelMoving(false);
     };
-  }, [moving]);
-  // --panel-w is not inherited, so only this element can report it.
+  }, [moving, phase]);
   const onTransitionEnd = (e: TransitionEvent<HTMLElement>) => {
+    // Only the shell transitions --panel-w (it does not inherit), so no target check is needed.
     if (e.propertyName === "--panel-w") settle();
   };
-  const docked = phase !== "closed";
+  // The column's target width: wide from the first frame of an open, narrow from the first frame of a close. The
+  // panel itself stays rendered until the close ends (data-panel), clipped by the shrinking column.
+  const docked = phase === "opening" || phase === "open";
   // The server cannot know the viewport, so it sends both: the column is hidden by CSS below 1024 px and the bar
   // above it. Once hydrated, only the one that applies stays mounted.
   const hydrated = useHydrated();
