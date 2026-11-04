@@ -13,7 +13,7 @@ The console needs a first paint that already reflects the URL, a route for the m
 
 ## Decision
 
-Next.js App Router. `data.json` is loaded and validated once on the server; client islands receive typed view models. Route handlers host the mock assistant stream and the alert store.
+Next.js App Router. `data.json` is loaded and validated once on the server; client islands receive typed view models. Route handlers host the mock assistant stream and the mock alerts endpoint, which validates, waits and can fail but stores nothing; the browser keeps the rules in `localStorage`.
 
 ## Consequences
 

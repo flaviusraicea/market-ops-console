@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Decorator } from "@storybook/nextjs-vite";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import data from "../src/data/data.json";
 import { parseDataset } from "../src/domain/dataset";
@@ -59,14 +59,6 @@ export const withProviders: Decorator = (Story, context) => (
   </ProvidersFrame>
 );
 
-const DatasetContext = createContext<Dataset | null>(null);
-
-export function useStoryDataset(): Dataset {
-  const ds = useContext(DatasetContext);
-  if (!ds) throw new Error("useStoryDataset needs the withDataset decorator");
-  return ds;
-}
-
 const ds = parseDataset(data);
 /** The parsed fixture dataset, for stories that build their view models. */
 export const dataset: Dataset = ds;
@@ -79,11 +71,9 @@ export const portfolioMay: Context = {
   basis: "month",
 };
 
-/** Per story file, for stories under features/. Exposes the dataset and the console meta. */
+/** Per story file, for stories under features/. Provides the dataset and the console meta. */
 export const withDataset: Decorator = (Story) => (
-  <DatasetContext.Provider value={ds}>
-    <DatasetProviders dataset={ds}>
-      <Story />
-    </DatasetProviders>
-  </DatasetContext.Provider>
+  <DatasetProviders dataset={ds}>
+    <Story />
+  </DatasetProviders>
 );

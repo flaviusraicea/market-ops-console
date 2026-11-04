@@ -5,7 +5,9 @@ import raw from "@/data/data.json";
 import fixtures from "@/data/fixtures.json";
 import { AlertRuleSchema } from "@/domain/alerts";
 import { parseDataset } from "@/domain/dataset";
-import { ChatRequestSchema, FixturesFileSchema, parseSseLine } from "@/domain/stream";
+import { ChatRequestSchema, FixturesFileSchema } from "@/domain/stream";
+
+import { parseSseLine } from "./sse";
 
 const clone = () => structuredClone(raw) as unknown as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -53,7 +55,7 @@ describe("DatasetSchema", () => {
   });
 });
 
-describe("parseSseLine", () => {
+describe("SseEventSchema on the wire", () => {
   it("parses a token event", () => {
     expect(parseSseLine('data: {"type":"token","value":"Three "}')).toEqual({
       type: "token",
