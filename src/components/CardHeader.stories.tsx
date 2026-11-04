@@ -30,19 +30,16 @@ export const TitleSubtitle: Story = {
   args: {
     title: "Germany",
     subtitle: "Revenue vs forecast vs prior year · Jun 2024 – May 2026 · USD",
-    caption: "Derived · sum of series",
   },
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
     await expect(c.getByText(/Revenue vs forecast/)).toBeVisible();
-    await expect(c.getByText("Derived · sum of series")).toBeVisible();
   },
 };
 
 export const WithActions: Story = {
   args: {
     title: "Markets by Attainment",
-    caption: "May 2026 · Source · data.json",
     actions: <Button variant="ghost">View as table</Button>,
   },
   play: async ({ canvasElement }) => {
