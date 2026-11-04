@@ -188,22 +188,22 @@ function MoverColumn({
         <ul className="-mx-2 flex flex-col">
           {rows.map((row) => (
             <li key={row.id} className="border-b border-grid last:border-b-0">
-              {/* The whole row is the link, so it is one button with the lift hover; the figures are its
-                  description, the name its label. */}
+              {/* The whole row is the link, so it is one button with the lift hover; its name is its visible text, with hidden separators. */}
               <button
                 type="button"
-                aria-label={`Drill into ${row.name}`}
-                aria-describedby={`${id}-${row.id}`}
                 onClick={() => select(row.id)}
                 className="lift press flex w-full items-center gap-3 rounded-control px-2 text-left hover:bg-surface-2 md:h-[var(--row-h)] max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']"
               >
                 <span className="min-w-0 flex-1 font-medium break-words text-ink max-md:flex max-md:min-h-11 max-md:items-center max-md:[grid-area:name]">
+                  <span className="sr-only">Drill into </span>
                   {row.name}
+                  <span className="sr-only">, </span>
                 </span>
                 <span className="flex md:w-[104px] max-md:justify-self-end max-md:[grid-area:status]">
                   <StatusBadge status={row.status} label={row.statusLabel} size="md" />
                 </span>
                 <span className="num w-16 text-right max-md:w-auto max-md:text-left max-md:[grid-area:growth]">
+                  <span className="sr-only">, </span>
                   <Growth pct={row.growthPct} rising={rising}>
                     {row.growth}
                   </Growth>
@@ -214,9 +214,6 @@ function MoverColumn({
                     label={row.sparkLabel}
                     color={SPARK_COLOR[row.status]}
                   />
-                </span>
-                <span id={`${id}-${row.id}`} className="sr-only">
-                  {`${row.statusLabel}, ${row.growth} on last year`}
                 </span>
               </button>
             </li>

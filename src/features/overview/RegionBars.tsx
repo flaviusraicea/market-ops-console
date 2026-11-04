@@ -1,7 +1,5 @@
 "use client";
 
-import { useId } from "react";
-
 import { StatusBadge } from "@/components/StatusBadge";
 import type { RegionId } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
@@ -25,11 +23,16 @@ function Bar({ attainmentPct, status }: { attainmentPct: number; status: RegionB
   const width = (Math.abs(delta) / (SPAN * 2)) * 100;
   const below = delta < 0;
   return (
-    <span aria-hidden className="relative block h-2 w-full min-w-[72px] bg-surface-2">
+    <span aria-hidden className="relative block h-2 w-full min-w-12 bg-surface-2 md:min-w-[72px]">
       <span
         aria-hidden
-        className={cn("absolute inset-y-0", BAR_FILL[status])}
-        style={{ width: `${width}%`, [below ? "right" : "left"]: "50%" }}
+        // Half the track, scaled: a Live tick animates transform, never width, so nothing reflows.
+        className={cn(
+          "absolute inset-y-0 w-1/2 transition-transform duration-[var(--dur-chart)] ease-[var(--ease-out)]",
+          below ? "right-1/2 origin-right" : "left-1/2 origin-left",
+          BAR_FILL[status],
+        )}
+        style={{ transform: `scaleX(${width / 50})` }}
       />
       <span aria-hidden className="absolute inset-y-[-2px] left-1/2 w-px bg-ink-2" />
     </span>
@@ -48,7 +51,6 @@ export function RegionBars({
   onSelect?: (regionId: string) => void;
 }) {
   const { ctx, setContext } = useConsoleContext();
-  const descId = useId();
   const select =
     onSelect ??
     ((region: string) =>
@@ -62,8 +64,9 @@ export function RegionBars({
       )}
     >
       <CardHeader title="By region" titleId="regions-h" subtitle={bars.subtitle} />
-      {/* Each row is one button: the whole row is the link, so it takes the lift hover. The badge column is a
-          fixed 104 px whatever the word, so every track starts at the same x. */}
+      {/* Each row is one button: the whole row is the link, so it takes the lift hover. Its name is its visible
+          text, with hidden separators: "Drill into Europe, $7.06M, At risk, 95.4%". The badge column is a fixed 104 px whatever the word, so
+          every track starts at the same x. */}
       <ul className="-mx-2 flex flex-col">
         {bars.rows.map((row) => {
           const current = ctx.region === row.id;
@@ -71,12 +74,10 @@ export function RegionBars({
             <li key={row.id} className="border-t border-grid first:border-t-0">
               <button
                 type="button"
-                aria-label={`Drill into ${row.name}`}
-                aria-describedby={`${descId}-${row.id}`}
                 onClick={() => select(row.id)}
                 {...(current ? { "aria-current": "true" as const } : {})}
                 className={cn(
-                  "lift press grid w-full grid-cols-[minmax(120px,1fr)_104px_minmax(72px,1fr)_auto] items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-surface-2",
+                  "lift press grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(48px,72px)_auto] items-center gap-3 md:grid-cols-[minmax(120px,1fr)_104px_minmax(72px,1fr)_auto] rounded-control px-2 py-2 text-left hover:bg-surface-2",
                   current && "bg-surface-2",
                 )}
               >
@@ -87,18 +88,19 @@ export function RegionBars({
                       current ? "font-semibold" : "font-medium",
                     )}
                   >
+                    <span className="sr-only">Drill into </span>
                     {row.name}
+                    <span className="sr-only">, </span>
                   </span>
                   <span className="num block text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
                     {row.revenue}
+                    <span className="sr-only">, </span>
                   </span>
                 </span>
                 <StatusBadge status={row.status} label={row.statusLabel} size="sm" />
                 <Bar attainmentPct={row.attainmentPct} status={row.status} />
-                <span id={`${descId}-${row.id}`} className="sr-only">
-                  {`${row.revenue}, ${row.attainment} of forecast, ${row.statusLabel}`}
-                </span>
-                <span aria-hidden className="num text-right font-medium text-ink">
+                <span className="num text-right font-medium text-ink">
+                  <span className="sr-only">, </span>
                   {row.attainment}
                 </span>
               </button>

@@ -331,6 +331,8 @@ test("the verdict's provenance opens in a popover on click and on hover", async 
   await expect(page.getByRole("dialog")).toContainText("Derived · sum of series");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  // The pointer is still on the button after the click; leave and come back for a fresh hover.
+  await page.mouse.move(0, 0);
   await info.hover();
   await expect(page.getByRole("dialog")).toContainText("Derived · sum of series");
 });

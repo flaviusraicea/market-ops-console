@@ -53,17 +53,17 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 40. Ask why Brazil is at risk
 41. France
 42. Ask why France is at risk
-43. China
-44. France
-45. Canada
-46. Germany
-47. Spain
+43. Drill into China, On track, +18.2%
+44. Drill into France, At risk, +11.6%
+45. Drill into Canada, On track, +10.7%
+46. Drill into Germany, Off track, −9.7%
+47. Drill into Spain, Off track, −4.6%
 48. View as table of the markets map
 49. Australia, on track, 101.8% attainment
-50. Drill into North America
-51. Drill into Europe
-52. Drill into APAC
-53. Drill into LATAM
+50. Drill into North America, $4.38M, On track, 101.0%
+51. Drill into Europe, $7.06M, At risk, 95.4%
+52. Drill into APAC, $9.49M, On track, 104.9%
+53. Drill into LATAM, $1.92M, At risk, 98.0%
 54. Collapse assistant
 55. Ask about a market or period…
 56. Send
@@ -107,10 +107,10 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 31. Attainment
 32. View as table of the markets map
 33. Germany, off track, 92.0% attainment
-34. Drill into North America
-35. Drill into Europe
-36. Drill into APAC
-37. Drill into LATAM
+34. Drill into North America, $4.38M, On track, 101.0%
+35. Drill into Europe, $7.06M, At risk, 95.4%
+36. Drill into APAC, $9.49M, On track, 104.9%
+37. Drill into LATAM, $1.92M, At risk, 98.0%
 38. View as table of the Germany revenue chart
 39. Month
 40. Anomaly: March 2026 revenue fell 27 percent versus February
@@ -118,7 +118,7 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 42. France, Attainment: 96.4%
 43. View as table of the attainment by month heat map
 44. Germany, May 2026, 92.2% of forecast
-45. Alerts0 rules · Growth below · Attainment below
+45. AlertsNo rules
 46. Open assistant
 47. Open command palette
 <!-- tab-order:end -->
@@ -223,8 +223,8 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 | `focus/bg` | graphic | 3:1 | 6.58:1 | 8.72:1 |
 | `focus/surface-raised` | graphic | 3:1 | 8.59:1 | 7.13:1 |
 | `focus/surface-overlay` | graphic | 3:1 | 8.59:1 | 6.60:1 |
-| `series-actual/surface` | graphic | 3:1 | 17.36:1 | 14.18:1 |
-| `series-forecast/surface` | graphic | 3:1 | 6.46:1 | 5.31:1 |
+| `series-actual/surface` | graphic | 3:1 | 8.59:1 | 8.01:1 |
+| `series-forecast/surface` | graphic | 3:1 | 7.19:1 | 8.37:1 |
 | `series-prior/surface` | graphic | 3:1 | 4.39:1 | 5.88:1 |
 | `cat-1/surface` | graphic | 3:1 | 6.46:1 | 5.31:1 |
 | `cat-2/surface` | graphic | 3:1 | 4.13:1 | 5.23:1 |
@@ -240,7 +240,7 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 | `border-control/accent-soft` | non-text | 3:1 | 3.60:1 | 3.78:1 |
 | `border-control/surface-raised` | non-text | 3:1 | 4.32:1 | 3.98:1 |
 | `border-control/surface-overlay` | non-text | 3:1 | 4.32:1 | 3.68:1 |
-| `map-land/surface` | non-text | 1.15:1 | 1.28:1 | 1.18:1 |
+| `map-land/surface` | non-text | 1.15:1 | 1.87:1 | 1.18:1 |
 | `border/surface` | decorative | none | 1.70:1 | 1.48:1 |
 | `border/bg` | decorative | none | 1.30:1 | 1.61:1 |
 | `border/surface-raised` | decorative | none | 1.70:1 | 1.32:1 |

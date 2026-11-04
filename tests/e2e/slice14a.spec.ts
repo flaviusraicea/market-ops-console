@@ -92,9 +92,14 @@ test("the By region bars drill, and the sentence names Europe as the drag", asyn
   await open(page);
   await expect(page.getByText("Europe is the drag.")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Drill into Europe", exact: true }).last(),
-  ).toHaveAccessibleDescription(/95\.4% of forecast/);
-  await page.getByRole("button", { name: "Drill into APAC", exact: true }).last().click();
+    page
+      .getByRole("region", { name: "By region" })
+      .getByRole("button", { name: /^Drill into Europe/ }),
+  ).toContainText("95.4%");
+  await page
+    .getByRole("region", { name: "By region" })
+    .getByRole("button", { name: /^Drill into APAC/ })
+    .click();
   await expect(page).toHaveURL(/region=apac/);
 });
 

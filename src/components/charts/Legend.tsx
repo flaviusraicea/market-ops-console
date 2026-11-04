@@ -96,10 +96,12 @@ export function Legend({
     </ul>
   );
   if (!noData) return list;
+  // The scale stays centred under the map; No data sits in the right-hand column, mirrored by an empty left one.
   return (
-    <div className="flex w-full items-start justify-center gap-x-4 max-md:flex-col max-md:gap-y-2">
-      {list}
-      <p className="flex w-[72px] shrink-0 flex-col items-center gap-1 text-center text-[length:var(--text-label)] leading-[var(--text-label-lh)] whitespace-nowrap text-ink-2 max-md:w-auto max-md:flex-row">
+    <div className="grid w-full grid-cols-[minmax(72px,1fr)_minmax(0,40rem)_minmax(72px,1fr)] items-start gap-x-4 max-md:flex max-md:flex-col max-md:gap-y-2">
+      <span aria-hidden className="max-md:hidden" />
+      <div className="flex min-w-0 justify-center">{list}</div>
+      <p className="flex w-[72px] flex-col items-center gap-1 justify-self-start text-center text-[length:var(--text-label)] leading-[var(--text-label-lh)] whitespace-nowrap text-ink-2 max-md:w-auto max-md:flex-row">
         <span
           aria-hidden
           className="block h-3 w-full min-w-6 rounded-none border border-border bg-map-land max-md:w-6"
