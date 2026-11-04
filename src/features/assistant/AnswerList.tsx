@@ -22,6 +22,19 @@ type AnswerListProps = {
   scrollSignal?: number;
 };
 
+/** A long session keeps this many cards mounted; the rest fold under "Earlier" until the reader opens them. */
+export const MAX_VISIBLE_ANSWERS = 50;
+
+/** The answers to render now and how many are folded away. Opening "Earlier" shows them all. */
+export function visibleAnswers<T>(
+  answers: readonly T[],
+  showAll: boolean,
+  cap = MAX_VISIBLE_ANSWERS,
+): { shown: readonly T[]; folded: number } {
+  if (showAll || answers.length <= cap) return { shown: answers, folded: 0 };
+  return { shown: answers.slice(answers.length - cap), folded: answers.length - cap };
+}
+
 const NEAR_BOTTOM_PX = 24;
 /** How long a smooth scroll to a new card keeps the list following the stream. */
 const FOLLOW_MS = 500;
@@ -45,6 +58,7 @@ export function AnswerList({
   const heights = useRef(0);
   const signatureRef = useRef("");
   const [leftAt, setLeftAt] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const last = answers[answers.length - 1];
   const signature = last ? `${answers.length}:${last.id}:${last.status}:${last.text.length}` : "";
   const hasAnswers = answers.length > 0;
@@ -155,6 +169,7 @@ export function AnswerList({
     return () => cancelAnimationFrame(frame);
   }, [answers]);
 
+  const { shown, folded } = visibleAnswers(answers, showAll);
   const showNewText = hasAnswers && leftAt !== null && leftAt !== signature;
   // More answer below the panel's edge: the list fades out over its last 24 px instead of cutting text off.
   const moreBelow = hasAnswers && leftAt !== null;
@@ -169,8 +184,27 @@ export function AnswerList({
           tabIndex={0}
           className="min-h-0 scroll-pb-4 overflow-y-auto overscroll-contain rounded-control"
         >
+          {folded > 0 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mb-4"
+              onClick={() => {
+                setShowAll(true);
+                // The button unmounts with the fold; hand focus to the oldest card so it is not lost to the page.
+                requestAnimationFrame(() => {
+                  const first = scrollerRef.current?.querySelector<HTMLElement>("ol > li");
+                  first?.setAttribute("tabindex", "-1");
+                  first?.focus({ preventScroll: true });
+                });
+              }}
+            >
+              Earlier · {folded} {folded === 1 ? "answer" : "answers"}
+            </Button>
+          ) : null}
           <ol className="flex flex-col gap-4" aria-busy={streaming}>
-            {answers.map((a) => (
+            {shown.map((a) => (
               <li
                 key={slotOf(a)}
                 data-answer-slot={slotOf(a)}

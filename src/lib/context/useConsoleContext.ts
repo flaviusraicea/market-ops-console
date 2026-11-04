@@ -5,7 +5,12 @@ import { useCallback, useMemo } from "react";
 
 import type { ContextPatch } from "@/domain";
 import { logEvent } from "@/lib/events";
-import { useNavigationTransition, useOptimisticContext } from "./navigation";
+import {
+  isOffline,
+  useNavigationGuard,
+  useNavigationTransition,
+  useOptimisticContext,
+} from "./navigation";
 import { applyContextChange, normalizeContext, type RawContext } from "./invariants";
 import { useConsoleMeta } from "./meta";
 import { contextParsers } from "./parsers";
@@ -22,9 +27,11 @@ export function useConsoleContext() {
   const parsers = useMemo(() => contextParsers(meta), [meta]);
   const [isPending, startTransition] = useNavigationTransition();
   const [optimistic, setOptimistic] = useOptimisticContext();
+  const guard = useNavigationGuard();
   const [url, setRaw] = useQueryStates(parsers, { shallow: false, scroll: false, startTransition });
   // While a write waits for the server, every reader already sees where it is going: the click shows at once and the
-  // data follows (the transition commit drops the optimistic value).
+  // data follows (the transition commit drops the optimistic value). A write held offline sets nothing, so the view
+  // stays as it is.
   const raw: RawContext = optimistic ?? url;
 
   const ctx = useMemo(() => normalizeContext(meta, raw), [meta, raw]);
@@ -37,7 +44,7 @@ export function useConsoleContext() {
         logEvent({ type: "invalid_context", message: result.reason });
         return;
       }
-      const { next } = result;
+      const { next, history } = result;
       const values = {
         region: next.region ?? null,
         market: next.market ?? null,
@@ -49,23 +56,38 @@ export function useConsoleContext() {
         cite: next.cite ?? null,
         facts: next.facts ?? null,
       };
-      startTransition(() => {
-        setOptimistic(values);
-        void setRaw(values, {
-          history: opts?.history ?? result.history,
-          shallow: opts?.shallow ?? false,
+      function commit() {
+        // A retried navigation keeps its notice up until it lands; any other navigation supersedes the hold.
+        if (!guard?.sendingRef.current) guard?.release();
+        startTransition(() => {
+          setOptimistic(values);
+          void setRaw(values, { history: opts?.history ?? history, shallow: opts?.shallow ?? false });
         });
-      });
-      logEvent({ type: "navigate", ctx: next });
+        logEvent({ type: "navigate", ctx: next });
+      }
+      // A change the server has to answer cannot be made offline: hold it, keep the view, offer Retry.
+      function attempt() {
+        if (!opts?.shallow && guard && isOffline()) guard.hold({ retry: attempt });
+        else commit();
+      }
+      attempt();
     },
-    [meta, ctx, setRaw, setOptimistic, startTransition],
+    [meta, ctx, setRaw, setOptimistic, startTransition, guard],
   );
 
   const reset = useCallback(() => {
-    startTransition(() => {
-      void setRaw(null, { history: "push" });
-    });
-  }, [setRaw, startTransition]);
+    function attempt() {
+      if (guard && isOffline()) {
+        guard.hold({ retry: attempt });
+        return;
+      }
+      if (!guard?.sendingRef.current) guard?.release();
+      startTransition(() => {
+        void setRaw(null, { history: "push" });
+      });
+    }
+    attempt();
+  }, [setRaw, startTransition, guard]);
 
   return { ctx, setContext, reset, isPending };
 }
