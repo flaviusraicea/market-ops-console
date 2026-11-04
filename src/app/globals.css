@@ -639,3 +639,57 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
 .answer-retry {
   animation: answer-retry-in var(--dur-fast) var(--ease);
 }
+
+/* Pinned table columns (components/ui/table): cells marked data-pin stay at their edge while the columns between
+   them scroll. The first column pins at every width. From 768 px the last one pins too, and while the table
+   overflows a 1px edge marks where columns pass under, with a 24 px fade beside the edge while that side can still
+   scroll. The fade starts from the cell's own tint (--pin-bg). Phones keep their layout. */
+[data-slot="table-container"] [data-pin="start"] {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+@media (min-width: 48rem) {
+  [data-slot="table-container"] [data-pin] {
+    position: sticky;
+    z-index: 1;
+    --pin-bg: var(--surface);
+  }
+  [data-slot="table-container"] [data-pin="end"] {
+    right: 0;
+  }
+  [data-slot="table-container"][data-overflow] [data-pin="start"] {
+    box-shadow: inset -1px 0 0 var(--border);
+  }
+  [data-slot="table-container"][data-overflow] [data-pin="end"] {
+    box-shadow: inset 1px 0 0 var(--border);
+  }
+  [data-slot="table-container"] [data-pin]::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    width: 24px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-fast) ease-out;
+  }
+  [data-slot="table-container"] [data-pin="start"]::after {
+    left: 100%;
+    background: linear-gradient(to right, var(--pin-bg), transparent);
+  }
+  [data-slot="table-container"] [data-pin="end"]::after {
+    right: 100%;
+    background: linear-gradient(to left, var(--pin-bg), transparent);
+  }
+  [data-slot="table-container"][data-scroll-start] [data-pin="start"]::after,
+  [data-slot="table-container"][data-scroll-end] [data-pin="end"]::after {
+    opacity: 1;
+  }
+  [data-slot="table-container"] tbody tr:hover [data-pin],
+  [data-slot="table-footer"] [data-pin] {
+    --pin-bg: var(--surface-2);
+  }
+  [data-slot="table-container"] tbody tr[data-state="selected"] [data-pin] {
+    --pin-bg: var(--accent-soft);
+  }
+}

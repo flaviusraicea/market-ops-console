@@ -63,6 +63,50 @@ test("the grid has Forecast and Prior year columns and a Portfolio total row", a
   }
 });
 
+test("below about 1,230 px the grid scrolls between a pinned Market column and a pinned Ask why column", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1060, height: 900 });
+  await open(page);
+  const box = page.getByRole("region", { name: "Markets, scrollable" });
+  await box.scrollIntoViewIfNeeded();
+  const edges = () =>
+    box.evaluate((el) => {
+      const row = el.querySelector("tbody tr")!;
+      const rect = (sel: string) => row.querySelector(sel)!.getBoundingClientRect();
+      const b = el.getBoundingClientRect();
+      return {
+        start: el.hasAttribute("data-scroll-start"),
+        end: el.hasAttribute("data-scroll-end"),
+        market: rect('[data-pin="start"]').left - b.left,
+        action: b.right - rect('[data-pin="end"]').right,
+      };
+    });
+  // At the start only the right edge can scroll, and both pinned columns sit at their edges.
+  let e = await edges();
+  expect(e.start).toBe(false);
+  expect(e.end).toBe(true);
+  expect(Math.abs(e.market)).toBeLessThanOrEqual(1);
+  expect(e.action).toBeGreaterThanOrEqual(0);
+  await box.evaluate((el) => (el.scrollLeft = el.scrollWidth));
+  await expect(box).toHaveAttribute("data-scroll-start", "");
+  await expect(box).not.toHaveAttribute("data-scroll-end", "");
+  e = await edges();
+  expect(Math.abs(e.market)).toBeLessThanOrEqual(1);
+  // Back at the start, Units sits under the pinned Ask why column; focus brings it clear of the pin.
+  await box.evaluate((el) => (el.scrollLeft = 0));
+  const covered = () =>
+    box.evaluate((el) => {
+      const th = [...el.querySelectorAll("th")].find((h) => h.textContent?.trim() === "Units")!;
+      const pin = th.closest("tr")!.querySelector('[data-pin="end"]')!.getBoundingClientRect();
+      return th.getBoundingClientRect().right > pin.left + 1;
+    });
+  expect(await covered()).toBe(true);
+  await box.getByRole("button", { name: "Units", exact: true }).focus();
+  const clear = !(await covered());
+  expect(clear).toBe(true);
+});
+
 test("sorting by Prior year reorders the rows and says so", async ({ page }) => {
   await open(page);
   const grid = page.getByRole("region", { name: /^Markets \d/ });

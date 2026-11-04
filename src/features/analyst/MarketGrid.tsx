@@ -122,11 +122,11 @@ function ColGroup({ cols }: { cols: ReadonlyArray<string | undefined> }) {
   );
 }
 
-const STICKY_HEAD = "sticky left-0 z-[1] bg-surface";
+const PINNED_HEAD = "bg-surface";
 
-/** The sticky first cell keeps the row's own tint so scrolled columns slide under it. */
-const STICKY_CELL =
-  "sticky left-0 z-[1] bg-surface group-hover:bg-surface-2 group-data-[state=selected]:bg-accent-soft";
+/** A pinned cell (`data-pin`) keeps the row's own tint so scrolled columns slide under it. */
+const PINNED_CELL =
+  "bg-surface group-hover:bg-surface-2 group-data-[state=selected]:bg-accent-soft";
 
 function MarketRows({
   rows,
@@ -154,7 +154,8 @@ function MarketRows({
             align="left"
             sort={sort}
             onSort={onSort}
-            className={STICKY_HEAD}
+            pin="start"
+            className={PINNED_HEAD}
           />
           <TableHead scope="col">Region</TableHead>
           <TableHead scope="col">Status</TableHead>
@@ -166,7 +167,7 @@ function MarketRows({
           <SortHead label="Share" column="share" sort={sort} onSort={onSort} />
           <SortHead label="Units" column="units" sort={sort} onSort={onSort} />
           <TableHead scope="col">24 months</TableHead>
-          <TableHead scope="col" className="px-1">
+          <TableHead scope="col" data-pin="end" className={cn(PINNED_HEAD, "px-1")}>
             <span className="sr-only">Actions</span>
           </TableHead>
         </TableRow>
@@ -174,10 +175,13 @@ function MarketRows({
       <TableBody>
         {sorted.map((r) => (
           <TableRow key={r.id} {...rowProps(false, () => setContext({ market: r.id }))}>
-            <TableCell className={cn(STICKY_CELL, "truncate font-medium text-ink")}>
-              {r.name}{" "}
-              <span className="text-[length:var(--text-caption)] font-normal text-ink-muted max-md:hidden">
-                {r.iso2}
+            <TableCell data-pin="start" className={cn(PINNED_CELL, "font-medium text-ink")}>
+              {/* The ellipsis clips an inner box, so the pinned cell's fade can reach past the cell. */}
+              <span className="block truncate">
+                {r.name}{" "}
+                <span className="text-[length:var(--text-caption)] font-normal text-ink-muted max-md:hidden">
+                  {r.iso2}
+                </span>
               </span>
             </TableCell>
             <TableCell className="max-md:px-2">
@@ -224,7 +228,7 @@ function MarketRows({
               />
             </TableCell>
             {/* 4 px each side: the 32 px button fills its 40 px column. */}
-            <TableCell className="px-1 text-right">
+            <TableCell data-pin="end" className={cn(PINNED_CELL, "px-1 text-right")}>
               <AskWhyIconButton
                 className={REVEAL}
                 label={r.askWhy.aria}
@@ -239,7 +243,7 @@ function MarketRows({
           </TableRow>
         ))}
       </TableBody>
-      <TotalRow total={total} labelSpan={3} share trailing={2} />
+      <TotalRow total={total} labelSpan={3} share trailing={1} pinEnd />
     </>
   );
 }
@@ -250,21 +254,23 @@ function TotalRow({
   labelSpan,
   share = false,
   trailing,
+  pinEnd = false,
 }: {
   total: GridTotalVM;
   labelSpan: number;
   share?: boolean;
   trailing: number;
+  /** The table pins its last column, so the footer keeps a pinned cell there too. */
+  pinEnd?: boolean;
 }) {
   return (
     <TableFooter>
       <TableRow className="hover:bg-transparent">
-        <TableCell
-          colSpan={labelSpan}
-          className="sticky left-0 z-[1] bg-surface-2 font-semibold text-ink"
-        >
-          {total.label}
+        {/* The label pins with the first column alone, so its edge lines up with the rows above. */}
+        <TableCell data-pin="start" className="bg-surface-2 font-semibold text-ink">
+          <span className="block truncate">{total.label}</span>
         </TableCell>
+        {labelSpan > 1 ? <TableCell colSpan={labelSpan - 1} /> : null}
         <TableCell className="text-right num">{total.revenue}</TableCell>
         <TableCell className="text-right num">{total.forecast}</TableCell>
         <TableCell className="text-right num">{total.priorYear}</TableCell>
@@ -275,6 +281,7 @@ function TotalRow({
         {share ? <TableCell /> : null}
         <TableCell className="text-right num">{total.units}</TableCell>
         <TableCell colSpan={trailing} />
+        {pinEnd ? <TableCell data-pin="end" className="bg-surface-2" /> : null}
       </TableRow>
     </TableFooter>
   );
@@ -307,7 +314,8 @@ function ProductRows({
             align="left"
             sort={sort}
             onSort={onSort}
-            className={STICKY_HEAD}
+            pin="start"
+            className={PINNED_HEAD}
           />
           <SortHead label="Revenue" column="revenue" sort={sort} onSort={onSort} />
           <SortHead label="Forecast" column="forecast" sort={sort} onSort={onSort} />
@@ -327,7 +335,9 @@ function ProductRows({
               key={r.id}
               {...rowProps(selected, () => setContext({ product: r.id }), landed && selected)}
             >
-              <TableCell className={cn(STICKY_CELL, "font-medium text-ink")}>{r.name}</TableCell>
+              <TableCell data-pin="start" className={cn(PINNED_CELL, "font-medium text-ink")}>
+                {r.name}
+              </TableCell>
               <TableCell className="text-right num">{r.revenue}</TableCell>
               <TableCell className="text-right num">{r.forecast}</TableCell>
               <TableCell className="text-right num">{r.priorYear}</TableCell>
