@@ -1,9 +1,8 @@
 "use client";
 
-import { localPoint } from "@visx/event";
 import { ParentSize } from "@visx/responsive";
-import { geoArea, geoNaturalEarth1, geoPath } from "d3-geo";
-import type { Feature, FeatureCollection, Geometry } from "geojson";
+import { geoNaturalEarth1, geoPath } from "d3-geo";
+import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
 import {
   useCallback,
   useLayoutEffect,
@@ -54,11 +53,11 @@ type ChoroplethProps = {
   /** Fixed height in px. Without it the map keeps a clamped aspect ratio. */
   height?: number;
   /**
-   * Whether a change of frame (a drill) moves the map. Where the drill also re-renders heavy charts beside the
-   * map, as in the Analyst view, the move cannot keep its frames under budget, so the frame cuts, as it does
-   * under reduced motion.
+   * A change of frame (a drill) cuts to the new frame instead of moving the map. Where the drill also re-renders
+   * heavy charts beside the map, as in the Analyst view, the move cannot keep its frames under budget, so the
+   * frame cuts, as it does under reduced motion.
    */
-  animateFrame?: boolean;
+  cutFrame?: boolean;
 };
 
 const STATUS_FILL: Record<MapStatus, string> = {
@@ -81,13 +80,27 @@ function mainland(f: Feature<Geometry>): Feature<Geometry> {
   let best = f.geometry.coordinates[0];
   let bestArea = -1;
   for (const coordinates of f.geometry.coordinates) {
-    const area = geoArea({ type: "Polygon", coordinates });
+    const area = ringArea(coordinates[0] ?? []);
     if (area > bestArea) {
       bestArea = area;
       best = coordinates;
     }
   }
   return best ? { ...f, geometry: { type: "Polygon", coordinates: best } } : f;
+}
+
+/**
+ * Twice the area of a ring, in square degrees. It only ranks one market's polygons against each other, where the
+ * spherical area (d3's geoArea, a larger import) gives the same order.
+ */
+function ringArea(ring: Position[]): number {
+  let sum = 0;
+  let prev = ring[ring.length - 1];
+  for (const p of ring) {
+    if (prev) sum += (prev[0] ?? 0) * (p[1] ?? 0) - (p[0] ?? 0) * (prev[1] ?? 0);
+    prev = p;
+  }
+  return Math.abs(sum);
 }
 
 function marketIdOf(f: Feature<Geometry>): string | undefined {
@@ -107,7 +120,7 @@ function MapSvg({
   selected,
   focus,
   onSelect,
-  animateFrame = true,
+  cutFrame,
 }: ChoroplethProps & { width: number; height: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const pathRefs = useRef<Array<SVGPathElement | null>>([]);
@@ -160,28 +173,17 @@ function MapSvg({
   // new: draw the new paths, start the group on that copy (FLIP) and let it settle to none. A resize does not
   // animate.
   const plotRef = useRef<SVGGElement>(null);
-  const last = useRef<{
-    scale: number;
-    translate: [number, number];
-    width: number;
-    height: number;
-  }>(null);
+  // The last frame: scale, translate x and y, width and height.
+  const last = useRef<readonly number[]>(null);
   useLayoutEffect(() => {
     const g = plotRef.current;
-    const prev = last.current;
-    last.current = { scale, translate, width, height };
-    if (
-      !animateFrame ||
-      !g ||
-      !prev ||
-      prev.width !== width ||
-      prev.height !== height ||
-      prev.scale === scale
-    )
-      return;
-    const k = prev.scale / scale;
-    const tx = prev.translate[0] - k * translate[0];
-    const ty = prev.translate[1] - k * translate[1];
+    const [x, y] = translate;
+    const [s0, x0 = 0, y0 = 0, w0, h0] = last.current ?? [];
+    last.current = [scale, x, y, width, height];
+    if (cutFrame || !g || s0 === undefined || w0 !== width || h0 !== height || s0 === scale) return;
+    const k = s0 / scale;
+    const tx = x0 - k * x;
+    const ty = y0 - k * y;
     // Hold the old view before paint, then start the move two frames later: the drill also re-renders the
     // other charts, and a transition that starts in the same frames as that commit drops frames.
     g.style.transition = "none";
@@ -196,10 +198,9 @@ function MapSvg({
     return () => {
       cancelAnimationFrame(first);
       cancelAnimationFrame(second);
-      g.style.transition = "none";
       g.style.transform = "";
     };
-  }, [scale, translate, width, height, animateFrame]);
+  }, [scale, translate, width, height, cutFrame]);
 
   // Path strings are the expensive part (d3-geo projects every vertex), and a tooltip move re-renders this
   // component, so they are built once per geometry and size.
@@ -277,8 +278,9 @@ function MapSvg({
   }
 
   function onMouse(index: number, e: MouseEvent<SVGPathElement>) {
-    const p = localPoint(wrapRef.current ?? e.currentTarget, e);
-    if (p) showFor(index, p.x, p.y);
+    // The pointer in the wrapper's own coordinates, where the tooltip is positioned.
+    const r = (wrapRef.current ?? e.currentTarget).getBoundingClientRect();
+    showFor(index, e.clientX - r.left, e.clientY - r.top);
   }
 
   const desc = `Choropleth of ${markets.length} markets coloured by ${scheme === "status" ? "status" : metricLabel.toLowerCase()} for ${periodLabel}. ${counts.on_track} on track, ${counts.at_risk} at risk, ${counts.off_track} off track. Table available via View as table.`;
