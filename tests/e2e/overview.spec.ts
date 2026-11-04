@@ -177,18 +177,19 @@ test("tab order from the skip link", async ({ page }) => {
       }),
     );
   }
-  expect(seen.slice(0, 8)).toEqual([
+  expect(seen.slice(0, 9)).toEqual([
     "Skip to content",
     "Live",
     "Paused",
     "Executive",
+    "Search and commands",
     "Switch to dark theme",
     "Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu",
     "Period",
     "Product. Select a market first.",
   ]);
-  expect(seen[8]).toBe("About this verdict");
-  expect(seen.slice(9, 12)).toEqual([
+  expect(seen[9]).toBe("About this verdict");
+  expect(seen.slice(10, 13)).toEqual([
     "Drill into North America · 2",
     "United States, on track",
     "Canada, on track",
