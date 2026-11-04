@@ -62,14 +62,17 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
           table={<HeatMapTable caption={vm.title} rows={vm.rows} periods={vm.periods} />}
         />
         {pressed ? null : (
-          <Legend
-            label="Attainment colour scale"
-            items={ATTAINMENT_LEGEND.map((b) => ({
-              label: b.label,
-              swatch: "fill",
-              color: b.token,
-            }))}
-          />
+          // The scale starts at the plot's first month column, past the 6.5rem market names (A4).
+          <div className="md:pl-[calc(6.5rem+2px)]">
+            <Legend
+              label="Attainment colour scale"
+              items={ATTAINMENT_LEGEND.map((b) => ({
+                label: b.label,
+                swatch: "fill",
+                color: b.token,
+              }))}
+            />
+          </div>
         )}
       </div>
     </SheetSection>

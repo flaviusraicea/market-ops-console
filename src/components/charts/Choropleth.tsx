@@ -2,9 +2,17 @@
 
 import { localPoint } from "@visx/event";
 import { ParentSize } from "@visx/responsive";
-import { geoNaturalEarth1, geoPath } from "d3-geo";
+import { geoArea, geoNaturalEarth1, geoPath } from "d3-geo";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
-import { useCallback, useMemo, useRef, useState, type FocusEvent, type MouseEvent } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FocusEvent,
+  type MouseEvent,
+} from "react";
 
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
@@ -54,9 +62,27 @@ const STATUS_FILL: Record<MapStatus, string> = {
 };
 
 const HEIGHT_RATIO = 0.52;
-const MIN_HEIGHT = 220;
 const MAX_HEIGHT = 420;
-const PAD = 8;
+/** Room around the fitted markets, so a border market's outline and focus ring stay inside the plot. */
+const PAD = 24;
+
+/**
+ * The part of a market that frames the map: its largest polygon. France's overseas departments and Alaska's
+ * islands would otherwise stretch a drilled Europe across the Atlantic.
+ */
+function mainland(f: Feature<Geometry>): Feature<Geometry> {
+  if (f.geometry.type !== "MultiPolygon") return f;
+  let best = f.geometry.coordinates[0];
+  let bestArea = -1;
+  for (const coordinates of f.geometry.coordinates) {
+    const area = geoArea({ type: "Polygon", coordinates });
+    if (area > bestArea) {
+      bestArea = area;
+      best = coordinates;
+    }
+  }
+  return best ? { ...f, geometry: { type: "Polygon", coordinates: best } } : f;
+}
 
 function marketIdOf(f: Feature<Geometry>): string | undefined {
   const id = f.properties?.["marketId"];
@@ -92,19 +118,62 @@ function MapSvg({
     return { land, markets };
   }, [geo, values]);
 
-  const path = useMemo(() => {
+  // The map frames the markets that matter, not the world: all of the portfolio's markets, or the drilled
+  // region's. Land outside the frame is clipped by the SVG, so Europe's five markets fill the card on a drill.
+  const framed = useMemo<FeatureCollection | undefined>(() => {
+    const shown = focus ? markets.filter((f) => focus.includes(marketIdOf(f)!)) : markets;
+    const features = shown.length ? shown : markets;
+    return features.length
+      ? { type: "FeatureCollection", features: features.map(mainland) }
+      : land
+        ? { type: "FeatureCollection", features: [land] }
+        : undefined;
+  }, [markets, focus, land]);
+
+  const { path, scale, translate } = useMemo(() => {
     const projection = geoNaturalEarth1();
-    if (land && width > 0) {
+    if (framed && width > 0) {
       projection.fitExtent(
         [
           [PAD, PAD],
           [width - PAD, height - PAD],
         ],
-        land,
+        framed,
       );
     }
-    return geoPath(projection);
-  }, [land, width, height]);
+    return {
+      path: geoPath(projection),
+      scale: projection.scale(),
+      translate: projection.translate(),
+    };
+  }, [framed, width, height]);
+
+  // A change of frame (a drill or going back up) moves the map from the old view to the new one in
+  // --dur-chart, which is 0 under reduced motion. Same projection, so the old view is an affine copy of the
+  // new: draw the new paths, start the group on that copy (FLIP) and let it settle to none. A resize does not
+  // animate.
+  const plotRef = useRef<SVGGElement>(null);
+  const last = useRef<{
+    scale: number;
+    translate: [number, number];
+    width: number;
+    height: number;
+  }>(null);
+  useLayoutEffect(() => {
+    const g = plotRef.current;
+    const prev = last.current;
+    last.current = { scale, translate, width, height };
+    if (!g || !prev || prev.width !== width || prev.height !== height || prev.scale === scale)
+      return;
+    const k = prev.scale / scale;
+    const tx = prev.translate[0] - k * translate[0];
+    const ty = prev.translate[1] - k * translate[1];
+    g.style.transition = "none";
+    g.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
+    void g.getBoundingClientRect();
+    g.style.transition = "transform var(--dur-chart) var(--ease-out)";
+    g.style.transform = "";
+  }, [scale, translate, width, height]);
 
   // Path strings are the expensive part (d3-geo projects every vertex), and a tooltip move re-renders this
   // component, so they are built once per geometry and size.
@@ -179,49 +248,58 @@ function MapSvg({
         title={scheme === "status" ? "Markets by status" : `Markets by ${metricLabel}`}
         desc={desc}
       >
-        {land ? (
-          <path d={landD} fill="var(--map-land)" stroke="var(--border)" strokeWidth={0.5} />
-        ) : null}
-        {markets.map((f, i) => {
-          const id = marketIdOf(f)!;
-          const v = values[id]!;
-          const isSelected = selected === id;
-          const dim = !!focus && !focus.includes(id);
-          return (
+        <g ref={plotRef} style={{ transformOrigin: "0 0" }}>
+          {land ? (
             <path
-              key={id}
-              ref={(el) => {
-                pathRefs.current[i] = el;
-              }}
-              d={marketD[i] ?? ""}
-              role="button"
-              tabIndex={i === keyboard.activeIndex ? 0 : -1}
-              aria-label={`${v.name}, ${v.statusLabel.toLowerCase()}, ${v.label}`}
-              aria-pressed={isSelected}
-              data-dim={dim}
-              fillOpacity={dim ? 0.6 : 1}
-              fill={`var(${scheme === "status" ? STATUS_FILL[v.status] : colourFor(metric, v.value, max)})`}
-              stroke={isSelected ? "var(--accent)" : "var(--surface)"}
-              strokeWidth={isSelected ? 2 : 1}
-              className="tween-fill cursor-pointer"
-              data-focus-ring="stroke"
-              onMouseEnter={(e) => onMouse(i, e)}
-              onMouseMove={(e) => onMouse(i, e)}
-              onMouseLeave={tip.hide}
-              onFocus={(e) => onFocus(i, e)}
-              onBlur={() => {
-                setRingIndex(null);
-                tip.hide();
-              }}
-              onClick={() => onSelect(id)}
-              onKeyDown={(e) => {
-                // A key press is keyboard use: draw the ring even if the market was focused by a click.
-                setRingIndex(i);
-                keyboard.onKeyDown(e, i);
-              }}
+              d={landD}
+              fill="var(--map-land)"
+              stroke="var(--border)"
+              strokeWidth={0.5}
+              vectorEffect="non-scaling-stroke"
             />
-          );
-        })}
+          ) : null}
+          {markets.map((f, i) => {
+            const id = marketIdOf(f)!;
+            const v = values[id]!;
+            const isSelected = selected === id;
+            const dim = !!focus && !focus.includes(id);
+            return (
+              <path
+                key={id}
+                ref={(el) => {
+                  pathRefs.current[i] = el;
+                }}
+                d={marketD[i] ?? ""}
+                role="button"
+                tabIndex={i === keyboard.activeIndex ? 0 : -1}
+                aria-label={`${v.name}, ${v.statusLabel.toLowerCase()}, ${v.label}`}
+                aria-pressed={isSelected}
+                data-dim={dim}
+                fillOpacity={dim ? 0.6 : 1}
+                fill={`var(${scheme === "status" ? STATUS_FILL[v.status] : colourFor(metric, v.value, max)})`}
+                stroke={isSelected ? "var(--accent)" : "var(--surface)"}
+                strokeWidth={isSelected ? 2 : 1}
+                vectorEffect="non-scaling-stroke"
+                className="tween-fill cursor-pointer"
+                data-focus-ring="stroke"
+                onMouseEnter={(e) => onMouse(i, e)}
+                onMouseMove={(e) => onMouse(i, e)}
+                onMouseLeave={tip.hide}
+                onFocus={(e) => onFocus(i, e)}
+                onBlur={() => {
+                  setRingIndex(null);
+                  tip.hide();
+                }}
+                onClick={() => onSelect(id)}
+                onKeyDown={(e) => {
+                  // A key press is keyboard use: draw the ring even if the market was focused by a click.
+                  setRingIndex(i);
+                  keyboard.onKeyDown(e, i);
+                }}
+              />
+            );
+          })}
+        </g>
         {ringIndex !== null && marketD[ringIndex] ? (
           // SVG has no z-order, so the ring is a copy of the focused outline drawn last. Native outlines on SVG
           // paths box the bounding rectangle; a stroke follows the country. A 2px focus stroke over a 4px surface halo keeps it visible on any fill.
@@ -256,11 +334,14 @@ export function Choropleth({ height: fixedHeight, ...props }: ChoroplethProps) {
     <div className="w-full">
       <ParentSize
         debounceTime={50}
+        // Without a fixed height the minimum is 220 px on a phone and 320 px from 1024 px, where a drilled
+        // region needs the room.
+        className={fixedHeight ? "" : "min-h-[220px] lg:min-h-[320px]"}
         parentSizeStyles={{
           width: "100%",
           ...(fixedHeight
             ? { height: fixedHeight }
-            : { aspectRatio: `1 / ${HEIGHT_RATIO}`, minHeight: MIN_HEIGHT, maxHeight: MAX_HEIGHT }),
+            : { aspectRatio: `1 / ${HEIGHT_RATIO}`, maxHeight: MAX_HEIGHT }),
         }}
       >
         {({ width, height }) =>

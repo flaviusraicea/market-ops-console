@@ -18,6 +18,8 @@ export type TooltipContent = {
 
 /** How long the tooltip waits before closing, so the pointer can travel from the mark to its action. */
 const HIDE_GRACE_MS = 150;
+/** The closest a flipping tooltip comes to the top of the viewport. */
+const COLLISION_PADDING = 16;
 
 /** Tooltip state for one chart. Positions are in the coordinates of the chart's relative wrapper. */
 export function useChartTooltip() {
@@ -104,6 +106,7 @@ export function ChartTooltip({
   top,
   onHover,
   keepInside = false,
+  bottom,
 }: TooltipContent & {
   left: number;
   top: number;
@@ -113,6 +116,12 @@ export function ChartTooltip({
    * inside the frame. Off for cells, where the anchor is the cell's top edge and below would cover the cell.
    */
   keepInside?: boolean;
+  /**
+   * For a cell: the mark's bottom edge. The box sits above the mark and drops below it when above would
+   * cover what is over the chart (the card header and its View as table button) or come within 16 px of the
+   * top of the viewport.
+   */
+  bottom?: number | undefined;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   // Near either edge of the chart the box slides inward to stay whole (a phone's plot is narrow); the caret
@@ -130,6 +139,14 @@ export function ChartTooltip({
     // transform moves it without a layout pass (and without counting as a layout shift).
     // Too near the top for the box to sit above the mark: it drops below the mark when there is more room
     // there, and in a short chart that fits neither side it is held inside the chart rather than clipped.
+    if (bottom !== undefined) {
+      const h = el.offsetHeight;
+      const above = top - 8 - h;
+      const flip = above < 0 || parent.getBoundingClientRect().top + above < COLLISION_PADDING;
+      el.dataset.flip = String(flip);
+      el.style.transform = `translate(${left + shift}px, ${flip ? bottom + 8 + h : top - 8}px)`;
+      return;
+    }
     if (!keepInside) {
       el.style.transform = `translate(${left + shift}px, ${top - 8}px)`;
       return;
