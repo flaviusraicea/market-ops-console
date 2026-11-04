@@ -1,6 +1,6 @@
 # 0013. Performance budgets enforced in CI
 
-Status: accepted, decided on 2026-11-03.
+Status: accepted, decided on 2026-11-03. Amended on 2026-11-04: the Analyst budget is 300 KB (see Consequences).
 
 ## Context
 
@@ -20,3 +20,5 @@ The check measures the browser rather than adding up the bundler's report becaus
 ## Consequences
 
 A change that adds a dependency to the first load fails the pull request with a table, before review. The check needs a Chromium, which the CI job already installs for the end-to-end tests. Lighthouse counts response headers in its script size, so its limits are the budgets plus about 10 KB.
+
+Amendment, 2026-11-04: the Alerts form (zod, react-hook-form, TanStack Query) now loads only when the folded Alerts section is opened. That took 59 KB out of the Analyst load, so its budget drops from 350 KB to 300 KB to hold the saving.
