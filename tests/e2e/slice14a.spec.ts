@@ -102,7 +102,7 @@ test("Alerts are folded by default, open on activation and stay open for the tab
   await open(page);
   const trigger = page.getByRole("button", { name: /^Alerts/ });
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
-  await expect(trigger).toContainText("0 rules");
+  await expect(trigger).toContainText("No rules");
   await trigger.click();
   await expect(page.getByRole("textbox", { name: "Attainment below" })).toBeVisible();
   await page.reload();

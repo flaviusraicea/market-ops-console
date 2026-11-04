@@ -124,7 +124,7 @@ export const TAB_ORDERS: readonly TabOrder[] = [
       "France, Attainment: 96.4%",
       "View as table of the attainment by month heat map",
       "Germany, May 2026, 92.2% of forecast",
-      "Alerts0 rules · Growth below · Attainment below",
+      "AlertsNo rules",
       "Open assistant",
       "Open command palette",
     ],
