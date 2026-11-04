@@ -143,9 +143,9 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 
 - **Skip link** is the first stop and moves focus to `#main`.
 - **Drilling** (breadcrumb, map, status strip, palette) keeps the page and moves focus to the verdict heading `#verdict-h` when the navigation came from the palette, so the new context is read first.
-- **Rail and panel** (slice 14): opening with the rail toggle moves focus to the panel heading; opening from an entry point (`Ask why`, a heat map cell, an anomaly marker, the palette) moves focus to the composer. Between 1024 and 1279 px the open panel overlays the dashboard with a scrim and Tab wraps inside it; from 1280 px it pushes the dashboard and does not trap.
+- **Rail and panel**: opening with the rail toggle moves focus to the panel heading; opening from an entry point (`Ask why`, a heat map cell, an anomaly marker, the palette) moves focus to the composer. Between 1024 and 1279 px the open panel overlays the dashboard with a scrim and Tab wraps inside it; from 1280 px it pushes the dashboard and does not trap.
 - **Live region** for "Answer complete", "Answer stopped, no sources" and "Request failed, no sources" stays mounted while the panel is collapsed, so the announcement is not lost.
-- **Palette** (slice 18) is a modal dialog: focus starts in its input, is trapped inside, and returns to the opener on `Esc` or on a command that does not move focus elsewhere.
+- **Palette** is a modal dialog: focus starts in its input, is trapped inside, and returns to the opener on `Esc` or on a command that does not move focus elsewhere.
 
 
 ## Preferences and layout
@@ -256,4 +256,4 @@ Generated from `pnpm check:contrast`, which reads `src/app/tokens.css`. Text pai
 
 - axe (`wcag2a`, `wcag2aa`, `wcag21aa`) with zero violations on Overview, Overview with an open answer, Overview with the palette open, Analyst with the rail collapsed and with it open, in light and dark.
 - The Tab order above, the five-width scroll check, reduced motion, theme persistence, density computed styles.
-- Per-feature axe and keyboard checks live in each slice's spec; stories run in light and dark (`pnpm test:stories`).
+- Per-feature axe and keyboard checks live in each feature's spec; stories run in light and dark (`pnpm test:stories`).
