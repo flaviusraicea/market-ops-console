@@ -4,11 +4,10 @@ import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
 import { InfoTip } from "@/components/InfoTip";
-import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AskWhyIconButton } from "@/features/assistant/AskWhyIconButton";
 import {
   Table,
   TableBody,
@@ -85,28 +84,12 @@ function sortRows<T extends { name: string; sort: SortValues }>(rows: T[], sort:
   });
 }
 
-/** A 32 px icon button that always fits its 40 px column; the tooltip carries the words (Fable, A1). */
-function AskWhyButton({ label, onAsk }: { label: string; onAsk: () => void }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          aria-label={label}
-          onClick={onAsk}
-          className="pointer-coarse:opacity-100 size-8 px-0 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-data-[state=selected]:opacity-100 focus-visible:opacity-100"
-        >
-          <Sparkles aria-hidden className="size-3.5 text-ai-label" strokeWidth={ICON_STROKE} />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="left">Ask why</TooltipContent>
-    </Tooltip>
-  );
-}
+/** In the grid the button shows on row hover, focus or selection; on touch it always shows. */
+const REVEAL =
+  "pointer-coarse:opacity-100 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-data-[state=selected]:opacity-100 focus-visible:opacity-100";
 
 /**
- * Fixed column widths (Fable, A1): the market name takes what is left, every other column its own fixed
+ * Fixed column widths: the market name takes what is left, every other column its own fixed
  * width, so nothing is clipped and the row's Ask why stays inside the row. The twelve columns need 1,040 px;
  * a narrower card scrolls the table with the name column pinned and the scrollbar always shown.
  */
@@ -242,7 +225,8 @@ function MarketRows({
             </TableCell>
             {/* 4 px each side: the 32 px button fills its 40 px column. */}
             <TableCell className="px-1 text-right">
-              <AskWhyButton
+              <AskWhyIconButton
+                className={REVEAL}
                 label={r.askWhy.aria}
                 onAsk={() =>
                   ask(

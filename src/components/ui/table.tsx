@@ -18,7 +18,7 @@ function Table({
         ref={attach}
         data-slot="table-container"
         // A table wider than its card always shows a thin scrollbar, and a 24 px fade at the right edge while
-        // more columns are out of view (Fable, F04).
+        // more columns are out of view.
         className="relative w-full overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]"
         onScroll={update}
         {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
