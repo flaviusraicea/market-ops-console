@@ -13,6 +13,7 @@ import {
   kpiFor,
   marketsIn,
   momChangePct,
+  periodIndex,
   statusCounts,
   type Context,
   type Dataset,
@@ -410,7 +411,8 @@ function marketOf(ds: Dataset, entity: Entity): Market | undefined {
 /** The sentence the exec reads first. A market uses its given status; a portfolio or region derives one. */
 export function verdictVM(ds: Dataset, ctx: Context): VerdictVM {
   const entity = entityOf(ctx);
-  const k = kpiFor(ds, entity, ctx.period, "month");
+  const basis = basisFor(ds, ctx);
+  const k = kpiFor(ds, entity, ctx.period, basis);
   const market = marketOf(ds, entity);
   const status = market ? market.kpis.status : statusForDerived(k.attainmentPct, k.growthPct);
 
@@ -447,7 +449,10 @@ export function verdictVM(ds: Dataset, ctx: Context): VerdictVM {
     parts.push(plain(" "), { text: phrase, role: n === 0 ? "plain" : "attention" }, plain("."));
   }
 
-  const dip = market?.kpis.anomalies.find((a) => a.type === "dip");
+  // Never cite a month later than the one in view: on a past period the dip has not happened yet.
+  const dip = market?.kpis.anomalies.find(
+    (a) => a.type === "dip" && periodIndex(ds, a.period) <= periodIndex(ds, ctx.period),
+  );
   if (market && dip) {
     const mom = momChangePct(ds, entity, dip.period);
     if (mom !== undefined) {
@@ -461,7 +466,7 @@ export function verdictVM(ds: Dataset, ctx: Context): VerdictVM {
 
   return {
     eyebrow:
-      `${entityName(ds, entity)} · ${formatPeriod(ctx.period)} · ${BASIS_LABEL.month}`.toUpperCase(),
+      `${entityName(ds, entity)} · ${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]}`.toUpperCase(),
     latestPeriod: ds.meta.latestPeriod,
     caption: market ? sourceLabel(ds, atLatest(ds, ctx)) : derivedLabel(ds, atLatest(ds, ctx)),
     statusRule: market ? STATUS_RULE_TEXT : DERIVED_STATUS_RULE_TEXT,

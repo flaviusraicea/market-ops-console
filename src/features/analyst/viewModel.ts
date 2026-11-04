@@ -7,6 +7,8 @@ import {
   attainmentPair,
   attainmentPct,
   effectiveBasis,
+  periodsForBasis,
+  type Basis,
   entityName,
   entityOf,
   factsFor,
@@ -283,9 +285,9 @@ export function gridRowCount(ds: Dataset, ctx: Context): number {
 }
 
 /** The one market order shared by the grid and the heat map: selected period's revenue, largest first. */
-function marketsByRevenue(ds: Dataset, markets: Market[], period: Period) {
+function marketsByRevenue(ds: Dataset, markets: Market[], period: Period, basis: Basis = "month") {
   return markets
-    .map((m) => ({ m, k: kpiFor(ds, { kind: "market", marketId: m.id }, period, "month") }))
+    .map((m) => ({ m, k: kpiFor(ds, { kind: "market", marketId: m.id }, period, basis) }))
     .sort((a, b) => b.k.totals.actual - a.k.totals.actual);
 }
 
@@ -307,10 +309,20 @@ function sparkFor(ds: Dataset, entity: Entity, anomalyPeriod?: string): SparkVM 
   };
 }
 
-function totalFor(ds: Dataset, entity: Entity, period: Period, label: string): GridTotalVM {
-  const t = totals(factsFor(ds, { entity, periods: [period] }));
+function totalFor(
+  ds: Dataset,
+  entity: Entity,
+  period: Period,
+  basis: Basis,
+  label: string,
+): GridTotalVM {
+  const t = totals(factsFor(ds, { entity, periods: periodsForBasis(ds, basis, period) }));
   const growth = growthPct(t);
-  const pair = entity.kind === "market" ? attainmentPair(ds, entity.marketId, period) : undefined;
+  // The reported-vs-series pair is a single-month fact.
+  const pair =
+    entity.kind === "market" && basis === "month"
+      ? attainmentPair(ds, entity.marketId, period)
+      : undefined;
   return {
     ...(pair ? { attainmentNote: formatPairNote(pair) } : {}),
     label,
@@ -324,15 +336,20 @@ function totalFor(ds: Dataset, entity: Entity, period: Period, label: string): G
   };
 }
 
+const BASIS_LABEL = { month: "Month", ytd: "YTD", mat: "MAT" } as const;
+
 function gridVM(ds: Dataset, ctx: Context): GridVM {
+  const basis = effectiveBasis(ds, ctx.basis, ctx.period);
+  const basisPeriods = periodsForBasis(ds, basis, ctx.period);
+  const periodLabel0 = `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]}`;
   if (ctx.market) {
     const market = ds.markets.find((m) => m.id === ctx.market);
     const marketId = ctx.market;
-    const periodLabel = formatPeriod(ctx.period);
+    const periodLabel = periodLabel0;
     const rows: ProductRowVM[] = ds.products
       .map((p) => {
         const entity: Entity = { kind: "product", marketId, productId: p.id };
-        const t = totals(factsFor(ds, { entity, periods: [ctx.period] }));
+        const t = totals(factsFor(ds, { entity, periods: basisPeriods }));
         const growth = growthPct(t);
         const attainment = attainmentPct(t);
         return {
@@ -368,7 +385,7 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
       caption: derivedLabel(ds, ctx.period === ds.meta.latestPeriod),
       marketId,
       rows,
-      total: totalFor(ds, { kind: "market", marketId }, ctx.period, name),
+      total: totalFor(ds, { kind: "market", marketId }, ctx.period, basis, name),
     };
   }
 
@@ -377,7 +394,7 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
   const atLatest = ctx.period === ds.meta.latestPeriod;
   const regionName = new Map(ds.regions.map((r) => [r.id, r.name]));
   // Values follow the selected period. Status, share and the anomaly list are given only for the latest month.
-  const rows: MarketRowVM[] = marketsByRevenue(ds, markets, ctx.period).map(({ m, k }) => {
+  const rows: MarketRowVM[] = marketsByRevenue(ds, markets, ctx.period, basis).map(({ m, k }) => {
     const attainment = formatPct(k.attainmentPct, { sign: false });
     const growth = formatPct(k.growthPct, { sign: true });
     const aboveButOff = m.kpis.status === "off_track" && k.attainmentPct >= 100;
@@ -415,12 +432,12 @@ function gridVM(ds: Dataset, ctx: Context): GridVM {
   return {
     kind: "markets",
     title: entity.kind === "portfolio" ? "Markets" : `Markets · ${entityName(ds, entity)}`,
-    summary: `${rows.length} markets · ${formatPeriod(ctx.period)}`,
+    summary: `${rows.length} markets · ${periodLabel0}`,
     note: "Status and share are latest month only",
-    caption: atLatest ? sourceLabel(ds) : derivedLabel(ds, false),
+    caption: atLatest && basis === "month" ? sourceLabel(ds) : derivedLabel(ds, false),
     statusRule: STATUS_RULE_TEXT,
     rows,
-    total: totalFor(ds, entity, ctx.period, entityName(ds, entity)),
+    total: totalFor(ds, entity, ctx.period, basis, entityName(ds, entity)),
   };
 }
 
@@ -517,11 +534,12 @@ function minMax(values: number[]): (v: number) => number {
 
 function radarVM(ds: Dataset, ctx: Context): RadarVM {
   const atPortfolio = !ctx.region;
+  const basis = effectiveBasis(ds, ctx.basis, ctx.period);
   const rawRows = atPortfolio
     ? ds.regions.map((r) => {
         const entity: Entity = { kind: "region", regionId: r.id };
-        const k = kpiFor(ds, entity, ctx.period, "month");
-        const portfolio = kpiFor(ds, { kind: "portfolio" }, ctx.period, "month");
+        const k = kpiFor(ds, entity, ctx.period, basis);
+        const portfolio = kpiFor(ds, { kind: "portfolio" }, ctx.period, basis);
         return {
           id: r.id,
           name: r.name,
@@ -534,13 +552,20 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
         };
       })
     : peerMarkets(ds, ctx).map((m) => {
-        const k = kpiFor(ds, { kind: "market", marketId: m.id }, ctx.period, "month");
+        const k = kpiFor(ds, { kind: "market", marketId: m.id }, ctx.period, basis);
+        // The given share is the latest month's; on YTD or MAT the share is derived from the same sums.
+        const share =
+          basis === "month"
+            ? m.kpis.sharePct
+            : (k.totals.actual /
+                kpiFor(ds, { kind: "portfolio" }, ctx.period, basis).totals.actual) *
+              100;
         return {
           id: m.id,
           name: m.name,
           attainment: k.attainmentPct,
           growth: k.growthPct,
-          share: m.kpis.sharePct,
+          share,
           mom: momChangePct(ds, { kind: "market", marketId: m.id }, ctx.period),
           unitsYoy: unitsYoyPct(ds, { kind: "market", marketId: m.id }, ctx.period),
           selected: ctx.market === m.id,
@@ -591,12 +616,22 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
   const unavailable = dropped
     .map((d) => ` · ${d} ${UNAVAILABLE_NOTE[d] ?? "unavailable"}`)
     .join("");
+  const monthlyAxes =
+    basis === "month" ? "" : " · Month-on-month and units YoY are for the month alone";
+  const radarSource =
+    basis !== "month"
+      ? `Derived from data.json${monthlyAxes}`
+      : atPortfolio
+        ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod)
+        : !dropped.includes("Units YoY")
+          ? "Attainment, growth and units YoY derived · share from data.json"
+          : "Attainment and growth derived · share from data.json";
   return {
     title: `${scope} compared`,
     subtitle: atPortfolio
-      ? `Regions${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · Relative scale: centre is the lowest compared region, outer ring the highest${unavailable}`
-      : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? ` markets · ${ALL_PRODUCTS}` : ""} · Relative scale: centre is the lowest compared market, outer ring the highest${unavailable}`,
-    caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod) : !dropped.includes("Units YoY") ? "Attainment, growth and units YoY derived · share from data.json" : "Attainment and growth derived · share from data.json"}`,
+      ? `Regions${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · Relative scale: lowest compared region nearest the centre, highest at the outer ring${unavailable}`
+      : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? ` markets · ${ALL_PRODUCTS}` : ""} · Relative scale: lowest compared market nearest the centre, highest at the outer ring${unavailable}`,
+    caption: `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]} · ${radarSource}`,
     allProducts: Boolean(ctx.product),
     axes: measures.map((m) => m.label),
     series,

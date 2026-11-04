@@ -168,7 +168,11 @@ export function useAlertSave(api: AlertApi = alertApi, initial?: readonly AlertR
       [failure, save],
     ),
     dismiss: useCallback(() => setFailure(null), []),
-    remove: useCallback((id: string) => remove.mutate({ id }), [remove]),
+    /** `fail` is the Simulate failure box: the delete is refused and the rule comes back. */
+    remove: useCallback(
+      (id: string, opts?: { fail?: boolean }) => remove.mutate({ id, fail: opts?.fail ?? false }),
+      [remove],
+    ),
     deleteFailed,
     deleteReadOnly,
     dismissDeleteFailed: useCallback(() => setDeleteFailed(false), []),
