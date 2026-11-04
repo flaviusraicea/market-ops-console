@@ -50,10 +50,10 @@ src/
   domain/                    pure, zod only, one file per concept
     dataset.ts               zod schema for data.json, parseDataset; Dataset, Market, Fact, Kpis, Entity, Scope,
                              Context, Provenance, Status, Basis
-    periods.ts               periodsForBasis (month, YTD, MAT), effectiveBasis, latestPeriod, horizon
+    periods.ts               periodsForBasis (month, YTD, MAT), effectiveBasis, latestPeriod, previousPeriod
     scope.ts                 marketsIn, factsFor(scope), entityOf, entityName, breadcrumbTrail
     metrics.ts               totals, attainmentPct, growthPct, variance, momChangePct, unitsYoyPct, kpiFor,
-                             topMovers, statusCounts, attentionCount
+                             statusCounts, attentionCount
     status.ts                the inferred status rule as text; statusForDerived for a region or the portfolio,
                              which data.json does not give; the Ask why questions
     provenance.ts            the Source and Derived labels
@@ -80,7 +80,7 @@ src/
     storedState.ts, useHydrated.ts, useMediaQuery.ts, oneOf.ts, geoAsset.ts
   components/                presentational; may not import domain or features
     ui/                      shadcn primitives restyled with tokens (badge, bottom-sheet, button, card, collapsible,
-                             command, dialog, dropdown-menu, form, input, label, select, skeleton, table, tabs,
+                             command, dialog, dropdown-menu, form, input, label, select, skeleton, table,
                              textarea, tooltip)
     charts/                  visx chart kit: Frame, ChartTooltip, Legend, ViewAsTable, useChartKeyboard, scales,
                              svgPath; LineChart, RadarChart, HeatMap, Choropleth (and LazyChoropleth), Sparkline
