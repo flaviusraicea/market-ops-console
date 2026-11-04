@@ -38,7 +38,7 @@ const CELLS = rows.length * periods.length;
 describe("HeatMap cells", () => {
   beforeEach(() => {
     colour.mockClear();
-    // jsdom has no layout, so the month-label step keeps its default; the grid only needs the observer to exist.
+    // jsdom has no layout, so every box measures zero; the grid only needs the observer and matchMedia to exist.
     vi.stubGlobal(
       "ResizeObserver",
       class {
@@ -46,6 +46,7 @@ describe("HeatMap cells", () => {
         disconnect() {}
       },
     );
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query }));
   });
   afterEach(cleanup);
 
