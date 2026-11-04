@@ -4,8 +4,9 @@ import { QueryClient, QueryClientContext, QueryClientProvider } from "@tanstack/
 import { useContext, useEffect, useState } from "react";
 
 import { Notice } from "@/components/Notice";
-import { Button } from "@/components/ui/button";
+import type { AlertRule } from "@/domain";
 import { AlertForm } from "@/features/alerts/AlertForm";
+import { alertApi } from "@/features/alerts/api";
 import { RuleList } from "@/features/alerts/RuleList";
 import { setRulesLoadFailed } from "@/features/alerts/summary";
 import { useAlertSave } from "@/features/alerts/useAlertSave";
@@ -13,10 +14,12 @@ import { useAlertSave } from "@/features/alerts/useAlertSave";
 export type AlertsBodyProps = {
   readOnly: boolean;
   onSwitchToAnalyst?: (() => void) | undefined;
+  /** The rules the shell showed, so the list is there on the first frame instead of "No rules yet". */
+  initialRules?: readonly AlertRule[] | undefined;
 };
 
-function Body({ readOnly, onSwitchToAnalyst }: AlertsBodyProps) {
-  const alerts = useAlertSave();
+function Body({ readOnly, onSwitchToAnalyst, initialRules }: AlertsBodyProps) {
+  const alerts = useAlertSave(alertApi, initialRules);
   const [loadDismissed, setLoadDismissed] = useState(false);
   useEffect(() => setRulesLoadFailed(alerts.loadFailed), [alerts.loadFailed]);
   return (
@@ -32,19 +35,6 @@ function Body({ readOnly, onSwitchToAnalyst }: AlertsBodyProps) {
           onDismiss={() => setLoadDismissed(true)}
           className="mt-0 mb-0"
         />
-      ) : null}
-      {readOnly ? (
-        <Notice
-          tone="fallback"
-          title="Read-only for Executives."
-          actions={
-            <Button type="button" variant="ghost" size="sm" onClick={() => onSwitchToAnalyst?.()}>
-              Switch to Analyst
-            </Button>
-          }
-        >
-          Switch to Analyst to edit rules.
-        </Notice>
       ) : null}
       <AlertForm
         readOnly={readOnly}
@@ -75,7 +65,7 @@ function Body({ readOnly, onSwitchToAnalyst }: AlertsBodyProps) {
 /**
  * The open Alerts section: the form, the saved rules and their mutations. It loads only when the section is
  * opened, so zod, react-hook-form and TanStack Query stay out of the Analyst first load. TanStack Query is used
- * by the alert mutations alone, so its provider lives here too.
+ * by the alert mutations alone, so its provider lives here too. The read-only notice is AlertsSection's.
  */
 export function AlertsBody(props: AlertsBodyProps) {
   // A host that already provides a client (a test, a story) keeps it.

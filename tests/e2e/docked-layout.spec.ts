@@ -106,7 +106,7 @@ for (const width of [1024, 1152]) {
       }
     });
 
-    test("heat map: month labels keep 8 px apart, inside the grid, and the latest month is labelled", async ({
+    test("heat map: opens at the latest month, labelled and in view, with 8 px between labels", async ({
       page,
     }) => {
       await docked(page, width, "/?mode=analyst");
@@ -114,22 +114,32 @@ for (const width of [1024, 1152]) {
       await grid.scrollIntoViewIfNeeded();
       const labels = grid.locator("[data-month-label]");
       await expect(labels.first()).toBeVisible();
-      const { rects, gridRight, lastColRight } = await grid.evaluate((g) => {
-        const cols = [...g.querySelectorAll("[data-month]")];
-        return {
-          rects: [...g.querySelectorAll("[data-month-label]")].map((el) => {
-            const r = el.getBoundingClientRect();
-            return { left: r.left, right: r.right };
+      // The label of the latest month is inside the visible part of the scroll box, not only inside the grid.
+      await expect
+        .poll(() =>
+          grid.evaluate((g) => {
+            const box = g.parentElement!.getBoundingClientRect();
+            const cols = [...g.querySelectorAll("[data-month]")];
+            const lastCol = cols[cols.length - 1]!;
+            const label = lastCol.querySelector("[data-month-label]")?.getBoundingClientRect();
+            return !!label && label.left >= box.left - 0.5 && label.right <= box.right + 0.5;
           }),
-          gridRight: g.getBoundingClientRect().right,
-          lastColRight: cols[cols.length - 1]?.getBoundingClientRect().right ?? Number.NaN,
-        };
-      });
-      for (let i = 1; i < rects.length; i++)
-        expect(rects[i]!.left - rects[i - 1]!.right).toBeGreaterThanOrEqual(8);
-      const last = rects[rects.length - 1]!;
-      expect(last.right).toBeLessThanOrEqual(gridRight + 0.5);
-      expect(Math.abs(last.right - lastColRight)).toBeLessThan(1);
+        )
+        .toBe(true);
+      const gaps = () =>
+        grid.evaluate((g) => {
+          const r = [...g.querySelectorAll("[data-month-label]")].map((el) =>
+            el.getBoundingClientRect(),
+          );
+          return r.slice(1).map((b, i) => b.left - r[i]!.right);
+        });
+      for (const gap of await gaps()) expect(gap).toBeGreaterThanOrEqual(8);
+      // The selected month is labelled too, and the labels around it still keep their distance.
+      await page.getByRole("gridcell", { name: /^Germany, Jun 2024/ }).click();
+      await expect(grid.locator("[data-month-label]", { hasText: "Jun ’24" })).toHaveCount(1);
+      await grid.evaluate((g) => g.parentElement!.scrollTo({ left: g.scrollWidth }));
+      await expect(labels.last()).toContainText("May ’26");
+      for (const gap of await gaps()) expect(gap).toBeGreaterThanOrEqual(8);
     });
   });
 }
