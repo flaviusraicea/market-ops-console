@@ -105,5 +105,31 @@ for (const width of [1024, 1152]) {
         if (Math.abs(a.top - b.top) < 2) expect(b.left - a.right).toBeGreaterThanOrEqual(8);
       }
     });
+
+    test("heat map: month labels keep 8 px apart, inside the grid, and the latest month is labelled", async ({
+      page,
+    }) => {
+      await docked(page, width, "/?mode=analyst");
+      const grid = page.getByRole("grid").first();
+      await grid.scrollIntoViewIfNeeded();
+      const labels = grid.locator("[data-month-label]");
+      await expect(labels.first()).toBeVisible();
+      const { rects, gridRight, lastColRight } = await grid.evaluate((g) => {
+        const cols = [...g.querySelectorAll("[data-month]")];
+        return {
+          rects: [...g.querySelectorAll("[data-month-label]")].map((el) => {
+            const r = el.getBoundingClientRect();
+            return { left: r.left, right: r.right };
+          }),
+          gridRight: g.getBoundingClientRect().right,
+          lastColRight: cols[cols.length - 1]?.getBoundingClientRect().right ?? Number.NaN,
+        };
+      });
+      for (let i = 1; i < rects.length; i++)
+        expect(rects[i]!.left - rects[i - 1]!.right).toBeGreaterThanOrEqual(8);
+      const last = rects[rects.length - 1]!;
+      expect(last.right).toBeLessThanOrEqual(gridRight + 0.5);
+      expect(Math.abs(last.right - lastColRight)).toBeLessThan(1);
+    });
   });
 }
