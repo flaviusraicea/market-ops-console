@@ -20,7 +20,7 @@ export function scopeFromValue(value: string): AlertScope {
   return "portfolio";
 }
 
-export function scopeLabel(ds: Dataset, scope: AlertScope): string {
+function scopeLabel(ds: Dataset, scope: AlertScope): string {
   if (scope === "portfolio") return "All markets";
   if ("regionId" in scope)
     return ds.regions.find((r) => r.id === scope.regionId)?.name ?? scope.regionId;

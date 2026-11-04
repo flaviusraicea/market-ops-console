@@ -21,7 +21,7 @@ const parseAsFlag = createParser<boolean>({
 const REGIONS = ["na", "eu", "apac", "latam"] as const;
 
 /** Validates against meta.periods and clamps unknown values to the latest period. */
-export function parseAsPeriod(meta: ConsoleMeta) {
+function parseAsPeriod(meta: ConsoleMeta) {
   return createParser<string>({
     parse: (v) => clampPeriodTo(meta, v),
     serialize: (v) => v,

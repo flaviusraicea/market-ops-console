@@ -1,7 +1,7 @@
 import { statusForDerived, type Dataset, type Fact, type Market } from "@/domain";
 
 /** Largest move one market makes in one tick: ±2 %. */
-export const LIVE_STEP = 0.02;
+const LIVE_STEP = 0.02;
 /** A market never drifts further than ±8 % from the figures in data.json. */
 export const LIVE_BOUND = 0.08;
 /** Milliseconds between ticks. */

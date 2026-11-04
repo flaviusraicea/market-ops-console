@@ -8,8 +8,8 @@ export type Period = z.infer<typeof PeriodSchema>;
 
 export const RegionIdSchema = z.enum(REGION_IDS);
 export const StatusSchema = z.enum(["on_track", "at_risk", "off_track"]);
-export const AnomalySchema = z.object({ period: PeriodSchema, type: z.string(), note: z.string() });
-export const KpisSchema = z.object({
+const AnomalySchema = z.object({ period: PeriodSchema, type: z.string(), note: z.string() });
+const KpisSchema = z.object({
   revenue: z.number(),
   growthPct: z.number(),
   sharePct: z.number(),
@@ -25,8 +25,8 @@ export const MarketSchema = z.object({
   regionId: RegionIdSchema,
   kpis: KpisSchema,
 });
-export const ProductSchema = z.object({ id: z.string(), name: z.string() });
-export const RegionSchema = z.object({ id: RegionIdSchema, name: z.string() });
+const ProductSchema = z.object({ id: z.string(), name: z.string() });
+const RegionSchema = z.object({ id: RegionIdSchema, name: z.string() });
 export const FactSchema = z.object({
   marketId: z.string(),
   productId: z.string(),
@@ -37,7 +37,7 @@ export const FactSchema = z.object({
   // Positive: growth is a ratio against it.
   priorYear: z.number().positive(),
 });
-export const MetaSchema = z.object({
+const MetaSchema = z.object({
   currency: z.literal("USD"),
   periods: z.array(PeriodSchema).min(1),
   latestPeriod: PeriodSchema,
@@ -141,7 +141,6 @@ export const DatasetSchema = z
 export type Dataset = z.infer<typeof DatasetSchema>;
 export type Market = z.infer<typeof MarketSchema>;
 export type Fact = z.infer<typeof FactSchema>;
-export type Kpis = z.infer<typeof KpisSchema>;
 export type Status = z.infer<typeof StatusSchema>;
 export type RegionId = z.infer<typeof RegionIdSchema>;
 
