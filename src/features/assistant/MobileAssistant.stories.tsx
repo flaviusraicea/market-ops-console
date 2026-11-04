@@ -55,7 +55,7 @@ export const Closed: Story = {
     const button = within(canvasElement).getByRole("button", { name: "Ask the assistant" });
     await expect(button).toBeVisible();
     await expect(
-      within(canvasElement).getByRole("button", { name: "Open command palette" }),
+      within(canvasElement).getByRole("button", { name: "Search and commands" }),
     ).toBeVisible();
     await expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
   },
