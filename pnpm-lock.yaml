@@ -19,18 +19,6 @@ importers:
       "@vercel/speed-insights":
         specifier: 2.0.0
         version: 2.0.0(next@16.4.3(@babel/core@7.29.7)(@playwright/test@1.64.1)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
-      "@visx/axis":
-        specifier: 4.0.0
-        version: 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      "@visx/geo":
-        specifier: 4.0.0
-        version: 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      "@visx/grid":
-        specifier: 4.0.0
-        version: 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      "@visx/group":
-        specifier: 4.0.0
-        version: 4.0.0(@types/react@19.3.0)(react@19.3.0)
       "@visx/responsive":
         specifier: 4.0.0
         version: 4.0.0(@types/react@19.3.0)(react@19.3.0)
@@ -76,12 +64,6 @@ importers:
       tailwind-merge:
         specifier: 3.7.0
         version: 3.7.0
-      topojson-client:
-        specifier: 3.1.0
-        version: 3.1.0
-      world-atlas:
-        specifier: 2.0.2
-        version: 2.0.2
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -167,6 +149,9 @@ importers:
       tailwindcss:
         specifier: 4.3.3
         version: 4.3.3
+      topojson-client:
+        specifier: 3.1.0
+        version: 3.1.0
       tsx:
         specifier: 4.23.15
         version: 4.23.15
@@ -179,6 +164,9 @@ importers:
       vitest:
         specifier: 5.0.5
         version: 5.0.5(@types/node@22.20.5)(@vitest/browser-playwright@5.0.5)(@vitest/ui@5.0.5)(jsdom@30.1.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+      world-atlas:
+        specifier: 2.0.2
+        version: 2.0.2
 
 packages:
   "@adobe/css-tools@4.5.0":
@@ -3575,47 +3563,11 @@ packages:
       vue-router:
         optional: true
 
-  "@visx/axis@4.0.0":
-    resolution:
-      {
-        integrity: sha512-cSPNO9Aic2UX49AmIeJJ9TQrrAkvUHpHOGqimUAXhbg07VI3HoHDKcXZdrjvQz+g0LhubrUkjj8Gwju2WZ3dtg==,
-      }
-    peerDependencies:
-      "@types/react": ^18.0.0 || ^19.0.0
-      react: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      "@types/react":
-        optional: true
-
   "@visx/curve@4.0.0":
     resolution:
       {
         integrity: sha512-bXrOSd2BzVCxR7kBE7gPTSU4plxzYN75w7erdHYabwn3vzP+xFk1o0gg3NOHEPJzt5tXqf0Ecm5YqHACOnipTA==,
       }
-
-  "@visx/geo@4.0.0":
-    resolution:
-      {
-        integrity: sha512-YbjECakNrIkvS7y+EqEOXzn7HhIGTwIB9sx/MYoYA5XLxNILVLL7PTXrI/ey9gs8zz9Nb3WpxlLiuqC8G4iCOQ==,
-      }
-    peerDependencies:
-      "@types/react": ^18.0.0 || ^19.0.0
-      react: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      "@types/react":
-        optional: true
-
-  "@visx/grid@4.0.0":
-    resolution:
-      {
-        integrity: sha512-BUnznqYo8jyn3zXRWZiF0zwg1VQl6w5kYqZ+XMY+cPXtAHZZbwGXBChMpPefH5Lj1+P1b4Pf3QihKG8zjL9PCw==,
-      }
-    peerDependencies:
-      "@types/react": ^18.0.0 || ^19.0.0
-      react: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      "@types/react":
-        optional: true
 
   "@visx/group@4.0.0":
     resolution:
@@ -3628,12 +3580,6 @@ packages:
     peerDependenciesMeta:
       "@types/react":
         optional: true
-
-  "@visx/point@4.0.0":
-    resolution:
-      {
-        integrity: sha512-hwJ9UlIjg3iV4iiJ3RN5SNTXama+zGaNe57sXSrSvPiqhkDXypsYBdDSlAnHmKbMzHP0zFmgB1UJciB/QUyigw==,
-      }
 
   "@visx/responsive@4.0.0":
     resolution:
@@ -3657,18 +3603,6 @@ packages:
     resolution:
       {
         integrity: sha512-X0FP3OFjQhc5/6Vj2aY7cK2JwKYI0H0hQM7cdNRWy/ZMMlrh5KpEdqx0HVo0KoTeTlkUvO+kydMLnAuuCRFIFw==,
-      }
-    peerDependencies:
-      "@types/react": ^18.0.0 || ^19.0.0
-      react: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      "@types/react":
-        optional: true
-
-  "@visx/text@4.0.0":
-    resolution:
-      {
-        integrity: sha512-39f2goSaKy5Mqn89lRDGSJ1IMr49wplkbIFHsFI8cPnAPbguiJxYZ+ulizd7Vcsq2z/hytuGv3Lmk165zUiUYQ==,
       }
     peerDependencies:
       "@types/react": ^18.0.0 || ^19.0.0
@@ -4040,12 +3974,6 @@ packages:
     peerDependenciesMeta:
       react-native-b4a:
         optional: true
-
-  balanced-match@0.4.2:
-    resolution:
-      {
-        integrity: sha512-STw03mQKnGUYtoNjmowo4F2cRmIIxYEGiMsjjwla/u5P1lxadj/05WkNaFjNiKTgJkj8KiXbgAiRTmcQRwQNtg==,
-      }
 
   balanced-match@1.0.2:
     resolution:
@@ -6541,12 +6469,6 @@ packages:
         integrity: sha512-ocnPZQLNpvbedwTy9kNrQEsknEfgvcLMvOtz3sFeWApDq1MXH1TqkCIx58xlpESsfwQOnuBO9beyQuNGzVvuhQ==,
       }
 
-  math-expression-evaluator@1.4.0:
-    resolution:
-      {
-        integrity: sha512-4vRUvPyxdO8cWULGTh9dZWL2tZK6LDBvj+OGHBER7poH9Qdt7kXEoj20wiz4lQUbUXQZFjPbe5mVDo9nutizCw==,
-      }
-
   math-intrinsics@1.1.0:
     resolution:
       {
@@ -7412,18 +7334,6 @@ packages:
         integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==,
       }
     engines: { node: ">=8" }
-
-  reduce-css-calc@1.3.0:
-    resolution:
-      {
-        integrity: sha512-0dVfwYVOlf/LBA2ec4OwQ6p3X9mYxn/wOl2xTcLwjnPYrkgEfPx3VI4eGCH3rQLlPISG5v9I9bkZosKsNRTRKA==,
-      }
-
-  reduce-function-call@1.0.3:
-    resolution:
-      {
-        integrity: sha512-Hl/tuV2VDgWgCSEeWMLwxLZqX7OK59eU1guxXsRKTAyeYimivsKdtcV4fu3r710tpG5GmDKDhQ0HSZLExnNmyQ==,
-      }
 
   reflect.getprototypeof@1.0.10:
     resolution:
@@ -10996,43 +10906,9 @@ snapshots:
       next: 16.4.3(@babel/core@7.29.7)(@playwright/test@1.64.1)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react: 19.3.0
 
-  "@visx/axis@4.0.0(@types/react@19.3.0)(react@19.3.0)":
-    dependencies:
-      "@visx/group": 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      "@visx/point": 4.0.0
-      "@visx/scale": 4.0.0
-      "@visx/shape": 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      "@visx/text": 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      classnames: 2.5.1
-      react: 19.3.0
-    optionalDependencies:
-      "@types/react": 19.3.0
-
   "@visx/curve@4.0.0":
     dependencies:
       "@visx/vendor": 4.0.0
-
-  "@visx/geo@4.0.0(@types/react@19.3.0)(react@19.3.0)":
-    dependencies:
-      "@types/geojson": 7946.0.16
-      "@visx/group": 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      "@visx/vendor": 4.0.0
-      classnames: 2.5.1
-      react: 19.3.0
-    optionalDependencies:
-      "@types/react": 19.3.0
-
-  "@visx/grid@4.0.0(@types/react@19.3.0)(react@19.3.0)":
-    dependencies:
-      "@visx/curve": 4.0.0
-      "@visx/group": 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      "@visx/point": 4.0.0
-      "@visx/scale": 4.0.0
-      "@visx/shape": 4.0.0(@types/react@19.3.0)(react@19.3.0)
-      classnames: 2.5.1
-      react: 19.3.0
-    optionalDependencies:
-      "@types/react": 19.3.0
 
   "@visx/group@4.0.0(@types/react@19.3.0)(react@19.3.0)":
     dependencies:
@@ -11040,8 +10916,6 @@ snapshots:
       react: 19.3.0
     optionalDependencies:
       "@types/react": 19.3.0
-
-  "@visx/point@4.0.0": {}
 
   "@visx/responsive@4.0.0(@types/react@19.3.0)(react@19.3.0)":
     dependencies:
@@ -11061,14 +10935,6 @@ snapshots:
       "@visx/vendor": 4.0.0
       classnames: 2.5.1
       react: 19.3.0
-    optionalDependencies:
-      "@types/react": 19.3.0
-
-  "@visx/text@4.0.0(@types/react@19.3.0)(react@19.3.0)":
-    dependencies:
-      classnames: 2.5.1
-      react: 19.3.0
-      reduce-css-calc: 1.3.0
     optionalDependencies:
       "@types/react": 19.3.0
 
@@ -11337,8 +11203,6 @@ snapshots:
   axobject-query@4.1.0: {}
 
   b4a@1.9.0: {}
-
-  balanced-match@0.4.2: {}
 
   balanced-match@1.0.2: {}
 
@@ -13017,8 +12881,6 @@ snapshots:
 
   marky@1.3.0: {}
 
-  math-expression-evaluator@1.4.0: {}
-
   math-intrinsics@1.1.0: {}
 
   mdn-data@2.27.1: {}
@@ -13607,16 +13469,6 @@ snapshots:
     dependencies:
       indent-string: 4.0.0
       strip-indent: 3.0.0
-
-  reduce-css-calc@1.3.0:
-    dependencies:
-      balanced-match: 0.4.2
-      math-expression-evaluator: 1.4.0
-      reduce-function-call: 1.0.3
-
-  reduce-function-call@1.0.3:
-    dependencies:
-      balanced-match: 1.0.2
 
   reflect.getprototypeof@1.0.10:
     dependencies:

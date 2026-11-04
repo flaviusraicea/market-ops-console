@@ -13,12 +13,21 @@ test("the heat map stays at its latest month while the assistant docks, on a slo
   await expect(page.locator("[data-panel]")).toHaveAttribute("data-panel", "open");
   const grid = page.getByRole("grid").first();
   await grid.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(1500);
-  const r = await grid.evaluate((g) => {
-    const el = g.parentElement!;
-    return { left: el.scrollLeft, max: el.scrollWidth - el.clientWidth };
-  });
-  expect(r.left).toBeGreaterThanOrEqual(r.max - 1);
+  const scroller = grid.locator("xpath=..");
+  const position = () =>
+    scroller.evaluate((el) => ({ left: el.scrollLeft, max: el.scrollWidth - el.clientWidth }));
+  // The dock takes 400 ms (longer at 6×): wait for the card to have narrowed, then for the grid to have settled at
+  // its end, rather than for a fixed time a slower machine could outlast.
+  await expect.poll(async () => (await position()).max, { timeout: 10_000 }).toBeGreaterThan(40);
+  await expect
+    .poll(
+      async () => {
+        const r = await position();
+        return r.left >= r.max - 1;
+      },
+      { timeout: 10_000 },
+    )
+    .toBe(true);
 });
 
 test("a reader who scrolls the docked heat map back keeps their place", async ({ page }) => {
@@ -36,10 +45,16 @@ test("a reader who scrolls the docked heat map back keeps their place", async ({
   const box = (await grid.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.wheel(-40, 0);
-  await page.waitForTimeout(300);
-  const r = await scroller.evaluate((el) => ({
-    left: el.scrollLeft,
-    max: el.scrollWidth - el.clientWidth,
-  }));
+  const position = () =>
+    scroller.evaluate((el) => ({ left: el.scrollLeft, max: el.scrollWidth - el.clientWidth }));
+  await expect
+    .poll(async () => {
+      const r = await position();
+      return r.max - r.left;
+    })
+    .toBeGreaterThan(20);
+  // And it stays there: nothing snaps the grid back to its end once the dock has finished.
+  await expect(page.locator("[data-panel]")).toHaveAttribute("data-panel", "open");
+  const r = await position();
   expect(r.left).toBeLessThan(r.max - 20);
 });

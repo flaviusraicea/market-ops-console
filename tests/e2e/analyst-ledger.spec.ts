@@ -107,7 +107,7 @@ test("below about 1,250 px the grid scrolls between a pinned Market column and a
   expect(clear).toBe(true);
 });
 
-test("while the grid scrolls, names stay whole, figures align with the total, and a focused row keeps its whole ring", async ({
+test("while the grid scrolls, names stay whole, figures align with the total, and the pinned name link keeps its ring", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1150, height: 900 });
@@ -154,16 +154,20 @@ test("while the grid scrolls, names stay whole, figures align with the total, an
   const first = m.attainment[0]!;
   for (const x of m.attainment) expect(Math.abs(x - first)).toBeLessThanOrEqual(1);
   for (const u of m.units) expect(u.text).toBeLessThanOrEqual(u.cell);
-  // Scroll halfway, focus a row: both pinned cells draw their share of the ring.
+  // Scroll halfway, Tab to the first name: the link sits in the pinned cell, so its whole ring stays in view.
   await box.evaluate((el) => (el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2));
-  await page.keyboard.press("Tab");
-  const row = box.locator("tbody tr").first();
-  await row.focus();
-  const shadows = await row.evaluate((tr) =>
-    [...tr.querySelectorAll("[data-pin]")].map((c) => getComputedStyle(c).boxShadow),
-  );
-  expect(shadows).toHaveLength(2);
-  for (const sh of shadows) expect(sh.match(/inset/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+  const link = box.locator("tbody tr").first().getByRole("link");
+  await link.focus();
+  await expect(link).toBeFocused();
+  const fit = await link.evaluate((a) => {
+    const r = a.getBoundingClientRect();
+    const b = a.closest('[data-slot="table-container"]')!.getBoundingClientRect();
+    const { outlineStyle, outlineWidth } = getComputedStyle(a);
+    return { inside: r.left >= b.left && r.right <= b.right, outlineStyle, outlineWidth };
+  });
+  expect(fit.inside).toBe(true);
+  expect(fit.outlineStyle).toBe("solid");
+  expect(fit.outlineWidth).toBe("2px");
 });
 
 test("with room, the Markets table reaches the card's right edge", async ({ page }) => {

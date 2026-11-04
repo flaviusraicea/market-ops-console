@@ -42,12 +42,16 @@ test("Spain's attainment info icon explains why it is off track above plan", asy
   }).toPass();
 });
 
-test("activating the Germany row with Enter selects Germany and shows the March anomaly marker", async ({
+test("the Germany link in the grid is a real address; Enter on it selects Germany and shows the March anomaly marker", async ({
   page,
 }) => {
   await open(page, EUROPE);
   const row = card(page, /^Markets · Europe \d/).getByRole("row", { name: /Germany/ });
-  await row.focus();
+  // The row itself is not focusable: the name is the link, and it says where it goes.
+  await expect(row).not.toHaveAttribute("tabindex");
+  const link = row.getByRole("link", { name: "Germany" });
+  await expect(link).toHaveAttribute("href", /market=de/);
+  await link.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/market=de/);
   const series = card(page, /Germany revenue/);

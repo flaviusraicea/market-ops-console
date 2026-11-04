@@ -16,7 +16,7 @@ The brief needs a time series, a radar, a choropleth map and a fourth form, all 
 
 ## Decision
 
-visx, with d3-geo and topojson-client for the map. One rendering model gives one tooltip, one keyboard pattern and one "View as table".
+visx, with d3-geo for the map (its geometry is prepared at build time by `scripts/build-geo.ts`, which is where world-atlas and topojson-client are used; neither ships to the browser). One rendering model gives one tooltip, one keyboard pattern and one "View as table".
 
 ## Consequences
 

@@ -322,24 +322,25 @@ html[data-reduced-motion="true"] .live-dot {
   opacity: 1;
   transition: opacity var(--dur-land-in) var(--ease-out);
 }
-/* A table row cannot carry an overlay, so it rings with its outline instead. A focused row keeps the focus ring. */
-tr[data-landing-target]:not(:focus-visible) {
+/* A table row cannot carry an overlay, so it rings with its outline instead. Rows are not focusable: the name in the
+   row is the link that drills, and it carries the focus ring. */
+tr[data-landing-target] {
   outline: 2px solid transparent;
   outline-offset: -2px;
   transition: outline-color var(--dur-land-out) var(--ease-in);
 }
-tr[data-landing-target][data-landed]:not(:focus-visible) {
+tr[data-landing-target][data-landed] {
   outline-color: var(--accent);
   transition: outline-color var(--dur-land-in) var(--ease-out);
 }
 @starting-style {
-  tr[data-landing-target][data-landed]:not(:focus-visible) {
+  tr[data-landing-target][data-landed] {
     outline-color: transparent;
   }
 }
 /* Forced colours turn a transparent outline into a solid system colour: draw none until the row lands. */
 @media (forced-colors: active) {
-  tr[data-landing-target]:not([data-landed]):not(:focus-visible) {
+  tr[data-landing-target]:not([data-landed]) {
     outline-style: none;
   }
 }
@@ -832,39 +833,5 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
   }
   [data-slot="table-container"] tbody tr[data-state="selected"] [data-pin] {
     --pin-bg: var(--accent-soft);
-  }
-}
-/* A focused row in a table with pins draws its ring inside the row, and each pinned cell, which paints over the
-   row, draws its share of the ring, so the ring stays whole while columns scroll under the pins. */
-[data-slot="table-container"]:has([data-pin]) tr:focus-visible {
-  outline-offset: -2px;
-}
-[data-slot="table-container"]:has([data-pin]) tr:focus-visible > [data-pin="start"] {
-  box-shadow:
-    inset 2px 0 0 var(--focus),
-    inset 0 2px 0 var(--focus),
-    inset 0 -2px 0 var(--focus);
-}
-/* From 768 px the end pin carries its share too, and while the table overflows each pin keeps its 1px edge. */
-@media (min-width: 48rem) {
-  [data-slot="table-container"]:has([data-pin]) tr:focus-visible > [data-pin="end"] {
-    box-shadow:
-      inset -2px 0 0 var(--focus),
-      inset 0 2px 0 var(--focus),
-      inset 0 -2px 0 var(--focus);
-  }
-  [data-slot="table-container"][data-overflow] tr:focus-visible > [data-pin="start"] {
-    box-shadow:
-      inset 2px 0 0 var(--focus),
-      inset 0 2px 0 var(--focus),
-      inset 0 -2px 0 var(--focus),
-      inset -1px 0 0 var(--border);
-  }
-  [data-slot="table-container"][data-overflow] tr:focus-visible > [data-pin="end"] {
-    box-shadow:
-      inset -2px 0 0 var(--focus),
-      inset 0 2px 0 var(--focus),
-      inset 0 -2px 0 var(--focus),
-      inset 1px 0 0 var(--border);
   }
 }

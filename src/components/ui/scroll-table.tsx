@@ -119,7 +119,6 @@ function isPinned(cell: Element | null) {
  */
 function revealBetweenPins(box: HTMLElement, target: EventTarget) {
   if (!(target instanceof Element) || target === box) return;
-  // A focused row spans the whole table, so there is nothing to bring into view.
   const cell = target.closest("td, th");
   if (!cell || isPinned(cell)) return;
   const row = cell.closest("tr");

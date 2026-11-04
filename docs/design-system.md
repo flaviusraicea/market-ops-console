@@ -337,7 +337,7 @@ Card with title row: title `Markets · Europe` in `--text-title`; right-aligned 
 | Trend | left | 24-point sparkline, 96 × 24 px inline SVG, stroke 1.5 px `--ink-2`, no fill, last point an 3 px dot in `--ink`; anomaly month for Germany gets a 4 px ring in `--bad-mark`. `role="img"` with `aria-label="24-month revenue trend, latest 1.68M"` |
 | | right | Row action: ghost icon button lucide `message-square-text` 16 px, `aria-label="Ask why Germany is off track"`. This is the "Ask why" affordance; in the preview it only focuses the assistant input and pre-fills the question text (section 9.4). |
 
-Header row: background `--surface-2`, caption text `--ink-muted`, sticky at the card top. Rows: height `--row-h`, bottom border `--border`. Hover: background `--surface-2`. Selected row (Germany): background `--surface-2`, the name cell at weight 600, and no accent stripe, inset shadow or border change; it stays `--surface-2` on hover. A landed (cited) row keeps its 2 px accent ring on top. Rows are focusable (`tabindex="0"`) and the selected one has `aria-selected="true"`.
+Header row: background `--surface-2`, caption text `--ink-muted`, sticky at the card top. Rows: height `--row-h`, bottom border `--border`. Hover: background `--surface-2`. Selected row (Germany): background `--surface-2`, the name cell at weight 600, and no accent stripe, inset shadow or border change; it stays `--surface-2` on hover. A landed (cited) row keeps its 2 px accent ring on top. The market or product name is the link that drills in (a real address, so it can be copied or opened in a new tab); a click anywhere else on the row does the same with the mouse. Rows are not in the tab order, and the selected product row has `aria-current="true"`.
 
 Five rows, data in section 9.2.
 

@@ -1,11 +1,13 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { ChatContext } from "@/domain";
+import type { ChatContext, Period } from "@/domain";
 import { loadConversation, saveConversation } from "@/features/assistant/conversationStore";
 import type { Answer } from "@/features/assistant/useAnswerMachine";
 import { CONVERSATION_KEY, clearConversation } from "@/lib/conversation";
 import { useSlowPending } from "@/lib/context/navigation";
+
+import { ds } from "./helpers";
 
 const calyx = {
   entity: { kind: "product", marketId: "de", productId: "calyx" },
@@ -13,7 +15,9 @@ const calyx = {
 } as ChatContext;
 
 describe("the stored conversation", () => {
-  it("round-trips answers with their context, and keeps a stream cut short as a stopped partial answer", () => {
+  afterEach(() => window.sessionStorage.clear());
+
+  it("round-trips answers with their context, and keeps a stream cut short as a stopped partial answer", async () => {
     const answers: Answer[] = [
       {
         status: "streaming",
@@ -28,7 +32,7 @@ describe("the stored conversation", () => {
       { status: "failed", id: "a4", question: "And France?", text: "", message: "offline" },
     ];
     saveConversation(answers);
-    expect(loadConversation()).toEqual([
+    expect(await loadConversation(ds)).toEqual([
       {
         status: "stopped",
         id: "a3",
@@ -42,22 +46,57 @@ describe("the stored conversation", () => {
     ]);
   });
 
-  it("drops a stored context that no longer parses, and skips entries of the wrong shape", () => {
+  it("stores a done answer's citations as they came off the wire and resolves them again on restore", async () => {
+    const citation = { marketId: "de", period: "2026-03" as Period, label: "Germany, Mar 2026" };
+    const done: Answer = {
+      status: "done",
+      id: "a1",
+      question: "Why did Germany dip?",
+      text: "Germany is at risk.",
+      kind: "normal",
+      confidence: "high",
+      citations: [
+        { citation, resolution: { ok: false, reason: "unknown_market", label: "stale" } },
+      ],
+    };
+    saveConversation([done]);
+    const stored = JSON.parse(window.sessionStorage.getItem(CONVERSATION_KEY) ?? "[]") as {
+      citations: unknown[];
+    }[];
+    expect(stored[0]?.citations).toEqual([citation]);
+    const [restored] = await loadConversation(ds);
+    expect(restored?.status === "done" && restored.citations[0]?.resolution.ok).toBe(true);
+  });
+
+  it("drops a stored context that no longer parses, and skips entries of the wrong shape", async () => {
     window.sessionStorage.setItem(
       CONVERSATION_KEY,
       JSON.stringify([
         { status: "stopped", id: "a1", question: "Q", text: "", context: { entity: "de" } },
         { status: "streaming", id: "a2", question: "Q", text: "" },
+        { status: "failed", id: "a3", question: "Q", text: "" },
+        { status: "done", id: "a4", question: "Q", text: "", citations: [{ label: 1 }] },
+        { status: "done", id: "a5", question: "Q", text: "", kind: "normal", confidence: "high" },
         "junk",
       ]),
     );
-    expect(loadConversation()).toEqual([{ status: "stopped", id: "a1", question: "Q", text: "" }]);
+    expect(await loadConversation(ds)).toEqual([
+      { status: "stopped", id: "a1", question: "Q", text: "" },
+    ]);
   });
 
-  it("is gone after sign-out", () => {
+  it("reads only the current version of the stored shape", async () => {
+    window.sessionStorage.setItem(
+      "mo.conversation",
+      JSON.stringify([{ status: "stopped", id: "a1", question: "Q", text: "" }]),
+    );
+    expect(await loadConversation(ds)).toEqual([]);
+  });
+
+  it("is gone after sign-out", async () => {
     saveConversation([{ status: "stopped", id: "a1", question: "Q", text: "" }]);
     clearConversation();
-    expect(loadConversation()).toEqual([]);
+    expect(await loadConversation(ds)).toEqual([]);
   });
 });
 

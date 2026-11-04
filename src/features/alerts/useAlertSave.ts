@@ -1,7 +1,13 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useMutation,
+  useMutationState,
+  useQuery,
+  useQueryClient,
+  type MutationState,
+} from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { AlertRule } from "@/domain";
 import { logEvent, reportError } from "@/lib/events";
@@ -10,11 +16,18 @@ import { DEFAULT_THRESHOLDS, keyOf, normalizeRules } from "./rules";
 import { subscribeToRules } from "./storage";
 
 const ALERTS_KEY = ["alerts"] as const;
+/** The save and delete mutations share the list's prefix, so one count covers both; the save has its own key too. */
+const SAVE_KEY = [...ALERTS_KEY, "save"] as const;
 
 /** A rule in the list; `pending` while its save or delete has not been confirmed. */
 export type RuleRow = AlertRule & { pending?: boolean };
 
 type SaveVars = { rules: AlertRule[]; fail: boolean };
+type SaveContext = { previous: RuleRow[] };
+type SaveState = Pick<
+  MutationState<AlertRule[], Error, SaveVars, SaveContext>,
+  "status" | "error" | "variables" | "context"
+>;
 
 /** What the Notice shows after a failed save: the payload to retry and the values the form went back to. */
 export type SaveFailure = {
@@ -62,7 +75,6 @@ function reportAlertFailure(error: Error) {
  */
 export function useAlertSave(api: AlertApi = alertApi, initial?: readonly AlertRule[]) {
   const qc = useQueryClient();
-  const [failure, setFailure] = useState<SaveFailure | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [deleteFailed, setDeleteFailed] = useState(false);
   const [deleteReadOnly, setDeleteReadOnly] = useState(false);
@@ -87,37 +99,55 @@ export function useAlertSave(api: AlertApi = alertApi, initial?: readonly AlertR
     [qc],
   );
 
-  const save = useMutation<AlertRule[], Error, SaveVars, { previous: RuleRow[] }>({
-    mutationKey: ALERTS_KEY,
+  // The mutation's own callbacks run on the client's cache, so they still roll back and report when the section
+  // that mounted this hook has folded away mid-save (the client outlives it: features/alerts/queryClient.ts).
+  const save = useMutation<AlertRule[], Error, SaveVars, SaveContext>({
+    mutationKey: SAVE_KEY,
     mutationFn: ({ rules, fail }) => Promise.all(rules.map((r) => api.saveRule(r, { fail }))),
     onMutate: async ({ rules }) => {
       await qc.cancelQueries({ queryKey: ALERTS_KEY });
       const previous = qc.getQueryData<RuleRow[]>(ALERTS_KEY) ?? [];
       qc.setQueryData<RuleRow[]>(ALERTS_KEY, upsertPending(previous, rules));
-      setFailure(null);
       return { previous };
     },
-    onError: (error, vars, ctx) => {
-      const previous = ctx?.previous ?? [];
-      qc.setQueryData<RuleRow[]>(ALERTS_KEY, previous);
-      const scope = vars.rules[0]?.scope ?? "portfolio";
-      setFailure({
-        vars,
-        restored: thresholdsFor(previous, scope),
-        readOnly: error instanceof ReadOnlyRoleError,
-      });
+    onError: (error, _vars, ctx) => {
+      qc.setQueryData<RuleRow[]>(ALERTS_KEY, ctx?.previous ?? []);
       logEvent({ type: "alert_save_failed", message: error.message });
       reportAlertFailure(error);
     },
-    onSuccess: () => {
-      setFailure(null);
-      setSavedAt(Date.now());
-    },
+    onSuccess: () => setSavedAt(Date.now()),
     onSettled: () => settle(),
   });
 
+  // The failure notice is read from the mutation cache, not kept in this component: the latest save, if it failed.
+  // A new save (pending) hides it, a success clears it, and it is still there after the section folds and reopens.
+  const saves = useMutationState<SaveState>({
+    filters: { mutationKey: SAVE_KEY, exact: true },
+    select: ({ state }) => ({
+      status: state.status,
+      error: state.error,
+      variables: state.variables as SaveVars | undefined,
+      context: state.context as SaveContext | undefined,
+    }),
+  });
+  const last = saves.at(-1);
+  const failure = useMemo<SaveFailure | null>(() => {
+    if (!last || last.status !== "error" || !last.variables) return null;
+    const previous = last.context?.previous ?? [];
+    return {
+      vars: last.variables,
+      restored: thresholdsFor(previous, last.variables.rules[0]?.scope ?? "portfolio"),
+      readOnly: last.error instanceof ReadOnlyRoleError,
+    };
+  }, [last]);
+  const dismiss = useCallback(() => {
+    const cache = qc.getMutationCache();
+    for (const m of cache.findAll({ mutationKey: SAVE_KEY, exact: true, status: "error" }))
+      cache.remove(m);
+  }, [qc]);
+
   const remove = useMutation<void, Error, { id: string; fail?: boolean }, { previous: RuleRow[] }>({
-    mutationKey: ALERTS_KEY,
+    mutationKey: [...ALERTS_KEY, "delete"],
     mutationFn: ({ id, fail }) => api.deleteRule(id, { fail: fail ?? false }),
     onMutate: async ({ id }) => {
       await qc.cancelQueries({ queryKey: ALERTS_KEY });
@@ -140,7 +170,8 @@ export function useAlertSave(api: AlertApi = alertApi, initial?: readonly AlertR
     onSettled: () => settle(),
   });
 
-  const status: SaveStatus = save.isPending ? "saving" : savedAt !== null ? "saved" : "idle";
+  const saving = save.isPending || last?.status === "pending";
+  const status: SaveStatus = saving ? "saving" : savedAt !== null ? "saved" : "idle";
 
   return {
     rules: list.data ?? [],
@@ -163,7 +194,7 @@ export function useAlertSave(api: AlertApi = alertApi, initial?: readonly AlertR
       },
       [failure, save],
     ),
-    dismiss: useCallback(() => setFailure(null), []),
+    dismiss,
     /** `fail` is the Simulate failure box: the delete is refused and the rule comes back. */
     remove: useCallback(
       (id: string, opts?: { fail?: boolean }) => remove.mutate({ id, fail: opts?.fail ?? false }),
