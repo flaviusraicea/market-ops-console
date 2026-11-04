@@ -8,6 +8,7 @@ import { ArrowUp, ICON_STROKE, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatInt } from "@/lib/format";
+import { useHydrated } from "@/lib/useHydrated";
 import { warmAnswerCard } from "./AnswerCardLazy";
 
 const MAX_ROWS = 4;
@@ -48,6 +49,11 @@ type ComposerProps = {
   note?: string | null;
   /** Live data is on: say that answers still come from the saved data. */
   simulated?: boolean;
+  /**
+   * Keeps the helper row's height once a conversation exists, so the "Wait for the answer" line coming and going
+   * with each stream never moves the answers under it.
+   */
+  reserveHint?: boolean;
 };
 
 export function Composer({
@@ -60,6 +66,7 @@ export function Composer({
   onClearAbout,
   note,
   simulated,
+  reserveHint,
 }: ComposerProps) {
   useLayoutEffect(() => {
     if (!NATIVE_SIZING) fitToText(value);
@@ -72,13 +79,16 @@ export function Composer({
     return () => observer.disconnect();
   }, []);
 
+  // Server-rendered disabled: on a slow network the box is on screen seconds before it works, and anything typed
+  // into it then would be wiped by hydration. Nothing can be typed until it can be sent.
+  const hydrated = useHydrated();
   const tooLong = value.length > MAX_CHARS;
   const showCount = value.length >= COUNT_FROM;
 
   function submit() {
     const question = value.trim();
     // While an answer streams the draft stays and Enter does nothing; Stop or wait, then send.
-    if (!question || disabled || tooLong) return;
+    if (!question || disabled || tooLong || !hydrated) return;
     onSubmit(question);
     onChange("");
   }
@@ -117,6 +127,8 @@ export function Composer({
           ref={textareaRef}
           rows={1}
           value={value}
+          disabled={!hydrated}
+          aria-disabled={!hydrated || undefined}
           // Typing stays open while an answer streams, so a follow-up can be drafted; only sending waits.
           aria-invalid={tooLong || undefined}
           aria-describedby={
@@ -129,7 +141,7 @@ export function Composer({
               .filter(Boolean)
               .join(" ") || undefined
           }
-          placeholder="Ask about a market or period…"
+          placeholder={hydrated ? "Ask about a market or period…" : "Loading assistant…"}
           onChange={(e) => {
             // The first keystroke is the cue that an answer is coming.
             warmAnswerCard();
@@ -147,14 +159,14 @@ export function Composer({
           type="submit"
           size="icon"
           aria-label="Send"
-          disabled={disabled || tooLong}
+          disabled={disabled || tooLong || !hydrated}
           className="size-[var(--composer-row)]"
         >
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
         </Button>
       </form>
-      {disabled || showCount ? (
-        <div className="flex items-start justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
+      {disabled || showCount || reserveHint ? (
+        <div className="flex min-h-[var(--text-caption-lh)] items-start justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
           {disabled ? <p id="ask-wait">Wait for the answer, or Stop.</p> : <span />}
           {showCount ? (
             <p

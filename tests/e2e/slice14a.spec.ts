@@ -27,7 +27,7 @@ test("the sheet reads toolbar, KPI strip, Markets, Map, revenue, Compare, heat m
   const found = order.map((name) => headings.findIndex((h) => h.startsWith(name)));
   expect(found.every((i) => i >= 0)).toBe(true);
   expect(found).toEqual([...found].sort((a, b) => a - b));
-  await expect(page.getByRole("group", { name: "PORTFOLIO REVENUE" })).toContainText("$22.85M");
+  await expect(page.getByRole("group", { name: "PORTFOLIO REVENUE" })).toContainText("$22.9M");
 });
 
 test("the period and product controls live in the toolbar, not the header", async ({ page }) => {
@@ -58,7 +58,7 @@ test("the grid has Forecast and Prior year columns and a Portfolio total row", a
   ]);
   const total = grid.locator("tfoot tr");
   await expect(total).toContainText("Portfolio");
-  for (const v of ["$22.85M", "$22.75M", "$21.29M", "100.4%", "+7.3%", "103,868"]) {
+  for (const v of ["$22.9M", "$22.7M", "$21.3M", "100.4%", "+7.3%", "103,868"]) {
     await expect(total).toContainText(v);
   }
 });

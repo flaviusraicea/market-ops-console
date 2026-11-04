@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
 
-import { Notice } from "@/components/Notice";
-import { Button } from "@/components/ui/button";
 import { reportError } from "@/lib/events";
 import type { AnswerCard as AnswerCardView } from "./AnswerCard";
+import { AiCard, AiLabel, FailedRow, QuestionEcho } from "./AnswerShell";
 
 type Card = typeof AnswerCardView;
 
@@ -57,27 +56,29 @@ export function AnswerCard(props: ComponentProps<Card>) {
   }, [Loaded, request]);
 
   if (Loaded) return <Loaded {...props} />;
-  if (failed) {
-    return (
-      <Notice
-        title="Answer could not be shown"
-        actions={
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
+  const { question, about } = props.answer;
+  return (
+    // The question shows from local state at once, whatever happens to the download.
+    <div className="flex flex-col gap-2">
+      <QuestionEcho question={question} about={about} />
+      {failed ? (
+        // Offline or a lost chunk: the one failed card. Retry puts the question back in the composer and fetches
+        // the card again, so nothing typed is lost.
+        <AiCard>
+          <AiLabel />
+          <FailedRow
+            partial={false}
+            onRetry={() => {
+              props.onTry(question);
               setFailed(false);
               request();
             }}
-          >
-            Retry
-          </Button>
-        }
-      >
-        Part of the page did not load. Check your connection and try again.
-      </Notice>
-    );
-  }
-  // The placeholder only shows if the chunk is slower than the stream.
-  return <div aria-hidden className="h-24" />;
+          />
+        </AiCard>
+      ) : (
+        // Only shows if the chunk is slower than the stream.
+        <div aria-hidden className="h-24" />
+      )}
+    </div>
+  );
 }

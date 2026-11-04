@@ -3,15 +3,13 @@
 import { useState, type ReactNode } from "react";
 
 import { ConfidenceMeter } from "@/components/ConfidenceMeter";
-import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
+import { EYEBROW_CLASS } from "@/components/Eyebrow";
 import {
   ChevronDown,
   CircleSlash,
-  CircleAlert,
   ICON_STROKE,
   Info,
   RotateCw,
-  Sparkles,
   TriangleAlert,
 } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +18,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { STATUS_RULE_TEXT, asksWhyStatus } from "@/domain";
 import { useDataset } from "@/lib/context/dataset";
 import { formatPeriodAbbr } from "@/lib/format";
+import { AiCard, AiLabel, FailedRow, QuestionEcho } from "./AnswerShell";
 import { scopeNote } from "./scopeNote";
 import { SUGGESTIONS } from "./Suggestions";
 import { CitationRow, useFollowCitation } from "./CitationRow";
@@ -50,8 +49,6 @@ const STATE_NOTE =
 
 /** A stopped answer says so in the header (in place of the confidence meter) and, under its text, that it has no sources. */
 const STOPPED_BADGE = "Partial \u00b7 stopped";
-const FAILED_EMPTY = "Request failed \u00b7 nothing was answered";
-const FAILED_PARTIAL = "Request failed \u00b7 partial answer";
 const NO_SOURCES_NOTE: Record<"stopped" | "failed", string> = {
   stopped: "Stopped before sources arrived. Retry to get citations.",
   failed: "Request failed before sources arrived. Retry to get citations.",
@@ -64,36 +61,13 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
   const scope = scopeNote(ds, answer);
   return (
     <div className="flex flex-col gap-2">
-      <div data-slot="question-echo" className="flex flex-col items-end gap-1.5">
-        <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-          {answer.about ? (
-            <>
-              Asked about <span className="font-semibold text-ink-2">{answer.about}</span>
-            </>
-          ) : (
-            "You asked"
-          )}
-        </p>
-        <p className="max-w-[92%] rounded-card border border-border bg-surface-2 px-3 py-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink">
-          {question}
-        </p>
-      </div>
+      <QuestionEcho question={question} about={answer.about} />
       {status === "failed" ? (
         // The same AI card as every other state, so a failure reads as this answer's outcome, not a page alert.
         <Card>
           <CardHeader status="failed" />
           {text ? <AnswerText body={[text]} trailing={null} /> : null}
-          <div role="alert" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <p className="inline-flex items-start gap-1.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-ink">
-              <CircleAlert
-                aria-hidden
-                className="size-4 shrink-0 text-bad-mark"
-                strokeWidth={ICON_STROKE}
-              />
-              {text ? FAILED_PARTIAL : FAILED_EMPTY}
-            </p>
-            <RetryButton onRetry={onRetry} />
-          </div>
+          <FailedRow partial={Boolean(text)} onRetry={onRetry} />
           {text ? <p className={STATE_NOTE}>{NO_SOURCES_NOTE.failed}</p> : null}
         </Card>
       ) : (
@@ -127,13 +101,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
   );
 }
 
-function Card({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-card border border-ai-border bg-ai-bg shadow-card p-[var(--pad-card)]">
-      {children}
-    </div>
-  );
-}
+const Card = AiCard;
 
 /**
  * First row of the card, 24 px high in every state so nothing under it moves when the state changes. The AI label
@@ -159,10 +127,7 @@ function CardHeader({
       className="flex min-h-[var(--chip-h)] items-center justify-between gap-x-3"
     >
       <div className="flex min-w-0 items-center gap-x-2.5">
-        <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
-          <Sparkles aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
-          AI-generated
-        </Eyebrow>
+        <AiLabel />
         {streaming ? <span className={CAPTION}>STREAMING…</span> : null}
       </div>
       <div className="flex items-center gap-x-1.5">
@@ -193,16 +158,6 @@ function CardHeader({
         ) : null}
       </div>
     </div>
-  );
-}
-
-/** Retry on a failed card: the same ghost button the stopped card's header uses. */
-function RetryButton({ onRetry }: { onRetry: () => void }) {
-  return (
-    <Button type="button" size="sm" variant="ghost" onClick={onRetry}>
-      <RotateCw aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
-      Retry
-    </Button>
   );
 }
 

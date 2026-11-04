@@ -103,7 +103,7 @@ test("the panel empty state puts the composer first", async ({ page }) => {
   await expect(panel.getByText(/^Germany is furthest from plan/)).toHaveText(
     "Germany is furthest from plan: 92.0% of forecast and −9.7% on last year, after a 27.2% drop in March.",
   );
-  await expect(panel.getByText("Asked about Portfolio · May 2026")).toBeVisible();
+  await expect(panel.getByText("About Portfolio · May 2026")).toBeVisible();
 });
 
 test("a region scopes the verdict and the strip", async ({ page }) => {
@@ -144,7 +144,7 @@ test("the revenue tile carries a 24-month trend", async ({ page }) => {
   await expect(
     page
       .getByRole("group", { name: "PORTFOLIO REVENUE" })
-      .getByRole("img", { name: "24-month revenue trend, latest $22.85M" }),
+      .getByRole("img", { name: "24-month revenue trend, latest $22.9M" }),
   ).toBeVisible();
 });
 

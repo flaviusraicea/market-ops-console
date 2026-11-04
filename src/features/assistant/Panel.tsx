@@ -185,6 +185,7 @@ function PanelBody({
         onClearAbout={() => setPending(null)}
         note={pending?.note ?? null}
         simulated={isSimulated(live)}
+        reserveHint={answers.length > 0}
       />
       {/* After the composer in the DOM so the composer stays first in tab order; placed top right. */}
       <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:right-[calc(var(--pad-card)+var(--control-h)+8px)]">

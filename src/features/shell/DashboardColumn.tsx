@@ -22,17 +22,20 @@ export function DashboardColumn({ children }: { children: ReactNode }) {
   // Marks tween only while a context change is in flight and just after it commits.
   const [settling, setSettling] = useState(false);
   const started = useRef<{ scope: string; keyboard: boolean } | null>(null);
+  // The scope on screen before the navigation: the optimistic context already shows the new one while pending.
+  const settled = useRef(scope);
 
   useEffect(() => {
     if (isPending) {
       started.current ??= {
-        scope,
+        scope: settled.current,
         keyboard: document.activeElement?.matches(":focus-visible") ?? false,
       };
       return;
     }
     const start = started.current;
     started.current = null;
+    settled.current = scope;
     if (start?.keyboard && start.scope !== scope) {
       ref.current?.querySelector<HTMLElement>(`[${PAGE_HEADING_ATTR}]`)?.focus();
     }

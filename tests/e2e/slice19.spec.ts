@@ -92,15 +92,21 @@ test("a chunk that fails to load shows an error with Retry, and the next try suc
   await expect(page.getByRole("menuitem", { name: "Sign out" })).toBeVisible();
   await page.keyboard.press("Escape");
 
-  // The answer card: a notice with Retry in place of the answer, then the answer.
+  // The answer card: the question stays on screen, the one failed card shows under it, and Retry puts the
+  // question back in the composer and loads the card.
   offline = true;
   const box = page.getByRole("textbox", { name: "Ask the assistant" });
   await box.fill("Why is Germany off track?");
   await box.press("Enter");
-  const notice = page.getByRole("alert").filter({ hasText: "Answer could not be shown" });
-  await expect(notice).toBeVisible();
+  const conversation = page.getByRole("region", { name: "Conversation" });
+  await expect(conversation).toContainText("Why is Germany off track?");
+  const failed = page
+    .getByRole("alert")
+    .filter({ hasText: "Request failed · nothing was answered" });
+  await expect(failed).toBeVisible();
   offline = false;
-  await notice.getByRole("button", { name: "Retry" }).click();
+  await failed.getByRole("button", { name: "Retry" }).click();
+  await expect(box).toHaveValue("Why is Germany off track?");
   await expect(page.getByRole("button", { name: /Show sources/ }).first()).toBeVisible({
     timeout: 15_000,
   });
