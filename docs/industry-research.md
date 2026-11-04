@@ -1,6 +1,6 @@
 # Industry research: what popular pharma commercial analytics and modern analytics products do
 
-Status: research notes, 2026-11-02. The aspects in section 4 informed the design; Flavius decided which to adopt.
+Research notes from 2026-11-02. The aspects in section 4 informed the design; each one ends with how the console applies it.
 
 ## 2. What the pharma products actually ship
 
@@ -31,87 +31,72 @@ Takeaway: the pharma incumbents converge on a few things: monthly cadence, hiera
 
 ## 4. Core design aspects for our console
 
-Each aspect: what the industry does, which products show it, how it maps to our approved steps, our data, and Direction A. "Flag" marks anything that would change or contradict what has been approved.
+Each aspect: what the industry does and which products show it, what our data supports, and how the console applies it in Direction A, the Ledger design (design-system.md).
 
 ### 4.1 Hierarchy is the product
 - **Industry:** every pharma tool is organised as a hierarchy (nation, region, territory; brand, product). IQVIA PharmaReport, Veeva Compass levels, Salesforce product hierarchy.
-- **Maps to:** step 2 (analyst job 1), step 4 (breadcrumbs in the header), the pharma-research addendum (hierarchical grid as the analyst centrepiece).
 - **Our data:** region, market, product, period. Fully supported.
-- **Direction A:** the breadcrumb and grid are the analyst's spine. No change.
+- **In the console:** the drill path in the header and the Markets grid are the analyst's spine.
 
 ### 4.2 Compare to plan and to prior period, on every number
 - **Industry:** IQVIA Brand Analytics shows changes vs the prior period; PharmaReport compares to targets; Pulse cards carry value plus change plus comparison label.
-- **Maps to:** step 2 (exec job 1 and 3), step 4 (KPI tiles with deltas).
 - **Our data:** actual, forecast, priorYear per row. Supported. Attainment and YoY growth are derivable everywhere, including region and portfolio totals we sum ourselves.
-- **Direction A:** adopt the Pulse/Setproduct tile anatomy exactly: headline number uncoloured, delta coloured by direction with an icon, comparison label ("vs forecast", "vs May 2025"). No change.
+- **In the console:** the Pulse/Setproduct tile anatomy: headline number uncoloured, delta coloured by direction with an icon, comparison label ("vs forecast", "vs May 2025").
 
 ### 4.3 Monthly cadence and a visible "data through" stamp
 - **Industry:** IQVIA libraries refresh monthly; Setproduct rule 8 says always show last updated; Veeva's "brand coverage" metric tells users how much of a projection rests on actuals.
-- **Maps to:** step 3 (freshness), the pharma addendum (stamp, no provisional hatch).
 - **Our data:** latestPeriod is 2026-05 and is not flagged provisional.
-- **Direction A:** header stamp "Data through May 2026". Veeva's coverage idea is the honest version of the "blind spot" hatch: it is a label about certainty, not fake data. README notes it as the next step. No change.
+- **In the console:** the header stamp "Data through May 2026". Veeva's coverage idea is the honest version of a "blind spot" hatch, a label about certainty rather than fake data; the data has no provisional flag, so it is not shown.
 
 ### 4.4 Role-specific views
 - **Industry:** ZAIDYN, Axtria and IQVIA all sell "role-specific" dashboards and workflows.
-- **Maps to:** step 1 (exec and analyst), step 4 (two depths, one app).
-- **Direction A:** mode in the URL, one token set at two density scales. The industry does this as separate dashboards per role; ours is a stronger version because the link carries the depth. No change.
+- **In the console:** Executive and Analyst personas, the mode in the URL, one token set at two density scales. The industry does this as separate dashboards per role; here the link carries the depth, so a shared view opens at the sender's depth.
 
 ### 4.5 The assistant sits beside the data and points at it
 - **Industry:** Salesforce puts the agent prompt on the dashboard; Pulse returns answers with "source references"; Aufait says narrative sits beside charts, never replacing them.
-- **Maps to:** step 3 (source vs AI surfaces, citation chips that navigate), step 4 (dashboard main column, assistant panel).
-- **Direction A:** confirmed. The lilac AI surface with citation chips is our version of Pulse's source references. No change.
+- **In the console:** the lilac AI surface with citation chips is our version of Pulse's source references.
 
 ### 4.6 Verifiable answers, not confident ones
 - **Industry:** Spotter shows the tokens it ran and offers "double check" and editable queries; Ramp's lesson is that trust comes from the semantic layer.
-- **Maps to:** step 3 (chips land on the exact view; "differs from source" marker; no fake percentages).
 - **Our data:** fixtures give citations with marketId, productId, period and label. That is our "query tokens".
-- **Direction A:** render each citation chip as the Spotter-style token: entity plus period, clickable, resolvable. Add one small thing: a "Show sources" expander on every answer listing all chips as a table, which is the analyst's "double check". Small addition, consistent with step 3.
+- **In the console:** each citation chip is a Spotter-style token: entity plus period, clickable, resolvable. Every answer with citations has a "Show sources" expander listing them as a table with the source value beside the assistant's wording, which is the analyst's "double check".
 
 ### 4.7 Confidence as a categorical, readable signal
 - **Industry:** Lazarev: categorical bands or a short qualifier, never a bare number; Aufait shows confidence with data sources in an overlay.
-- **Maps to:** step 3 (three levels, word plus icon plus one-line meaning).
-- **Direction A:** confirmed. No change.
+- **In the console:** three levels, each a word plus an icon plus a one-line meaning.
 
 ### 4.8 Explicit fallback and abstain states
 - **Industry:** Lazarev principle 6: replace blank widgets and spinners with a state that says what happened and offers a next step; Elva proposes a starting point.
-- **Maps to:** step 3 (abstain is first-class with a reason and a suggested rephrase; partial streams marked).
-- **Direction A:** confirmed. Add the "suggested next question" to the abstain state, which the fixtures already hint at ("If forward forecast data is loaded, I can summarise it"). No change.
+- **In the console:** abstain is a first-class state with the data's coverage and a suggested next question; stopped and failed streams are marked partial.
 
 ### 4.9 Suggested questions and explain by exception
 - **Industry:** Pulse surfaces suggested questions per detected insight; Lazarev: lead with one or two factors, keep the trace one click away.
-- **Maps to:** step 4 (reviewer cold open with three example questions), the pharma addendum (anomaly notes as annotations).
 - **Our data:** anomalies array on markets (Germany 2026-03 dip) is our "detected insight".
-- **Direction A:** the exec's top-movers list can carry a "Ask why" affordance per row that pre-fills the assistant. Cheap, fits the fixtures' keyword matching, and shows the coordinated-views idea in the chat direction too. Small addition.
+- **In the console:** three suggested questions on the cold open, and an "Ask why" button on each flagged market in Needs attention and on each Analyst grid row, which sends the question about that market. It shows the coordinated-views idea in the chat direction too.
 
 ### 4.10 Filters as visible, reversible chips in the URL
 - **Industry:** Setproduct rule 7; Pulse shows applied filters on the metric page; Linear's filter chips.
-- **Maps to:** step 4 (header is URL state).
-- **Direction A:** active period and drill shown as removable chips next to the breadcrumbs, with "clear" returning to portfolio. No change, it is a rendering detail of what is approved.
+- **In the console:** the drill path in the header is a row of links, so any level is one step back and the Portfolio crumb returns to the portfolio while keeping the period and mode; the period and product controls sit in the page toolbar. Every one of them is URL state.
 
 ### 4.11 Density by information value, not everywhere
 - **Industry:** Linear's 13px/4px grid for power users; Setproduct's 3:1 density ratio between primary and secondary zones; Lazarev's 5 to 9 visuals per view.
-- **Maps to:** step 5 (dense analyst scale from the same tokens), section 2 of Flavius's trading research.
-- **Direction A:** confirmed. Concrete numbers to carry into tokens: analyst rows 32px, 4px spacing grid, 13px table text; exec tiles roomier. Cap the analyst grid at about 6 to 8 widgets. No change.
+- **In the console:** analyst rows 32px, a 4px spacing grid and 13px table text; Executive tiles roomier. The Analyst sheet holds seven sections: KPI strip, Markets grid, map, time series, Compare, heat map and Alerts.
 
 ### 4.12 Colour rationing and token generation
 - **Industry:** Linear uses one accent only for focus and primary action; Setproduct reserves hue for status, series and one accent; Stripe generates colour tokens against WCAG contrast.
-- **Maps to:** step 3 and 5 (status reserved, AI tint separate, contrast verified), the approved token-based styling stack.
-- **Direction A:** confirmed. We already run every token through a contrast check; keep that script in the repo and mention it in the README, since Stripe's version of it is a selling point.
+- **In the console:** status hues are reserved, the AI tint is separate, and every token pair goes through `pnpm check:contrast` in CI.
 
 ### 4.13 Table fallback and export
 - **Industry:** Spotter toggles table and chart; every pharma tool exports to Excel and PowerPoint; Lazarev: charts fall back to a readable table.
-- **Maps to:** step 4 amendment ("View as table" one click on every chart).
-- **Direction A:** confirmed. Export is cheap once the table exists: a "Copy as CSV" on the table view. Optional, low cost, do only if time allows.
+- **In the console:** "View as table" is one click on every chart, and the facts table has "Copy as CSV".
 
 ### 4.14 Keyboard-first and command palette
 - **Industry:** Linear's Cmd-K as the fallback for every action, inline shortcut hints, nothing hover-only.
-- **Maps to:** brief stretch goal, the trading-research addendum.
-- **Direction A:** stretch, after the core. Nothing hover-only is already implied by accessibility and should be a stated rule.
+- **In the console:** a Cmd-K / Ctrl-K command palette for drilling, switching view, asking and the theme; tooltips open on keyboard focus as well as on hover, and every chart has a table twin.
 
 ### 4.15 Dark mode designed, not inverted
 - **Industry:** Stripe designed dark mode as its own theme with tokens; Linear is dark-first by audience.
-- **Maps to:** step 5 (light-first with a validated dark theme).
-- **Direction A:** confirmed. Flag kept from before: dark-first remains rejected for our audience.
+- **In the console:** a light default with a designed dark theme that follows the OS; dark-first does not suit this audience.
 
 ## 7. Sources
 - IQVIA PharmaReport Sales Dashboard: https://www.iqvia.com/-/media/iqvia/pdfs/belgium/iqvia-sales-dashboard.pdf

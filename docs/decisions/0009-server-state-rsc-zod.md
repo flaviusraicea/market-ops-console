@@ -13,7 +13,7 @@ Status: accepted, decided on 2026-11-02.
 
 ## Decision
 
-Server loader with `DatasetSchema`; selectors are pure functions in `domain/`. A failure fails the build, not the page.
+Server loader with `DatasetSchema`; selectors are pure functions in `domain/`. The file is parsed once per server process, and the contract unit test (`tests/unit/contracts.test.ts`) parses the real file in CI, so a malformed `data.json` fails CI before it can reach a page.
 
 ## Consequences
 

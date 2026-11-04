@@ -3,10 +3,12 @@ These are the working documents behind the build, drafted with AI assistance and
 ## Design and architecture
 
 - [domain-model.md](domain-model.md): entities, formulas, provenance, assistant and alert models.
-- [user-flows.md](user-flows.md): users, jobs and the build slices.
+- [user-flows.md](user-flows.md): users, jobs and the flows that serve them.
 - [architecture.md](architecture.md): layers, URL schema, state, contracts, testing.
 - [design-system.md](design-system.md): the Ledger tokens and components.
 - [industry-research.md](industry-research.md): the design aspects and the products they came from.
+- [accessibility.md](accessibility.md): keyboard tour, focus rules, contrast table and what is tested.
+- [performance-monitoring.md](performance-monitoring.md): Lighthouse CI, Speed Insights, bundle budgets, errors and caching.
 
 ## Testing
 
@@ -26,19 +28,4 @@ Five checks come straight from the brief's wording: its four questions, no jank 
 - [0010-forms-react-hook-form-zod.md](decisions/0010-forms-react-hook-form-zod.md): Forms with react-hook-form and zod
 - [0011-testing-stack.md](decisions/0011-testing-stack.md): Testing stack
 - [0012-deploy-vercel.md](decisions/0012-deploy-vercel.md): Deploy on Vercel
-
-## Slice specs
-
-- [slice-00-foundation.md](specs/slice-00-foundation.md)
-- [slice-01-cold-open.md](specs/slice-01-cold-open.md)
-- [slice-02-exec-overview.md](specs/slice-02-exec-overview.md)
-- [slice-03-drill-share-history.md](specs/slice-03-drill-share-history.md)
-- [slice-04-analyst-views.md](specs/slice-04-analyst-views.md)
-- [slice-05-stream-stop.md](specs/slice-05-stream-stop.md)
-- [slice-06-citations.md](specs/slice-06-citations.md)
-- [slice-07-differs-from-source.md](specs/slice-07-differs-from-source.md)
-- [slice-08-answer-kinds.md](specs/slice-08-answer-kinds.md)
-- [slice-09-ask-why.md](specs/slice-09-ask-why.md)
-- [slice-10-alerts.md](specs/slice-10-alerts.md)
-- [slice-11-theme-a11y.md](specs/slice-11-theme-a11y.md)
-- [slice-12-stretch.md](specs/slice-12-stretch.md)
+- [0013-performance-budgets.md](decisions/0013-performance-budgets.md): Performance budgets enforced in CI
