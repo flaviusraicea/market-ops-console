@@ -22,7 +22,8 @@ const ATTENTION_TEXT = {
 
 /**
  * The first line of the Overview: one sentence that answers "are we on track?". It is the page's h2.
- * Status and the attention phrase carry colour; every number gets a dotted underline and stays plain text.
+ * Status and the attention phrase carry colour. Numbers stay plain text: an underline with no behaviour behind it
+ * would promise a link.
  */
 export function Verdict({ verdict }: { verdict: VerdictVM }) {
   return (
@@ -47,8 +48,6 @@ export function Verdict({ verdict }: { verdict: VerdictVM }) {
             className={cn(
               segment.role === "status" && STATUS_TEXT[verdict.status],
               segment.role === "attention" && ATTENTION_TEXT[verdict.attention],
-              segment.role === "number" &&
-                "underline decoration-border decoration-1 decoration-dotted underline-offset-[6px]",
             )}
           >
             {segment.text}

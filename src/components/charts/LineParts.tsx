@@ -13,7 +13,7 @@ export type SeriesKey = "actual" | "forecast" | "priorYear";
 // Painted in this order: Forecast last, so where it meets Actual (most months at portfolio level) its dashes
 // stay visible on top of the solid line instead of disappearing under it.
 export const SERIES = [
-  { key: "priorYear", color: "var(--series-prior)", width: 1.5, dash: "2 3" },
+  { key: "priorYear", color: "var(--series-prior)", width: 1, dash: "1 3" },
   { key: "actual", color: "var(--series-actual)", width: 2, dash: undefined },
   { key: "forecast", color: "var(--series-forecast)", width: 1.5, dash: "4 4" },
 ] as const;

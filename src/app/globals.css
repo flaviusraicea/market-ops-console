@@ -417,12 +417,14 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   animation: overlay-out var(--dur-base) var(--ease-in) forwards;
 }
 [data-slot="dropdown-menu-content"][data-state="open"],
+[data-slot="popover-content"][data-state="open"],
 [data-slot="select-content"][data-state="open"],
 [data-slot="tooltip-content"][data-state="delayed-open"],
 [data-slot="tooltip-content"][data-state="instant-open"] {
   animation: popover-in var(--dur-press) var(--ease-out);
 }
 [data-slot="dropdown-menu-content"][data-state="closed"],
+[data-slot="popover-content"][data-state="closed"],
 [data-slot="select-content"][data-state="closed"],
 [data-slot="tooltip-content"][data-state="closed"] {
   animation: popover-out var(--dur-press) var(--ease-in) forwards;
@@ -472,6 +474,7 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
     transform: none;
   }
   [data-slot="dropdown-menu-content"][data-state],
+  [data-slot="popover-content"][data-state],
   [data-slot="select-content"][data-state],
   [data-slot="tooltip-content"][data-state] {
     animation-name: scrim-in;
@@ -504,6 +507,7 @@ html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state="
   animation-name: scrim-out;
 }
 html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state],
+html[data-reduced-motion="true"] [data-slot="popover-content"][data-state],
 html[data-reduced-motion="true"] [data-slot="select-content"][data-state],
 html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state] {
   animation-name: scrim-in;
@@ -512,6 +516,7 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state] {
   transform: none;
 }
 html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state="closed"],
+html[data-reduced-motion="true"] [data-slot="popover-content"][data-state="closed"],
 html[data-reduced-motion="true"] [data-slot="select-content"][data-state="closed"],
 html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="closed"] {
   animation-name: scrim-out;
