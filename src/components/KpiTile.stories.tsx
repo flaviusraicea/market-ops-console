@@ -96,7 +96,8 @@ export const Derived: Story = {
     const c = within(canvasElement);
     await userEvent.tab();
     await expect(c.getByRole("button", { name: "About forecast attainment" })).toHaveFocus();
-    await expect(await within(document.body).findByRole("tooltip")).toHaveTextContent(
+    await userEvent.keyboard("{Enter}");
+    await expect(await within(document.body).findByRole("dialog")).toHaveTextContent(
       "Derived · sum of series",
     );
   },

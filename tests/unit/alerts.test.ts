@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import raw from "@/data/data.json";
-import { evaluateRule } from "@/domain/alerts";
+import { evaluateRule } from "@/domain/alertRule";
 import { parseDataset } from "@/domain/dataset";
 
 const ds = parseDataset(raw);

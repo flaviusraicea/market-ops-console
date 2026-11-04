@@ -66,7 +66,7 @@ test("OS dark preference with no storage uses the dark tokens", async ({ browser
   await page.goto("/");
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.*/);
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe("rgb(15, 19, 24)");
+  expect(bg).toBe("rgb(11, 14, 18)");
   await context.close();
 });
 

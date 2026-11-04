@@ -30,7 +30,8 @@ import { type AlertRule } from "@/domain";
 import { AlertRuleSchema } from "@/domain/alerts";
 import { useDataset } from "@/lib/context/dataset";
 import { formatThreshold, scopeFromValue } from "./labels";
-import { DEFAULT_THRESHOLDS, type SaveFailure, type SaveStatus } from "./useAlertSave";
+import { DEFAULT_THRESHOLDS } from "./rules";
+import type { SaveFailure, SaveStatus } from "./useAlertSave";
 
 type Values = { growth: string; attainment: string; scope: string };
 
@@ -230,7 +231,12 @@ export function AlertForm({
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  {/* 22 options: a bounded list that flips up near the bottom of the window. */}
+                  <SelectContent
+                    position="popper"
+                    collisionPadding={16}
+                    className="max-h-[min(320px,50vh)]"
+                  >
                     <SelectItem value="portfolio">All markets</SelectItem>
                     <SelectSeparator />
                     <SelectGroup>
@@ -285,7 +291,7 @@ export function AlertForm({
         {failure ? (
           <Notice
             noticeRef={noticeRef}
-            title={failure.readOnly ? "Rules are read-only for Executives." : "Couldn't save"}
+            title={failure.readOnly ? "Rules are read-only for Executives." : "Couldn’t save"}
             actions={
               <>
                 {failure.readOnly ? (

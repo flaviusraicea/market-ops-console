@@ -98,7 +98,7 @@
     },
     "analyst": {
       "path": "/?mode=analyst",
-      "jsKb": 350
+      "jsKb": 300
     },
     "lazyChunkKb": 60,
     "fontsKb": 110,

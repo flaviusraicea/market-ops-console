@@ -1,5 +1,5 @@
 import { type AlertRule } from "@/domain";
-import { AlertRuleSchema } from "@/domain/alerts";
+import { parseAlertRule } from "@/domain/alertRule";
 import { readRules, ruleKey, writeRules } from "./storage";
 
 type Options = { fail?: boolean };
@@ -34,7 +34,8 @@ export async function saveRule(rule: AlertRule, { fail }: Options = {}): Promise
   });
   if (!res.ok) throw await failure(res);
   const body = (await res.json()) as { rule?: unknown };
-  const confirmed = AlertRuleSchema.parse(body.rule);
+  const confirmed = parseAlertRule(body.rule);
+  if (!confirmed) throw new Error("The server returned an invalid rule.");
   // The route only validates and simulates latency; this browser keeps the rule. Same metric and scope updates in place.
   const rules = readRules();
   const i = rules.findIndex((r) => ruleKey(r) === ruleKey(confirmed));

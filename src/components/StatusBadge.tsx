@@ -19,8 +19,10 @@ const SIZE = {
 /**
  * The one status mark in the app: a glyph that differs by shape (dot, triangle, diamond) then the status word.
  * Only at risk and off track are tinted, so a screen of healthy markets stays quiet. The word is the accessible
- * label and the glyph is decoration. Every variant reserves a 1 px border so the box is the same size, and forced
- * colours draw it in the system text colour.
+ * label and the glyph is decoration. The badge is as wide as its word: a list that needs its columns to line up
+ * gives the badge a fixed-width slot, so the badge never takes space a narrow row needs for the name. Every
+ * variant reserves a 1 px border so the box is the same size, and forced colours draw it in the system text
+ * colour.
  */
 export function StatusBadge({
   status,

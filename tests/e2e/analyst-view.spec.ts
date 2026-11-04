@@ -22,8 +22,8 @@ test("the Europe grid has five rows in order with statuses, and the status toolt
     await expect(rows.nth(i)).toContainText(name);
     await expect(rows.nth(i)).toContainText(statuses[i]!);
   }
-  await page.getByRole("button", { name: "Status rule" }).hover();
-  await expect(page.getByRole("tooltip").first()).toContainText("attainment is below about 92.5%");
+  await page.getByRole("button", { name: "Status rule" }).click();
+  await expect(page.getByRole("dialog")).toContainText("attainment is below about 92.5%");
 });
 
 test("Spain's attainment info icon explains why it is off track above plan", async ({ page }) => {
@@ -31,11 +31,11 @@ test("Spain's attainment info icon explains why it is off track above plan", asy
   const note = card(page, /^Markets · Europe \d/).getByRole("button", {
     name: "Status note for Spain",
   });
-  // Focus can land before the page has hydrated, so retry until the tooltip opens.
+  // A click can land before the page has hydrated, so retry until the popover opens.
   await expect(async () => {
-    await note.blur();
-    await note.focus();
-    await expect(page.getByRole("tooltip").first()).toContainText(
+    await page.keyboard.press("Escape");
+    await note.click();
+    await expect(page.getByRole("dialog")).toContainText(
       "Off track despite 104.5% attainment. The status rule is not documented in the data; growth is −4.6%.",
       { timeout: 1000 },
     );
