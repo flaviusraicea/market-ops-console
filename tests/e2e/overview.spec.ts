@@ -156,7 +156,7 @@ test("a market shows its products and hides the strip", async ({ page }) => {
   await expect(products).toContainText("Veltrix");
 });
 
-test("the map table and the legend still work at the new position", async ({ page }) => {
+test("the map table and the legend work under the region bars", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   const map = page.getByRole("region", { name: "Markets by status" });
@@ -225,7 +225,7 @@ for (const width of [390, 768, 1024, 1440]) {
       ),
     );
     const overflow = await page.evaluate(() => {
-      // The header's own overflow at phone width belongs to the mobile slice.
+      // The main column only: the header at phone width is covered in mobile.spec.ts.
       const main = document.getElementById("main")!;
       return main.scrollWidth - main.clientWidth;
     });

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { answerComplete, ask, sampleFrames } from "./helpers";
+import { answerComplete, ask, sampleFrames } from "../helpers";
 
 // The brief: "no jank while streaming". Runs in its own Playwright project, alone after the rest of the suite,
 // so other tests cannot steal CPU and stretch a frame (see playwright.config.ts). Token batching itself is
