@@ -34,8 +34,10 @@ export function useConsoleContext() {
         logEvent({ type: "invalid_context", message: result.reason });
         return;
       }
-      const { next } = result;
-      const send = () => {
+      const { next, history } = result;
+      function commit() {
+        // A retried navigation keeps its notice up until it lands; any other navigation supersedes the hold.
+        if (!guard?.sendingRef.current) guard?.release();
         startTransition(() => {
           void setRaw(
             {
@@ -49,34 +51,33 @@ export function useConsoleContext() {
               cite: next.cite ?? null,
               facts: next.facts ?? null,
             },
-            { history: opts?.history ?? result.history, shallow: opts?.shallow ?? false },
+            { history: opts?.history ?? history, shallow: opts?.shallow ?? false },
           );
         });
         logEvent({ type: "navigate", ctx: next });
-      };
-      // A change the server has to answer cannot be made offline: hold it, keep the view, offer Retry.
-      if (!opts?.shallow && guard && isOffline()) {
-        guard.hold({ send });
-        return;
       }
-      guard?.release();
-      send();
+      // A change the server has to answer cannot be made offline: hold it, keep the view, offer Retry.
+      function attempt() {
+        if (!opts?.shallow && guard && isOffline()) guard.hold({ retry: attempt });
+        else commit();
+      }
+      attempt();
     },
     [meta, ctx, setRaw, startTransition, guard],
   );
 
   const reset = useCallback(() => {
-    const send = () => {
+    function attempt() {
+      if (guard && isOffline()) {
+        guard.hold({ retry: attempt });
+        return;
+      }
+      if (!guard?.sendingRef.current) guard?.release();
       startTransition(() => {
         void setRaw(null, { history: "push" });
       });
-    };
-    if (guard && isOffline()) {
-      guard.hold({ send });
-      return;
     }
-    guard?.release();
-    send();
+    attempt();
   }, [setRaw, startTransition, guard]);
 
   return { ctx, setContext, reset, isPending };

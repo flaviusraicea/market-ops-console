@@ -21,8 +21,8 @@ type Navigation = readonly [isPending: boolean, start: TransitionStartFunction];
  * change here keeps both and lets Retry send it once the server answers.
  */
 export type HeldNavigation = {
-  /** Starts the navigation inside the shared transition. */
-  send: () => void;
+  /** Issues the held change again, through the same offline check as the first time. */
+  retry: () => void;
   /** The control the reader used, marked busy while the retry runs. */
   source: HTMLElement | null;
 };
@@ -31,10 +31,12 @@ type Guard = {
   held: HeldNavigation | null;
   /** True from Retry until the held navigation has landed. */
   retrying: boolean;
+  /** True while a retried navigation is in flight: the notice stays until it lands instead of closing at once. */
+  sendingRef: { current: boolean };
   hold: (nav: Omit<HeldNavigation, "source">) => void;
   /** Drops the hold: a new navigation supersedes it, or the reader dismissed the notice. */
   release: () => void;
-  /** Probes the server, then sends the held navigation; the notice stays until it has landed. */
+  /** Re-issues the held change. Offline it is held again and the same notice stays; online it is sent. */
   retry: () => void;
 };
 
@@ -72,11 +74,15 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const sendingRef = useRef(false);
   const hold = useCallback((nav: Omit<HeldNavigation, "source">) => {
+    sendingRef.current = false;
+    sentAt.current = null;
     setRetrying(false);
     setHeld({ ...nav, source: lastControl.current });
   }, []);
   const release = useCallback(() => {
+    sendingRef.current = false;
     sentAt.current = null;
     setRetrying(false);
     setHeld(null);
@@ -85,14 +91,10 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const retry = useCallback(() => {
     if (!held || retrying) return;
     setRetrying(true);
-    void fetch("/api/health", { cache: "no-store" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`Health probe answered ${res.status}`);
-        sawPending.current = false;
-        sentAt.current = performance.now();
-        held.send();
-      })
-      .catch(() => setRetrying(false));
+    sendingRef.current = true;
+    sawPending.current = false;
+    sentAt.current = performance.now();
+    held.retry();
   }, [held, retrying]);
 
   // The notice leaves only once the sent navigation has shown as pending and finished; if it never shows as
@@ -124,7 +126,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   }, [retrying, source]);
 
   const guard = useMemo(
-    () => ({ held, retrying, hold, release, retry }),
+    () => ({ held, retrying, sendingRef, hold, release, retry }),
     [held, retrying, hold, release, retry],
   );
   return (

@@ -15,11 +15,12 @@ export function OfflineNotice() {
     <Notice
       tone="offline"
       title="You’re offline"
-      detail="showing the last view"
       open={guard.held !== null}
       retrying={guard.retrying}
       onRetry={guard.retry}
       onDismiss={guard.release}
-    />
+    >
+      showing the last view
+    </Notice>
   );
 }

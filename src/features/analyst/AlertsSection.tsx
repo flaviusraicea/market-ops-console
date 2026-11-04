@@ -64,12 +64,29 @@ export function AlertsSection({
         </h3>
         <CollapsibleContent>
           <div className="flex flex-col gap-4 px-[var(--pad-card)] pb-[var(--pad-card)]">
+            {alerts.loadFailed ? (
+              // The list is never shown as empty after a failed read; Dismiss only hides the notice.
+              <Notice
+                tone="error"
+                title="Couldn’t load alert rules"
+                open={!loadDismissed}
+                retrying={alerts.reloading}
+                onRetry={alerts.reload}
+                onDismiss={() => setLoadDismissed(true)}
+                className="mt-0 mb-0"
+              />
+            ) : null}
             {readOnly ? (
               <Notice
-                tone="neutral"
+                tone="fallback"
                 title="Read-only for Executives."
                 actions={
-                  <Button type="button" variant="ghost" onClick={() => onSwitchToAnalyst?.()}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSwitchToAnalyst?.()}
+                  >
                     Switch to Analyst
                   </Button>
                 }
@@ -87,18 +104,7 @@ export function AlertsSection({
               onDismiss={alerts.dismiss}
               onSwitchToAnalyst={onSwitchToAnalyst}
             />
-            {alerts.loadFailed ? (
-              // The list is never shown as empty after a failed read; Dismiss only hides the notice.
-              <Notice
-                tone="error"
-                title="Couldn’t load alert rules"
-                open={!loadDismissed}
-                retrying={alerts.reloading}
-                onRetry={alerts.reload}
-                onDismiss={() => setLoadDismissed(true)}
-                className="mt-0 mb-0"
-              />
-            ) : (
+            {!alerts.loadFailed ? (
               <RuleList
                 rules={alerts.rules}
                 onDelete={alerts.remove}
@@ -108,7 +114,7 @@ export function AlertsSection({
                 onSwitchToAnalyst={onSwitchToAnalyst}
                 readOnly={readOnly}
               />
-            )}
+            ) : null}
           </div>
         </CollapsibleContent>
       </section>
