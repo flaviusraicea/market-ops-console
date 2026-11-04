@@ -84,9 +84,10 @@ export function RegionBars({
                 {...(current ? { "aria-current": "true" as const } : {})}
                 className={cn(
                   "press grid w-full items-center gap-3 px-2 py-2 text-left",
-                  // The selected row looks like a selected table row; the others only tint on hover.
+                  // The drilled row is a quiet surface step with a semibold name, no accent edge: the accent belongs
+                  // to a citation landing, so a selection can never be mistaken for one. The others tint on hover.
                   current
-                    ? "selected-row"
+                    ? "bg-surface-2"
                     : "transition-colors duration-[var(--dur-fast)] hover:bg-surface-2",
                   // A phone keeps its row as it was. From md the list's own width picks the layout: under 24 rem
                   // (the panel docked) two lines per row; wider, one line with the bar taking 3 parts to the name's 2.
