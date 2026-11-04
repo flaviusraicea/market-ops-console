@@ -9,13 +9,13 @@ import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { useDensity } from "@/lib/density";
 import type { ContextPatch } from "@/domain";
 import { ConnectedLiveToggle } from "@/features/live/LiveToggle";
+import { PaletteButton } from "@/features/palette/PaletteButton";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { DataStamp } from "./DataStamp";
 import { ConnectedAvatarMenu } from "./ConnectedAvatarMenu";
 import { ModeSwitch } from "./ModeSwitch";
 import { ProductSelect, type ProductOption } from "./ProductSelect";
 import { PeriodSelect } from "./PeriodSelect";
-import { PaletteButton } from "@/features/palette/PaletteButton";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type HeaderProps = {
@@ -106,11 +106,13 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
             <ModeSwitch mode={mode} onChange={(m) => setContext({ mode: m })} />
           </div>
           <div className="flex items-center gap-x-1 max-md:order-2 md:contents">
-            {/* Hidden on a phone: the mobile header is frozen. */}
-            <span className="mr-1 max-md:hidden">
-              <PaletteButton />
-            </span>
-            <ThemeToggle />
+            {/* From 1024 px search sits 8 px left of the theme toggle; below that the phone bar has it. */}
+            <div className="flex items-center gap-x-2 max-lg:contents">
+              <span className="flex max-lg:hidden">
+                <PaletteButton />
+              </span>
+              <ThemeToggle />
+            </div>
             <ConnectedAvatarMenu />
           </div>
           {/* The break between the two phone rows. */}

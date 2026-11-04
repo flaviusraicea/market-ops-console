@@ -188,9 +188,9 @@ function PanelBody({
         note={pending?.note ?? null}
         simulated={isSimulated(live)}
       />
-      {/* Phone sheet only: the desktop entry point is the page header's search button. */}
+      {/* The sheet below 1024 px only: from there the page header's search button is the one entry point. */}
       <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:hidden">
-        <PaletteButton />
+        <PaletteButton placement="phone" />
       </div>
       <AnswerList
         answers={answers}

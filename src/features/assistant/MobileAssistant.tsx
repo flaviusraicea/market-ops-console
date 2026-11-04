@@ -37,7 +37,7 @@ export function MobileAssistant({ panel }: { panel: ReactNode }) {
             </span>
           ) : null}
         </BottomSheetTrigger>
-        <PaletteButton />
+        <PaletteButton placement="phone" />
       </div>
       <BottomSheetContent
         title="Assistant"

@@ -111,7 +111,8 @@ test.describe("phone", () => {
 
   test("opens as a full-height sheet and Go to Germany works", async ({ page }) => {
     await page.goto("/");
-    await opener(page).tap();
+    // The phone bar keeps its own label; the header's search button starts at 1024 px.
+    await page.getByRole("button", { name: "Open command palette" }).tap();
     // The sheet enters with a short scale and rise; measure it once it has settled.
     await palette(page).evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
     const box = await palette(page).boundingBox();

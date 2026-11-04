@@ -238,7 +238,7 @@ test.describe("phone", () => {
     page,
   }) => {
     await open(page, OVERVIEW);
-    await page.getByRole("button", { name: "Search and commands" }).tap();
+    await page.getByRole("button", { name: "Open command palette" }).tap();
     const palette = page.getByRole("dialog", { name: "Command palette" });
     await expect(palette).toBeVisible();
     await palette.getByRole("combobox").fill("germ");
