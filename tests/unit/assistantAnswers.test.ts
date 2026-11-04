@@ -252,3 +252,33 @@ describe("a follow-up in a market view", () => {
     expect(f.answer.text).toContain("Apr 2026");
   });
 });
+
+describe("a question with no keywords answers about the scope its label names", () => {
+  const canada = {
+    entity: { kind: "market", marketId: "ca" },
+    period: ds.meta.latestPeriod,
+  } as const;
+  const germany = {
+    entity: { kind: "market", marketId: "de" },
+    period: ds.meta.latestPeriod,
+  } as const;
+  it("a market it names beats the market in view", () => {
+    expect(ask("How is France doing?", canada).answer.text).toMatch(/^France's revenue/);
+  });
+  it("a market it names from the portfolio gets that market", () => {
+    const f = ask("Tell me about Japan", {
+      entity: { kind: "portfolio" },
+      period: ds.meta.latestPeriod,
+    });
+    expect(f.answer.text).toMatch(/^Japan's revenue/);
+  });
+  it("the portfolio it names keeps the portfolio answer in a market view", () => {
+    expect(ask("Summarise the portfolio", germany).answer.text).not.toMatch(/^Germany's revenue/);
+  });
+});
+
+describe("a capitalised word that is not a place", () => {
+  it("keeps the answer its keywords pick", () => {
+    expect(ask("Give me the Executive summary", undefined).id).toBe("summary-long");
+  });
+});

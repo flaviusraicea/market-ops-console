@@ -18,7 +18,7 @@ import {
   asksWhyStatus,
 } from "@/domain";
 import { formatMoneyCompact, formatPct, formatPeriodAbbr } from "@/lib/format";
-import { singleMarketNamed, unknownPlace } from "./askedScope";
+import { askedScope, singleMarketNamed, unknownPlace } from "./askedScope";
 import { readQuestion } from "./horizon";
 
 /** A market in view, or one product of it: the template answers about exactly what the dashboard shows. */
@@ -121,13 +121,17 @@ export function pickFixture(
     return file.fixtures.find((f) => f.id === OFF_TOPIC_ID) ?? file.default;
   }
   const view = marketView(context);
-  // A follow-up ("and in April?") carries no keywords; in a market view it is the market-month answer.
-  if (hits.length === 0 && view) {
+  // No keywords ("and in April?", "How is France?"): a question about one market gets its market-month answer. The
+  // market is the one the label names (askedScope), so a named market beats the one in view, and "the portfolio"
+  // keeps the portfolio answer.
+  const about = hits.length === 0 ? askedScope(ds, question, context).entity : undefined;
+  if (about?.kind === "market" || about?.kind === "product") {
     const template = file.fixtures.find((f) => f.template !== undefined);
+    const period = context?.period ?? ds.meta.latestPeriod;
     if (template) {
       const periods: Periods =
-        asked.span.length > 0 ? [asked.span[0]!, ...asked.span.slice(1)] : [view.period];
-      return fillMarketMonth(ds, template, view.entity, periods, asked.label);
+        asked.span.length > 0 ? [asked.span[0]!, ...asked.span.slice(1)] : [period];
+      return fillMarketMonth(ds, template, about, periods, asked.label);
     }
   }
   const scoped = context

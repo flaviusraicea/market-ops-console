@@ -49,6 +49,7 @@ describe("the Asked about label is the scope the question resolves to", () => {
     ["month named", canada, "Why did revenue dip in March?", "Canada · Mar 2026"],
     ["month and year named", canada, "Why did revenue dip in Mar 2025?", "Canada · Mar 2025"],
     ["quarter named", portfolio, "How was Q1 2026?", "Portfolio · Q1 2026"],
+    ["portfolio named, on a market", germany, "Summarise the portfolio", "Portfolio · May 2026"],
     // Both named.
     ["market and month named", canada, "Why did Germany dip in March?", "Germany · Mar 2026"],
     ["region and month named", canada, "How did Europe do in Mar 2026?", "Europe · Mar 2026"],

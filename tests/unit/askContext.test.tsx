@@ -81,4 +81,25 @@ describe("the view a question is about travels with it", () => {
     expect(result.current.answers[1]?.about).toBe("Spain · Apr 2026");
     expect(sent[1]?.context?.entity).toEqual({ kind: "market", marketId: "es" });
   });
+
+  it("a follow-up after a question past the data keeps the month in view", async () => {
+    const { sent, stream } = recordingStream();
+    const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
+    await act(async () => result.current.ask("Why will Germany dip in Dec 2026?", germany));
+    await act(async () => result.current.ask("and also why?", germany));
+    expect(sent[1]?.context).toEqual({
+      entity: { kind: "market", marketId: "de" },
+      period: germany.period,
+    });
+  });
+
+  it("a second ask while the first is still loading is dropped, so a double click sends once", async () => {
+    const { sent, stream } = recordingStream();
+    const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
+    await act(async () => {
+      void result.current.ask("Why did Spain dip?", germany);
+      await result.current.ask("Why did Spain dip?", germany);
+    });
+    expect(sent).toHaveLength(1);
+  });
 });

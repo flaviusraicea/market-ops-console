@@ -23,6 +23,9 @@ export function singleMarketNamed(ds: Dataset, question: string): Market | undef
 const regionNamed = (ds: Dataset, question: string) =>
   ds.regions.find((r) => mentions(question.toLowerCase(), r.name));
 
+/** "the portfolio", "all markets", "overall": the question asks about the whole, whatever page it was asked on. */
+const PORTFOLIO_WORDS = /\b(portfolio|all markets|every market|overall)\b/i;
+
 const MONTH_NAMES =
   /^(january|february|march|april|may|june|july|august|september|october|november|december)$/i;
 
@@ -41,6 +44,8 @@ export function unknownPlace(ds: Dataset, question: string): string | undefined 
     const word = m[0];
     const before = question.slice(0, m.index).trim();
     if (before === "" || /[.?!]$/.test(before)) continue;
+    // "the Executive summary", "our Analyst view": a determiner introduces a noun phrase, not a place name.
+    if (/\b(the|a|an|my|our|your|this|that)$/i.test(before)) continue;
     if (MONTH_NAMES.test(word) || DEMONYM.test(word) || fromKnown(word)) continue;
     return word;
   }
@@ -58,7 +63,7 @@ export type AskedScope = { entity: Entity | undefined; markets: Market[]; period
 
 /**
  * The scope an answer is about. The question wins: markets it names (the one in view, or a product of it, stays as
- * the view), else a region it names, and the months it names; whatever it leaves out comes from the page it was
+ * the view), else a region it names, else the portfolio when it asks about the whole, and the months it names; whatever it leaves out comes from the page it was
  * asked on. The answer's picker reads its market from the same functions, so label and answer cannot disagree.
  */
 export function askedScope(ds: Dataset, question: string, page: Page): AskedScope {
@@ -74,6 +79,8 @@ export function askedScope(ds: Dataset, question: string, page: Page): AskedScop
     entity = inView ? view : { kind: "market", marketId: market.id };
   } else if (markets.length === 0 && region) {
     entity = { kind: "region", regionId: region.id };
+  } else if (markets.length === 0 && PORTFOLIO_WORDS.test(question)) {
+    entity = { kind: "portfolio" };
   }
   // A time the data does not cover is not claimed: the answer abstains, so no month is named.
   if (read.beyondHorizon || read.beforeData) return { entity, markets, periods: [] };
