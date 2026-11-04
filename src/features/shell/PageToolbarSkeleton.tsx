@@ -8,7 +8,7 @@ export function PageToolbarSkeleton({ label, className }: { label: string; class
       role="status"
       aria-busy="true"
       className={cn(
-        "sticky top-[calc(var(--header-h)+8px)] z-20 mb-[var(--gap-section)] flex h-12 items-center rounded-sheet border border-border bg-surface-raised px-4 shadow-card",
+        "sticky top-[var(--sticky-top)] z-20 mb-[var(--gap-section)] flex h-12 items-center rounded-sheet border border-border bg-surface-raised px-4 shadow-card",
         className,
       )}
     >

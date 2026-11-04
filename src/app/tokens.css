@@ -142,7 +142,9 @@
   --gutter: 16px;
   /* The docked assistant: 320 px from 1024 px, 360 px from 1400 px (below). */
   --assistant-w: 320px;
-  --below-header: calc(var(--header-h) + 16px);
+  /* Where sticky surfaces stop under the header: the Analyst toolbar, the docked panel and its rail share it, so
+     their top edges line up at rest and while scrolled. */
+  --sticky-top: calc(var(--header-h) + 8px);
 
   /* Motion (section 5) */
   --dur-press: 100ms;

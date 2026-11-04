@@ -67,7 +67,7 @@ export function PageToolbar({
         data-slot="page-toolbar"
         data-stuck={stuck}
         className={cn(
-          "sticky top-[calc(var(--header-h)+8px)] z-20 mb-[var(--gap-section)] h-12 rounded-sheet border border-border bg-surface-raised shadow-card",
+          "sticky top-[var(--sticky-top)] z-20 mb-[var(--gap-section)] h-12 rounded-sheet border border-border bg-surface-raised shadow-card",
           "after:pointer-events-none after:absolute after:inset-0 after:rounded-sheet after:opacity-0 after:shadow-raised after:transition-opacity after:duration-150 after:content-[''] data-[stuck=true]:after:opacity-100",
           className,
         )}

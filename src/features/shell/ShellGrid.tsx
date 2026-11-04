@@ -77,7 +77,7 @@ export function ShellGrid({
       ref={mainRef}
       data-docked={docked ? "" : undefined}
       onTransitionEnd={onTransitionEnd}
-      className="shell-grid grid grid-cols-[minmax(0,1fr)] gap-[var(--gap)] outline-none lg:grid-cols-[minmax(0,1fr)_var(--panel-w)] [--assistant-top:var(--below-header)]"
+      className="shell-grid grid grid-cols-[minmax(0,1fr)] gap-[var(--gap)] outline-none lg:grid-cols-[minmax(0,1fr)_var(--panel-w)] [--assistant-top:var(--sticky-top)]"
     >
       <DashboardColumn>{dashboard}</DashboardColumn>
       {showColumn ? (
