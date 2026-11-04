@@ -18,6 +18,7 @@ import {
   asksWhyStatus,
 } from "@/domain";
 import { formatMoneyCompact, formatPct, formatPeriodAbbr } from "@/lib/format";
+import { singleMarketNamed, unknownPlace } from "./askedScope";
 import { readQuestion } from "./horizon";
 
 /** A market in view, or one product of it: the template answers about exactly what the dashboard shows. */
@@ -112,11 +113,23 @@ export function pickFixture(
   const asked = readQuestion(ds, question);
   if (asked.beyondHorizon || asked.beforeData)
     return file.fixtures.find((f) => f.kind === "abstain") ?? file.default;
+  // A place the data does not have gets an abstain that says so, not the portfolio default.
+  const unknown = unknownPlace(ds, question);
+  if (unknown) return unknownPlaceFixture(unknown);
   // Input that names nothing this data is about ("test", "asdf") abstains instead of getting the portfolio default.
   if (hits.length === 0 && !aboutTheData(ds, q)) {
     return file.fixtures.find((f) => f.id === OFF_TOPIC_ID) ?? file.default;
   }
   const view = marketView(context);
+  // A follow-up ("and in April?") carries no keywords; in a market view it is the market-month answer.
+  if (hits.length === 0 && view) {
+    const template = file.fixtures.find((f) => f.template !== undefined);
+    if (template) {
+      const periods: Periods =
+        asked.span.length > 0 ? [asked.span[0]!, ...asked.span.slice(1)] : [view.period];
+      return fillMarketMonth(ds, template, view.entity, periods, asked.label);
+    }
+  }
   const scoped = context
     ? hits.find(
         (f) =>
@@ -150,12 +163,6 @@ export function pickFixture(
   return view ? fillMarketMonth(ds, fixture, view.entity, [view.period]) : file.default;
 }
 
-/** The market a question names, or undefined when it names none or several. */
-function singleMarketNamed(ds: Dataset, q: string): Market | undefined {
-  const named = ds.markets.filter((m) => q.includes(m.name.toLowerCase()));
-  return named.length === 1 ? named[0] : undefined;
-}
-
 /**
  * A curated answer is written for certain months of one market. When the question is about other months of that
  * market (named in the question, or the month in view when the market is), the data-filled template answers instead.
@@ -181,6 +188,19 @@ function outsideCuratedMonths(
   const entity =
     view?.entity.marketId === marketId ? view.entity : { kind: "market" as const, marketId };
   return fillMarketMonth(ds, template, entity, [head, ...rest], label);
+}
+
+/** Our abstain answer for a market the data does not have: it names what it was asked about. */
+function unknownPlaceFixture(name: string): Fixture {
+  return {
+    id: "unknown-market",
+    kind: "abstain",
+    answer: {
+      text: `I don't know a market called ${name}. I can answer about the markets, regions and products in this data.`,
+      citations: [],
+      confidence: "low",
+    },
+  };
 }
 
 /** The status of one market as data.json gives it, for "Is Germany at risk?". Read, not written. */

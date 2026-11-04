@@ -47,10 +47,10 @@ function controlledStream() {
 const text = (r: { current: ReturnType<typeof useAnswerMachine> }) => r.current.answers[0]?.text;
 
 describe("token batching", () => {
-  it("20 tokens inside one frame make one update, applied when the frame runs", () => {
+  it("20 tokens inside one frame make one update, applied when the frame runs", async () => {
     const { stream, emit } = controlledStream();
     const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
-    act(() => result.current.ask("q"));
+    await act(async () => result.current.ask("q"));
     for (let i = 0; i < 20; i++) emit({ type: "token", value: `t${i} ` });
 
     expect(text(result)).toBe("");
@@ -61,10 +61,10 @@ describe("token batching", () => {
     expect(frames.size).toBe(0);
   });
 
-  it("the next token after a frame schedules a new frame", () => {
+  it("the next token after a frame schedules a new frame", async () => {
     const { stream, emit } = controlledStream();
     const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
-    act(() => result.current.ask("q"));
+    await act(async () => result.current.ask("q"));
     emit({ type: "token", value: "a" });
     runFrame();
     emit({ type: "token", value: "b" });
@@ -74,10 +74,10 @@ describe("token batching", () => {
     expect(text(result)).toBe("abc");
   });
 
-  it("done flushes pending tokens without waiting for a frame", () => {
+  it("done flushes pending tokens without waiting for a frame", async () => {
     const { stream, emit } = controlledStream();
     const { result } = renderHook(() => useAnswerMachine(stream), { wrapper });
-    act(() => result.current.ask("q"));
+    await act(async () => result.current.ask("q"));
     emit({ type: "token", value: "last words" });
     emit({ type: "done", kind: "normal", confidence: "high", citations: [] });
     expect(result.current.answers[0]).toMatchObject({ status: "done", text: "last words" });

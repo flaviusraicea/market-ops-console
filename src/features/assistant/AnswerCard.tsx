@@ -13,7 +13,7 @@ import { STATUS_RULE_TEXT, asksWhyStatus } from "@/domain";
 import { useDataset } from "@/lib/context/dataset";
 import { formatPeriodAbbr } from "@/lib/format";
 import { AiCard, AiLabel, FailedRow, QuestionEcho, RetryLabel } from "./AnswerShell";
-import { scopeNote } from "./scopeNote";
+import { answeredMarkets, scopeNote } from "./scopeNote";
 import { SUGGESTIONS } from "./Suggestions";
 import { CitationRow, useFollowCitation } from "./CitationRow";
 import { SourcesTable } from "./SourcesTable";
@@ -52,10 +52,11 @@ const NO_SOURCES_NOTE: Record<"stopped" | "failed", string> = {
 export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: AnswerCardProps) {
   const { status, text, question } = answer;
   const ds = useDataset();
-  const scope = scopeNote(ds, answer);
+  const partial = answeredMarkets(ds, answer);
+  const scope = partial?.note ?? scopeNote(ds, answer);
   return (
     <div className="flex flex-col gap-2">
-      <QuestionEcho question={question} about={answer.about} />
+      <QuestionEcho question={question} about={partial?.label ?? answer.about} />
       {status === "failed" ? (
         // The same AI card as every other state, so a failure reads as this answer's outcome, not a page alert.
         <AiCard>

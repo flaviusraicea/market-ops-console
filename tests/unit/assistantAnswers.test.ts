@@ -230,3 +230,25 @@ describe("inline citation phrases", () => {
     }
   });
 });
+
+describe("a place the data does not have", () => {
+  it("abstains and names it", () => {
+    const f = ask("Why did Narnia dip?", {
+      entity: { kind: "market", marketId: "ca" },
+      period: ds.meta.latestPeriod,
+    });
+    expect(f.kind).toBe("abstain");
+    expect(f.answer.text.startsWith("I don't know a market called Narnia")).toBe(true);
+  });
+});
+
+describe("a follow-up in a market view", () => {
+  it("answers about that market and the month it names", () => {
+    const f = ask("and in April?", {
+      entity: { kind: "market", marketId: "de" },
+      period: ds.meta.latestPeriod,
+    });
+    expect(f.answer.text).toContain("Germany");
+    expect(f.answer.text).toContain("Apr 2026");
+  });
+});
