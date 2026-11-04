@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { POST } from "@/app/api/chat/route";
 import { STATUS_RULE_TEXT, type SseEvent } from "@/domain";
-import { ChatContextSchema, parseSseLine } from "@/domain/stream";
+import { ChatContextSchema } from "@/domain/stream";
 import fixtures from "@/data/fixtures.json";
+
+import { parseSseLine } from "./sse";
 
 /** Posts to the route and returns the streamed answer text and its closing event. */
 async function ask(body: unknown) {

@@ -1,7 +1,5 @@
 # Domain model: Market Operations console
 
-**Status: approved by Flavius on 2026-11-02, including the five answers in section 12 (recorded in section 13).**
-
 Derived from the brief, `data.json`, `fixtures.json`, `CONTRACT.md` and `reference/chat-route.ts`, checked against the data itself, and grounded in how pharma commercial and BI products model the same ideas.
 
 ## 1. Why a domain model first
@@ -152,41 +150,33 @@ Known disagreements in the shipped data: the at-risk fixture names Germany, Ital
 
 ## 10. Industry grounding: what to adopt, what to defer
 
-| Concept in the industry | Where it appears | Our data supports it? | Decision proposed |
+| Concept in the industry | Where it appears | Our data supports it? | Decision |
 |---|---|---|---|
 | Hierarchy nation → region → territory; brand → SKU | IQVIA PharmaReport, Veeva Compass levels, Salesforce product hierarchy | Yes: region → market → product | Adopt as the drill path and the analyst grid |
-| MTD / YTD / MAT vs plan | Pharma finance reporting, Flavius's research | YTD and MAT yes; MTD no (monthly grain) | Adopt YTD and MAT as derived values; say "month" not "MTD" |
+| MTD / YTD / MAT vs plan | Pharma finance reporting | YTD and MAT yes; MTD no (monthly grain) | Adopt YTD and MAT as derived values; say "month" not "MTD" |
 | Prior-period comparison on every metric | IQVIA Brand Analytics, Tableau Pulse cards | Yes (prior year, previous month) | Adopt: every tile shows a delta with its comparison label |
 | Data recency and coverage | Veeva "brand coverage", Setproduct "last updated" | Latest period yes; provisional flag no | Adopt the stamp; defer the provisional hatch |
 | Multiple forecast versions (plan vs latest estimate) | Pharma FP&A practice | No, one forecast | Defer; README |
 | Leading indicators: TRx, NRx, rejections, abandonment | IQVIA libraries, Veeva Compass | No | Defer; README names them as what would explain a miss |
 | Market share | IQVIA, Veeva | Given as a synthetic number only | Display only; never compute |
-| Launch vs mature segmentation | Flavius's research | No launches in data | Defer; README |
+| Launch vs mature segmentation | Pharma commercial practice | No launches in data | Defer; README |
 | Detected insights with suggested questions | Tableau Pulse | Anomalies array gives one | Adopt: anomalies become annotations and "Ask why" prompts |
 | Verifiable answers: show the query, double check | ThoughtSpot Spotter | Citations give entity and period | Adopt: citation chips plus the sources table are our "query tokens" |
 | Semantic layer as the trust foundation | ThoughtSpot, Hex at Ramp | Typed contract plus selectors | Adopt the framing in the README |
 | Alerts pushed to the field | Axtria, Salesforce | Out of scope | Defer; in-app evaluated rules only |
 
-## 11. Recommendations
+## 11. Modelling rules
 
-1. Build `domain/` first: types from one zod schema for `data.json` and the SSE events, pure selectors for 5.1 to 5.10, a citation resolver implementing section 6, and the alert evaluator. Unit-test these before any UI; they are the "tests that hold up" the brief asks for.
+1. `domain/` holds the model as code: types from one zod schema for `data.json` and the SSE events, pure selectors for 5.1 to 5.10, a citation resolver implementing section 6, and the alert evaluator. They are unit-tested against the real numbers, independent of the UI; they are the "tests that hold up" the brief asks for.
 2. Treat latest-period market KPIs as Source and everything else as Derived, label both, and note the attainment basis gap in the README.
-3. Infer the status rule only as an explanation in a tooltip and the README ("consistent with: off track when growth is negative or attainment is below about 92.5%; at risk below 100%"). Never recompute status; the data gives it.
+3. Infer the status rule only as an explanation in a tooltip and the README ("consistent with: off track when growth is negative or attainment is below about 92.5%; at risk below 100%"). Never recompute a market's status from the saved data; the data gives it. A region or the portfolio, which the data does not rate, gets the same rule applied to its figures (section 12, item 2).
 4. Keep units in the grid but do not build a price or volume story on them.
 5. Make Context the single navigation primitive and derive breadcrumbs, chips and widget inputs from it.
 
-## 12. Questions put to Flavius (answered, see 13)
+## 12. Settled modelling decisions
 
-1. Attainment basis for regions and the portfolio: compute from the latest month only (consistent with market KPIs) or also offer YTD and MAT as switchable bases in Analyst mode? My advice: latest month by default, YTD and MAT as a labelled selector in Analyst mode.
-2. Status at region and portfolio level: the data gives status only per market. Options: show the count of markets by status (my advice), or infer a region status with the 5.6 rule (riskier, since the rule is a guess).
-3. Should the inferred status rule be stated in the UI at all, or only in the README? My advice: a one-line tooltip on the status column header plus the README.
-4. Alert scope: portfolio, region and market, or also product? My advice: not product, since status is a market concept.
-5. Do we keep `sharePct` in the radar as one of the axes (it is in the brief's "several KPIs") even though it is synthetic? My advice: yes, labelled "Share (given)".
-
-## 13. Approved answers (2026-11-02)
-
-1. Attainment basis: latest month by default everywhere; Analyst mode offers a labelled basis selector with Month, YTD and MAT for regions and the portfolio.
-2. Region and portfolio status: never inferred. Show counts of markets by status ("2 off track · 1 at risk · 2 on track").
-3. Inferred status rule: shown as a one-line tooltip on the Status column header and explained in the README. Status is never recomputed.
-4. Alert scope: portfolio, region or market. Not product.
-5. Share: kept as a radar axis, labelled "Share (given)", never derived.
+1. Attainment basis: the latest month by default everywhere; Analyst mode offers a labelled basis selector with Month, YTD and MAT for regions and the portfolio. MAT needs twelve months of data and falls back to Month before that.
+2. Region and portfolio status: `data.json` gives status only per market, so the console derives one for a region or the portfolio by applying the published rule (5.6) to its figures (`statusForDerived` in `src/domain/status.ts`). It drives the verdict sentence, the region groups in the status strip and the region bars, while the Needs attention tile keeps the counts of markets by status ("4 at risk · 2 off track" for the portfolio). A market's status is always the given one, except in live mode, where the simulated figures are re-rated with the same rule and the captions say they are simulated.
+3. Inferred status rule: shown as a one-line tooltip on the Status rule control and explained in the README. A market's given status is never recomputed from the saved data.
+4. Alert scope: portfolio, region or market. Not product, since status is a market concept.
+5. Share: kept as a radar axis, labelled "Share (given)", never derived, although it is synthetic.

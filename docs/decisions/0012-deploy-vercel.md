@@ -17,4 +17,4 @@ Vercel, with a preview per pull request and `main` as production. A second proje
 
 ## Consequences
 
-The alert store is in memory per server instance, so on serverless hosting saved rules can vanish between requests; the demo flow works within a session.
+The alerts route stores nothing, so it holds no state between serverless instances: saved rules live in the browser's `localStorage` (with an in-memory fallback when storage is unavailable). They survive a reload and stay in step across tabs, but stay in one browser.

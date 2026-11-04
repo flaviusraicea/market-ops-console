@@ -58,7 +58,7 @@ export const TabularHeadlines: Story = {
   },
   play: async ({ canvasElement }) => {
     // Storybook has no next/font, so only the declared features are asserted here; the measured
-    // width match for the real Source Serif 4 is in tests/e2e/slice13.spec.ts.
+    // width match for the real Source Serif 4 is in tests/e2e/breadcrumb-and-legend.spec.ts.
     const head = canvasElement.querySelector<HTMLElement>('[data-slot="kpi-headline"]')!;
     const style = getComputedStyle(head);
     await expect(style.fontVariantNumeric).toContain("tabular-nums");

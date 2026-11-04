@@ -1,14 +1,4 @@
-import type {
-  Basis,
-  Dataset,
-  Entity,
-  Fact,
-  Market,
-  Period,
-  Provenance,
-  Status,
-  Totals,
-} from "./dataset";
+import type { Basis, Dataset, Entity, Fact, Period, Provenance, Status, Totals } from "./dataset";
 import { periodIndex, periodsForBasis, previousPeriod } from "./periods";
 import { factsFor, marketsIn } from "./scope";
 
@@ -118,16 +108,6 @@ export function attainmentPair(
   const reported = market.kpis.forecastAttainmentPct;
   if (series === reported) return undefined;
   return { series, reported };
-}
-
-type Mover = { market: Market; growthPct: number };
-
-export function topMovers(ds: Dataset, n = 3): { rising: Mover[]; falling: Mover[] } {
-  const all: Mover[] = ds.markets.map((market) => ({ market, growthPct: market.kpis.growthPct }));
-  return {
-    rising: [...all].sort((a, b) => b.growthPct - a.growthPct).slice(0, n),
-    falling: [...all].sort((a, b) => a.growthPct - b.growthPct).slice(0, n),
-  };
 }
 
 export function statusCounts(ds: Dataset, entity: Entity): Record<Status, number> {
