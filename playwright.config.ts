@@ -12,14 +12,14 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      testIgnore: ["**/jank.spec.ts", "**/motion-trace.spec.ts"],
+      testIgnore: ["**/perf/**"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       // Frame timing is the one measurement other tests can disturb: it runs alone, after everything else, and
       // never retries, because a retry would hide a real stall.
-      name: "jank",
-      testMatch: ["**/jank.spec.ts", "**/motion-trace.spec.ts"],
+      name: "frame-budget",
+      testMatch: ["**/perf/**/*.spec.ts"],
       dependencies: ["chromium"],
       fullyParallel: false,
       retries: 0,

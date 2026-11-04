@@ -1,6 +1,6 @@
 /**
  * The real keyboard order, one Tab at a time from the skip link, at 1440 px with the rail in its default state.
- * `tests/e2e/slice11.spec.ts` asserts it; `docs/accessibility.md` is generated from it (`pnpm docs:a11y`).
+ * `tests/e2e/accessibility.spec.ts` asserts it; `docs/accessibility.md` is generated from it (`pnpm docs:a11y`).
  * A label is the focused element's aria-label, or else its text, cut to 80 characters.
  */
 export type TabOrder = {

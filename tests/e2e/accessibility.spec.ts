@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { ask, boxOf, open } from "./helpers";
-import { TAB_ORDERS } from "./tabOrder";
+import { TAB_ORDERS } from "./tab-order";
 
 const OVERVIEW = "/";
 const ANALYST = "/?mode=analyst&region=eu&market=de";

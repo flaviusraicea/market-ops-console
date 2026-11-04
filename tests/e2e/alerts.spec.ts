@@ -5,7 +5,7 @@ import { ANALYST_STATE, open } from "./helpers";
 
 const URL = "/?mode=analyst";
 
-// Only an Analyst edits alert rules; the Executive view of this section is covered in slice23.spec.ts.
+// Only an Analyst edits alert rules; the Executive view of this section is covered in roles.spec.ts.
 test.use({ storageState: ANALYST_STATE });
 
 // Rules live in the browser; every test gets a fresh context, so each starts from an empty list.

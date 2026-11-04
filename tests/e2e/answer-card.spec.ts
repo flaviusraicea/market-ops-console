@@ -44,7 +44,7 @@ test("the echo says where the question was asked", async ({ page }) => {
   );
 });
 
-test("the empty state offers the three new suggestions", async ({ page }) => {
+test("the empty state offers the three suggestions", async ({ page }) => {
   await page.goto("/");
   const rows = page.getByRole("list", { name: "Suggested questions" }).getByRole("button");
   await expect(rows).toHaveText([
@@ -63,7 +63,7 @@ test("Compare APAC and Europe streams the APAC answer", async ({ page }) => {
   await expect(page.locator("p.font-display")).toContainText("APAC");
 });
 
-test("the abstain demo still works when typed", async ({ page }) => {
+test("a typed out-of-scope question abstains", async ({ page }) => {
   await page.goto("/");
   await ask(page, "What will sales be next year?");
   await expect(page.getByText("Can’t answer from this data")).toBeVisible({ timeout: 8000 });

@@ -89,7 +89,7 @@ scripts/
   check-contrast.ts          reads tokens.css, asserts every pair in design-system.md §3
 tests/
   unit/                      domain, lib, hooks (Vitest, jsdom)
-  e2e/                       Playwright, one spec per slice
+  e2e/                       Playwright, one spec per feature; perf/ holds the frame-budget specs
 .storybook/                  Storybook 9 harness; stories (*.stories.tsx) sit next to their components
 docs/                        design documents, decision records, slice specs
 ```
@@ -202,7 +202,7 @@ Islands receive serialisable view models only (no Dataset on the client except t
 |---|---|---|
 | Unit | Vitest | domain selectors with real numbers, resolver, evaluator, parsers, formatters, SSE line parser |
 | Component | Storybook stories with play functions, run by the Storybook Vitest addon in Chromium; a11y addon fails on violations | every `src/components/` and client `src/features/` component per state; features with mocked streams and mutations |
-| E2E | Playwright (+ axe-core/playwright) | one spec per slice from user-flows.md, both themes for slices 1 and 11 |
+| E2E | Playwright (+ axe-core/playwright) | one spec per feature; accessibility.spec.ts runs axe on every view in both themes |
 | Contracts | Vitest | `DatasetSchema` against the real file; `SseEventSchema` against recorded fixture streams |
 | Tokens | `scripts/check-contrast.ts` | CI gate |
 | Visual | Storybook (slice 0 harness), deployed per PR | per component and state, light and dark via toolbar globals |

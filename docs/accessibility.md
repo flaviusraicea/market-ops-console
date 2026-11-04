@@ -6,7 +6,7 @@ The console targets WCAG 2.1 AA. What is checked automatically, and where, is li
 
 ### Tab order
 
-Recorded from the production build at 1440 px, one Tab at a time from the skip link, and asserted by `tests/e2e/slice11.spec.ts`. The lists below are generated from `tests/e2e/tabOrder.ts` (`pnpm docs:a11y`); a label is the focused element's accessible name, or its text. Charts and the map are one tab stop each and move inside with the arrow keys. The assistant column follows the dashboard in the DOM, so on a keyboard it is reached last; `Ask why` moves focus into its composer.
+Recorded from the production build at 1440 px, one Tab at a time from the skip link, and asserted by `tests/e2e/accessibility.spec.ts`. The lists below are generated from `tests/e2e/tab-order.ts` (`pnpm docs:a11y`); a label is the focused element's accessible name, or its text. Charts and the map are one tab stop each and move inside with the arrow keys. The assistant column follows the dashboard in the DOM, so on a keyboard it is reached last; `Ask why` moves focus into its composer.
 
 <!-- tab-order:start -->
 #### Executive (`/`)
@@ -150,12 +150,12 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 
 ## Preferences and layout
 
-- **Theme.** A pre-paint script sets `data-theme` from `localStorage`, falling back to `prefers-color-scheme`; a saved choice wins over the OS. Every colour is a CSS variable (including `--map-land`), so charts and chips re-colour on toggle with no JS lookup. Tested in `slice11.spec.ts`.
+- **Theme.** A pre-paint script sets `data-theme` from `localStorage`, falling back to `prefers-color-scheme`; a saved choice wins over the OS. Every colour is a CSS variable (including `--map-land`), so charts and chips re-colour on toggle with no JS lookup. Tested in `accessibility.spec.ts`.
 - **Reduced motion.** `prefers-reduced-motion: reduce` and the console's own `html[data-reduced-motion="true"]` (palette command) apply one blanket rule in `globals.css` that sets animation and transition durations to zero, so Radix and shadcn enter and exit animations stop too, plus the per-component rules for the skeleton shimmer and the streaming caret. Tested: after a drill and after opening and closing the palette, `document.getAnimations()` is empty.
 - **Density.** Overview: header row 56 px, controls 36, rows 44, KPI 28. Analyst: header row 48, toolbar 40, controls 28, rows 32, KPI 20. Computed styles are asserted in both themes.
 - **Scrolling content.** The assistant list does not pull a reader back to the bottom: any wheel, touch or scroll-key input ends the follow window that follows a new question (WCAG 2.2.2, user control of moving content).
-- **Responsive.** No horizontal page scroll at 390, 768, 1024, 1280 and 1440 px on both modes (`slice11.spec.ts`), and on the iPhone 14 and iPad (gen 7) profiles (`slice20.spec.ts`). Wide tables and the heat map scroll inside their own focusable, labelled region; the heat map opens at the latest months. The seven-bin legend is a focusable row that scrolls on a phone.
-- **Touch targets.** On a touch screen every button, link and field is at least 44 × 44 CSS px (chips 36 px tall); asserted in `slice20.spec.ts` on both pages. Chart marks (map countries, radar and line points, heat cells) are exempt because each chart has a table twin; the map shows its table first under 768 px.
+- **Responsive.** No horizontal page scroll at 390, 768, 1024, 1280 and 1440 px on both modes (`accessibility.spec.ts`), and on the iPhone 14 and iPad (gen 7) profiles (`mobile.spec.ts`). Wide tables and the heat map scroll inside their own focusable, labelled region; the heat map opens at the latest months. The seven-bin legend is a focusable row that scrolls on a phone.
+- **Touch targets.** On a touch screen every button, link and field is at least 44 × 44 CSS px (chips 36 px tall); asserted in `mobile.spec.ts` on both pages. Chart marks (map countries, radar and line points, heat cells) are exempt because each chart has a table twin; the map shows its table first under 768 px.
 - **Phone assistant.** Under 1024 px the assistant is a modal bottom sheet (`role="dialog"`, name "Assistant"): focus moves to the composer when it is opened from the bar, Escape or a tap on the scrim closes it and focus returns to the bar button. Ask why buttons and citations open or close it without raising the keyboard.
 
 ## Landmarks and headings

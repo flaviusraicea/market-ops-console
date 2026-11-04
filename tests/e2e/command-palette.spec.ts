@@ -111,8 +111,7 @@ test.describe("phone", () => {
 
   test("opens as a full-height sheet and Go to Germany works", async ({ page }) => {
     await page.goto("/");
-    // Dispatched, not clicked: below 1024 px the map still overflows the page until slice 20.
-    await opener(page).dispatchEvent("click");
+    await opener(page).tap();
     // The sheet enters with a short scale and rise; measure it once it has settled.
     await palette(page).evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
     const box = await palette(page).boundingBox();

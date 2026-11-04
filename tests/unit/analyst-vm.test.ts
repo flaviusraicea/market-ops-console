@@ -238,7 +238,7 @@ describe("grid follows the selected period", () => {
   });
 });
 
-describe("ledger grid (slice 14a)", () => {
+describe("ledger grid", () => {
   it("the portfolio total row sums the markets: revenue, forecast, prior year, attainment, growth, units", () => {
     const grid = analystVM(ds, base).grid;
     expect(grid.total).toEqual({

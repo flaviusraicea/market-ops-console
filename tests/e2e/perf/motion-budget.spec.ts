@@ -9,10 +9,10 @@ import {
   sampleFrames,
   timeSeries,
   trackShifts,
-} from "./helpers";
+} from "../helpers";
 
-// Motion spec section 4: a Chrome trace and a frame sampler around each moving part of the console. Runs in the
-// jank project (alone, no retries) so other tests cannot steal CPU and stretch a frame. A long task is any
+// A Chrome trace and a frame sampler around each moving part of the console. Runs in the
+// frame-budget project (alone, no retries) so other tests cannot steal CPU and stretch a frame. A long task is any
 // RunTask over 50 ms; a frame is the gap between two animation frames. Layout shifts are summed per step.
 //
 // Thresholds: no long task anywhere, no frame past three vsyncs (50 ms), and no layout shift while hovering,

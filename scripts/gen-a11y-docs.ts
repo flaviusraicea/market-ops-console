@@ -1,9 +1,9 @@
-// Regenerates the generated parts of docs/accessibility.md: the Tab order (from tests/e2e/tabOrder.ts, the list the
+// Regenerates the generated parts of docs/accessibility.md: the Tab order (from tests/e2e/tab-order.ts, the list the
 // E2E asserts) and the contrast table (from `check:contrast`). `--check` fails instead of writing when the file is stale.
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-import { renderTabOrders } from "../tests/e2e/tabOrder";
+import { renderTabOrders } from "../tests/e2e/tab-order";
 import { rows } from "./contrast";
 
 const root = path.join(__dirname, "..");
