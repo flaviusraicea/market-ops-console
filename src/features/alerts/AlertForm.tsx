@@ -30,7 +30,8 @@ import { type AlertRule } from "@/domain";
 import { AlertRuleSchema } from "@/domain/alerts";
 import { useDataset } from "@/lib/context/dataset";
 import { formatThreshold, scopeFromValue } from "./labels";
-import { DEFAULT_THRESHOLDS, type SaveFailure, type SaveStatus } from "./useAlertSave";
+import { DEFAULT_THRESHOLDS } from "./rules";
+import type { SaveFailure, SaveStatus } from "./useAlertSave";
 
 type Values = { growth: string; attainment: string; scope: string };
 

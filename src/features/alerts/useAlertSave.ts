@@ -6,12 +6,12 @@ import { useCallback, useEffect, useState } from "react";
 import type { AlertRule } from "@/domain";
 import { logEvent, reportError } from "@/lib/events";
 import { ReadOnlyRoleError, alertApi, type AlertApi } from "./api";
-import { scopeToValue } from "./labels";
+import { DEFAULT_THRESHOLDS, keyOf, normalizeRules } from "./rules";
 import { subscribeToRules } from "./storage";
 
-const ALERTS_KEY = ["alerts"] as const;
+export { DEFAULT_THRESHOLDS, normalizeRules };
 
-export const DEFAULT_THRESHOLDS = { growth: 0, attainment: 95 } as const;
+const ALERTS_KEY = ["alerts"] as const;
 
 /** A rule in the list; `pending` while its save or delete has not been confirmed. */
 export type RuleRow = AlertRule & { pending?: boolean };
@@ -28,8 +28,6 @@ export type SaveFailure = {
 
 export type SaveStatus = "idle" | "saving" | "saved";
 
-const keyOf = (r: Pick<AlertRule, "metric" | "scope">) => `${r.metric}:${scopeToValue(r.scope)}`;
-
 /** Inserts or replaces by metric and scope, marking the row pending. Existing rows keep their id. */
 function upsertPending(rows: RuleRow[], incoming: AlertRule[]): RuleRow[] {
   const next = [...rows];
@@ -40,30 +38,6 @@ function upsertPending(rows: RuleRow[], incoming: AlertRule[]): RuleRow[] {
     else next.push({ ...rule, id: `pending-${keyOf(rule)}`, pending: true });
   }
   return next;
-}
-
-const SCOPE_RANK = { portfolio: 0, region: 1, market: 2 } as const;
-
-/**
- * One row per metric and scope, in a fixed order: All markets, regions, then markets, each growth before
- * attainment. Whatever order or duplicates the server sends, the list reads the same.
- */
-export function normalizeRules<T extends AlertRule>(rows: readonly T[]): T[] {
-  const byKey = new Map<string, T>();
-  for (const r of rows) byKey.set(keyOf(r), r);
-  const rank = (r: AlertRule) => {
-    const v = scopeToValue(r.scope);
-    return [
-      SCOPE_RANK[v.split(":")[0] as keyof typeof SCOPE_RANK],
-      v,
-      r.metric === "growth" ? 0 : 1,
-    ] as const;
-  };
-  return [...byKey.values()].sort((a, b) => {
-    const [ka, va, ma] = rank(a);
-    const [kb, vb, mb] = rank(b);
-    return ka - kb || va.localeCompare(vb) || ma - mb;
-  });
 }
 
 /** The thresholds a scope had in a snapshot, or the defaults when it had none. */

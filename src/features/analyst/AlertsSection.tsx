@@ -1,13 +1,11 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useId, useSyncExternalStore } from "react";
+import { useEffect, useId, useState, useSyncExternalStore } from "react";
 
 import { cn } from "@/components/cn";
 import { ChevronDown, ICON_STROKE } from "@/components/icons";
 import { Eyebrow } from "@/components/Eyebrow";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   readRuleSummaries,
   readRulesLoadFailed,
@@ -18,20 +16,34 @@ import {
 import { useRole } from "@/lib/role";
 import { canEditAlerts } from "@/lib/roles";
 import { createStoredState } from "@/lib/storedState";
+import type { AlertsBody as AlertsBodyType } from "./AlertsBody";
+import { AlertsBodyShell } from "./AlertsBodyShell";
 
 const openState = createStoredState("market-ops:alerts-open", "session");
 const readOpen = () => openState.read() === "1";
 const writeOpen = (next: boolean) => openState.write(next ? "1" : "0");
 
-const loadBody = () => import("./AlertsBody");
-const LazyAlertsBody = dynamic(() => loadBody().then((m) => m.AlertsBody), {
-  loading: () => (
-    <div aria-busy="true" aria-label="Loading alerts" className="flex flex-col gap-3">
-      <Skeleton className="h-8 w-full" />
-      <Skeleton className="h-8 w-2/3" />
-    </div>
-  ),
-});
+type Body = typeof AlertsBodyType;
+let loaded: Body | null = null;
+let loading: Promise<Body> | null = null;
+const loadBody = () => (loading ??= import("./AlertsBody").then((m) => (loaded = m.AlertsBody)));
+
+/**
+ * The open section's code (the form, zod, TanStack Query) loads on intent: a pointer over the section, focus on its
+ * header, or opening it. Until it attaches, the shell shows the same markup with every control disabled.
+ */
+function useAlertsBody(open: boolean) {
+  // A function: wrap it, or useState would call the component as an initializer.
+  const [body, setBody] = useState<Body | null>(() => loaded);
+  const load = () => {
+    if (!body) void loadBody().then((b) => setBody(() => b));
+  };
+  useEffect(() => {
+    if (open && !body) void loadBody().then((b) => setBody(() => b));
+  }, [open, body]);
+  return { Body: body, load };
+}
+
 const NO_RULES: ReturnType<typeof readRuleSummaries> = [];
 
 /** Alerts folded away at the end of the sheet; opening shows the form and the saved rules. */
@@ -47,15 +59,14 @@ export function AlertsSection({
   const loadFailed = useSyncExternalStore(subscribeToLoadFailed, readRulesLoadFailed, () => false);
   const headingId = useId();
   const open = useSyncExternalStore(openState.subscribe, readOpen, () => false);
+  const { Body, load } = useAlertsBody(open);
 
   return (
     <Collapsible open={open} onOpenChange={writeOpen}>
-      <section aria-labelledby={`${headingId}`} className="flex flex-col">
+      <section aria-labelledby={`${headingId}`} className="flex flex-col" onPointerEnter={load}>
         <h3 id={`${headingId}`} className="m-0">
           <CollapsibleTrigger
-            // The form loads on first open; starting on hover or focus hides the wait.
-            onPointerEnter={() => void loadBody()}
-            onFocus={() => void loadBody()}
+            onFocus={load}
             className="flex w-full items-center gap-2 p-[var(--pad-card)] text-left"
           >
             <ChevronDown
@@ -74,9 +85,15 @@ export function AlertsSection({
         </h3>
         <CollapsibleContent>
           <div className="flex flex-col gap-4 px-[var(--pad-card)] pb-[var(--pad-card)]">
-            {open ? (
-              <LazyAlertsBody readOnly={readOnly} onSwitchToAnalyst={onSwitchToAnalyst} />
-            ) : null}
+            {!open ? null : Body ? (
+              <Body readOnly={readOnly} onSwitchToAnalyst={onSwitchToAnalyst} />
+            ) : (
+              <AlertsBodyShell
+                readOnly={readOnly}
+                onSwitchToAnalyst={onSwitchToAnalyst}
+                rules={rules}
+              />
+            )}
           </div>
         </CollapsibleContent>
       </section>

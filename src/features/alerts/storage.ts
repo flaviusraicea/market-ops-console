@@ -1,5 +1,5 @@
 import { type AlertRule } from "@/domain";
-import { AlertRuleSchema } from "@/domain/alerts";
+import { parseAlertRule } from "@/domain/alertRule";
 import { scopeToValue } from "./labels";
 import { RULES_CHANGED, STORAGE_KEY } from "./storageKey";
 
@@ -24,8 +24,8 @@ export function readRules(): AlertRule[] {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed.flatMap((item) => {
-      const r = AlertRuleSchema.safeParse(item);
-      return r.success ? [r.data] : [];
+      const rule = parseAlertRule(item);
+      return rule ? [rule] : [];
     });
   } catch {
     return [];
