@@ -118,10 +118,18 @@ export function HeatMap({
     const grid = row?.parentElement;
     if (!el || !row || !grid) return;
     let overflowed = false;
+    // Whether the reader has left the grid at its end. Only scroll events change it, so a resize (the assistant
+    // docking narrows the card over 400 ms, which raises the maximum scroll without a scroll event) keeps it.
+    let pinned = true;
+    const onScrollEnd = () => {
+      pinned = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
+    };
+    el.addEventListener("scroll", onScrollEnd, { passive: true });
     const measure = () => {
       const overflow = el.scrollWidth > el.clientWidth + 1;
-      // The grid opens at its end, and again whenever it starts to overflow, as when the assistant docks.
-      if (overflow && !overflowed) el.scrollLeft = el.scrollWidth;
+      // The grid opens at its end, and again whenever it starts to overflow, as when the assistant docks. It stays
+      // at its end through every resize until the reader scrolls away.
+      if (overflow && (!overflowed || pinned)) el.scrollLeft = el.scrollWidth;
       overflowed = overflow;
       const max = el.scrollWidth - el.clientWidth;
       const next = { start: el.scrollLeft > 1, end: el.scrollLeft < max - 1 };
@@ -181,6 +189,7 @@ export function HeatMap({
     fonts?.addEventListener("loadingdone", measure);
     return () => {
       live = false;
+      el.removeEventListener("scroll", onScrollEnd);
       ro.disconnect();
       fonts?.removeEventListener("loadingdone", measure);
     };
