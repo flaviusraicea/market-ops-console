@@ -39,6 +39,31 @@ test("the dashboard column dims while a drill is in flight and settles back to f
   await expect.poll(() => opacity(page)).toBe(1);
 });
 
+test("a heat-map click selects the cell at once and dims only once the server is slow", async ({
+  page,
+}) => {
+  await open(page, "/?mode=analyst&region=eu&market=de&period=2026-05");
+  const held: Route[] = [];
+  let holding = true;
+  await page.route(/[?&]period=2026-01/, (route) =>
+    holding ? void held.push(route) : route.continue(),
+  );
+  const cell = page.locator('[data-market="de"][data-period="2026-01"]');
+  const clickedAt = Date.now();
+  await cell.click();
+  // The cell is selected before the server answers, and a quick response would never flash the dim.
+  await expect(cell).toHaveAttribute("aria-selected", "true");
+  const early = await dashboard(page).getAttribute("data-pending");
+  if (Date.now() - clickedAt < 200) expect(early).toBe("false");
+  await expect(dashboard(page)).toHaveAttribute("data-pending", "true");
+  expect(Date.now() - clickedAt).toBeGreaterThanOrEqual(250);
+
+  holding = false;
+  await Promise.all(held.map((route) => route.continue()));
+  await expect(dashboard(page)).toHaveAttribute("data-pending", "false");
+  await expect(cell).toHaveAttribute("aria-selected", "true");
+});
+
 test("a keyboard drill moves focus to the new page heading, a mouse drill leaves it alone", async ({
   page,
 }) => {

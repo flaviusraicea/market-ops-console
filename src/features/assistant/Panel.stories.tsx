@@ -119,13 +119,13 @@ export const StopThenRetry: Story = {
     asked.length = 0;
     const canvas = within(canvasElement);
     await userEvent.type(canvas.getByRole("textbox", { name: "Ask the assistant" }), "Why?{Enter}");
-    await userEvent.click(await canvas.findByRole("button", { name: "Stop" }));
-    await expect(await canvas.findByText("Stopped \u00b7 partial answer")).toBeInTheDocument();
+    await userEvent.click(await canvas.findByRole("button", { name: "Stop generating" }));
+    await expect(await canvas.findByText("Partial \u00b7 stopped")).toBeInTheDocument();
     await userEvent.click(canvas.getByRole("button", { name: "Retry" }));
-    // The old card stays marked partial; a new request carries the same question.
+    // The retry takes the stopped card's place: the same question is sent again, and no second question appears.
     await waitFor(() => expect(asked).toEqual(["Why?", "Why?"]));
-    await expect(canvas.getAllByText("Stopped \u00b7 partial answer")).toHaveLength(1);
-    await expect(canvasElement.querySelectorAll('[data-slot="question-echo"]')).toHaveLength(2);
+    await expect(canvas.queryByText("Partial \u00b7 stopped")).toBeNull();
+    await expect(canvasElement.querySelectorAll('[data-slot="question-echo"]')).toHaveLength(1);
   },
 };
 
@@ -144,7 +144,9 @@ export const FailsAfterTwoTokens: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.type(canvas.getByRole("textbox", { name: "Ask the assistant" }), "Go{Enter}");
-    await expect(await canvas.findByText("Failed \u00b7 partial answer")).toBeInTheDocument();
+    await expect(await canvas.findByRole("alert")).toHaveTextContent(
+      "Request failed \u00b7 partial answer",
+    );
     await expect(canvasElement.querySelector("p.font-display")?.textContent).toContain(
       "Germany fell",
     );

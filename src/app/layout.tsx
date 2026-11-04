@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Inter, Source_Serif_4 } from "next/font/google";
+import { headers } from "next/headers";
 import type { ReactNode } from "react";
 import { preload } from "react-dom";
 
+import { NONCE_HEADER } from "@/lib/csp";
 import { GEO_URL } from "@/lib/geoAsset";
 import { REDUCED_MOTION_KEY } from "@/lib/motion";
 import { readRole } from "@/lib/roles.server";
@@ -53,6 +55,8 @@ const densityScript = (role: string) =>
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const role = await readRole();
+  // The proxy's per-request nonce: the policy blocks any inline script without it.
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
   // Starts the map geometry with the HTML instead of after hydration. The request mode and credentials match
   // the fetch in MapCard (same-origin, so crossOrigin "anonymous"), which is what lets the browser reuse it.
   preload(GEO_URL, { as: "fetch", crossOrigin: "anonymous" });
@@ -60,6 +64,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="en" className={`${display.variable} ${ui.variable}`} suppressHydrationWarning>
       <head>
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: THEME_SCRIPT + MOTION_SCRIPT + densityScript(role) }}
         />
       </head>

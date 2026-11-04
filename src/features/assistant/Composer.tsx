@@ -2,13 +2,19 @@
 
 import { useEffect, useLayoutEffect, type Ref } from "react";
 
+import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ArrowUp, ICON_STROKE, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { formatInt } from "@/lib/format";
+import { useHydrated } from "@/lib/useHydrated";
 import { warmAnswerCard } from "./AnswerCardLazy";
 
 const MAX_ROWS = 4;
+/** The longest question the composer sends; the counter shows from COUNT_FROM. */
+const MAX_CHARS = 1000;
+const COUNT_FROM = 900;
 
 /**
  * `field-sizing: content` grows the box with its text, capped by max-h, and re-measures by itself when the panel is
@@ -67,15 +73,23 @@ export function Composer({
     return () => observer.disconnect();
   }, []);
 
+  // Server-rendered disabled: on a slow network the box is on screen seconds before it works, and anything typed
+  // into it then would be wiped by hydration. Nothing can be typed until it can be sent.
+  const hydrated = useHydrated();
+  const tooLong = value.length > MAX_CHARS;
+  const showCount = value.length >= COUNT_FROM;
+
   function submit() {
     const question = value.trim();
-    if (!question || disabled) return;
+    // While an answer streams the draft stays and Enter does nothing; Stop or wait, then send.
+    if (!question || disabled || tooLong || !hydrated) return;
     onSubmit(question);
     onChange("");
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    // A hairline under the composer separates what you type from the answers that scroll below it.
+    <div className="flex flex-col gap-2 border-b border-border pb-4">
       {about ? (
         <div className="flex items-center gap-2">
           <Eyebrow>About</Eyebrow>
@@ -107,14 +121,21 @@ export function Composer({
           ref={textareaRef}
           rows={1}
           value={value}
-          // Read-only rather than disabled while an answer streams, so the textarea keeps focus.
-          readOnly={disabled}
-          aria-disabled={disabled || undefined}
+          disabled={!hydrated}
+          aria-disabled={!hydrated || undefined}
+          // Typing stays open while an answer streams, so a follow-up can be drafted; only sending waits.
+          aria-invalid={tooLong || undefined}
           aria-describedby={
-            [note ? "ask-note" : "", simulated ? "ask-live" : ""].filter(Boolean).join(" ") ||
-            undefined
+            [
+              disabled ? "ask-wait" : "",
+              showCount ? "ask-count" : "",
+              note ? "ask-note" : "",
+              simulated ? "ask-live" : "",
+            ]
+              .filter(Boolean)
+              .join(" ") || undefined
           }
-          placeholder="Ask about a market or period…"
+          placeholder={hydrated ? "Ask about a market or period…" : "Loading assistant…"}
           onChange={(e) => {
             // The first keystroke is the cue that an answer is coming.
             warmAnswerCard();
@@ -126,18 +147,31 @@ export function Composer({
               submit();
             }
           }}
-          className="field-sizing-content min-h-[var(--composer-row)] max-h-40 resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
+          className="field-sizing-content min-h-[var(--composer-row)] max-h-[100px] resize-none overflow-y-auto"
         />
         <Button
           type="submit"
           size="icon"
           aria-label="Send"
-          disabled={disabled}
+          disabled={disabled || tooLong || !hydrated}
           className="size-[var(--composer-row)]"
         >
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
         </Button>
       </form>
+      {/* One fixed 20 px helper slot, always there: the wait line while an answer streams, the counter from 900
+          characters, or nothing. Its height never changes, so nothing under the composer moves. */}
+      <div
+        data-slot="composer-helper"
+        className="flex h-5 items-center justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
+      >
+        {disabled ? <p id="ask-wait">Wait for the answer, or Stop.</p> : <span />}
+        {showCount ? (
+          <p id="ask-count" className={cn("num shrink-0", tooLong && "font-medium text-bad-text")}>
+            {formatInt(value.length)} / {formatInt(MAX_CHARS)}
+          </p>
+        ) : null}
+      </div>
       {simulated ? (
         <p
           id="ask-live"

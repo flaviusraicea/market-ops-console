@@ -20,7 +20,7 @@ import { SheetSection } from "./Sheet";
 
 /** The Analyst map section: the choropleth at 7/12 with the By region bars at 5/12 and the legend under the map. */
 export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: RegionBarsVM }) {
-  const { setContext } = useConsoleContext();
+  const { ctx, setContext } = useConsoleContext();
   const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
   const geoState = useGeo(auto);
   const tableId = useId();
@@ -37,7 +37,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
         <>
           <SegmentedControl<Metric>
             ariaLabel="Map metric"
-            value={map.metric}
+            value={ctx.metric}
             onChange={(metric) => setContext({ metric })}
             options={(Object.keys(METRIC_LABEL) as Metric[]).map((m) => ({
               value: m,
@@ -76,7 +76,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
                     metric={map.metric}
                     metricLabel={metricLabel}
                     periodLabel={map.periodLabel}
-                    selected={map.selected}
+                    selected={ctx.market}
                     focus={map.focus}
                     onSelect={(market) => setContext({ market })}
                   />

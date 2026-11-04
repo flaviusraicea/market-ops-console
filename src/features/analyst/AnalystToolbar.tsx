@@ -27,7 +27,7 @@ export function AnalystToolbar({
   matDisabled: boolean;
   statusRule: string;
 }) {
-  const { ctx, setContext } = useConsoleContext();
+  const { ctx, setContext, isPending } = useConsoleContext();
   return (
     <PageToolbar
       label="Analyst controls"
@@ -37,7 +37,8 @@ export function AnalystToolbar({
         <>
           <div className="max-md:snap-start">
             <BasisSelector
-              basis={basis}
+              // While a change is in flight the segment shows the click; the server's basis follows.
+              basis={isPending ? ctx.basis : basis}
               matDisabled={matDisabled}
               matFallback={ctx.basis === "mat" && basis === "month"}
             />

@@ -39,20 +39,19 @@ test("the Germany answer streams, then shows three citations and a High confiden
   await expect(page.getByRole("status")).toHaveText("Answer complete");
 });
 
-test("Stop keeps the partial text with a pill and no chips or meter, then Retry re-asks", async ({
+test("Stop keeps the partial text, marks the header Partial · stopped, then Retry re-asks in place", async ({
   page,
 }) => {
   await page.goto("/");
   await ask(page, GERMANY);
-  const stop = page.getByRole("button", { name: "Stop" });
+  const stop = page.getByRole("button", { name: "Stop generating" });
   await expect(stop).toBeVisible();
   await expect
     .poll(async () => (await page.locator("p.font-display").first().textContent())?.length ?? 0)
     .toBeGreaterThan(10);
   await stop.click();
 
-  await expect(page.getByText("Stopped · partial answer")).toBeVisible();
-  await expect(page.getByText("Partial · no sources", { exact: true })).toBeVisible();
+  await expect(page.getByText("Partial · stopped", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Stopped before sources arrived. Retry to get citations."),
   ).toBeVisible();
@@ -66,8 +65,9 @@ test("Stop keeps the partial text with a pill and no chips or meter, then Retry 
   await expect(page.getByRole("button", { name: "Retry" })).toBeFocused();
 
   await page.getByRole("button", { name: "Retry" }).click();
-  await expect(page.locator('[data-slot="question-echo"]')).toHaveCount(2);
-  await expect(page.getByText("Stopped · partial answer")).toHaveCount(1);
+  // The retry takes the stopped card's place: one question, one card.
+  await expect(page.locator('[data-slot="question-echo"]')).toHaveCount(1);
+  await expect(page.getByText("Partial · stopped", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("list", { name: "Citations" })).toHaveCount(1, { timeout: 5000 });
 });
 
@@ -84,8 +84,8 @@ test("asking twice keeps both echoes in order and the composer focused", async (
   await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(2, { timeout: 5000 });
   const echoes = page.locator('[data-slot="question-echo"]');
   await expect(echoes).toHaveText([
-    `You asked, about Portfolio · May 2026:${GERMANY}`,
-    "You asked, about Portfolio · May 2026:Which markets are at risk?",
+    `Asked about Portfolio · May 2026${GERMANY}`,
+    "Asked about Portfolio · May 2026Which markets are at risk?",
   ]);
   await expect(box).toBeFocused();
 });
@@ -115,8 +115,9 @@ test("desktop: the panel is sticky, only the list scrolls, and New text appears 
   const box = page.getByRole("textbox", { name: "Ask the assistant" });
   for (let i = 0; i < 3; i++) {
     await ask(page, "Give me a full summary");
+    // The long summary can take over 8 s on a loaded runner; the same budget as every finished answer elsewhere.
     await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(i + 1, {
-      timeout: 8000,
+      timeout: 15_000,
     });
   }
   const region = page.getByRole("region", { name: "Conversation" });

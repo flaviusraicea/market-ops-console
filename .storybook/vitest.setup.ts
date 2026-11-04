@@ -1,3 +1,4 @@
+import { beforeEach } from "vitest";
 import * as a11yAddonAnnotations from "@storybook/addon-a11y/preview";
 import { setProjectAnnotations } from "@storybook/nextjs-vite";
 
@@ -10,3 +11,8 @@ setProjectAnnotations([a11yAddonAnnotations, previewAnnotations]);
 const still = document.createElement("style");
 still.textContent = "*,*::before,*::after{animation:none!important}";
 document.head.append(still);
+
+// The assistant keeps the tab's conversation in sessionStorage; every story starts with an empty tab.
+beforeEach(() => {
+  window.sessionStorage.clear();
+});

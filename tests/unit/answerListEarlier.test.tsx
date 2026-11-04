@@ -19,6 +19,7 @@ beforeAll(() => {
     },
   );
   Element.prototype.scrollIntoView = vi.fn();
+  Element.prototype.scrollTo = vi.fn();
 });
 afterEach(cleanup);
 

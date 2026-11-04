@@ -14,7 +14,15 @@ import {
 } from "@/components/ui/table";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
-import { RadarMarks, fitRadius, pointAt, splitLabel, type Geometry } from "./RadarMarks";
+import {
+  LABEL_GAP,
+  NO_DATA,
+  RadarMarks,
+  angleOf,
+  pointAt,
+  splitLabel,
+  type Geometry,
+} from "./RadarMarks";
 import { useChartKeyboard } from "./useChartKeyboard";
 
 export type RadarSeries = {
@@ -37,22 +45,25 @@ type RadarChartProps = {
 };
 
 const HEIGHT = 340;
+/** Room kept around the ring for the axis labels, in px. */
+const LABEL_RESERVE = 56;
+/** A label's width estimate per character at --text-label (12px Inter, medium); errs wide. */
+const CHAR_PX = 7;
+const EDGE_PX = 4;
 
-let canvas: HTMLCanvasElement | undefined;
 /**
- * Each axis label's widest line and line count, measured in the label's own font (12 px, weight 500, the UI
- * family). Canvas text metrics need no layout pass, so the radius is right on the first paint.
+ * The ring's radius: half the smaller side less the label reserve, with no floor, then shrunk further if a side
+ * label would still cross the chart's edge. A narrow card (the panel open) draws a smaller radar, never a clipped one.
  */
-function measureLabels(axes: readonly string[]) {
-  canvas ??= document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  const family = getComputedStyle(document.body).fontFamily;
-  if (ctx) ctx.font = `500 12px ${family}`;
-  return axes.map((label) => {
-    const lines = splitLabel(label);
-    const width = Math.max(...lines.map((l) => (ctx ? ctx.measureText(l).width : l.length * 7)));
-    return { width: Math.ceil(width), lines: lines.length };
+export function fitRadius(width: number, axes: readonly string[]): number {
+  let radius = Math.min(width, HEIGHT) / 2 - LABEL_RESERVE;
+  axes.forEach((label, a) => {
+    const cos = Math.abs(Math.cos(angleOf(a, axes.length)));
+    if (cos < 0.3) return; // top and bottom labels are centred on their spoke
+    const text = Math.max(...splitLabel(label).map((l) => l.length), NO_DATA.length) * CHAR_PX;
+    radius = Math.min(radius, (width / 2 - EDGE_PX - text) / cos - LABEL_GAP);
   });
+  return Math.max(radius, 24);
 }
 
 function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { width: number }) {
@@ -60,19 +71,9 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
   const dotRefs = useRef<Array<SVGCircleElement | null>>([]);
   const tip = useChartTooltip();
   const n = axes.length;
-  // Keyed on the names, not the array: a parent may pass a new array with the same axes on every render.
-  const axesKey = axes.join("\u0000");
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- axesKey stands for axes
-  const labels = useMemo(() => measureLabels(axes), [axesKey]);
   const geometry = useMemo<Geometry>(
-    () => ({
-      cx: width / 2,
-      cy: HEIGHT / 2,
-      // The plot takes what its labels leave, so a narrow card shrinks the plot and never clips a label.
-      radius: fitRadius({ width, height: HEIGHT, labels }),
-      n,
-    }),
-    [width, labels, n],
+    () => ({ cx: width / 2, cy: HEIGHT / 2, radius: fitRadius(width, axes), n }),
+    [width, axes, n],
   );
   const point = useCallback((axis: number, r: number) => pointAt(geometry, axis, r), [geometry]);
 
