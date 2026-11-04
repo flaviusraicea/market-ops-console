@@ -34,8 +34,9 @@ import type { Metric } from "@/domain";
 import { reportError } from "@/lib/events";
 import { PHONE_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { GEO_URL } from "@/lib/geoAsset";
+import { lazyOnce } from "@/lib/lazyOnce";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
-import type { OverviewVM } from "./viewModel";
+import type { MapVM } from "./viewModel";
 
 export const METRIC_LABEL: Record<Metric, string> = {
   attainment: "Attainment",
@@ -48,43 +49,36 @@ const MAP_HEIGHT = 320;
 export type GeoState =
   { status: "loading" } | { status: "error" } | { status: "ready"; geo: MapGeo };
 
-let geoCache: Promise<MapGeo> | null = null;
-let geoLoaded: MapGeo | null = null;
-
-function loadGeo(): Promise<MapGeo> {
-  geoCache ??= fetch(GEO_URL)
+/** The map geometry, fetched once for the page; a failed fetch is reported and forgotten, so a later mount retries. */
+const geo = lazyOnce(() =>
+  fetch(GEO_URL)
     .then((res) => {
       if (!res.ok) throw new Error(`Geometry request failed: ${res.status}`);
       return res.json() as Promise<MapGeo>;
     })
-    .then((geo) => {
-      geoLoaded = geo;
-      return geo;
-    })
     .catch((err: unknown) => {
-      geoCache = null; // allow a later mount to retry
       reportError(err, { source: "fetch", route: GEO_URL });
       throw err;
-    });
-  return geoCache;
-}
+    }),
+);
 
 /**
- * The map geometry, fetched once. With `holdOnPhone` (nobody has chosen a view yet) a phone skips the fetch,
- * because it shows the table first; the geometry loads when the person asks for the map.
+ * The map geometry. With `holdOnPhone` (nobody has chosen a view yet) a phone skips the fetch, because it shows
+ * the table first; the geometry loads when the person asks for the map.
  */
 export function useGeo(holdOnPhone = false): GeoState {
   // Read so the effect runs again when the width crosses 768 px: a phone that is widened must load the map.
   const phone = useMediaQuery(PHONE_QUERY);
-  const [state, setState] = useState<GeoState>(
-    geoLoaded ? { status: "ready", geo: geoLoaded } : { status: "loading" },
-  );
+  const [state, setState] = useState<GeoState>(() => {
+    const loaded = geo.peek();
+    return loaded ? { status: "ready", geo: loaded } : { status: "loading" };
+  });
   useEffect(() => {
-    if (geoLoaded) return;
+    if (geo.peek()) return;
     if (holdOnPhone && window.matchMedia(PHONE_QUERY).matches) return;
     let live = true;
-    loadGeo().then(
-      (geo) => live && setState({ status: "ready", geo }),
+    geo.load().then(
+      (loaded) => live && setState({ status: "ready", geo: loaded }),
       () => live && setState({ status: "error" }),
     );
     return () => {
@@ -94,13 +88,13 @@ export function useGeo(holdOnPhone = false): GeoState {
   return state;
 }
 
-export function legendFor(map: OverviewVM["map"]): LegendBin[] {
+export function legendFor(map: MapVM): LegendBin[] {
   if (map.metric === "attainment") return ATTAINMENT_LEGEND;
   if (map.metric === "growth") return GROWTH_LEGEND;
   return revenueLegend(map.maxRevenue);
 }
 
-export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
+export function MarketsTable({ map }: { map: MapVM }) {
   return (
     <Table stickyFirst scrollLabel="Markets table">
       <TableCaption className="sr-only">
@@ -158,13 +152,7 @@ const STATUS_LEGEND: LegendItem[] = [
 ];
 
 /** The executive map answers "where is the trouble", so it is coloured by status; Analyst keeps the metric. */
-export function MapCard({
-  map,
-  scheme = "metric",
-}: {
-  map: OverviewVM["map"];
-  scheme?: "metric" | "status";
-}) {
+export function MapCard({ map, scheme = "metric" }: { map: MapVM; scheme?: "metric" | "status" }) {
   const { ctx, setContext } = useConsoleContext();
   const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
   const geoState = useGeo(auto);

@@ -23,10 +23,8 @@ describe("default mode by role", () => {
     );
     expect(parseContextFromSearchParams(ds, { mode: "analyst" }, "executive").mode).toBe("analyst");
   });
-  it("reads the pre-rename value overview as executive", () => {
-    expect(parseContextFromSearchParams(ds, { mode: "overview" }, "analyst").mode).toBe(
-      "executive",
-    );
+  it("falls back to the role's view for a mode it does not know", () => {
+    expect(parseContextFromSearchParams(ds, { mode: "overview" }, "analyst").mode).toBe("analyst");
   });
 });
 

@@ -79,6 +79,28 @@ export type MapValueVM = {
   revenue: string;
 };
 
+/** The map card's model: what to colour, what to focus and the rows of its table view. */
+export type MapVM = {
+  metric: Metric;
+  selected: string | undefined;
+  /** Markets drawn at full strength; everything else is dimmed. Undefined at portfolio level. */
+  focus: string[] | undefined;
+  periodLabel: string;
+  /** A product is selected but the map still shows every product. */
+  allProducts: boolean;
+  /** "not filtered by Calyx": the part of the subtitle that is set in warning text. Absent without a product. */
+  unfiltered?: string | undefined;
+  /** The Executive card's subtitle, scope included. */
+  subtitle: string;
+  /** The Analyst section's subtitle, scope included. */
+  sheetSubtitle: string;
+  /** Where the figures come from, for the table caption. */
+  provenance: string;
+  maxRevenue: number;
+  values: Record<string, MapValueVM>;
+  rows: MapRowVM[];
+};
+
 export type OverviewVM = {
   /** Entity in view and its caption, for the title row above the tiles. */
   title: string;
@@ -86,26 +108,7 @@ export type OverviewVM = {
   tiles: KpiTileVM[];
   /** One line for the whole KPI strip: where its four figures come from. */
   tilesProvenance: string;
-  map: {
-    metric: Metric;
-    selected: string | undefined;
-    /** Markets drawn at full strength; everything else is dimmed. Undefined at portfolio level. */
-    focus: string[] | undefined;
-    periodLabel: string;
-    /** A product is selected but the map still shows every product. */
-    allProducts: boolean;
-    /** "not filtered by Calyx": the part of the subtitle that is set in warning text. Absent without a product. */
-    unfiltered?: string | undefined;
-    /** The Executive card's subtitle, scope included. */
-    subtitle: string;
-    /** The Analyst section's subtitle, scope included. */
-    sheetSubtitle: string;
-    /** Where the figures come from, for the table caption. */
-    provenance: string;
-    maxRevenue: number;
-    values: Record<string, MapValueVM>;
-    rows: MapRowVM[];
-  };
+  map: MapVM;
 };
 
 const BASIS_LABEL = { month: "Month", ytd: "YTD", mat: "MAT" } as const;
@@ -266,7 +269,7 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
   const metric = ctx.mode === "analyst" ? ctx.metric : "attainment";
   const suffix =
     metric === "attainment" ? "attainment" : metric === "revenue" ? "revenue" : "growth";
-  const values: OverviewVM["map"]["values"] = {};
+  const values: MapVM["values"] = {};
   for (const { m, k } of entries) {
     const display =
       metric === "attainment"

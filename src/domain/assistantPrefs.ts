@@ -11,12 +11,11 @@ export function parsePrefs(raw: string | null): AssistantPrefs {
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed))
       return DEFAULT_PREFS;
     const stored = parsed as Record<string, unknown>;
-    const field = (key: Mode, legacy?: string) => {
-      // Before the mode was renamed the Executive preference was stored as "overview".
-      const v = key in stored || !legacy ? stored[key] : stored[legacy];
+    const field = (key: Mode) => {
+      const v = stored[key];
       return typeof v === "boolean" ? v : DEFAULT_PREFS[key];
     };
-    return { executive: field("executive", "overview"), analyst: field("analyst") };
+    return { executive: field("executive"), analyst: field("analyst") };
   } catch {
     return DEFAULT_PREFS;
   }

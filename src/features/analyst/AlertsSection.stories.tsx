@@ -34,7 +34,7 @@ export const ReadOnly: Story = {
     const notice = await canvas.findByRole("note");
     await expect(notice).toHaveTextContent("Read-only for Executives.");
     await expect(notice).toHaveTextContent("Switch to Analyst to edit rules.");
-    await expect(canvas.getByRole("textbox", { name: "Growth below" })).toBeDisabled();
+    await expect(await canvas.findByRole("textbox", { name: "Growth below" })).toBeDisabled();
     await expect(canvas.getByRole("textbox", { name: "Attainment below" })).toBeDisabled();
     await expect(canvas.getByRole("combobox", { name: "Scope" })).toBeDisabled();
     await expect(canvas.queryByRole("button", { name: "Save thresholds" })).not.toBeInTheDocument();

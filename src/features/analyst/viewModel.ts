@@ -279,11 +279,6 @@ function peerMarkets(ds: Dataset, ctx: Context): Market[] {
   return ctx.region ? marketsIn(ds, { kind: "region", regionId: ctx.region }) : ds.markets;
 }
 
-/** How many rows the grid will have: the products of a market, otherwise the markets in view. Cheap, no view model. */
-export function gridRowCount(ds: Dataset, ctx: Context): number {
-  return ctx.market ? ds.products.length : peerMarkets(ds, ctx).length;
-}
-
 /** The one market order shared by the grid and the heat map: selected period's revenue, largest first. */
 function marketsByRevenue(ds: Dataset, markets: Market[], period: Period, basis: Basis = "month") {
   return markets

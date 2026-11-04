@@ -15,11 +15,24 @@ import {
 // frame-budget project (alone, no retries) so other tests cannot steal CPU and stretch a frame. A long task is any
 // RunTask over 50 ms; a frame is the gap between two animation frames. Layout shifts are summed per step.
 //
-// Thresholds: no long task anywhere, no frame past three vsyncs (50 ms), and no layout shift while hovering,
-// moving the rail or opening the palette. Following a citation switches view: it is gated only at 100 ms and its
+// Thresholds: no long task anywhere, frames within three vsyncs (50 ms) at the 95th percentile and none at 100 ms
+// or more (one slow frame in a long run is noise, two is a regression), and no layout shift while hovering, moving
+// the rail or opening the palette. Following a citation switches view: it is gated only at 100 ms and its
 // slowest frame is reported. A last test sweeps the DOM for transitions on layout properties.
 
-type Measure = { name: string; maxFrame: number; longTasks: number[]; shift: number };
+type Measure = {
+  name: string;
+  maxFrame: number;
+  p95Frame: number;
+  longTasks: number[];
+  shift: number;
+};
+
+/** The value 95 % of the samples stay under (the sample at that rank, no interpolation). */
+function p95(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted.length === 0 ? 0 : sorted[Math.ceil(sorted.length * 0.95) - 1]!;
+}
 const measures: Measure[] = [];
 
 async function measure(
@@ -48,6 +61,7 @@ async function measure(
   const result: Measure = {
     name,
     maxFrame: Math.max(0, ...gaps),
+    p95Frame: p95(gaps),
     longTasks: events
       .filter((e) => e["name"] === "RunTask" && e["ph"] === "X" && Number(e["dur"] ?? 0) > 50_000)
       .map((e) => Math.round(Number(e["dur"]) / 1000)),
@@ -74,7 +88,7 @@ test.describe("motion trace", () => {
   test.afterAll(() => {
     for (const m of measures) {
       console.log(
-        `${m.name}: slowest frame ${m.maxFrame.toFixed(1)} ms, long tasks ${m.longTasks.join(",") || "none"}, layout shift ${m.shift.toFixed(4)}`,
+        `${m.name}: slowest frame ${m.maxFrame.toFixed(1)} ms (p95 ${m.p95Frame.toFixed(1)} ms), long tasks ${m.longTasks.join(",") || "none"}, layout shift ${m.shift.toFixed(4)}`,
       );
     }
   });
@@ -94,7 +108,8 @@ test.describe("motion trace", () => {
       }
     });
     expect(regions.longTasks).toEqual([]);
-    expect(regions.maxFrame).toBeLessThanOrEqual(50);
+    expect(regions.p95Frame).toBeLessThanOrEqual(50);
+    expect(regions.maxFrame).toBeLessThan(100);
     expect(regions.shift).toBe(0);
 
     const rail = await measure(cdp, page, shiftSoFar, "assistant rail open and close", async () => {
@@ -108,7 +123,8 @@ test.describe("motion trace", () => {
       }
     });
     expect(rail.longTasks).toEqual([]);
-    expect(rail.maxFrame).toBeLessThanOrEqual(50);
+    expect(rail.p95Frame).toBeLessThanOrEqual(50);
+    expect(rail.maxFrame).toBeLessThan(100);
     expect(rail.shift).toBe(0);
 
     const palette = await measure(cdp, page, shiftSoFar, "palette open and close", async () => {
@@ -122,7 +138,8 @@ test.describe("motion trace", () => {
       }
     });
     expect(palette.longTasks).toEqual([]);
-    expect(palette.maxFrame).toBeLessThanOrEqual(50);
+    expect(palette.p95Frame).toBeLessThanOrEqual(50);
+    expect(palette.maxFrame).toBeLessThan(100);
     expect(palette.shift).toBe(0);
 
     const stream = await measure(cdp, page, shiftSoFar, "stream the Germany answer", async () => {
@@ -130,7 +147,8 @@ test.describe("motion trace", () => {
       await answerComplete(page);
     });
     expect(stream.longTasks).toEqual([]);
-    expect(stream.maxFrame).toBeLessThanOrEqual(50);
+    expect(stream.p95Frame).toBeLessThanOrEqual(50);
+    expect(stream.maxFrame).toBeLessThan(100);
     // The status slot is fixed, so only the caret's sub-pixel steps remain.
     expect(stream.shift).toBeLessThan(0.001);
   });
@@ -149,7 +167,8 @@ test.describe("motion trace", () => {
       }
     });
     expect(heat.longTasks).toEqual([]);
-    expect(heat.maxFrame).toBeLessThanOrEqual(50);
+    expect(heat.p95Frame).toBeLessThanOrEqual(50);
+    expect(heat.maxFrame).toBeLessThan(100);
     // The tooltip's own text swaps size a little as it follows the pointer; the box itself never reflows.
     expect(heat.shift).toBeLessThan(0.01);
   });

@@ -8,15 +8,12 @@ test("serves the shell", async ({ page }) => {
   await expect(page.getByText(/data through may 2026/i).locator("visible=true")).toBeVisible();
 });
 
-test("the console and the sign-in screen ask search engines not to index them", async ({
+test("the console and the sign-in screen are indexable outside a preview deployment", async ({
   page,
 }) => {
   for (const path of ["/", "/sign-in"]) {
     await page.goto(path);
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-      "content",
-      "noindex, nofollow",
-    );
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
   }
 });
 

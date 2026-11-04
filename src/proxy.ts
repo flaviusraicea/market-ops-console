@@ -4,11 +4,10 @@ import { DEFAULT_ROLE, ROLE_COOKIE, defaultModeFor, parseRole, roleCookie } from
 import { DOCUMENT_HEADERS, NONCE_HEADER, contentSecurityPolicy } from "@/lib/csp";
 
 /**
- * Runs before every page request. Three jobs:
- * 1. Links written before the mode was renamed (`mode=overview`) are redirected for good to `mode=executive`.
- * 2. An address always names its view: `/` without a `mode` is redirected to the signed-in role's view, other
+ * Runs before every page request. Two jobs:
+ * 1. An address always names its view: `/` without a `mode` is redirected to the signed-in role's view, other
  *    parameters kept, so a copied link shows what its sender saw.
- * 3. A first visit is signed in as the default persona, on the request as well as the response, so the very
+ * 2. A first visit is signed in as the default persona, on the request as well as the response, so the very
  *    first server render already knows the role. The sign-in screen and the API are left alone: signing out
  *    must stay signed out until a persona is picked.
  * Every page it lets through gets a Content-Security-Policy with a fresh nonce (lib/csp.ts). Next reads the
@@ -16,12 +15,6 @@ import { DOCUMENT_HEADERS, NONCE_HEADER, contentSecurityPolicy } from "@/lib/csp
  */
 export function proxy(request: NextRequest) {
   const { nextUrl } = request;
-
-  if (nextUrl.searchParams.get("mode") === "overview") {
-    const target = nextUrl.clone();
-    target.searchParams.set("mode", "executive");
-    return NextResponse.redirect(target, 308);
-  }
 
   if (nextUrl.pathname.startsWith("/api/")) return NextResponse.next();
   if (nextUrl.pathname === "/sign-in") return withPolicy(request);

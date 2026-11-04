@@ -137,6 +137,65 @@ test("the map swaps in for a skeleton of the same height and nothing shifts", as
   expect(await shift()).toBeLessThan(0.01);
 });
 
+/**
+ * The Analyst placeholders are measured against the sections they stand for: hold the Analyst chunks so the
+ * placeholders are on screen after the switch, note their heights, release the chunks and compare each with its
+ * section. A placeholder of the wrong height shifts the page on a mode switch, and on a direct link when the
+ * server's stream lands across two frames. The pair of charts wraps a subtitle and a legend below 1366 px, so at
+ * 1280 only the sections above the fold are compared.
+ */
+for (const [width, count] of [
+  [1440, 8],
+  [1280, 5],
+] as const) {
+  test(`each Analyst placeholder is the height of its section at ${width} wide`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await open(page, "/");
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    await page.route("**/_next/static/chunks/*.js", async (route) => {
+      await gate;
+      await route.continue();
+    });
+    await page.getByRole("radio", { name: "Analyst" }).click();
+    const sheet = page.locator('[style*="--reserve-grid"]');
+    const placeholders = page.locator('[role="status"][aria-busy="true"]');
+    await expect(placeholders).toHaveCount(8);
+    // The assistant column tweens its width after the switch and the map placeholder follows the sheet's width,
+    // so measure once the transition has ended (the placeholders' own shimmer runs for good and is not one).
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => document.getAnimations().filter((a) => a instanceof CSSTransition).length,
+        ),
+      )
+      .toBe(0);
+    const held = await placeholders.evaluateAll((els) =>
+      els.map((el) => [el.textContent, el.getBoundingClientRect().height] as const),
+    );
+
+    release();
+    await page.getByRole("gridcell").first().waitFor();
+    await expect(placeholders).toHaveCount(0);
+    const sections = await sheet.evaluateAll((sheets) => {
+      const heights = (el: Element) => el.getBoundingClientRect().height;
+      const [kpi, grid, map, series, pair, alerts] = Array.from(sheets[0]!.children);
+      const toolbar = document.querySelector('[role="toolbar"]')!;
+      return [toolbar, kpi, grid, map, series, ...Array.from(pair!.children), alerts].map((el) =>
+        heights(el!),
+      );
+    });
+    for (const [i, [label, height]] of held.slice(0, count).entries()) {
+      expect(height, `${label} placeholder ${height} px, section ${sections[i]} px`).toBeCloseTo(
+        sections[i]!,
+        0,
+      );
+    }
+  });
+}
+
 test("an Analyst link paints without layout shift", async ({ page }) => {
   const shift = await trackShifts(page);
   await open(page, "/?mode=analyst&region=eu&market=de&product=veltrix&period=2026-03");
