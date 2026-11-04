@@ -40,6 +40,37 @@ test("a link with an unknown value is replaced by the address of what is shown",
   await expect(page).toHaveURL(/\/\?mode=executive$/);
 });
 
+test("a link with an unknown market says it was reset, and Dismiss closes the notice", async ({
+  page,
+}) => {
+  await page.goto("/?market=xx&mode=executive");
+  const notice = page.locator('[data-slot="page-notice"]');
+  await expect(notice).toContainText("Unknown market reset to portfolio");
+  await expect(page).toHaveURL(/\/\?mode=executive$/);
+  await page.getByRole("button", { name: "Dismiss" }).click();
+  await expect(notice).toHaveCount(0);
+  // A valid link has none.
+  await page.goto("/?market=de&mode=executive");
+  await expect(page.locator('[data-slot="page-notice"]')).toHaveCount(0);
+});
+
+test("an address the console does not serve opens the not-found page with a way back", async ({
+  page,
+}) => {
+  const response = await page.goto("/nowhere");
+  expect(response?.status()).toBe(404);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "This page doesn’t exist" }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle(/Page not found/);
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+    .analyze();
+  expect(results.violations).toEqual([]);
+  await page.getByRole("link", { name: "Back to the portfolio" }).click();
+  await expect(page).toHaveURL(/\/\?mode=executive$/);
+});
+
 test("a deep link renders every part of the state", async ({ page }) => {
   await open(page, "/?region=eu&market=de&product=veltrix&period=2026-03&mode=analyst");
   const crumbs = page.getByRole("navigation", { name: "Drill path" });

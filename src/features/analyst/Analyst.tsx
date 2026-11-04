@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { Context } from "@/domain";
 import { overviewVM, regionBarsVM } from "@/features/overview/viewModel";
 import { ErrorBoundary } from "@/features/shell/ErrorBoundary";
@@ -24,7 +26,7 @@ import { analystVM, factsVM } from "./viewModel";
  * Analyst mode: a sticky toolbar over one ruled sheet. KPI strip, the grid first, then the map, the time
  * series, compare and the heat map, and alerts folded away at the end. Server-computed.
  */
-export function Analyst({ ctx }: { ctx: Context }) {
+export function Analyst({ ctx, notice }: { ctx: Context; notice?: ReactNode }) {
   const ds = getDataset();
   const vm = analystVM(ds, ctx);
   const overview = overviewVM(ds, ctx);
@@ -38,6 +40,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
         matDisabled={vm.matDisabled}
         statusRule={vm.statusRule}
       />
+      {notice}
       <OfflineNotice />
       <Sheet style={reserveStyle(vm.grid.rows.length, Boolean(ctx.market))}>
         <ErrorBoundary widget="kpi-strip">

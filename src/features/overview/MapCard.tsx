@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 
+import { ScopeSubtitle } from "@/components/ScopeSubtitle";
 import { CardHeader } from "@/components/CardHeader";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { Notice } from "@/components/Notice";
@@ -217,7 +218,7 @@ export function MapCard({
       <CardHeader
         title={byStatus ? "Markets by status" : `Markets by ${metricLabel.toLowerCase()}`}
         titleId="map-h"
-        subtitle={map.subtitle}
+        subtitle={<ScopeSubtitle text={map.subtitle} warn={map.unfiltered} />}
         actions={
           <>
             {metricControl}

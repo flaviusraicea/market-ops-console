@@ -50,7 +50,7 @@ export function SheetSection({
   sectionRef,
 }: {
   eyebrow: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   caption?: string;
   actions?: ReactNode;
   /** A series legend: its own row under the title and subtitle, at every width. Scale legends stay under their chart. */
