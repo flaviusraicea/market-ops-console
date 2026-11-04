@@ -130,11 +130,17 @@ export function isSimulated(s: Pick<LiveState, "live" | "tick">): boolean {
 export function useLiveVM<T>(
   initial: T,
   select: (engine: LiveEngine, ds: Dataset, ctx: Context) => T,
+  /** A chart that draws every month, the latest included, keeps ticking when an earlier month is selected. */
+  options?: { spansLatest?: boolean },
 ): T {
   const { engine, dataset } = useLiveState();
   const { ctx } = useConsoleContext();
+  // Only the latest month ticks. Any other selected month keeps the server's model, so history is never revised.
+  const ticking =
+    engine !== null &&
+    (options?.spansLatest === true || ctx.period === engine.full.meta.latestPeriod);
   return useMemo(
-    () => (engine && dataset ? select(engine, dataset, ctx) : initial),
-    [engine, dataset, ctx, initial, select],
+    () => (engine && dataset && ticking ? select(engine, dataset, ctx) : initial),
+    [engine, dataset, ticking, ctx, initial, select],
   );
 }

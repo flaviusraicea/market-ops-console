@@ -82,6 +82,19 @@ test("views, products and theme commands", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-reduced-motion", "true");
 });
 
+test("ana + Enter on the Executive overview opens the Analyst view, and the footer names this keyboard's shortcut", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+k");
+  // Chromium here runs on Linux, so the shortcut reads Ctrl K, not ⌘K.
+  await expect(palette(page).getByText("Command palette · Ctrl K")).toBeVisible();
+  await input(page).fill("ana");
+  await expect(palette(page).getByRole("option")).toHaveText([/Switch to Analyst deep-dive/]);
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/mode=analyst/);
+});
+
 test("Ctrl+K inside the palette keeps the real opener for Escape", async ({ page }) => {
   await page.goto("/");
   await opener(page).click();

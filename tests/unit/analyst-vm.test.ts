@@ -303,3 +303,37 @@ describe("ledger grid", () => {
     );
   });
 });
+
+describe("reported vs summed attainment (Differs from source)", () => {
+  const ctx = {
+    period: ds.meta.latestPeriod,
+    mode: "analyst",
+    metric: "attainment",
+    basis: "month",
+  } as const;
+
+  it("notes the pair on Italy's products footer and nowhere for a past month", () => {
+    const vm = analystVM(ds, { ...ctx, region: "eu", market: "it" });
+    if (vm.grid.kind !== "products") throw new Error("expected the products grid");
+    expect(vm.grid.total.attainment).toBe("93.8%");
+    expect(vm.grid.total.attainmentNote).toBe("Series sum 93.8% · reported KPI 93.0%");
+    const past = analystVM(ds, { ...ctx, period: "2026-04" as Period, region: "eu", market: "it" });
+    if (past.grid.kind !== "products") throw new Error("expected the products grid");
+    expect(past.grid.total.attainmentNote).toBeUndefined();
+  });
+
+  it("flags the latest heat cell of every market and no earlier cell", () => {
+    const { rows } = analystVM(ds, ctx).heatMap;
+    const germany = rows.find((r) => r.id === "de")!;
+    expect(germany.cells.at(-1)?.differs).toBe("Series sum 92.2% · reported KPI 92.0%");
+    expect(germany.cells.at(-1)?.reported).toBe("92.0%");
+    expect(germany.cells.slice(0, -1).every((c) => c.differs === undefined)).toBe(true);
+    expect(rows.every((r) => r.cells.at(-1)?.differs !== undefined)).toBe(true);
+  });
+
+  it("explains the latest column once, in the header, and not for a past month", () => {
+    expect(analystVM(ds, ctx).heatMap.differsNote).toBe(
+      "Latest month: series sums differ from reported KPIs · see the Markets grid footer",
+    );
+  });
+});

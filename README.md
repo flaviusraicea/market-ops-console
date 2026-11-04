@@ -63,6 +63,26 @@ Each row gives the problem, the choice, and the alternative turned down with the
 - Every question carries the view it was asked from (entity and month, shown in the question echo), and the mock backend answers about that view: the same question gives a different, cited answer in Europe than in the portfolio. The backend is still a fake: no model and no retrieval. It matches keywords, prefers the canned answer written for the current view, and for one template answer fills in numbers read from `data.json`.
 - The conversation is kept in memory for the session only. A reload starts with an empty panel.
 
+## Data inconsistency: reported vs summed attainment
+
+For May 2026 `data.json` states each market's forecast attainment twice: in `kpis` (the reported figure) and implicitly in `series` (actual over forecast, summed over the market's products). They disagree for all 13 markets, by up to 1.1 points. Revenue and growth agree. Neither is changed. The reported figure leads everywhere a headline is shown (KPI tiles, verdict, badges, narrative, Markets table). Where a sum is the point, the footer of a market's products table and the heat map cells for the latest month, the sum is shown with a "Differs from source" warning mark and the note `Series sum 93.8% · reported KPI 93.0%`. The Attainment tile's money delta is the series' own variance, so it carries the same mark. The heat map marks its latest column once, in the header, with a legend line.
+
+| Market         | Reported KPI | Series sum |
+| -------------- | ------------ | ---------- |
+| United States  | 100.5%       | 100.6%     |
+| Canada         | 102.1%       | 101.8%     |
+| Germany        | 92.0%        | 92.2%      |
+| United Kingdom | 94.3%        | 94.6%      |
+| France         | 96.4%        | 96.7%      |
+| Italy          | 93.0%        | 93.8%      |
+| Spain          | 104.5%       | 104.7%     |
+| Japan          | 104.0%       | 104.2%     |
+| China          | 106.0%       | 106.6%     |
+| India          | 103.1%       | 104.2%     |
+| Australia      | 101.8%       | 101.5%     |
+| Brazil         | 96.0%        | 95.5%      |
+| Mexico         | 101.0%       | 101.6%     |
+
 ## Roles (mock)
 
 - You are signed in automatically as **Executive** (Dana Whitfield). The avatar at the right of the header shows who you are and switches to **Analyst** (Sam Okafor) in one click; `Sign out` opens a mock SSO screen with the two personas. Both roles see every page and all of the data.
@@ -79,7 +99,7 @@ Each row gives the problem, the choice, and the alternative turned down with the
 
 ## Live mode notes
 
-- The `Live` toggle in the header (in the Analyst toolbar below 768 px) starts a 5 second tick. Each tick moves the latest month's revenue and units for every market by up to ±2 %, never more than ±8 % from `data.json`. The numbers are simulated: nothing is fetched, nothing is saved, and a reload returns to the real data.
+- The `Live` toggle in the header (in the Analyst toolbar below 768 px) starts a 5 second tick. Each tick moves the latest month's revenue and units for every market by up to ±0.1 %, never more than ±0.3 % from `data.json`, so no status flips within a minute. Only the latest month ticks; a past month is never revised. Pause freezes the simulated figures where they are until a reload. The numbers are simulated: nothing is fetched, nothing is saved, and a reload returns to the real data.
 - Live mode is a client-side overlay. `applyLiveOverlay(dataset, tick)` in `src/lib/live.ts` is pure and seeded by the tick, so tests and stories replay the same sequence. The server still renders from `data.json`; when Live is first turned on the browser loads the full dataset in a lazy chunk and recomputes each widget's view model with the same functions the server uses.
 - While live, a market's status is recomputed from its moved figures with the published rule (off track when growth is negative or attainment is below about 92.5 %; at risk below 100 %). This is the only place the app derives a market's status; captions read `Derived · live`.
 - The URL, drill path, selection, open rail, palette and conversation are untouched. The assistant does not see the overlay and keeps answering from the saved data; the composer says so.

@@ -17,6 +17,7 @@ export function heatCellTooltip(
       { label: "Forecast", value: formatMoneyCompact(cell.forecast) },
       { label: "Attainment", value: formatPct(cell.value, { sign: false }) },
       ...(prev ? [{ label: `vs ${formatMonthShort(prev.period)}`, value: change }] : []),
+      ...(cell.differs ? [{ label: "Differs from source", value: cell.differs }] : []),
       ...(cell.anomaly ? [{ label: "Anomaly", value: cell.anomaly }] : []),
     ],
     ...(ask

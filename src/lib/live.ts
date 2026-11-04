@@ -1,9 +1,12 @@
 import { statusForDerived, type Dataset, type Fact, type Market } from "@/domain";
 
-/** Largest move one market makes in one tick: ±2 %. */
-const LIVE_STEP = 0.02;
-/** A market never drifts further than ±8 % from the figures in data.json. */
-export const LIVE_BOUND = 0.08;
+/** Largest move one market makes in one tick: ±0.1 %. */
+const LIVE_STEP = 0.001;
+/**
+ * A market never drifts further than ±0.3 % from the figures in data.json, small enough that no status flips
+ * within a minute of watching (a status sits at least a few tenths of a point from its threshold).
+ */
+export const LIVE_BOUND = 0.003;
 /** Milliseconds between ticks. */
 export const LIVE_INTERVAL_MS = 5000;
 
@@ -36,7 +39,8 @@ const round1 = (x: number) => Math.round(x * 10) / 10;
 
 /**
  * The dataset as it reads after `tick` ticks of simulated live data. Only the latest period's `actual` and
- * `units` move; everything else is the saved data. Tick 0 is the saved data itself.
+ * `units` move; everything else is the saved data, and views of any other selected month ignore the overlay
+ * (see `useLiveVM`), so a past period is never revised. Tick 0 is the saved data itself.
  *
  * Each market's given figures for the latest month scale with its facts, so the first tick starts from what
  * data.json says instead of jumping to a re-derived value: revenue and attainment move by the drift factor,

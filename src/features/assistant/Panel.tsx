@@ -3,7 +3,8 @@
 import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
-import { isSimulated, useLiveState } from "@/features/live/LiveProvider";
+import { isSimulated, useLiveState, useLiveVM } from "@/features/live/LiveProvider";
+import { whatChanged as whatChangedOf } from "@/features/live/selectors";
 import { PaletteButton } from "@/features/palette/PaletteButton";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ChevronRight, ICON_STROKE, Sparkles } from "@/components/icons";
@@ -61,6 +62,8 @@ function PanelBody({
   const { variant, focusComposer } = useContext(PlacementContext);
   const sheet = variant === "sheet";
   const live = useLiveState();
+  const whatChanged = useLiveVM(context.whatChanged, whatChangedOf);
+  const shown = { ...context, whatChanged };
   // The draft and where a prefilled question came from live in the machine's provider, so closing the phone
   // sheet does not lose what was typed.
   const { draft, setDraft, pending, setPending } = machine;
@@ -191,7 +194,7 @@ function PanelBody({
       </div>
       <AnswerList
         answers={answers}
-        context={pending ? { ...context, about: null } : context}
+        context={pending ? { ...shown, about: null } : shown}
         onPick={(q) => submit(q, undefined, { keepKeyboardDown: true })}
         onTry={fill}
         onStop={stop}

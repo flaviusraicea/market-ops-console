@@ -89,38 +89,41 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 13. All facts
 14. About Germany revenue
 15. About forecast attainment
-16. About year-on-year growth
-17. About status
-18. Products · Germany, scrollable
-19. Product
-20. Revenue
-21. Forecast
-22. Prior year
-23. Attainment
-24. Growth YoY
-25. Units
-26. Veltrix $574K $620K $639K 92.7% −10.1% 3,431
-27. Nuvora $405K $445K $444K 91.1% −8.7% 1,120
-28. Orbispan $322K $350K $355K 91.9% −9.3% 1,157
-29. Calyx $229K $245K $257K 93.4% −10.9% 858
-30. Zephyra $147K $159K $163K 92.6% −10.0% 1,052
-31. Attainment
-32. View as table of the markets map
-33. Germany, off track, 92.0% attainment
-34. Drill into North America, $4.38M, On track, 101.0%
-35. Drill into Europe, $7.06M, At risk, 95.4%
-36. Drill into APAC, $9.49M, On track, 104.9%
-37. Drill into LATAM, $1.92M, At risk, 98.0%
-38. View as table of the Germany revenue chart
-39. Month
-40. Anomaly: March 2026 revenue fell 27 percent versus February
-41. View as table of the compare radar chart
-42. France, Attainment: 96.4%
-43. View as table of the attainment by month heat map
-44. Germany, May 2026, 92.2% of forecast
-45. AlertsNo rules
-46. Open assistant
-47. Open command palette
+16. Differs from source: forecast variance
+17. About year-on-year growth
+18. About status
+19. Products · Germany, scrollable
+20. Product
+21. Revenue
+22. Forecast
+23. Prior year
+24. Attainment
+25. Growth YoY
+26. Units
+27. Veltrix $574K $620K $639K 92.7% −10.1% 3,431
+28. Nuvora $405K $445K $444K 91.1% −8.7% 1,120
+29. Orbispan $322K $350K $355K 91.9% −9.3% 1,157
+30. Calyx $229K $245K $257K 93.4% −10.9% 858
+31. Zephyra $147K $159K $163K 92.6% −10.0% 1,052
+32. Differs from source: Germany attainment
+33. Attainment
+34. View as table of the markets map
+35. Germany, off track, 92.0% attainment
+36. Drill into North America, $4.38M, On track, 101.0%
+37. Drill into Europe, $7.06M, At risk, 95.4%
+38. Drill into APAC, $9.49M, On track, 104.9%
+39. Drill into LATAM, $1.92M, At risk, 98.0%
+40. View as table of the Germany revenue chart
+41. Month
+42. Anomaly: March 2026 revenue fell 27 percent versus February
+43. View as table of the compare radar chart
+44. France, Attainment: 96.4%
+45. View as table of the attainment by month heat map
+46. Differs from source: latest month
+47. Germany, May 2026, 92.2% of forecast, differs from source: reported KPI 92.0%
+48. AlertsNo rules
+49. Open assistant
+50. Open command palette
 <!-- tab-order:end -->
 
 ### Shortcuts
