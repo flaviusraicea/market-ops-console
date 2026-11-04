@@ -71,6 +71,9 @@ export function LiveMapSection({
   return <MapSection map={useLiveVM(initialMap, map)} regions={useLiveVM(regions, regionBars)} />;
 }
 
+/** These two draw all 24 months, so the latest one moves whichever month is selected. */
+const SPANS_LATEST = { spansLatest: true };
+
 const grid = (e: Engine, ds: Ds, cx: Cx) => e.analyst(ds, cx).grid;
 export function LiveMarketGrid({ grid: initial }: { grid: AnalystVM["grid"] }) {
   return <MarketGrid grid={useLiveVM(initial, grid)} />;
@@ -78,7 +81,7 @@ export function LiveMarketGrid({ grid: initial }: { grid: AnalystVM["grid"] }) {
 
 const timeSeries = (e: Engine, ds: Ds, cx: Cx) => e.analyst(ds, cx).timeSeries;
 export function LiveTimeSeriesCard({ vm }: { vm: AnalystVM["timeSeries"] }) {
-  return <TimeSeriesCard vm={useLiveVM(vm, timeSeries)} />;
+  return <TimeSeriesCard vm={useLiveVM(vm, timeSeries, SPANS_LATEST)} />;
 }
 
 const radar = (e: Engine, ds: Ds, cx: Cx) => e.analyst(ds, cx).radar;
@@ -88,5 +91,5 @@ export function LiveRadarCard({ vm, rowLabel }: { vm: AnalystVM["radar"]; rowLab
 
 const heatMap = (e: Engine, ds: Ds, cx: Cx) => e.analyst(ds, cx).heatMap;
 export function LiveHeatMapCard({ vm }: { vm: AnalystVM["heatMap"] }) {
-  return <HeatMapCard vm={useLiveVM(vm, heatMap)} />;
+  return <HeatMapCard vm={useLiveVM(vm, heatMap, SPANS_LATEST)} />;
 }

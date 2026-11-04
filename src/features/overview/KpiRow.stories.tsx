@@ -6,6 +6,7 @@ import { dataset as ds, portfolioMay, withDataset } from "../../../.storybook/de
 import { LiveKpiRow } from "@/features/live/LiveIslands";
 import { LiveProvider, useLiveState } from "@/features/live/LiveProvider";
 import { KpiRow } from "./KpiRow";
+import { applyLiveOverlay } from "@/lib/live";
 import { overviewVM } from "./viewModel";
 
 const meta = {
@@ -67,11 +68,12 @@ export const Live: Story = {
     const headline = () =>
       canvasElement.querySelector('[data-slot="kpi-headline"]')?.textContent ?? "";
     const delta = () => canvasElement.querySelector('[data-slot="kpi-delta"]');
-    const before = headline();
-    await userEvent.click(advance);
-    await userEvent.click(advance);
-    await userEvent.click(advance);
-    await waitFor(() => expect(headline()).not.toBe(before));
+    // The drift is a few tenths of a percent, so the rounded portfolio headline may not move: the story checks
+    // that the tiles are the ones computed from the drifted data, whatever they read.
+    const ticks = 4;
+    for (let i = 0; i < ticks; i++) await userEvent.click(advance);
+    const expected = overviewVM(applyLiveOverlay(ds, ticks), portfolioMay).tiles[0]?.headline;
+    await waitFor(() => expect(headline()).toBe(expected));
     // The delta's direction follows the sign of the figure it shows.
     const sign = delta()?.textContent?.trim().charAt(0);
     await expect(delta()).toHaveAttribute(
