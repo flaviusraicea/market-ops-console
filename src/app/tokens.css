@@ -127,7 +127,7 @@
   --grid-cols: 2;
 
   /* Fixed in both densities */
-  /* Radius scale (one family; inner = outer - padding). Literal radii are forbidden: scripts/check-radius.ts.
+  /* Radius scale (one family; an inner radius is smaller than its container’s). Literal radii are forbidden: scripts/check-radius.ts.
      sheet: cards, toolbar card, panel, dialogs, palette, popovers, sheets. control: buttons, inputs, selects,
      tooltips, notes. menu: items inside a 4px-padded menu. pill: badges, chips, segmented controls, avatar.
      mark: small marks (heat cells, inline text washes, keycaps). Bars, meter segments, sparklines, map

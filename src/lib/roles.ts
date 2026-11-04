@@ -9,7 +9,7 @@ export const ROLES = ["executive", "analyst"] as const;
 export type Role = (typeof ROLES)[number];
 
 export const ROLE_COOKIE = "market-ops-role";
-export const ROLE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+const ROLE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 export const DEFAULT_ROLE: Role = "executive";
 
 export type Persona = {

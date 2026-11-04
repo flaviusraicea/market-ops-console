@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /** Where a reported failure came from: a render boundary, a window event, or a failed stream or request. */
-export const ERROR_SOURCES = ["boundary", "window", "promise", "stream", "fetch"] as const;
+const ERROR_SOURCES = ["boundary", "window", "promise", "stream", "fetch"] as const;
 
 /**
  * One failure as the browser reports it (lib/events.ts reportError) and the server accepts it

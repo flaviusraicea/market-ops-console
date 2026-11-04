@@ -723,8 +723,8 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
     caption: derivedLabel(ds, atLatest(ds, ctx)),
     allProducts: Boolean(ctx.product),
     subtitle: ctx.product
-      ? `${ALL_PRODUCTS} · vs forecast, 100% at centre`
-      : "Attainment vs forecast · 100% at centre",
+      ? `${ALL_PRODUCTS} · vs forecast, tick at 100%`
+      : "Attainment vs forecast · tick at 100%",
   };
 }
 

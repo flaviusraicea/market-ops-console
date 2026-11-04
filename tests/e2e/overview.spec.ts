@@ -377,3 +377,15 @@ test("the Executive view carries the same four-tile grammar and the scope in the
   await expect(page.getByRole("region", { name: "By region" })).toContainText("All products");
   await expect(page.getByRole("region", { name: /^Markets by/ })).toContainText("All products");
 });
+
+test("by region, every bar shares one scale: the 100% tick sits at the same x in every row", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/?mode=executive");
+  const card = page.locator("section[aria-labelledby='regions-h']");
+  const ticks = card.locator("li button span.bg-ink-muted");
+  await expect(ticks).toHaveCount(4);
+  const xs = await ticks.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().left));
+  for (const x of xs) expect(Math.abs(x - xs[0]!)).toBeLessThan(1);
+});

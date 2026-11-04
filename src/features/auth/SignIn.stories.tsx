@@ -16,7 +16,7 @@ export const Personas: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole("heading", { name: "Sign in to Market Ops" })).toBeVisible();
-    await expect(canvas.getByRole("button", { name: "Continue with SSO" })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Continue with SSO (mocked)" })).toBeDisabled();
     await expect(canvas.getByText(/SSO is mocked for this assignment/)).toBeVisible();
     const analyst = canvas.getByRole("button", { name: /Sam Okafor/ });
     analyst.focus();
