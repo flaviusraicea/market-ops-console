@@ -449,15 +449,51 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   animation: scrim-in var(--fade-dur, var(--dur-fast)) var(--ease-out);
 }
 
-/* The assistant panel slides 16 px in and fades as it opens. The columns around it switch at once. */
+/* The docked assistant has its own scale, the same in both modes, between the airy Executive and the dense
+   Analyst dashboards, so it reads as one object whichever view sits beside it. A touch screen keeps its 44 px. */
+@media (min-width: 1024px) and (pointer: fine) {
+  #assistant-panel {
+    --pad-card: 16px;
+    --control-h: 32px;
+    --gap: 12px;
+    --text-body: 14px;
+    --text-body-lh: 20px;
+  }
+}
+
+/* The assistant panel (desktop). ShellGrid sets data-panel on its column: opening, open, closing or closed.
+   Opening: a 24 px slide on the smooth spring over 400 ms, with the fade done in the first 200 ms so the panel
+   is solid for the rest of the travel (a fade across the whole slide reads as see-through). Closing: slide and
+   fade out together over 200 ms, ease-in. The dashboard keeps its width while either runs and reflows once at
+   the end, so the charts re-measure once and never mid-animation. */
 @keyframes panel-in {
   from {
-    transform: translateX(16px);
+    transform: translateX(24px);
+  }
+}
+@keyframes panel-fade-in {
+  from {
     opacity: 0;
   }
 }
-.panel-enter {
-  animation: panel-in var(--dur-enter) var(--spring-smooth);
+@keyframes panel-out {
+  to {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+[data-panel="opening"] #assistant-panel {
+  animation:
+    panel-in var(--dur-enter) var(--spring-smooth),
+    panel-fade-in var(--dur-base) var(--ease-out);
+}
+[data-panel="closing"] #assistant-panel {
+  animation: panel-out var(--dur-base) var(--ease-in) forwards;
+}
+@media (min-width: 1024px) {
+  [data-panel="closed"] #assistant-panel {
+    display: none;
+  }
 }
 
 /* Reduced motion: overlays cross-fade over a fixed 200 ms (popovers 100 ms) and do not move. Opacity is not
@@ -467,7 +503,7 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   [data-slot="dialog-content"][data-state],
   [data-slot="command-dialog"][data-state],
   [data-slot="bottom-sheet-content"][data-state],
-  .panel-enter {
+  [data-panel="opening"] #assistant-panel {
     animation-name: scrim-in;
     animation-duration: 200ms !important;
     animation-timing-function: var(--ease-out);
@@ -486,16 +522,22 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   [data-slot="command-dialog"][data-state="closed"],
   [data-slot="bottom-sheet-content"][data-state="closed"],
   [data-slot="dropdown-menu-content"][data-state="closed"],
+  [data-slot="popover-content"][data-state="closed"],
   [data-slot="select-content"][data-state="closed"],
   [data-slot="tooltip-content"][data-state="closed"] {
     animation-name: scrim-out;
     animation-timing-function: var(--ease-in);
   }
+  [data-panel="closing"] #assistant-panel {
+    animation-name: scrim-out;
+    animation-duration: 200ms !important;
+    transform: none;
+  }
 }
 html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state],
 html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state],
 html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state],
-html[data-reduced-motion="true"] .panel-enter {
+html[data-reduced-motion="true"] [data-panel="opening"] #assistant-panel {
   animation-name: scrim-in;
   animation-duration: 200ms !important;
   animation-timing-function: var(--ease-out);
@@ -505,6 +547,11 @@ html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state="closed
 html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state="closed"],
 html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state="closed"] {
   animation-name: scrim-out;
+}
+html[data-reduced-motion="true"] [data-panel="closing"] #assistant-panel {
+  animation-name: scrim-out;
+  animation-duration: 200ms !important;
+  transform: none;
 }
 html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state],
 html[data-reduced-motion="true"] [data-slot="popover-content"][data-state],

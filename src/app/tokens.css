@@ -141,7 +141,8 @@
   --bar-h: 72px;
   --page-max: 1440px;
   --gutter: 16px;
-  --assistant-w: 380px;
+  /* The docked assistant: 320 px from 1024 px, 360 px from 1400 px (below). */
+  --assistant-w: 320px;
   --below-header: calc(var(--header-h) + 16px);
 
   /* Motion (section 5) */
@@ -227,6 +228,12 @@
   }
 }
 
+@media (min-width: 1400px) {
+  :root {
+    --assistant-w: 360px;
+  }
+}
+
 @media (min-width: 1280px) {
   :root {
     --text-display: 36px;
@@ -273,15 +280,15 @@ html[data-density="analyst"] {
 
 /* Colour: dark theme (section 3.2), explicit choice */
 :root[data-theme="dark"] {
-  --bg: #0f1318;
-  --surface: #171c23;
-  --surface-raised: #1f2630;
-  --surface-2: #1f2630;
-  --surface-overlay: #242c36;
-  --border: #303a46;
+  --bg: #0b0e12;
+  --surface: #161b22;
+  --surface-raised: #1f2631;
+  --surface-2: #1f2631;
+  --surface-overlay: #28313d;
+  --border: #343e4b;
   --border-control: #7a8391;
-  --grid: #242c36;
-  --hairline: rgba(255, 255, 255, 0.05);
+  --grid: #262e38;
+  --hairline: rgba(255, 255, 255, 0.07);
   --selected-edge: rgba(255, 255, 255, 0.06);
   --ink: #e6eaf0;
   --ink-2: #aeb6c2;
@@ -334,19 +341,19 @@ html[data-density="analyst"] {
   --div-p2: #5079b3;
   --div-p3: #86ace4;
   --shadow-card:
-    inset 0 1px 0 var(--hairline), 0 1px 2px rgba(0, 0, 0, 0.5),
-    0 14px 36px -12px rgba(0, 0, 0, 0.7);
+    inset 0 1px 0 var(--hairline), 0 1px 2px rgba(0, 0, 0, 0.6),
+    0 16px 40px -12px rgba(0, 0, 0, 0.85);
   --shadow-raised:
-    inset 0 1px 0 var(--hairline), 0 2px 4px rgba(0, 0, 0, 0.5),
-    0 16px 36px -10px rgba(0, 0, 0, 0.7);
+    inset 0 1px 0 var(--hairline), 0 2px 6px rgba(0, 0, 0, 0.6),
+    0 20px 48px -12px rgba(0, 0, 0, 0.9);
   --shadow-overlay:
-    inset 0 1px 0 var(--hairline), 0 4px 10px rgba(0, 0, 0, 0.5),
-    0 32px 64px -16px rgba(0, 0, 0, 0.8);
-  --shadow-header: 0 6px 20px -12px rgba(0, 0, 0, 0.7);
-  --shadow-toolbar: 0 8px 14px -12px rgba(0, 0, 0, 0.8);
+    inset 0 1px 0 var(--hairline), 0 6px 14px rgba(0, 0, 0, 0.6),
+    0 36px 72px -16px rgba(0, 0, 0, 0.95);
+  --shadow-header: 0 1px 0 var(--border), 0 8px 24px -12px rgba(0, 0, 0, 0.8);
+  --shadow-toolbar: 0 10px 16px -12px rgba(0, 0, 0, 0.85);
   --shadow-basin: inset 0 2px 12px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
   --shimmer: rgba(255, 255, 255, 0.06);
-  --map-land: #222a34;
+  --map-land: #202833;
   /* Dark scrim: black, never ink, so the page dims instead of washing out. */
   --scrim: rgba(0, 0, 0, 0.65);
 }
@@ -354,15 +361,15 @@ html[data-density="analyst"] {
 /* Colour: dark theme, following the OS unless the user chose light */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1318;
-    --surface: #171c23;
-    --surface-raised: #1f2630;
-    --surface-2: #1f2630;
-    --surface-overlay: #242c36;
-    --border: #303a46;
+    --bg: #0b0e12;
+    --surface: #161b22;
+    --surface-raised: #1f2631;
+    --surface-2: #1f2631;
+    --surface-overlay: #28313d;
+    --border: #343e4b;
     --border-control: #7a8391;
-    --grid: #242c36;
-    --hairline: rgba(255, 255, 255, 0.05);
+    --grid: #262e38;
+    --hairline: rgba(255, 255, 255, 0.07);
     --selected-edge: rgba(255, 255, 255, 0.06);
     --ink: #e6eaf0;
     --ink-2: #aeb6c2;
@@ -415,19 +422,19 @@ html[data-density="analyst"] {
     --div-p2: #5079b3;
     --div-p3: #86ace4;
     --shadow-card:
-      inset 0 1px 0 var(--hairline), 0 1px 2px rgba(0, 0, 0, 0.5),
-      0 14px 36px -12px rgba(0, 0, 0, 0.7);
+      inset 0 1px 0 var(--hairline), 0 1px 2px rgba(0, 0, 0, 0.6),
+      0 16px 40px -12px rgba(0, 0, 0, 0.85);
     --shadow-raised:
-      inset 0 1px 0 var(--hairline), 0 2px 4px rgba(0, 0, 0, 0.5),
-      0 16px 36px -10px rgba(0, 0, 0, 0.7);
+      inset 0 1px 0 var(--hairline), 0 2px 6px rgba(0, 0, 0, 0.6),
+      0 20px 48px -12px rgba(0, 0, 0, 0.9);
     --shadow-overlay:
-      inset 0 1px 0 var(--hairline), 0 4px 10px rgba(0, 0, 0, 0.5),
-      0 32px 64px -16px rgba(0, 0, 0, 0.8);
-    --shadow-header: 0 6px 20px -12px rgba(0, 0, 0, 0.7);
-    --shadow-toolbar: 0 8px 14px -12px rgba(0, 0, 0, 0.8);
+      inset 0 1px 0 var(--hairline), 0 6px 14px rgba(0, 0, 0, 0.6),
+      0 36px 72px -16px rgba(0, 0, 0, 0.95);
+    --shadow-header: 0 1px 0 var(--border), 0 8px 24px -12px rgba(0, 0, 0, 0.8);
+    --shadow-toolbar: 0 10px 16px -12px rgba(0, 0, 0, 0.85);
     --shadow-basin: inset 0 2px 12px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
     --shimmer: rgba(255, 255, 255, 0.06);
-    --map-land: #222a34;
+    --map-land: #202833;
     /* Dark scrim: black, never ink, so the page dims instead of washing out. */
     --scrim: rgba(0, 0, 0, 0.65);
   }
