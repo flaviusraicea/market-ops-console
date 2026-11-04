@@ -241,7 +241,7 @@ function DiffersNote({ children, long }: { children: ReactNode; long?: boolean }
   return (
     <p
       role="note"
-      className={`inline-flex max-w-full items-start gap-1.5 ${long ? "rounded-sheet" : "rounded-pill"} bg-warn-bg px-2.5 py-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-warn-text`}
+      className={`inline-flex max-w-full items-start gap-1.5 ${long ? "rounded-control" : "rounded-pill"} bg-warn-bg px-2.5 py-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-warn-text`}
     >
       <TriangleAlert aria-hidden className="mt-0.5 size-3 shrink-0" strokeWidth={ICON_STROKE} />
       <span>{children}</span>
