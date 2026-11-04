@@ -50,7 +50,7 @@ export function ConfidenceMeter({
           {[1, 2, 3].map((n) => (
             <span
               key={n}
-              className={cn("h-1.5 w-2.5 rounded-mark", n <= bars ? "bg-ai-label" : "bg-border")}
+              className={cn("h-1.5 w-2.5 rounded-none", n <= bars ? "bg-ai-label" : "bg-border")}
             />
           ))}
         </span>
@@ -75,7 +75,7 @@ export function ConfidenceMeter({
         {[1, 2, 3].map((n) => (
           <span
             key={n}
-            className={cn("h-1.5 w-3.5 rounded-mark", n <= bars ? "bg-ink-2" : "bg-border")}
+            className={cn("h-1.5 w-3.5 rounded-none", n <= bars ? "bg-ink-2" : "bg-border")}
           />
         ))}
       </span>
