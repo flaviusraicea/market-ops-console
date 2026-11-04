@@ -261,7 +261,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
             {
               gridTemplateColumns: `${NAME_COL} repeat(${nCols}, minmax(0, 1fr))`,
               "--heat-gap": CELL_GAP,
-            } as CSSProperties
+            } as CSSProperties // CSSProperties has no index for custom properties
           }
         >
           <div ref={headerRef} role="row" aria-rowindex={1} className="contents">

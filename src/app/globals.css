@@ -129,6 +129,15 @@ body {
   outline: none;
 }
 
+/* The map's frame move repaints the whole SVG on each frame, so for its 240 ms the countries drop their strokes
+   and the group draws for speed (Choropleth). */
+[data-moving] path {
+  stroke: none;
+}
+[data-moving] {
+  shape-rendering: optimizeSpeed;
+}
+
 /* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */
 .num {
   font-variant-numeric: tabular-nums lining-nums;

@@ -27,9 +27,17 @@ test("after a drill, the map's keyboard order holds only the markets in view", a
   expect(out.filter((m) => !m.name.startsWith("France"))).toEqual([]);
   // The off-frame markets are gone from the accessible map: Australia is not a button in a Europe drill.
   await expect(map.getByRole("button", { name: /^Australia/ })).toHaveCount(0);
-  // The one tab stop is a European market, and the tooltip sits inside the card.
+  // The one tab stop is a European market.
   const stop = map.locator("path[tabindex='0']");
   await expect(stop).toHaveCount(1);
   await stop.focus();
   await expect(stop).toHaveAttribute("aria-label", /^(France|Germany|Italy|Spain|United Kingdom)/);
+  // The United Kingdom sits at the top of the drilled frame: its tooltip drops below it rather than opening
+  // over the card header, so every row shows.
+  await map.getByRole("button", { name: /^United Kingdom/ }).focus();
+  const tip = page.getByRole("tooltip");
+  await expect(tip).toBeVisible();
+  await expect(tip).toContainText("Status");
+  const [tipBox, mapBox] = await Promise.all([tip.boundingBox(), map.boundingBox()]);
+  expect(tipBox!.y).toBeGreaterThanOrEqual(mapBox!.y);
 });

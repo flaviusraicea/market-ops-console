@@ -1,7 +1,6 @@
 "use client";
 
-import { useTooltip } from "@visx/tooltip";
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { cn } from "@/components/cn";
 import { Sparkles, ICON_STROKE } from "@/components/icons";
@@ -23,8 +22,9 @@ const COLLISION_PADDING = 16;
 
 /** Tooltip state for one chart. Positions are in the coordinates of the chart's relative wrapper. */
 export function useChartTooltip() {
-  const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, showTooltip, hideTooltip } =
-    useTooltip<TooltipContent>();
+  const [state, setState] = useState<{ content: TooltipContent; left: number; top: number } | null>(
+    null,
+  );
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hovering = useRef(false);
   const grace = useRef(false);
@@ -39,16 +39,16 @@ export function useChartTooltip() {
       cancelHide();
       // A tooltip without an action has nothing to hover, so a stale flag must not hold it open.
       if (!content.action) hovering.current = false;
-      showTooltip({ tooltipData: content, tooltipLeft: left, tooltipTop: top });
+      setState({ content, left, top });
     },
-    [cancelHide, showTooltip],
+    [cancelHide],
   );
 
   const hide = useCallback(() => {
     cancelHide();
     hovering.current = false;
-    hideTooltip();
-  }, [cancelHide, hideTooltip]);
+    setState(null);
+  }, [cancelHide]);
 
   // `hideSoon` closes after a short grace. The pointer entering the tooltip cancels it, and while the pointer
   // rests on the tooltip it stays open.
@@ -57,9 +57,9 @@ export function useChartTooltip() {
     grace.current = true;
     timer.current = setTimeout(() => {
       grace.current = false;
-      if (!hovering.current) hideTooltip();
+      if (!hovering.current) setState(null);
     }, HIDE_GRACE_MS);
-  }, [cancelHide, hideTooltip]);
+  }, [cancelHide]);
 
   const hover = useCallback(
     (inside: boolean) => {
@@ -75,20 +75,21 @@ export function useChartTooltip() {
 
   useEffect(() => cancelHide, [cancelHide]);
 
+  const open = state !== null;
   useEffect(() => {
-    if (!tooltipOpen) return;
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") hide();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [tooltipOpen, hide]);
+  }, [open, hide]);
 
   return {
-    open: tooltipOpen,
-    content: tooltipData,
-    left: tooltipLeft ?? 0,
-    top: tooltipTop ?? 0,
+    open,
+    content: state?.content,
+    left: state?.left ?? 0,
+    top: state?.top ?? 0,
     show,
     hide,
     hideSoon,
