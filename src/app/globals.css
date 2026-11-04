@@ -539,7 +539,7 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
   }
 }
 
-/* PageNotice: enters with opacity and a 4px rise, leaves with opacity only. The blanket reduced-motion rule above
+/* Notice (inline tones): enters with opacity and a 4px rise, leaves with opacity only. The blanket reduced-motion rule above
    shortens both to nothing, and the translate is dropped so only opacity is ever animated for those users. */
 @keyframes notice-in {
   from {
@@ -567,4 +567,10 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
   from {
     opacity: 0;
   }
+}
+
+/* A control whose navigation is held and being retried (notice-spec pending state): no spinner, just quieter. */
+[data-nav-busy] {
+  opacity: 0.6;
+  cursor: progress;
 }

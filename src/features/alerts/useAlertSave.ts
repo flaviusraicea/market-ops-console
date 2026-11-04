@@ -95,6 +95,7 @@ export function useAlertSave(api: AlertApi = alertApi) {
     queryFn: () => api.listRules(),
     select: (rows) => normalizeRules(rows),
   });
+  const { refetch } = list;
 
   /** Refetch once the last in-flight save or delete finishes, so an early response cannot overwrite a later one. */
   const settle = () => {
@@ -171,9 +172,9 @@ export function useAlertSave(api: AlertApi = alertApi) {
     rules: (list.data ?? []) as RuleRow[],
     isLoading: list.isPending,
     /** The saved rules could not be read. Shown as a failed load, never as "0 rules". */
-    loadFailed: list.isError,
+    loadFailed: list.isLoadingError,
     reloading: list.isFetching,
-    reload: useCallback(() => void list.refetch(), [list]),
+    reload: useCallback(() => void refetch(), [refetch]),
     status,
     savedAt,
     failure,

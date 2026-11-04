@@ -5,7 +5,8 @@ import { ask, open } from "./helpers";
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-const notice = (page: Page) => page.getByRole("status").filter({ hasText: "You’re offline" });
+const notice = (page: Page) =>
+  page.locator('[data-slot="page-notice"]').filter({ hasText: "You’re offline" });
 
 test("a drill while offline keeps the view and the conversation, and Retry completes it once back online", async ({
   page,
@@ -26,9 +27,11 @@ test("a drill while offline keeps the view and the conversation, and Retry compl
   expect(page.url()).toBe(before);
   await expect(page.getByText("Three markets stand out as at risk")).toBeVisible();
 
-  // Still offline: Retry says it is trying and the notice stays.
+  // Still offline: the server does not answer, so Retry settles and the notice stays.
   await notice(page).getByRole("button", { name: "Retry" }).click();
+  await expect(notice(page).getByRole("button", { name: "Retry" })).toBeEnabled();
   await expect(notice(page)).toBeVisible();
+  expect(page.url()).toBe(before);
 
   await context.setOffline(false);
   await notice(page).getByRole("button", { name: "Retry" }).click();

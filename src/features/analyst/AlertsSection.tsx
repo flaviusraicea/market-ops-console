@@ -6,7 +6,6 @@ import { useId, useState, useSyncExternalStore } from "react";
 import { cn } from "@/components/cn";
 import { ChevronDown, ICON_STROKE } from "@/components/icons";
 import { Eyebrow } from "@/components/Eyebrow";
-import { PageNotice } from "@/components/PageNotice";
 import { Notice } from "@/components/Notice";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -40,6 +39,7 @@ export function AlertsSection({
   onSwitchToAnalyst?: () => void;
 }) {
   const alerts = useAlertSave();
+  const [loadDismissed, setLoadDismissed] = useState(false);
   const headingId = useId();
   const open = useSyncExternalStore(openState.subscribe, readOpen, () => false);
 
@@ -88,14 +88,16 @@ export function AlertsSection({
               onSwitchToAnalyst={onSwitchToAnalyst}
             />
             {alerts.loadFailed ? (
-              <PageNotice
+              // The list is never shown as empty after a failed read; Dismiss only hides the notice.
+              <Notice
                 tone="error"
+                title="Couldn’t load alert rules"
+                open={!loadDismissed}
                 retrying={alerts.reloading}
                 onRetry={alerts.reload}
-                className="mb-0"
-              >
-                Couldn&rsquo;t load alert rules
-              </PageNotice>
+                onDismiss={() => setLoadDismissed(true)}
+                className="mt-0 mb-0"
+              />
             ) : (
               <RuleList
                 rules={alerts.rules}

@@ -181,7 +181,15 @@ export function AnswerList({
               variant="ghost"
               size="sm"
               className="mb-4"
-              onClick={() => setShowAll(true)}
+              onClick={() => {
+                setShowAll(true);
+                // The button unmounts with the fold; hand focus to the oldest card so it is not lost to the page.
+                requestAnimationFrame(() => {
+                  const first = scrollerRef.current?.querySelector<HTMLElement>("ol > li");
+                  first?.setAttribute("tabindex", "-1");
+                  first?.focus({ preventScroll: true });
+                });
+              }}
             >
               Earlier · {folded} {folded === 1 ? "answer" : "answers"}
             </Button>

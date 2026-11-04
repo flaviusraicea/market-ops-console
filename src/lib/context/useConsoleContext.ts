@@ -36,7 +36,6 @@ export function useConsoleContext() {
       }
       const { next } = result;
       const send = () => {
-        guard?.release();
         startTransition(() => {
           void setRaw(
             {
@@ -56,21 +55,28 @@ export function useConsoleContext() {
         logEvent({ type: "navigate", ctx: next });
       };
       // A change the server has to answer cannot be made offline: hold it, keep the view, offer Retry.
-      if (!opts?.shallow && guard && isOffline()) guard.hold({ retry: send });
-      else send();
+      if (!opts?.shallow && guard && isOffline()) {
+        guard.hold({ send });
+        return;
+      }
+      guard?.release();
+      send();
     },
     [meta, ctx, setRaw, startTransition, guard],
   );
 
   const reset = useCallback(() => {
     const send = () => {
-      guard?.release();
       startTransition(() => {
         void setRaw(null, { history: "push" });
       });
     };
-    if (guard && isOffline()) guard.hold({ retry: send });
-    else send();
+    if (guard && isOffline()) {
+      guard.hold({ send });
+      return;
+    }
+    guard?.release();
+    send();
   }, [setRaw, startTransition, guard]);
 
   return { ctx, setContext, reset, isPending };

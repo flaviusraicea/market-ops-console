@@ -4,7 +4,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition,
   type ReactNode,
@@ -16,15 +18,32 @@ type Navigation = readonly [isPending: boolean, start: TransitionStartFunction];
 /**
  * A navigation that did not start because the browser is offline. Next would answer a failed server round trip
  * by leaving the page for the browser's error screen, which loses the view and the conversation; holding the
- * change here keeps both and lets Retry send it when the connection is back.
+ * change here keeps both and lets Retry send it once the server answers.
  */
-export type HeldNavigation = { retry: () => void };
+export type HeldNavigation = {
+  /** Starts the navigation inside the shared transition. */
+  send: () => void;
+  /** The control the reader used, marked busy while the retry runs. */
+  source: HTMLElement | null;
+};
 
 type Guard = {
   held: HeldNavigation | null;
-  hold: (nav: HeldNavigation) => void;
+  /** True from Retry until the held navigation has landed. */
+  retrying: boolean;
+  hold: (nav: Omit<HeldNavigation, "source">) => void;
+  /** Drops the hold: a new navigation supersedes it, or the reader dismissed the notice. */
   release: () => void;
+  /** Probes the server, then sends the held navigation; the notice stays until it has landed. */
+  retry: () => void;
 };
+
+/** Controls a reader acts on to navigate: the nearest one around the event target is the one marked busy. */
+const ACTIONABLE =
+  'button, a[href], [role="button"], [role="gridcell"], tr[tabindex], [role="row"]';
+
+/** Longest the notice waits for a sent navigation to show as pending before it assumes it has landed. */
+const SETTLE_FALLBACK_MS = 1500;
 
 const NavigationContext = createContext<Navigation | null>(null);
 const GuardContext = createContext<Guard | null>(null);
@@ -32,10 +51,82 @@ const GuardContext = createContext<Guard | null>(null);
 /** One shared transition, so the progress bar shows for a write made by any widget. */
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const value = useTransition();
+  const [pending] = value;
   const [held, setHeld] = useState<HeldNavigation | null>(null);
-  const hold = useCallback((nav: HeldNavigation) => setHeld(nav), []);
-  const release = useCallback(() => setHeld(null), []);
-  const guard = useMemo(() => ({ held, hold, release }), [held, hold, release]);
+  const [retrying, setRetrying] = useState(false);
+  const lastControl = useRef<HTMLElement | null>(null);
+  const sentAt = useRef<number | null>(null);
+  const sawPending = useRef(false);
+
+  // Remember what the reader last pressed, so a held navigation can show which control is waiting.
+  useEffect(() => {
+    const remember = (e: Event) => {
+      const target = e.target instanceof Element ? e.target.closest<HTMLElement>(ACTIONABLE) : null;
+      if (target) lastControl.current = target;
+    };
+    document.addEventListener("pointerdown", remember, true);
+    document.addEventListener("keydown", remember, true);
+    return () => {
+      document.removeEventListener("pointerdown", remember, true);
+      document.removeEventListener("keydown", remember, true);
+    };
+  }, []);
+
+  const hold = useCallback((nav: Omit<HeldNavigation, "source">) => {
+    setRetrying(false);
+    setHeld({ ...nav, source: lastControl.current });
+  }, []);
+  const release = useCallback(() => {
+    sentAt.current = null;
+    setRetrying(false);
+    setHeld(null);
+  }, []);
+
+  const retry = useCallback(() => {
+    if (!held || retrying) return;
+    setRetrying(true);
+    void fetch("/api/health", { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Health probe answered ${res.status}`);
+        sawPending.current = false;
+        sentAt.current = performance.now();
+        held.send();
+      })
+      .catch(() => setRetrying(false));
+  }, [held, retrying]);
+
+  // The notice leaves only once the sent navigation has shown as pending and finished; if it never shows as
+  // pending (the URL did not change), a short fallback lets it go instead of hanging.
+  useEffect(() => {
+    if (sentAt.current === null) return;
+    if (pending) {
+      sawPending.current = true;
+      return;
+    }
+    if (sawPending.current) {
+      release();
+      return;
+    }
+    const timer = setTimeout(release, SETTLE_FALLBACK_MS);
+    return () => clearTimeout(timer);
+  }, [pending, retrying, release]);
+
+  // Mark the waiting control busy while the retry runs (notice-spec: opacity .6, progress cursor, aria-busy).
+  const source = held?.source ?? null;
+  useEffect(() => {
+    if (!retrying || !source?.isConnected) return;
+    source.setAttribute("aria-busy", "true");
+    source.setAttribute("data-nav-busy", "");
+    return () => {
+      source.removeAttribute("aria-busy");
+      source.removeAttribute("data-nav-busy");
+    };
+  }, [retrying, source]);
+
+  const guard = useMemo(
+    () => ({ held, retrying, hold, release, retry }),
+    [held, retrying, hold, release, retry],
+  );
   return (
     <NavigationContext.Provider value={value}>
       <GuardContext.Provider value={guard}>{children}</GuardContext.Provider>

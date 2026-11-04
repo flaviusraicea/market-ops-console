@@ -14,13 +14,23 @@ const wrapper = ({ children }: { children: ReactNode }) => <LiveProvider>{childr
 /** Counts listeners added and removed on window and document while `run` executes. */
 async function listenerBalance(run: () => Promise<void> | void) {
   const targets = [window, document] as const;
+  const realAdd = EventTarget.prototype.addEventListener;
+  const realRemove = EventTarget.prototype.removeEventListener;
   const live = new Map<string, number>();
   const spies = targets.flatMap((t) => [
-    vi.spyOn(t, "addEventListener").mockImplementation(function (this: unknown, type: string) {
-      live.set(type, (live.get(type) ?? 0) + 1);
+    vi.spyOn(t, "addEventListener").mockImplementation(function (
+      this: unknown,
+      ...args: Parameters<typeof window.addEventListener>
+    ) {
+      live.set(args[0], (live.get(args[0]) ?? 0) + 1);
+      return realAdd.apply(this as EventTarget, args);
     }),
-    vi.spyOn(t, "removeEventListener").mockImplementation(function (this: unknown, type: string) {
-      live.set(type, (live.get(type) ?? 0) - 1);
+    vi.spyOn(t, "removeEventListener").mockImplementation(function (
+      this: unknown,
+      ...args: Parameters<typeof window.removeEventListener>
+    ) {
+      live.set(args[0], (live.get(args[0]) ?? 0) - 1);
+      return realRemove.apply(this as EventTarget, args);
     }),
   ]);
   try {
@@ -44,13 +54,11 @@ describe("Live mode cleans up after itself", () => {
     });
     expect(result.current.tick).toBe(3);
     act(() => result.current.setLive(false));
-    const timersAfterPause = vi.getTimerCount();
     await act(async () => {
       await vi.advanceTimersByTimeAsync(LIVE_INTERVAL_MS * 4);
     });
     expect(result.current.tick).toBe(3);
     // Only the short tween-settle timer may remain, and it has fired by now.
-    expect(vi.getTimerCount()).toBeLessThanOrEqual(timersAfterPause);
     expect(vi.getTimerCount()).toBe(0);
   });
 
