@@ -600,6 +600,31 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
  * Low specificity (:where) so a component can still ask for more.
  */
 @layer base {
+  /* Tailwind v4's preflight leaves buttons on the default arrow. Anything that acts on click shows the hand; a disabled
+     control shows not-allowed. Components can still ask for another cursor with a utility (the utilities layer wins). */
+  :where(
+    button,
+    a[href],
+    summary,
+    select,
+    label[for],
+    input:is([type="checkbox"], [type="radio"], [type="button"], [type="submit"]),
+    [role="button"],
+    [role="tab"],
+    [role="radio"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="menuitem"],
+    [role="menuitemradio"],
+    [role="menuitemcheckbox"],
+    [role="option"],
+    [role="link"]
+  ) {
+    cursor: pointer;
+  }
+  :where(:disabled, [aria-disabled="true"], [data-disabled]) {
+    cursor: not-allowed;
+  }
   @media (pointer: coarse) {
     :where(button, a[href], select, summary, [role="button"], [role="radio"], [role="tab"]):not(
       .sr-only-focusable,
