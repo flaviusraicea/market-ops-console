@@ -75,6 +75,9 @@ export type AlertFormProps = {
   onSwitchToAnalyst?: (() => void) | undefined;
   /** Executives see the form but cannot change it: fields disabled, Save hidden. */
   readOnly?: boolean;
+  /** Simulate failure, when the parent holds it so Delete can follow the same box. Otherwise the form keeps it. */
+  simulateFail?: boolean;
+  onSimulateFailChange?: (next: boolean) => void;
 };
 
 function SaveStatusText({ status, savedAt }: { status: SaveStatus; savedAt: number | null }) {
@@ -159,9 +162,13 @@ export function AlertForm({
   onDismiss,
   onSwitchToAnalyst,
   readOnly = false,
+  simulateFail: simulateFailProp,
+  onSimulateFailChange,
 }: AlertFormProps) {
   const ds = useDataset();
-  const [simulateFail, setSimulateFail] = useState(false);
+  const [ownSimulateFail, setOwnSimulateFail] = useState(false);
+  const simulateFail = simulateFailProp ?? ownSimulateFail;
+  const setSimulateFail = onSimulateFailChange ?? setOwnSimulateFail;
   const form = useForm<Values>({
     resolver,
     mode: "onChange",

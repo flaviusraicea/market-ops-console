@@ -162,6 +162,20 @@ describe("verdict", () => {
     );
   });
 
+  it("never cites a month later than the one in view", () => {
+    const germany: Context = { ...base, region: "eu", market: "de" };
+    expect(sentence(germany)).toContain("Revenue fell 27.2% in March");
+    expect(sentence({ ...germany, period: "2025-04" as Period })).not.toContain("Revenue fell");
+    expect(sentence({ ...germany, period: "2026-02" as Period })).not.toContain("Revenue fell");
+    expect(sentence({ ...germany, period: "2026-03" as Period })).toContain("in March");
+  });
+
+  it("names the basis in the eyebrow", () => {
+    expect(verdictVM(ds, { ...base, mode: "analyst", basis: "ytd" }).eyebrow).toBe(
+      "PORTFOLIO · MAY 2026 · YTD",
+    );
+  });
+
   it("tags the status phrase, the attention phrase and every number", () => {
     const v = verdictVM(ds, base);
     expect(v.segments.filter((s) => s.role !== "plain")).toEqual([

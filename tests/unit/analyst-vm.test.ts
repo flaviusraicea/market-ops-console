@@ -59,7 +59,7 @@ describe("analyst view model", () => {
     if (grid.kind !== "products") throw new Error("expected product rows");
     expect(grid.rows).toHaveLength(5);
     expect(grid.rows[0]?.name).toBe("Veltrix");
-    expect(grid.summary).toBe("5 products · May 2026");
+    expect(grid.summary).toBe("5 products · May 2026 · Month");
     expect(grid.caption).toBe("Derived · sum of series");
     const veltrix = grid.rows.find((r) => r.id === "veltrix");
     expect(veltrix?.revenue).toBe("$574K");
@@ -218,7 +218,7 @@ describe("analyst view model", () => {
 
   it("radarVM market caption names units YoY as derived", () => {
     expect(analystVM(ds, europe).radar.caption).toBe(
-      "May 2026 · Attainment, growth and units YoY derived · share from data.json",
+      "May 2026 · Month · Attainment, growth and units YoY derived · share from data.json",
     );
   });
 
@@ -243,7 +243,7 @@ describe("grid follows the selected period", () => {
     const de = grid.rows.find((r) => r.id === "de");
     expect(de?.revenue).toBe("$1.21M");
     expect(de?.attainment).toBe("92.2%");
-    expect(grid.summary).toBe("5 markets · March 2026");
+    expect(grid.summary).toBe("5 markets · March 2026 · Month");
     expect(grid.caption).toBe("Derived · sum of series");
   });
 });
@@ -335,5 +335,28 @@ describe("reported vs summed attainment (Differs from source)", () => {
     expect(analystVM(ds, ctx).heatMap.differsNote).toBe(
       "Latest month: series sums differ from reported KPIs · see the Markets grid footer",
     );
+  });
+
+  it("follows the basis in rows, footer, radar and labels, so a screen never mixes two", () => {
+    const month = analystVM(ds, europe);
+    for (const basis of ["ytd", "mat"] as const) {
+      const vm = analystVM(ds, { ...europe, basis });
+      if (vm.grid.kind !== "markets" || month.grid.kind !== "markets")
+        throw new Error("expected market rows");
+      const label = basis === "ytd" ? "YTD" : "MAT";
+      expect(vm.grid.summary).toBe(`5 markets · May 2026 · ${label}`);
+      expect(vm.grid.total.revenue).not.toBe(month.grid.total.revenue);
+      expect(vm.grid.rows[0]?.revenue).not.toBe(month.grid.rows[0]?.revenue);
+      expect(vm.radar.caption).toContain(label);
+    }
+    const ytd = analystVM(ds, { ...germany, basis: "ytd" });
+    if (ytd.grid.kind !== "products") throw new Error("expected product rows");
+    expect(ytd.grid.summary).toContain("YTD");
+  });
+
+  it("MAT falls back to Month before twelve months exist", () => {
+    const early = analystVM(ds, { ...europe, period: "2024-06" as Period, basis: "mat" });
+    if (early.grid.kind !== "markets") throw new Error("expected market rows");
+    expect(early.grid.summary).toContain("Month");
   });
 });
