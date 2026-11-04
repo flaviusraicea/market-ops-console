@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import type { Entity, Period } from "@/domain";
-import { centredScrollTop, landingWidget } from "@/features/analyst/landingWidget";
+import { centredScrollTop } from "@/features/analyst/landingScroll";
+import { landingWidget } from "@/features/analyst/landingWidget";
 
 const target = (entity: Entity, periodDefaulted: boolean) => ({
   entity,

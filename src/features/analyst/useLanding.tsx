@@ -15,7 +15,7 @@ import type { ResolvedTarget } from "@/domain";
 import { useFollowed, useLatestAnswer } from "@/features/assistant/AnswerStore";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { cssMs, onScrollIntent, prefersReducedMotion } from "@/lib/motion";
-import { centredScrollTop, landingWidget, type LandingWidget } from "./landingWidget";
+import { landingWidget, type LandingWidget } from "./landingWidget";
 
 export type Landing = {
   /** The ring and tint are showing (they fade in, hold, fade out; see globals.css). */
@@ -101,29 +101,13 @@ export function LandingProvider({ children }: { children: ReactNode }) {
         frame = requestAnimationFrame(() => {
           if (phase !== "scroll") return;
           const smooth = !prefersReducedMotion();
-          const toolbar = document.querySelector("[data-slot=page-toolbar]");
-          const header = parseFloat(
-            getComputedStyle(document.documentElement).getPropertyValue("--header-h"),
-          );
-          // The toolbar sticks 8px under the header; measure where it sticks, not where it sits before the scroll.
-          const toolbarBottom =
-            (Number.isFinite(header) ? header : 0) +
-            8 +
-            (toolbar?.getBoundingClientRect().height ?? 0);
-          const rect = element.getBoundingClientRect();
-          window.scrollTo({
-            top: centredScrollTop({
-              targetTop: rect.top,
-              targetHeight: rect.height,
-              scrollY: window.scrollY,
-              toolbarBottom,
-              viewportHeight: window.innerHeight,
-            }),
-            behavior: smooth ? "smooth" : "auto",
+          void import("./landingScroll").then(({ scrollToCentre }) => {
+            if (phase !== "scroll" || signal.aborted) return;
+            scrollToCentre(element, smooth);
+            if (!smooth) return show();
+            window.addEventListener("scrollend", show, { once: true, signal });
+            later(show, SCROLL_END_FALLBACK_MS);
           });
-          if (!smooth) return show();
-          window.addEventListener("scrollend", show, { once: true, signal });
-          later(show, SCROLL_END_FALLBACK_MS);
         });
       });
     };
