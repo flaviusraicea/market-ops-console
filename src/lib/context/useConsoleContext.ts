@@ -61,7 +61,10 @@ export function useConsoleContext() {
         if (!guard?.sendingRef.current) guard?.release();
         startTransition(() => {
           setOptimistic(values);
-          void setRaw(values, { history: opts?.history ?? history, shallow: opts?.shallow ?? false });
+          void setRaw(values, {
+            history: opts?.history ?? history,
+            shallow: opts?.shallow ?? false,
+          });
         });
         logEvent({ type: "navigate", ctx: next });
       }
