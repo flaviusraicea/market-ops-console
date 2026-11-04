@@ -529,14 +529,33 @@ html[data-reduced-motion="true"] .heat-cell:hover {
   }
 }
 
-/* The assistant panel (desktop). ShellGrid sets data-panel on its column: opening, open, closing or closed.
-   Opening: a 24 px slide on the smooth spring over 400 ms, with the fade done in the first 200 ms so the panel
-   is solid for the rest of the travel (a fade across the whole slide reads as see-through). Closing: slide and
-   fade out together over 200 ms, ease-in. The dashboard keeps its width while either runs and reflows once at
-   the end, so the charts re-measure once and never mid-animation. */
-@keyframes panel-in {
-  from {
-    transform: translateX(24px);
+/* The assistant panel (desktop). The shell grid's second column is `--panel-w`, registered as a length so it
+   transitions: 48 px (the rail) to the docked width in 400 ms on the smooth spring, back in 250 ms on the same
+   spring (an ease-in close would end at full speed on the frame where the charts re-render). The dashboard column
+   is the other track, so both move in one transition and the table reflows live. The panel keeps its full width,
+   right-anchored, and the column clips its left edge; its content fades in after the first 100 ms. ShellGrid sets
+   data-panel (opening, open, closing, closed) on the column. */
+@property --panel-w {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 48px;
+}
+@media (min-width: 1024px) {
+  .shell-grid {
+    --panel-w: 48px;
+    transition: --panel-w 250ms var(--spring-smooth);
+  }
+  .shell-grid[data-docked] {
+    --panel-w: var(--assistant-w);
+    transition-duration: var(--dur-enter);
+  }
+  .panel-column {
+    clip-path: inset(-60px -60px -60px 0);
+  }
+  #assistant-panel {
+    width: var(--assistant-w);
+    justify-self: end;
+    margin-left: auto;
   }
 }
 @keyframes panel-fade-in {
@@ -544,24 +563,33 @@ html[data-reduced-motion="true"] .heat-cell:hover {
     opacity: 0;
   }
 }
-@keyframes panel-out {
-  to {
-    transform: translateX(24px);
-    opacity: 0;
-  }
-}
-[data-panel="opening"] #assistant-panel {
-  animation:
-    panel-in var(--dur-enter) var(--spring-smooth),
-    panel-fade-in var(--dur-base) var(--ease-out);
-}
-[data-panel="closing"] #assistant-panel {
-  animation: panel-out var(--dur-base) var(--ease-in) forwards;
+[data-panel="opening"] #assistant-panel > * {
+  animation: panel-fade-in var(--dur-fast) var(--ease-out) 100ms backwards;
 }
 @media (min-width: 1024px) {
   [data-panel="closed"] #assistant-panel {
     display: none;
   }
+}
+/* Charts hold their width while the column moves (lib/panelMotion). A linear-x chart stretches horizontally only:
+   strokes stay their width, text and markers are hidden until the final render, then fade back. */
+[data-frozen="stretch"] [data-chart-box] {
+  width: 100% !important;
+}
+[data-frozen="stretch"] svg[data-plot] {
+  width: 100%;
+}
+[data-frozen="stretch"] svg[data-plot] :is(path, line) {
+  vector-effect: non-scaling-stroke;
+}
+[data-chart-box] svg text,
+[data-chart-marks] {
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+[data-frozen="stretch"] svg text,
+[data-frozen="stretch"] [data-chart-marks] {
+  opacity: 0;
+  transition: none;
 }
 /* The rail waits for the panel to finish leaving, then fades in, so the two are never on screen together. */
 /* Transparent, not hidden: focus returns to the rail's toggle as soon as the panel collapses. */
@@ -578,8 +606,7 @@ html[data-reduced-motion="true"] .heat-cell:hover {
 @media (prefers-reduced-motion: reduce) {
   [data-slot="dialog-content"][data-state],
   [data-slot="command-dialog"][data-state],
-  [data-slot="bottom-sheet-content"][data-state],
-  [data-panel="opening"] #assistant-panel {
+  [data-slot="bottom-sheet-content"][data-state] {
     animation-name: scrim-in;
     animation-duration: 200ms !important;
     animation-timing-function: var(--ease-out);
@@ -604,16 +631,14 @@ html[data-reduced-motion="true"] .heat-cell:hover {
     animation-name: scrim-out;
     animation-timing-function: var(--ease-in);
   }
-  [data-panel="closing"] #assistant-panel {
-    animation-name: scrim-out;
-    animation-duration: 200ms !important;
-    transform: none;
+  [data-panel="opening"] #assistant-panel {
+    animation: panel-fade-in 150ms var(--ease-out);
+    animation-duration: 150ms !important;
   }
 }
 html[data-reduced-motion="true"] [data-slot="dialog-content"][data-state],
 html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state],
-html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state],
-html[data-reduced-motion="true"] [data-panel="opening"] #assistant-panel {
+html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state] {
   animation-name: scrim-in;
   animation-duration: 200ms !important;
   animation-timing-function: var(--ease-out);
@@ -624,10 +649,9 @@ html[data-reduced-motion="true"] [data-slot="command-dialog"][data-state="closed
 html[data-reduced-motion="true"] [data-slot="bottom-sheet-content"][data-state="closed"] {
   animation-name: scrim-out;
 }
-html[data-reduced-motion="true"] [data-panel="closing"] #assistant-panel {
-  animation-name: scrim-out;
-  animation-duration: 200ms !important;
-  transform: none;
+html[data-reduced-motion="true"] [data-panel="opening"] #assistant-panel {
+  animation: panel-fade-in 150ms var(--ease-out);
+  animation-duration: 150ms !important;
 }
 html[data-reduced-motion="true"] [data-slot="dropdown-menu-content"][data-state],
 html[data-reduced-motion="true"] [data-slot="popover-content"][data-state],

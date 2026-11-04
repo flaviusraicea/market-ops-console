@@ -6,6 +6,7 @@ import type { Feature, FeatureCollection, Geometry, Position } from "geojson";
 import { useCallback, useMemo, useRef, useState, type FocusEvent, type MouseEvent } from "react";
 
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
+import { PanelMotion } from "./PanelMotion";
 import { Frame } from "./Frame";
 import { colourFor } from "./scales";
 import { useChartKeyboard } from "./useChartKeyboard";
@@ -343,7 +344,11 @@ export function Choropleth({ height: fixedHeight, ...props }: ChoroplethProps) {
         }}
       >
         {({ width, height }) =>
-          width > 0 && height > 0 ? <MapSvg {...props} width={width} height={height} /> : null
+          width > 0 && height > 0 ? (
+            <PanelMotion width={width} height={height} mode="hold">
+              {(size) => <MapSvg {...props} width={size.width} height={size.height} />}
+            </PanelMotion>
+          ) : null
         }
       </ParentSize>
     </div>

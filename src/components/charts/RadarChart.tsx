@@ -14,6 +14,7 @@ import {
 import { PIN_CELL_CLASS, PIN_HEAD_TINTED_CLASS, ScrollTable } from "@/components/ui/scroll-table";
 import { cn } from "@/components/cn";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
+import { PanelMotion } from "./PanelMotion";
 import { Frame } from "./Frame";
 import {
   LABEL_GAP,
@@ -156,7 +157,13 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
 export function RadarChart(props: RadarChartProps) {
   return (
     <ParentSize debounceTime={50} parentSizeStyles={{ width: "100%", height: HEIGHT }}>
-      {({ width }) => (width > 0 ? <RadarSvg {...props} width={width} /> : null)}
+      {({ width }) =>
+        width > 0 ? (
+          <PanelMotion width={width} height={HEIGHT} mode="hold">
+            {(size) => <RadarSvg {...props} width={size.width} />}
+          </PanelMotion>
+        ) : null
+      }
     </ParentSize>
   );
 }

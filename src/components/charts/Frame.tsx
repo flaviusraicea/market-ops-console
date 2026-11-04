@@ -43,6 +43,9 @@ export function Frame({
       aria-label={title}
       aria-describedby={descId}
       viewBox={`0 0 ${width} ${height}`}
+      // Only matters while the assistant column moves and the plot stretches (globals.css); at rest the box matches.
+      preserveAspectRatio="none"
+      data-plot
       width={width}
       height={height}
       className="block"
