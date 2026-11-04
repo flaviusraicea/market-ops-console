@@ -26,7 +26,7 @@ Direction A, "Ledger, sharpened": a light default, a designed dark theme that fo
 
 - Tokens are CSS custom properties in `app/tokens.css`, exactly the names below, with the dark block under both `:root[data-theme="dark"]` and the `prefers-color-scheme` media query guarded by `:not([data-theme="light"])`. Tailwind v4 `@theme` maps them to utilities (`bg-surface`, `text-ink-2`, `border-border`, `text-accent`, `bg-ai`, `text-ok` …). No raw hex outside `tokens.css`.
 - Density: `html[data-density]` switches the spacing tokens; components use `p-[var(--pad-card)]` style utilities or the mapped `p-card`.
-- shadcn components are restyled through the token map only: Button (primary, secondary, ghost, danger), Badge (status), Card, Table, Tabs/segmented (mode switch), Tooltip, Collapsible (Show sources), Form + Input + Select, Textarea, Dialog (confirm delete), Command (cmd-K), Skeleton, Sonner-style toast is **not** used: errors are inline Notices.
+- shadcn components are restyled through the token map only: Button (primary, secondary, ghost, danger), Badge (status), Card, Table, SegmentedControl (mode switch), Tooltip, Collapsible (Show sources), Form + Input + Select, Textarea, Dialog (confirm delete), Command (cmd-K), Skeleton, Sonner-style toast is **not** used: errors are inline Notices.
 - Icons: lucide-react, stroke 1.75, sizes 12 / 14 / 16 / 18 / 20 as specified per component.
 - A script `scripts/check-contrast.ts` reads `tokens.css` and asserts every pair listed in section 3; it runs in CI and is mentioned in the README.
 
@@ -420,7 +420,7 @@ Table (hidden by default): the 24 rows in section 9.3, `<caption>` same as the c
 | Ghost | transparent | `--ink-2` | none | background `--surface-2`, text `--ink` |
 | Danger (destructive confirms only, e.g. delete an alert) | `--bad-mark` | `--on-bad` | none | `--bad-hover` |
 
-Height `--control-h`, padding 0 12px, radius control, `--text-label` weight 500, 6 px icon gap. Disabled: text `--ink-disabled`, background `--surface-2`, no hover.
+Height `--control-h`, padding 0 12px, radius control, `--text-label` weight 500, 6 px icon gap. Disabled primary and danger: text `--ink-disabled`, background `--surface-2`, no hover. Disabled secondary and ghost: transparent background, a 1 px `--border` hairline (inset on ghost), text `--ink-muted`, opacity 0.6, no hover or press.
 
 ### 6.12 Notice (error and rollback)
 

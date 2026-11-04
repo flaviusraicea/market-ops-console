@@ -6,14 +6,20 @@ import { cn } from "@/components/cn";
 
 // Variants follow docs/design-system.md section 6.11.
 const buttonVariants = cva(
-  "press inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-control px-3 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium transition-colors duration-[var(--dur-fast)] outline-none disabled:pointer-events-none disabled:bg-surface-2 disabled:text-ink-disabled [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+  "press inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-control px-3 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium transition-colors duration-[var(--dur-fast)] outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
       variant: {
-        primary: "bg-accent text-on-accent hover:bg-accent-hover",
-        secondary: "border border-border bg-surface text-ink hover:bg-surface-2",
-        ghost: "bg-transparent text-ink-2 hover:bg-surface-2 hover:text-ink",
-        danger: "bg-bad-mark text-on-bad hover:bg-bad-hover",
+        primary:
+          "bg-accent text-on-accent hover:bg-accent-hover disabled:bg-surface-2 disabled:text-ink-disabled",
+        // Disabled secondary and ghost read as an outline, not a filled bar: transparent, a hairline, muted text
+        // at 60 % (Fable's ruling). Ghost draws its hairline inset so the box keeps its size.
+        secondary:
+          "border border-border bg-surface text-ink hover:bg-surface-2 disabled:bg-transparent disabled:text-ink-muted disabled:opacity-60",
+        ghost:
+          "bg-transparent text-ink-2 hover:bg-surface-2 hover:text-ink disabled:text-ink-muted disabled:opacity-60 disabled:shadow-[inset_0_0_0_1px_var(--border)]",
+        danger:
+          "bg-bad-mark text-on-bad hover:bg-bad-hover disabled:bg-surface-2 disabled:text-ink-disabled",
       },
       size: {
         default: "h-[var(--control-h)]",
