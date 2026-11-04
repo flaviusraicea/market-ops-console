@@ -76,6 +76,7 @@ test("Ask why on a France row in the Overview answers about France", async ({ pa
   await expect(page.locator('[data-slot="question-echo"]')).toHaveText(
     "You asked, about France · May 2026:Why is France at risk?",
   );
-  await expect(page.getByText(/^France's revenue in May 2026 was /)).toBeVisible();
-  await expect(citations(page)).toHaveText(["France, May 2026", "France, Apr 2026"]);
+  // The data records France's status but not why, so the assistant says so instead of restating figures.
+  await expect(page.getByText(/^I can't say why France is at risk\. /)).toBeVisible();
+  await expect(page.getByText("Can’t answer from this data")).toBeVisible();
 });
