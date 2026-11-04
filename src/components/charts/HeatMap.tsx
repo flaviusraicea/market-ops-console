@@ -62,6 +62,8 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const wrapRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
   const tip = useChartTooltip();
+  // The shown cell's bottom edge, so a tooltip that would cover the card header can drop below the cell.
+  const [tipBottom, setTipBottom] = useState(0);
   // Where the grid is wider than its card (a phone), it opens at the latest months, the ones that matter.
   const scrollRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -87,6 +89,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
     const r = rows[row];
     const cell = r?.cells[col];
     if (!r || !cell || !onAsk) return;
+    tip.hide();
     onAsk({ market: r.id, marketName: r.name, period: cell.period, momPct: cell.momPct });
   }
 
@@ -97,6 +100,7 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
     const wrap = wrapRef.current?.getBoundingClientRect();
     if (!r || !cell || !wrap) return;
     const box = el.getBoundingClientRect();
+    setTipBottom(box.bottom - wrap.top);
     tip.show(
       heatCellTooltip(r.name, cell, r.cells[col - 1], onAsk && (() => askAbout(row, col))),
       box.left - wrap.left + box.width / 2,
@@ -142,7 +146,10 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
         }
         const r = rows[row];
         const cell = r?.cells[col];
-        if (r && cell) onCell(r.id, cell.period);
+        if (r && cell) {
+          tip.hide();
+          onCell(r.id, cell.period);
+        }
       }
     }
   }
@@ -155,10 +162,13 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const handlers = useMemo<CellHandlers>(
     () => ({
       select: (row, col) => {
-        const { rows: rs, onCell: select } = latest.current;
+        const { rows: rs, onCell: select, tip: t } = latest.current;
         const rowData = rs[row];
         const cell = rowData?.cells[col];
-        if (rowData && cell) select(rowData.id, cell.period);
+        if (!rowData || !cell) return;
+        // A drill changes what the cell means: the tooltip goes with it.
+        t.hide();
+        select(rowData.id, cell.period);
       },
       keyDown: (e, row, col) => latest.current.onKeyDown(e, row, col),
       mouseMove: (e, row, col) => {
@@ -209,8 +219,16 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
                 className="relative h-4 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
               >
                 <span className="sr-only">{formatPeriodAbbr(p)}</span>
-                {i % 3 === 0 ? (
-                  <span aria-hidden className="absolute bottom-0 left-0 whitespace-nowrap">
+                {/* Every third month counted back from the latest, so the last column is always labelled; its
+                    label ends at the grid's right edge instead of running past it. */}
+                {(nCols - 1 - i) % 3 === 0 ? (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute bottom-0 whitespace-nowrap",
+                      i === nCols - 1 ? "right-0" : "left-0",
+                    )}
+                  >
                     {/* A phone has columns about 20 px wide: the month alone keeps neighbouring labels apart. */}
                     <span className="max-md:hidden">{formatPeriodShort(p)}</span>
                     <span className="md:hidden">{formatMonthShort(p)}</span>
@@ -256,7 +274,13 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
         </div>
       </div>
       {tip.open && tip.content ? (
-        <ChartTooltip {...tip.content} left={tip.left} top={tip.top} onHover={tip.hover} />
+        <ChartTooltip
+          {...tip.content}
+          left={tip.left}
+          top={tip.top}
+          bottom={tipBottom}
+          onHover={tip.hover}
+        />
       ) : null}
     </div>
   );
