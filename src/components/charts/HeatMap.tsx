@@ -340,7 +340,7 @@ export function HeatMap({
       ) : null}
       <div
         ref={scrollRef}
-        className="-m-1 overflow-x-auto p-1 [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]"
+        className="-my-1 overflow-x-auto py-1 [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]"
         onScroll={() => measureRef.current()}
       >
         <div
@@ -348,7 +348,7 @@ export function HeatMap({
           aria-label={label}
           aria-rowcount={rows.length + 1}
           aria-colcount={nCols + 1}
-          className="grid min-w-[26rem] gap-[var(--heat-gap)] bg-surface"
+          className="grid min-w-[26rem] gap-[var(--heat-gap)] bg-surface pr-1"
           style={
             {
               gridTemplateColumns: `${NAME_COL} repeat(${nCols}, minmax(0, 1fr))`,
