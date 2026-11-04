@@ -101,13 +101,19 @@ export function LandingProvider({ children }: { children: ReactNode }) {
         frame = requestAnimationFrame(() => {
           if (phase !== "scroll") return;
           const smooth = !prefersReducedMotion();
-          void import("./landingScroll").then(({ scrollToCentre }) => {
-            if (phase !== "scroll" || signal.aborted) return;
-            scrollToCentre(element, smooth);
-            if (!smooth) return show();
-            window.addEventListener("scrollend", show, { once: true, signal });
-            later(show, SCROLL_END_FALLBACK_MS);
-          });
+          void import("./landingScroll").then(
+            ({ scrollToCentre }) => {
+              if (phase !== "scroll" || signal.aborted) return;
+              scrollToCentre(element, smooth);
+              if (!smooth) return show();
+              window.addEventListener("scrollend", show, { once: true, signal });
+              later(show, SCROLL_END_FALLBACK_MS);
+            },
+            // The chunk failed to load (offline): ring the widget where it is rather than not at all.
+            () => {
+              if (phase === "scroll" && !signal.aborted) show();
+            },
+          );
         });
       });
     };
