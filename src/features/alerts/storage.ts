@@ -1,14 +1,11 @@
 import { type AlertRule } from "@/domain";
-import { AlertRuleSchema } from "@/domain/alerts";
-import { scopeToValue } from "./labels";
+import { parseAlertRule } from "@/domain/alertRule";
+import { RULES_CHANGED, STORAGE_KEY } from "./storageKey";
 
-export const STORAGE_KEY = "market-ops:alerts:v1";
+export { STORAGE_KEY };
 
 /** Used when localStorage is unavailable or full, so rules still last for the session. */
 let memory: AlertRule[] = [];
-
-export const ruleKey = (r: Pick<AlertRule, "metric" | "scope">) =>
-  `${r.metric}:${scopeToValue(r.scope)}`;
 
 /** Reads the saved rules. Corrupt or unreadable data gives an empty list; invalid entries are dropped. */
 export function readRules(): AlertRule[] {
@@ -23,8 +20,8 @@ export function readRules(): AlertRule[] {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed.flatMap((item) => {
-      const r = AlertRuleSchema.safeParse(item);
-      return r.success ? [r.data] : [];
+      const rule = parseAlertRule(item);
+      return rule ? [rule] : [];
     });
   } catch {
     return [];
@@ -38,6 +35,7 @@ export function writeRules(rules: AlertRule[]): void {
   } catch {
     // Disabled or full: the in-memory copy above keeps the session working.
   }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(RULES_CHANGED));
 }
 
 /** Calls `onChange` when another tab changes the saved rules. Returns the unsubscribe. */

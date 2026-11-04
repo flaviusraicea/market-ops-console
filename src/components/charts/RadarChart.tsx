@@ -4,7 +4,6 @@ import { ParentSize } from "@visx/responsive";
 import { useCallback, useMemo, useRef, type FocusEvent, type MouseEvent } from "react";
 
 import {
-  Table,
   TableBody,
   TableCaption,
   TableCell,
@@ -12,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PIN_CELL_CLASS, PIN_HEAD_TINTED_CLASS, ScrollTable } from "@/components/ui/scroll-table";
+import { cn } from "@/components/cn";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
 import {
@@ -173,11 +174,13 @@ export function RadarChartTable({
   series: readonly RadarSeries[];
 }) {
   return (
-    <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
+    <ScrollTable scrollLabel={`${caption}, scrollable`}>
       <TableCaption className="sr-only">{caption}</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead scope="col">{rowLabel}</TableHead>
+          <TableHead scope="col" data-pin="start" className={PIN_HEAD_TINTED_CLASS}>
+            {rowLabel}
+          </TableHead>
           {axes.map((a) => (
             <TableHead key={a} scope="col" className="text-right">
               {a}
@@ -188,7 +191,9 @@ export function RadarChartTable({
       <TableBody>
         {series.map((s) => (
           <TableRow key={s.id}>
-            <TableCell className="font-medium">{s.name}</TableCell>
+            <TableCell data-pin="start" className={cn(PIN_CELL_CLASS, "font-medium")}>
+              {s.name}
+            </TableCell>
             {s.raw.map((v, i) => (
               <TableCell key={i} className="text-right num">
                 {v}
@@ -197,6 +202,6 @@ export function RadarChartTable({
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </ScrollTable>
   );
 }

@@ -5,7 +5,10 @@ import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { pageHeadingProps } from "@/lib/motion";
 
-/** The Analyst ledger: one bordered surface whose sections are separated by rules, not cards. */
+/**
+ * The Analyst page: each section is its own card at card elevation, `--gap` apart, so the dense view has the
+ * same depth as the Executive one instead of reading as one flat sheet. Rules stay inside a card, for rows only.
+ */
 export function Sheet({
   children,
   className,
@@ -19,7 +22,7 @@ export function Sheet({
     <div
       style={style}
       className={cn(
-        "flex min-w-0 flex-col divide-y divide-border rounded-sheet layer-card",
+        "flex min-w-0 flex-col gap-[var(--gap)] *:min-w-0 *:rounded-sheet *:layer-card",
         className,
       )}
     >

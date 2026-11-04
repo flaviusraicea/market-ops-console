@@ -48,7 +48,7 @@ test("Save shows the rule at once as Saving…, then Saved · just now and the e
   await openAlerts(page);
   await chooseScope(page, "Europe");
   await expect(
-    card(page).getByText("No alert rules yet. Add one to watch a threshold."),
+    card(page).getByText("No rules yet. Set a growth or attainment threshold and save it."),
   ).toBeVisible();
 
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
@@ -79,7 +79,7 @@ test("a failed save shows 97 briefly, then the alert Notice and the saved 95 aga
   await expect(list.getByText("Attainment below 97% · Europe")).toBeVisible({ timeout: 100 });
 
   const notice = card(page).getByRole("alert");
-  await expect(notice.getByText("Couldn't save")).toBeVisible({ timeout: 3000 });
+  await expect(notice.getByText("Couldn’t save")).toBeVisible({ timeout: 3000 });
   // Focus moves to the notice, so Tab goes straight to Try again.
   await expect(notice).toBeFocused();
   await page.keyboard.press("Tab");
@@ -154,7 +154,7 @@ test("saved rules survive a reload, and a deleted rule stays gone", async ({ pag
   await page.reload();
   await openAlerts(page, { remembered: true });
   await expect(
-    card(page).getByText("No alert rules yet. Add one to watch a threshold."),
+    card(page).getByText("No rules yet. Set a growth or attainment threshold and save it."),
   ).toBeVisible();
 });
 

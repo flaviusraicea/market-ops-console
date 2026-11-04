@@ -234,8 +234,8 @@ Two density scales, switched by `html[data-density="executive"]` (default) and `
 Fixed in both densities:
 
 - One radius family, nested so that an inner radius is always smaller than its container’s. Use only these tokens. `pnpm check:radius` fails on any literal radius:
-  - `--radius-sheet: 12px`: cards, the toolbar card, the assistant panel, dialogs, the palette, popovers and sheets.
-  - `--radius-control: 8px`: buttons, inputs, selects, tooltips and notes.
+  - `--radius-sheet: 12px`: cards, the toolbar card, the assistant panel, dialogs, the palette and sheets.
+  - `--radius-control: 8px`: buttons, inputs, selects, tooltips, popovers and notes. A popover's hover peek reads as a tooltip, so the two share one radius.
   - `--radius-menu: 6px`: items inside a padded menu.
   - `--radius-pill: 999px`: badges, chips (citation chips and the status strip's market chips), segmented controls, the avatar and Live/Paused.
   - `--radius-mark: 4px`: small marks only: heat cells, inline text washes (the verdict word) and keycaps.
@@ -243,8 +243,8 @@ Fixed in both densities:
   - A skeleton takes the radius of what it stands in for: 8 px for a control, a text line or a chart area.
   - Containers nested in a card: an unbordered table or list has no radius (0). A bordered standalone table, with its own 1 px `--border`, takes 8 px.
 - Borders are always `1px solid var(--border)`. No 2 px borders except the focus ring.
-- Page max width 1280 px, centered, 24 px side gutter at ≥ 1024 px, 16 px below. The layout must work at 390 px wide with no horizontal scroll: widgets stack to one column, wide tables and the heat map scroll inside their own labelled region with a sticky first column, and under 1024 px the assistant is a fixed bottom bar (56 px, with the palette button) that opens a 90 dvh bottom sheet. Under 768 px the header is two 44 px rows. On a touch screen (`pointer: coarse`) every control is at least 44 × 44 px and chips 36 px tall (`--control-h` 44, `--chip-h` 36, `--row-h` 44).
-- Content column split at ≥ 1024 px: dashboard `minmax(0, 1fr)`, assistant panel fixed 380 px, gap `--gap`.
+- Page max width 1440 px, centered, 24 px side gutter at ≥ 1024 px, 16 px below. The layout must work at 390 px wide with no horizontal scroll: widgets stack to one column, wide tables and the heat map scroll inside their own labelled region with a sticky first column, and under 1024 px the assistant is a fixed bottom bar (56 px, with the palette button) that opens a 90 dvh bottom sheet. Under 768 px the header is two 44 px rows. On a touch screen (`pointer: coarse`) every control is at least 44 × 44 px and chips 36 px tall (`--control-h` 44, `--chip-h` 36, `--row-h` 44).
+- Content column split at ≥ 1024 px: the assistant panel docks beside the dashboard (`--assistant-w`: 320 px, 360 px from 1400 px), the dashboard takes `minmax(0, 1fr)`, gap `--gap`. Docked, it is not a dialog and draws no scrim. Under 1024 px it is the bottom sheet.
 
 ## 4.1 Composition
 
@@ -281,7 +281,7 @@ Every component gets a visible heading in the preview and a story in Storybook i
 
 ### 6.1 Header (app chrome)
 
-Full-width bar, background `--surface`, bottom border, height 56 px in both modes, pinned to the top of the page in both modes, content centred to the 1280 px column.
+Full-width bar, background `--surface`, bottom border, height 56 px in both modes, pinned to the top of the page in both modes, content centred to the 1440 px column.
 
 The header is one fixed row from 1024 px up and never changes height with the drill. The wordmark and the controls on the right never shrink or wrap; the breadcrumb takes the remaining width and truncates with an ellipsis, each crumb exposing its full name as a `title`.
 

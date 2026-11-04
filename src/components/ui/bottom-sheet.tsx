@@ -25,7 +25,7 @@ function BottomSheetContent({
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay
         data-slot="bottom-sheet-scrim"
-        className="fixed inset-0 z-50 bg-ink/[.32]"
+        className="fixed inset-0 z-50 bg-scrim"
       />
       <DialogPrimitive.Content
         data-slot="bottom-sheet-content"

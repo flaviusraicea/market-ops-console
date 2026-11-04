@@ -258,8 +258,8 @@ export const Germany: Story = {
     const svg = await canvas.findByRole("group", { name: title });
     const dash = (s: string) =>
       svg.querySelector(`path[data-series="${s}"]`)?.getAttribute("stroke-dasharray");
-    await expect(dash("forecast")).toBe("6 4");
-    await expect(dash("priorYear")).toBe("2 3");
+    await expect(dash("forecast")).toBe("4 4");
+    await expect(dash("priorYear")).toBe("1 3");
     await expect(dash("actual")).toBeNull();
     await expect(
       canvas.getByRole("button", {

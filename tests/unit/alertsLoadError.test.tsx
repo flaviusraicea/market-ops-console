@@ -23,6 +23,9 @@ vi.mock("@/lib/context/dataset", () => ({
   useDataset: () => ({ markets: [], regions: [], products: [], meta: { periods: [] } }),
 }));
 
+/** The form and its rules load with a dynamic import, which a busy CI runner can take over a second to resolve. */
+const LAZY_TIMEOUT = 5_000;
+
 function renderSection() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -49,21 +52,30 @@ describe("Alerts when the saved rules cannot be read", () => {
     listRules.mockRejectedValueOnce(new Error("500"));
     listRules.mockResolvedValue([rule]);
     renderSection();
-    await waitFor(() =>
-      expect(screen.getAllByText("Couldn’t load rules").length).toBeGreaterThan(0),
+    // The rules are read when the section opens (the form loads then).
+    await openSection();
+    await waitFor(
+      () => expect(screen.getAllByText("Couldn’t load rules").length).toBeGreaterThan(0),
+      { timeout: LAZY_TIMEOUT },
     );
     expect(screen.queryByText(/^0 rules/)).toBeNull();
-    await openSection();
-    await userEvent.click(await screen.findByRole("button", { name: "Retry" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Retry" }, { timeout: LAZY_TIMEOUT }),
+    );
     await waitFor(() => expect(screen.queryByText("Couldn’t load alert rules")).toBeNull());
-    expect(screen.getByText(/^1 rule/)).toBeTruthy();
+    // The folded row stops reading as failed, and the rule is listed. (The row's count comes from storage,
+    // which the mocked API does not write.)
+    expect(screen.queryByText("Couldn’t load rules")).toBeNull();
+    expect(screen.getAllByText(/95/).length).toBeGreaterThan(0);
   });
 
   it("Dismiss hides the notice but the section still reads as failed", async () => {
     listRules.mockRejectedValue(new Error("500"));
     renderSection();
     await openSection();
-    await userEvent.click(await screen.findByRole("button", { name: "Dismiss" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Dismiss" }, { timeout: LAZY_TIMEOUT }),
+    );
     await waitFor(() => expect(screen.queryByText("Couldn’t load alert rules")).toBeNull());
     expect(screen.getAllByText("Couldn’t load rules").length).toBeGreaterThan(0);
     expect(screen.queryByText(/No alert rules yet/)).toBeNull();

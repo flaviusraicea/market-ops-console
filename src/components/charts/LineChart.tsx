@@ -113,9 +113,13 @@ function LineSvg({
 
   // Scales, ticks and path strings depend on the data and the width, not on the cursor, so they are built once
   // per change and the memoised children below skip every tooltip and crosshair render.
+  // A line chart may float: from 90% of the lowest value to 105% of the highest, so month-to-month changes
+  // and the gap between Actual and Forecast fill the plot instead of a thin band at the top of a zero axis.
   const y = useMemo(() => {
-    const yMax = Math.max(...points.flatMap((p) => [p.actual, p.forecast, p.priorYear]), 1);
-    return scaleLinear<number>({ domain: [0, yMax], range: [innerH, 0], nice: 5 });
+    const values = points.flatMap((p) => [p.actual, p.forecast, p.priorYear]);
+    const yMin = values.length ? Math.min(...values) * 0.9 : 0;
+    const yMax = Math.max(...values, 1) * 1.05;
+    return scaleLinear<number>({ domain: [Math.max(yMin, 0), yMax], range: [innerH, 0], nice: 5 });
   }, [points, innerH]);
   const ticks = useMemo(() => y.ticks(5), [y]);
   const x = useCallback((i: number) => step * (i + 0.5), [step]);
@@ -242,6 +246,7 @@ function LineSvg({
           x={x}
           y={y}
           innerW={innerW}
+          innerH={innerH}
         />
       </Frame>
       <div
@@ -259,11 +264,20 @@ function LineSvg({
         style={{ left: MARGIN.left, top: MARGIN.top, width: innerW, height: innerH }}
         onMouseMove={(e) => reveal(indexAt(e))}
         onMouseLeave={hide}
-        onFocus={() => reveal(active)}
+        // A mouse click focuses the slider too; only keyboard focus opens the tooltip at the selected month,
+        // otherwise it would jump away from the month just clicked.
+        onFocus={(e) => {
+          if (e.currentTarget.matches(":focus-visible")) reveal(active);
+        }}
         onBlur={hide}
         onClick={(e) => {
-          const p = points[indexAt(e)];
-          if (p) onPeriod(p.period);
+          const index = indexAt(e);
+          const p = points[index];
+          if (!p) return;
+          // The tooltip stays pinned to the clicked month; it moves again only when the pointer does.
+          setMoved({ from: p.period, index });
+          reveal(index);
+          onPeriod(p.period);
         }}
         onKeyDown={onKeyDown}
       />
