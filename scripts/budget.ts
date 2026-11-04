@@ -13,7 +13,16 @@ export type Budgets = {
   cssKb: number;
 };
 
-export type BudgetRow = { name: string; actual: number; limit: number; pass: boolean };
+export type BudgetRow = {
+  name: string;
+  actual: number;
+  limit: number;
+  pass: boolean;
+  /** Passing but past 90% of the limit: the next feature will break the gate. */
+  warn: boolean;
+};
+
+const WARN_AT = 0.9;
 
 const total = (assets: Asset[]) => assets.reduce((sum, a) => sum + a.kb, 0);
 
@@ -29,6 +38,7 @@ export function evaluate(b: Budgets, overview: Load, analyst: Load): BudgetRow[]
     actual,
     limit,
     pass: actual <= limit,
+    warn: actual <= limit && actual > limit * WARN_AT,
   });
   const rows = [
     row("Overview JS", total(overview.js), b.overview.jsKb),
@@ -55,7 +65,7 @@ export function format(rows: BudgetRow[]): string {
   const width = Math.max(...rows.map((r) => r.name.length));
   const lines = rows.map(
     (r) =>
-      `${r.pass ? "PASS" : "FAIL"}  ${r.name.padEnd(width)}  ${kb(r.actual)} KB  <= ${kb(r.limit)} KB`,
+      `${r.pass ? (r.warn ? "WARN" : "PASS") : "FAIL"}  ${r.name.padEnd(width)}  ${kb(r.actual)} KB  <= ${kb(r.limit)} KB`,
   );
   return lines.join("\n");
 }

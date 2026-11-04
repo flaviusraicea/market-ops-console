@@ -32,8 +32,8 @@ Lighthouse says whether a page is fast; the budget says why it will stay fast. `
 
 | Measure (gzipped) | Budget | Before (main, 09cb7db; Lighthouse rows: main b30731a) | After |
 |---|---|---|---|
-| Overview scripts | 250 KB | 324.6 KB | 239.0 KB |
-| Analyst scripts (with Overview's) | 300 KB (350 until the Alerts form became lazy) | 324.6 KB (one bundle) | 339.7 KB, then 286.4 KB with Alerts loaded on open |
+| Overview scripts | 275 KB (250 until now) | 324.6 KB | 239.0 KB |
+| Analyst scripts (with Overview's) | 325 KB (300 until the Alerts form became lazy) | 324.6 KB (one bundle) | 339.7 KB, then 286.4 KB with Alerts loaded on open |
 | Largest lazy chunk | 60 KB | none | 31.0 KB |
 | Fonts loaded | 110 KB | 166.6 KB | 97.1 KB |
 | CSS | 20 KB | 12.4 KB | 12.7 KB |

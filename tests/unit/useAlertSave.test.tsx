@@ -70,6 +70,34 @@ describe("useAlertSave", () => {
     expect(result.current.failure?.restored).toEqual({ growth: 0, attainment: 95 });
   });
 
+  it("keeps no Saved stamp when the first save fails, and restores the previous one when a later save fails", async () => {
+    let posts = 0;
+    const { result } = setup((url, init) => {
+      if (init?.method === "POST") {
+        posts += 1;
+        return posts === 2
+          ? ok({ rule: { ...next, id: "r1" } })
+          : ok({ message: "Save failed (simulated)" }, 500);
+      }
+      return ok({ rules: [saved] });
+    });
+    await waitFor(() => expect(result.current.rules).toHaveLength(1));
+
+    act(() => result.current.save([next], { fail: true }));
+    await waitFor(() => expect(result.current.failure).not.toBeNull());
+    expect(result.current.status).toBe("idle");
+    expect(result.current.savedAt).toBeNull();
+
+    act(() => result.current.retry({ fail: false }));
+    await waitFor(() => expect(result.current.status).toBe("saved"));
+    const stamp = result.current.savedAt;
+
+    act(() => result.current.save([{ ...next, threshold: 99 }], { fail: true }));
+    await waitFor(() => expect(result.current.failure).not.toBeNull());
+    expect(result.current.status).toBe("saved");
+    expect(result.current.savedAt).toBe(stamp);
+  });
+
   it("marks a 403 read_only_role as read-only, for a save and for a delete", async () => {
     const refuse = () =>
       ok({ error: "read_only_role", message: "Rules are read-only for Executives." }, 403);
