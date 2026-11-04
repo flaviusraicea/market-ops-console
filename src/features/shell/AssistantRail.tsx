@@ -73,8 +73,8 @@ export function ConnectedAssistantRail() {
   useFocusRequest("rail", toggle);
   return (
     <div
-      // Visible from 1024 px; at 1280 px and up the open panel takes the whole column instead.
-      className={cn("sticky top-[var(--assistant-top)] hidden lg:block", open && "xl:hidden")}
+      // Visible from 1024 px while the panel is collapsed; the open panel takes the whole column instead.
+      className={cn("sticky top-[var(--assistant-top)] hidden lg:block", open && "lg:hidden")}
     >
       <AssistantRail
         open={open}

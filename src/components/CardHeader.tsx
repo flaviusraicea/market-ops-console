@@ -44,9 +44,11 @@ export function CardHeader({
 }
 
 /** The provenance line of a card ("Derived · …", "Source · data.json"): bottom-right of the card body. */
+/** The card's last line. `mt-auto` keeps it at the bottom of a card stretched by its row, and the card's own gap
+ * spaces it, so no margin stacks on top of that gap. */
 export function CardCaption({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-2 self-end text-right text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
+    <p className="mt-auto self-end text-right text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
       {children}
     </p>
   );

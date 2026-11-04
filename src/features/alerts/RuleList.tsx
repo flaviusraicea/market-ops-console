@@ -19,6 +19,7 @@ export function RuleList({
   deleteReadOnly = false,
   onSwitchToAnalyst,
   readOnly = false,
+  saving = false,
 }: {
   rules: RuleRow[];
   onDelete: (id: string) => void;
@@ -29,6 +30,8 @@ export function RuleList({
   onSwitchToAnalyst?: (() => void) | undefined;
   /** Executives read the rules; Delete is not offered. */
   readOnly?: boolean;
+  /** A save is in flight: Delete waits for it, so the two cannot race. */
+  saving?: boolean;
 }) {
   const ds = useDataset();
   const [target, setTarget] = useState<RuleRow | null>(null);
@@ -38,7 +41,7 @@ export function RuleList({
     <div ref={container} tabIndex={-1} className="flex flex-col gap-2 outline-none">
       {deleteFailed ? (
         <Notice
-          title={deleteReadOnly ? "Rules are read-only for Executives." : "Couldn't delete"}
+          title={deleteReadOnly ? "Rules are read-only for Executives." : "Couldn’t delete"}
           actions={
             <>
               {deleteReadOnly ? (
@@ -67,7 +70,9 @@ export function RuleList({
       ) : null}
       {rules.length === 0 ? (
         <p className="text-ink-muted">
-          {readOnly ? "No alert rules yet." : "No alert rules yet. Add one to watch a threshold."}
+          {readOnly
+            ? "No rules yet."
+            : "No rules yet. Set a growth or attainment threshold and save it."}
         </p>
       ) : (
         <ul aria-label="Saved alert rules">
@@ -99,7 +104,7 @@ export function RuleList({
                   <Button
                     type="button"
                     variant="ghost"
-                    disabled={rule.pending}
+                    disabled={rule.pending || saving}
                     aria-label={`Delete ${sentence}`}
                     onClick={() => setTarget(rule)}
                   >

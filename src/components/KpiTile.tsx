@@ -19,6 +19,8 @@ export type KpiTileProps = {
   deltaNote?: string;
   /** For example "Source · data.json" or "Derived · sum of series". */
   provenance: string;
+  /** What the figure is and how it is computed; the info popover shows it above the provenance. */
+  definition?: string;
   /** Accessible name of the info button, for example "About forecast attainment". */
   infoLabel?: string;
   /** Monthly actuals with the forecast beside them, drawn as a small line under the headline. */
@@ -46,6 +48,7 @@ export function KpiTile({
   delta,
   provenance,
   deltaNote,
+  definition,
   infoLabel = "About this figure",
   trend,
   status,
@@ -92,7 +95,10 @@ export function KpiTile({
             {headline}
           </p>
         )}
-        <InfoTip label={infoLabel}>{provenance}</InfoTip>
+        <InfoTip label={infoLabel}>
+          {definition ? <span className="block text-ink">{definition}</span> : null}
+          <span className={cn("block", definition && "mt-1 text-ink-muted")}>{provenance}</span>
+        </InfoTip>
       </div>
       {trend ? (
         <Sparkline values={trend.actual} secondary={trend.forecast} label={trend.label} />

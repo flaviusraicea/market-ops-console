@@ -1,18 +1,20 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useId, useState, useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
+import { useId, useSyncExternalStore } from "react";
 
 import { cn } from "@/components/cn";
 import { ChevronDown, ICON_STROKE } from "@/components/icons";
 import { Eyebrow } from "@/components/Eyebrow";
-import { Notice } from "@/components/Notice";
-import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertForm } from "@/features/alerts/AlertForm";
-import { METRIC_LABEL } from "@/features/alerts/labels";
-import { RuleList } from "@/features/alerts/RuleList";
-import { useAlertSave } from "@/features/alerts/useAlertSave";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  readRuleSummaries,
+  readRulesLoadFailed,
+  subscribeToLoadFailed,
+  subscribeToSummaries,
+  summaryOf,
+} from "@/features/alerts/summary";
 import { useRole } from "@/lib/role";
 import { canEditAlerts } from "@/lib/roles";
 import { createStoredState } from "@/lib/storedState";
@@ -21,13 +23,16 @@ const openState = createStoredState("market-ops:alerts-open", "session");
 const readOpen = () => openState.read() === "1";
 const writeOpen = (next: boolean) => openState.write(next ? "1" : "0");
 
-/** One line for the folded section: the rule count and the rule names, or the kinds of rule you can add. */
-function summaryOf(rules: { metric: keyof typeof METRIC_LABEL }[]): string {
-  const names = (list: string[]) => list.map((n) => `${n} below`).join(" · ");
-  if (rules.length === 0) return `0 rules · ${names(Object.values(METRIC_LABEL))}`;
-  const unique = [...new Set(rules.map((r) => METRIC_LABEL[r.metric]))];
-  return `${rules.length} ${rules.length === 1 ? "rule" : "rules"} · ${names(unique)}`;
-}
+const loadBody = () => import("./AlertsBody");
+const LazyAlertsBody = dynamic(() => loadBody().then((m) => m.AlertsBody), {
+  loading: () => (
+    <div aria-busy="true" aria-label="Loading alerts" className="flex flex-col gap-3">
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-2/3" />
+    </div>
+  ),
+});
+const NO_RULES: ReturnType<typeof readRuleSummaries> = [];
 
 /** Alerts folded away at the end of the sheet; opening shows the form and the saved rules. */
 export function AlertsSection({
@@ -38,8 +43,8 @@ export function AlertsSection({
   readOnly?: boolean;
   onSwitchToAnalyst?: () => void;
 }) {
-  const alerts = useAlertSave();
-  const [loadDismissed, setLoadDismissed] = useState(false);
+  const rules = useSyncExternalStore(subscribeToSummaries, readRuleSummaries, () => NO_RULES);
+  const loadFailed = useSyncExternalStore(subscribeToLoadFailed, readRulesLoadFailed, () => false);
   const headingId = useId();
   const open = useSyncExternalStore(openState.subscribe, readOpen, () => false);
 
@@ -47,7 +52,12 @@ export function AlertsSection({
     <Collapsible open={open} onOpenChange={writeOpen}>
       <section aria-labelledby={`${headingId}`} className="flex flex-col">
         <h3 id={`${headingId}`} className="m-0">
-          <CollapsibleTrigger className="flex w-full items-center gap-2 p-[var(--pad-card)] text-left">
+          <CollapsibleTrigger
+            // The form loads on first open; starting on hover or focus hides the wait.
+            onPointerEnter={() => void loadBody()}
+            onFocus={() => void loadBody()}
+            className="flex w-full items-center gap-2 p-[var(--pad-card)] text-left"
+          >
             <ChevronDown
               aria-hidden
               className={cn(
@@ -58,62 +68,14 @@ export function AlertsSection({
             />
             <Eyebrow className="text-ink">Alerts</Eyebrow>
             <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-normal text-ink-muted">
-              {alerts.loadFailed ? "Couldn’t load rules" : summaryOf(alerts.rules)}
+              {loadFailed ? "Couldn’t load rules" : summaryOf(rules)}
             </span>
           </CollapsibleTrigger>
         </h3>
         <CollapsibleContent>
           <div className="flex flex-col gap-4 px-[var(--pad-card)] pb-[var(--pad-card)]">
-            {alerts.loadFailed ? (
-              // The list is never shown as empty after a failed read; Dismiss only hides the notice.
-              <Notice
-                tone="error"
-                title="Couldn’t load alert rules"
-                open={!loadDismissed}
-                retrying={alerts.reloading}
-                onRetry={alerts.reload}
-                onDismiss={() => setLoadDismissed(true)}
-                className="mt-0 mb-0"
-              />
-            ) : null}
-            {readOnly ? (
-              <Notice
-                tone="fallback"
-                title="Read-only for Executives."
-                actions={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onSwitchToAnalyst?.()}
-                  >
-                    Switch to Analyst
-                  </Button>
-                }
-              >
-                Switch to Analyst to edit rules.
-              </Notice>
-            ) : null}
-            <AlertForm
-              readOnly={readOnly}
-              saveRule={alerts.save}
-              status={alerts.status}
-              savedAt={alerts.savedAt}
-              failure={alerts.failure}
-              onRetry={alerts.retry}
-              onDismiss={alerts.dismiss}
-              onSwitchToAnalyst={onSwitchToAnalyst}
-            />
-            {!alerts.loadFailed ? (
-              <RuleList
-                rules={alerts.rules}
-                onDelete={alerts.remove}
-                deleteFailed={alerts.deleteFailed}
-                onDismissDeleteFailed={alerts.dismissDeleteFailed}
-                deleteReadOnly={alerts.deleteReadOnly}
-                onSwitchToAnalyst={onSwitchToAnalyst}
-                readOnly={readOnly}
-              />
+            {open ? (
+              <LazyAlertsBody readOnly={readOnly} onSwitchToAnalyst={onSwitchToAnalyst} />
             ) : null}
           </div>
         </CollapsibleContent>
@@ -122,19 +84,13 @@ export function AlertsSection({
   );
 }
 
-/**
- * The section for the signed-in role. TanStack Query is only used by the alert mutations, so its provider lives
- * here and rides in this lazy chunk instead of the first load.
- */
+/** The section for the signed-in role. */
 export function ConnectedAlertsSection() {
   const { role, switchRole } = useRole();
-  const [client] = useState(() => new QueryClient());
   return (
-    <QueryClientProvider client={client}>
-      <AlertsSection
-        readOnly={!canEditAlerts(role)}
-        onSwitchToAnalyst={() => switchRole("analyst")}
-      />
-    </QueryClientProvider>
+    <AlertsSection
+      readOnly={!canEditAlerts(role)}
+      onSwitchToAnalyst={() => switchRole("analyst")}
+    />
   );
 }

@@ -36,7 +36,18 @@ const props = { rows, periods, label: "Attainment", onCell: vi.fn() };
 const CELLS = rows.length * periods.length;
 
 describe("HeatMap cells", () => {
-  beforeEach(() => colour.mockClear());
+  beforeEach(() => {
+    colour.mockClear();
+    // jsdom has no layout, so every box measures zero; the grid only needs the observer and matchMedia to exist.
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    );
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query }));
+  });
   afterEach(cleanup);
 
   it("renders each cell once, then skips all of them when the parent re-renders with the same data", () => {

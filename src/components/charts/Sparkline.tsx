@@ -13,6 +13,7 @@ type SparklineProps = {
   height?: number;
 };
 
+// Inset so the anomaly ring (r 3 plus its stroke) stays inside the cell box.
 const PAD = 4;
 
 /** Design-system 6.4 / preview-spec 9.2: the line is scaled to its own min and max so the shape reads. */
@@ -25,6 +26,18 @@ export function Sparkline({
   width = 96,
   height = 24,
 }: SparklineProps) {
+  // Under three points a line has no shape to read (a lone dot looks like a rendering fault), so the slot says so.
+  if (values.length < 3)
+    return (
+      <span
+        role="img"
+        aria-label={`${label}: not enough history`}
+        style={{ minWidth: width, height }}
+        className="inline-flex items-center whitespace-nowrap text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
+      >
+        Not enough history
+      </span>
+    );
   const range = secondary ? [...values, ...secondary] : values;
   const lo = Math.min(...range);
   const hi = Math.max(...range);
@@ -71,7 +84,7 @@ export function Sparkline({
         <circle
           cx={ring[0]}
           cy={ring[1]}
-          r={4}
+          r={3}
           fill="none"
           stroke="var(--bad-mark)"
           strokeWidth={1.5}

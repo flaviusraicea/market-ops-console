@@ -18,6 +18,8 @@ const OVERSCAN = 8;
 type Column = {
   key: keyof FactRowVM;
   label: string;
+  /** Share of the table width. Fixed widths let the browser lay a scrolled row out without re-measuring them all. */
+  width: string;
   numeric: boolean;
   /** The cell text, formatted for reading. */
   cell: (r: FactRowVM) => string;
@@ -29,20 +31,29 @@ const money = (key: "actual" | "forecast" | "priorYear") => (r: FactRowVM) =>
   formatMoneyExact(r[key]);
 
 const COLUMNS: Column[] = [
-  { key: "market", label: "Market", numeric: false, cell: (r) => r.market },
-  { key: "product", label: "Product", numeric: false, cell: (r) => r.product },
+  { key: "market", label: "Market", width: "18%", numeric: false, cell: (r) => r.market },
+  { key: "product", label: "Product", width: "14%", numeric: false, cell: (r) => r.product },
   {
     key: "period",
     label: "Period",
+    width: "11%",
     numeric: false,
     cell: (r) => formatPeriodAbbr(r.period),
     // The copied CSV keeps the sortable ISO month.
     csv: (r) => r.period,
   },
-  { key: "actual", label: "Actual", numeric: true, cell: money("actual"), csv: (r) => r.actual },
+  {
+    key: "actual",
+    label: "Actual",
+    width: "13%",
+    numeric: true,
+    cell: money("actual"),
+    csv: (r) => r.actual,
+  },
   {
     key: "forecast",
     label: "Forecast",
+    width: "13%",
     numeric: true,
     cell: money("forecast"),
     csv: (r) => r.forecast,
@@ -50,6 +61,7 @@ const COLUMNS: Column[] = [
   {
     key: "priorYear",
     label: "Prior year",
+    width: "13%",
     numeric: true,
     cell: money("priorYear"),
     csv: (r) => r.priorYear,
@@ -57,6 +69,7 @@ const COLUMNS: Column[] = [
   {
     key: "units",
     label: "Units",
+    width: "8%",
     numeric: true,
     cell: (r) => formatInt(r.units),
     csv: (r) => r.units,
@@ -64,6 +77,7 @@ const COLUMNS: Column[] = [
   {
     key: "attainment",
     label: "Attainment",
+    width: "10%",
     numeric: true,
     cell: (r) => formatPct(r.attainment, { sign: false }),
     csv: (r) => r.attainment,
@@ -155,14 +169,21 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
         aria-label="All facts"
         tabIndex={0}
         style={{ height: FACTS_VIEWPORT_H }}
-        className="relative overflow-auto rounded-control border border-border"
+        // Strict containment keeps a scroll's row swap from laying out anything outside this box; the scrollbar
+        // is always shown, so the region reads as scrollable before anyone tries it.
+        className="relative overflow-auto rounded-control border border-border [contain:strict] [overflow-anchor:none] [scrollbar-color:var(--border-control)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]"
       >
         {/* A bare table: the Table wrapper's own scroll box would break the sticky header. */}
         <table
           aria-rowcount={rows.length + 1}
-          className="w-full text-[length:var(--text-body)] leading-[18px]"
+          className="w-full min-w-[720px] table-fixed text-[length:var(--text-body)] leading-[18px]"
         >
           <caption className="sr-only">{count}</caption>
+          <colgroup>
+            {COLUMNS.map((c) => (
+              <col key={c.key} style={{ width: c.width }} />
+            ))}
+          </colgroup>
           <TableHeader>
             <TableRow aria-rowindex={1} className="hover:bg-transparent">
               {COLUMNS.map((c) => (
@@ -194,6 +215,7 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
                     <TableCell
                       key={c.key}
                       className={cn(
+                        "truncate",
                         c.numeric && "num text-right",
                         c.key === "period" && "whitespace-nowrap",
                         c.key === "market" && "font-medium text-ink",
