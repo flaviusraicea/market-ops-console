@@ -96,6 +96,9 @@ describe("hasInvalidContextParams", () => {
     expect(invalid({ metric: "share" })).toBe(true);
     expect(invalid({ cite: "first" })).toBe(true);
     expect(invalid({ facts: "true" })).toBe(true);
+    expect(invalid({ region: "xx" })).toBe(true);
+    expect(invalid({ basis: "qtr" })).toBe(true);
+    expect(invalid({ mode: "Analyst" })).toBe(true);
   });
   it("treats names on the object prototype as unknown markets", () => {
     for (const market of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {

@@ -52,8 +52,9 @@ const CHAR_PX = 7;
 const EDGE_PX = 4;
 
 /**
- * The ring's radius: half the smaller side less the label reserve, with no floor, then shrunk further if a side
- * label would still cross the chart's edge. A narrow card (the panel open) draws a smaller radar, never a clipped one.
+ * The ring's radius: half the smaller side less the label reserve, then shrunk further if a side label would still
+ * cross the chart's edge, down to a 24 px floor. A narrow card (the panel open) draws a smaller radar, not a clipped
+ * one, until the floor is reached.
  */
 export function fitRadius(width: number, axes: readonly string[]): number {
   let radius = Math.min(width, HEIGHT) / 2 - LABEL_RESERVE;
