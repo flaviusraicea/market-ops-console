@@ -63,7 +63,7 @@ test("the grid has Forecast and Prior year columns and a Portfolio total row", a
   }
 });
 
-test("below about 1,230 px the grid scrolls between a pinned Market column and a pinned Ask why column", async ({
+test("below about 1,250 px the grid scrolls between a pinned Market column and a pinned Ask why column", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1060, height: 900 });
@@ -105,6 +105,77 @@ test("below about 1,230 px the grid scrolls between a pinned Market column and a
   await box.getByRole("button", { name: "Units", exact: true }).focus();
   const clear = !(await covered());
   expect(clear).toBe(true);
+});
+
+test("while the grid scrolls, names stay whole, figures align with the total, and a focused row keeps its whole ring", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1150, height: 900 });
+  await open(page);
+  const box = page.getByRole("region", { name: "Markets, scrollable" });
+  await box.scrollIntoViewIfNeeded();
+  await expect(box).toHaveAttribute("data-overflow", "");
+  const m = await box.evaluate((el) => {
+    const names = [...el.querySelectorAll('tbody [data-pin="start"] span.truncate')];
+    // The right edge of a cell's figure: its first text, not the cell or the note slot beside it.
+    const right = (cell: Element) => {
+      const walk = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+      let node = walk.nextNode();
+      while (node && !node.textContent?.trim()) node = walk.nextNode();
+      const r = document.createRange();
+      r.selectNodeContents(node ?? cell);
+      return r.getBoundingClientRect().right;
+    };
+    // The cell at a column index, counting colspans (the footer's label spans three columns).
+    const cellAt = (tr: Element, index: number) => {
+      let at = 0;
+      for (const c of tr.children) {
+        at += (c as HTMLTableCellElement).colSpan;
+        if (at > index) return c;
+      }
+      throw new Error("no cell at " + index);
+    };
+    const col = [...el.querySelectorAll("thead th")].findIndex((h) =>
+      h.textContent?.includes("Attainment"),
+    );
+    const rows = [...el.querySelectorAll("tbody tr, tfoot tr")];
+    const cells = rows.map((tr) => cellAt(tr, col));
+    const units = rows.map((tr) => {
+      const c = cellAt(tr, col + 3);
+      return { cell: c.getBoundingClientRect().right, text: right(c) };
+    });
+    return {
+      clipped: names.filter((n) => n.scrollWidth > n.clientWidth).map((n) => n.textContent),
+      attainment: cells.map(right),
+      units,
+    };
+  });
+  expect(m.clipped).toEqual([]);
+  const first = m.attainment[0]!;
+  for (const x of m.attainment) expect(Math.abs(x - first)).toBeLessThanOrEqual(1);
+  for (const u of m.units) expect(u.text).toBeLessThanOrEqual(u.cell);
+  // Scroll halfway, focus a row: both pinned cells draw their share of the ring.
+  await box.evaluate((el) => (el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2));
+  await page.keyboard.press("Tab");
+  const row = box.locator("tbody tr").first();
+  await row.focus();
+  const shadows = await row.evaluate((tr) =>
+    [...tr.querySelectorAll("[data-pin]")].map((c) => getComputedStyle(c).boxShadow),
+  );
+  expect(shadows).toHaveLength(2);
+  for (const sh of shadows) expect(sh.match(/inset/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+});
+
+test("with room, the Markets table reaches the card's right edge", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await open(page);
+  const box = page.getByRole("region", { name: "Markets, scrollable" });
+  await box.scrollIntoViewIfNeeded();
+  const gap = await box.evaluate(
+    (el) =>
+      el.getBoundingClientRect().right - el.querySelector("table")!.getBoundingClientRect().right,
+  );
+  expect(Math.abs(gap)).toBeLessThanOrEqual(1);
 });
 
 test("sorting by Prior year reorders the rows and says so", async ({ page }) => {

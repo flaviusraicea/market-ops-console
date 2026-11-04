@@ -662,7 +662,6 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
   [data-slot="table-container"] [data-pin] {
     position: sticky;
     z-index: 1;
-    --pin-bg: var(--surface);
   }
   [data-slot="table-container"] [data-pin="end"] {
     right: 0;
@@ -684,11 +683,11 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
   }
   [data-slot="table-container"] [data-pin="start"]::after {
     left: 100%;
-    background: linear-gradient(to right, var(--pin-bg), transparent);
+    background: linear-gradient(to right, var(--pin-bg, var(--surface)), transparent);
   }
   [data-slot="table-container"] [data-pin="end"]::after {
     right: 100%;
-    background: linear-gradient(to left, var(--pin-bg), transparent);
+    background: linear-gradient(to left, var(--pin-bg, var(--surface)), transparent);
   }
   [data-slot="table-container"][data-scroll-start] [data-pin="start"]::after,
   [data-slot="table-container"][data-scroll-end] [data-pin="end"]::after {
@@ -700,5 +699,39 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
   }
   [data-slot="table-container"] tbody tr[data-state="selected"] [data-pin] {
     --pin-bg: var(--accent-soft);
+  }
+}
+/* A focused row in a table with pins draws its ring inside the row, and each pinned cell, which paints over the
+   row, draws its share of the ring, so the ring stays whole while columns scroll under the pins. */
+[data-slot="table-container"]:has([data-pin]) tr:focus-visible {
+  outline-offset: -2px;
+}
+[data-slot="table-container"]:has([data-pin]) tr:focus-visible > [data-pin="start"] {
+  box-shadow:
+    inset 2px 0 0 var(--focus),
+    inset 0 2px 0 var(--focus),
+    inset 0 -2px 0 var(--focus);
+}
+/* From 768 px the end pin carries its share too, and while the table overflows each pin keeps its 1px edge. */
+@media (min-width: 48rem) {
+  [data-slot="table-container"]:has([data-pin]) tr:focus-visible > [data-pin="end"] {
+    box-shadow:
+      inset -2px 0 0 var(--focus),
+      inset 0 2px 0 var(--focus),
+      inset 0 -2px 0 var(--focus);
+  }
+  [data-slot="table-container"][data-overflow] tr:focus-visible > [data-pin="start"] {
+    box-shadow:
+      inset 2px 0 0 var(--focus),
+      inset 0 2px 0 var(--focus),
+      inset 0 -2px 0 var(--focus),
+      inset -1px 0 0 var(--border);
+  }
+  [data-slot="table-container"][data-overflow] tr:focus-visible > [data-pin="end"] {
+    box-shadow:
+      inset -2px 0 0 var(--focus),
+      inset 0 2px 0 var(--focus),
+      inset 0 -2px 0 var(--focus),
+      inset 1px 0 0 var(--border);
   }
 }

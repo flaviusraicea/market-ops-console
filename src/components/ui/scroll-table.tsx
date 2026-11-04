@@ -4,11 +4,17 @@ import * as React from "react";
 
 import { cn } from "@/components/cn";
 
-import { STICKY_FIRST_CLASS, TABLE_CLASS } from "./table";
+import { TABLE_CLASS } from "./table";
 
-/** A table wider than its card always shows a thin scrollbar. */
+/** A table wider than its card shows a thin, styled scrollbar. */
 const SCROLL_CLASS =
-  "relative w-full overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]";
+  "relative w-full overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]";
+
+/** A pinned body cell (`data-pin`) keeps its row's tint, so scrolled columns slide under it. */
+export const PIN_CELL_CLASS =
+  "bg-surface [tr:hover_&]:bg-surface-2 [tr[data-state=selected]_&]:bg-accent-soft";
+/** A pinned header cell in a tinted header row: the tint, and the same tint for its fade. */
+export const PIN_HEAD_TINTED_CLASS = "bg-surface-2 [--pin-bg:var(--surface-2)]";
 
 /**
  * The `Table` for the Analyst's wide grids, with the same classes. A 24 px fade sits at each edge that can still scroll. Cells marked
@@ -19,9 +25,8 @@ const SCROLL_CLASS =
 export function ScrollTable({
   className,
   scrollLabel,
-  stickyFirst = false,
   ...props
-}: React.ComponentProps<"table"> & { scrollLabel?: string; stickyFirst?: boolean }) {
+}: React.ComponentProps<"table"> & { scrollLabel?: string }) {
   const { el, attach, edges, update } = useScrollEdges();
   return (
     <div className="relative w-full">
@@ -38,11 +43,7 @@ export function ScrollTable({
         }}
         {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
       >
-        <table
-          data-slot="table"
-          className={cn(TABLE_CLASS, stickyFirst && STICKY_FIRST_CLASS, className)}
-          {...props}
-        />
+        <table data-slot="table" className={cn(TABLE_CLASS, className)} {...props} />
       </div>
       {/* A pinned column draws its own fade beside it; an edge without one fades at the container. */}
       {edges.start && !edges.pinStart ? (
@@ -84,16 +85,12 @@ function useScrollEdges() {
   const [el, setEl] = React.useState<HTMLDivElement | null>(null);
   const [edges, setEdges] = React.useState<Edges>(NO_EDGES);
   const update = React.useCallback(() => {
-    const table = el?.firstElementChild;
-    if (!el || !table) return;
-    // Measured from the boxes, not scrollLeft: with a stable gutter the scroll range ends short of
-    // scrollWidth - clientWidth, because the last columns paint into the gutter.
-    const box = el.getBoundingClientRect();
-    const t = table.getBoundingClientRect();
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
     const next: Edges = {
-      overflow: t.width > box.width + 1,
-      start: t.left < box.left - 1,
-      end: t.right > box.right + 1,
+      overflow: max > 1,
+      start: el.scrollLeft > 1,
+      end: el.scrollLeft < max - 1,
       // A pin draws its own fade only where it is pinned (the last column pins from 768 px).
       pinStart: isPinned(el.querySelector('[data-pin="start"]')),
       pinEnd: isPinned(el.querySelector('[data-pin="end"]')),

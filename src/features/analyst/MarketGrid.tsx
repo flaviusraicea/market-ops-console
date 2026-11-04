@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ScrollTable } from "@/components/ui/scroll-table";
+import { PIN_CELL_CLASS, ScrollTable } from "@/components/ui/scroll-table";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
@@ -90,27 +90,27 @@ const REVEAL =
 
 /**
  * Fixed column widths: the market name takes what is left, every other column its own fixed
- * width, so nothing is clipped and the row's Ask why stays inside the row. The twelve columns need 1,040 px;
+ * width, so nothing is clipped and the row's Ask why stays inside the row. The twelve columns need 1,120 px;
  * a narrower card scrolls the table with the name column pinned and the scrollbar always shown.
  */
 const MARKET_COLS = [
-  undefined, // Market: what is left, at least 120 px
+  undefined, // Market: what is left, at least 144 px: "United Kingdom" and its code in full
   "120px", // Region: "North America" in full
   "112px", // Status: the 88 px badge and the 12 px cell padding each side
   "80px", // Revenue
   "80px", // Forecast
   "80px", // Prior year
-  "96px", // Attainment, with its 16 px note slot
+  "96px", // Attainment, with its 20 px note slot
   "96px", // Growth YoY: its header in full
   "72px", // Share
-  "72px", // Units
+  "80px", // Units: the semibold total "103,868" in full
   "120px", // 24 months: the 96 px sparkline and its padding
   "40px", // Ask why
 ];
 const PRODUCT_COLS = [undefined, "80px", "80px", "80px", "96px", "80px", "72px", "120px"];
-/** The fixed columns plus 120 px for the name. */
+/** The fixed columns plus 144 px for the name. */
 const minWidth = (cols: ReadonlyArray<string | undefined>) =>
-  cols.reduce((sum, w) => sum + (w ? parseInt(w, 10) : 120), 0);
+  cols.reduce((sum, w) => sum + (w ? parseInt(w, 10) : 144), 0);
 
 function ColGroup({ cols }: { cols: ReadonlyArray<string | undefined> }) {
   return (
@@ -123,10 +123,10 @@ function ColGroup({ cols }: { cols: ReadonlyArray<string | undefined> }) {
 }
 
 const PINNED_HEAD = "bg-surface";
+/** The width of the attainment note's ⓘ (InfoTip), kept empty on rows without a note. */
+const NOTE_SLOT = "inline-block w-5 shrink-0";
 
-/** A pinned cell (`data-pin`) keeps the row's own tint so scrolled columns slide under it. */
-const PINNED_CELL =
-  "bg-surface group-hover:bg-surface-2 group-data-[state=selected]:bg-accent-soft";
+const PINNED_CELL = PIN_CELL_CLASS;
 
 function MarketRows({
   rows,
@@ -207,11 +207,11 @@ function MarketRows({
             <TableCell className="text-right num">
               <span className="inline-flex items-center justify-end gap-0.5">
                 {r.attainment}
-                {/* Every row reserves the 16 px note slot, so the numbers share one right edge (A3). */}
+                {/* Every row, and the total, reserves the note's 20 px slot, so the numbers share one right edge (A3). */}
                 {r.attainmentNote ? (
                   <InfoTip label={`Status note for ${r.name}`}>{r.attainmentNote}</InfoTip>
                 ) : (
-                  <span aria-hidden className="inline-block w-4" />
+                  <span aria-hidden className={NOTE_SLOT} />
                 )}
               </span>
             </TableCell>
@@ -243,7 +243,7 @@ function MarketRows({
           </TableRow>
         ))}
       </TableBody>
-      <TotalRow total={total} labelSpan={3} share trailing={1} pinEnd />
+      <TotalRow total={total} labelSpan={3} share trailing={1} pinEnd noteSlot />
     </>
   );
 }
@@ -255,6 +255,7 @@ function TotalRow({
   share = false,
   trailing,
   pinEnd = false,
+  noteSlot = false,
 }: {
   total: GridTotalVM;
   labelSpan: number;
@@ -262,6 +263,8 @@ function TotalRow({
   trailing: number;
   /** The table pins its last column, so the footer keeps a pinned cell there too. */
   pinEnd?: boolean;
+  /** The rows above reserve the attainment note's slot, so the total does too. */
+  noteSlot?: boolean;
 }) {
   return (
     <TableFooter>
@@ -274,7 +277,16 @@ function TotalRow({
         <TableCell className="text-right num">{total.revenue}</TableCell>
         <TableCell className="text-right num">{total.forecast}</TableCell>
         <TableCell className="text-right num">{total.priorYear}</TableCell>
-        <TableCell className="text-right num">{total.attainment}</TableCell>
+        <TableCell className="text-right num">
+          {noteSlot ? (
+            <span className="inline-flex items-center justify-end gap-0.5">
+              {total.attainment}
+              <span aria-hidden className={NOTE_SLOT} />
+            </span>
+          ) : (
+            total.attainment
+          )}
+        </TableCell>
         <TableCell className={cn("text-right num", signColour(total.growthDirection))}>
           {total.growth}
         </TableCell>
