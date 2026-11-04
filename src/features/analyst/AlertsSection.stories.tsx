@@ -31,7 +31,7 @@ export const ReadOnly: Story = {
     const canvas = within(canvasElement);
     const trigger = canvas.getByRole("button", { name: /Alerts/ });
     await userEvent.click(trigger);
-    const notice = canvas.getByRole("note");
+    const notice = await canvas.findByRole("note");
     await expect(notice).toHaveTextContent("Read-only for Executives.");
     await expect(notice).toHaveTextContent("Switch to Analyst to edit rules.");
     await expect(canvas.getByRole("textbox", { name: "Growth below" })).toBeDisabled();

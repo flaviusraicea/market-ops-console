@@ -92,6 +92,8 @@ export function InfoTip({
         </button>
       </PopoverTrigger>
       <PopoverContent
+        // The dialog takes the button's name, so a screen reader announces what it explains.
+        aria-label={label}
         // A hover peek must not take focus from the page; a pinned popover does, so Escape and Tab work in it.
         onOpenAutoFocus={(e) => {
           if (!pinned) e.preventDefault();

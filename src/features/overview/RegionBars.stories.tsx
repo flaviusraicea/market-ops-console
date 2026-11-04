@@ -22,10 +22,15 @@ export const Portfolio: Story = {
   args: { bars: regionBarsVM(ds, portfolioMay) },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const europe = canvas.getByRole("img", { name: "Europe, 95.4% of forecast" });
-    await expect(europe.firstElementChild).toHaveClass("bg-bad-mark");
-    const apac = canvas.getByRole("img", { name: "APAC, 104.9% of forecast" });
-    await expect(apac.firstElementChild).toHaveClass("bg-accent");
+    // Each row is one button named by its visible text; the bar inside takes the row's status colour.
+    const europe = canvas.getByRole("button", {
+      name: /^Drill into Europe\b.*At risk\s*,\s*95\.4%$/,
+    });
+    await expect(europe.querySelector("[aria-hidden] > span")).toHaveClass("bg-warn-mark");
+    const apac = canvas.getByRole("button", {
+      name: /^Drill into APAC\b.*On track\s*,\s*104\.9%$/,
+    });
+    await expect(apac.querySelector("[aria-hidden] > span")).toHaveClass("bg-ok-mark");
     await expect(canvas.getByText("Europe is the drag.")).toBeVisible();
   },
 };
