@@ -1,6 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, userEvent, within } from "storybook/test";
 
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 import { ViewAsTable } from "./ViewAsTable";
 
 const meta = {
@@ -22,15 +31,21 @@ const meta = {
       </p>
     ),
     table: (
-      <table>
-        <caption className="sr-only">Revenue by market</caption>
-        <tbody>
-          <tr>
-            <th scope="row">Germany</th>
-            <td>$3.2M</td>
-          </tr>
-        </tbody>
-      </table>
+      <Table>
+        <TableCaption className="sr-only">Revenue by market</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead scope="col">Market</TableHead>
+            <TableHead scope="col">Revenue</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell className="text-left">Germany</TableCell>
+            <TableCell>$3.2M</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     ),
   },
 } satisfies Meta<typeof ViewAsTable>;
