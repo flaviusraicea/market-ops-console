@@ -22,6 +22,8 @@ import {
   type Period,
   type RegionId,
   type Status,
+  STATUS_RULE_TEXT,
+  DERIVED_STATUS_RULE_TEXT,
 } from "@/domain";
 import type { PanelContext } from "@/features/assistant/EmptyState";
 import {
@@ -372,6 +374,8 @@ export type VerdictVM = {
   /** The dataset's latest period, for the "Data through" line a phone shows under the eyebrow. */
   latestPeriod: string;
   caption: string;
+  /** The rule behind the status word: given in the data for a market, applied to the figures for a portfolio or region. */
+  statusRule: string;
   segments: VerdictSegment[];
   status: Status;
   /** Colour of the attention phrase; "none" when no market needs attention or the scope is one market. */
@@ -452,6 +456,7 @@ export function verdictVM(ds: Dataset, ctx: Context): VerdictVM {
       `${entityName(ds, entity)} · ${formatPeriod(ctx.period)} · ${BASIS_LABEL.month}`.toUpperCase(),
     latestPeriod: ds.meta.latestPeriod,
     caption: market ? sourceLabel(ds, atLatest(ds, ctx)) : derivedLabel(ds, atLatest(ds, ctx)),
+    statusRule: market ? STATUS_RULE_TEXT : DERIVED_STATUS_RULE_TEXT,
     segments: joinSegments(parts),
     status,
     attention,
