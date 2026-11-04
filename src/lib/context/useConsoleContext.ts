@@ -5,7 +5,7 @@ import { useCallback, useMemo } from "react";
 
 import type { ContextPatch } from "@/domain";
 import { logEvent } from "@/lib/events";
-import { useNavigationTransition } from "./navigation";
+import { isOffline, useNavigationGuard, useNavigationTransition } from "./navigation";
 import { applyContextChange, normalizeContext } from "./invariants";
 import { useConsoleMeta } from "./meta";
 import { contextParsers } from "./parsers";
@@ -21,6 +21,7 @@ export function useConsoleContext() {
   const meta = useConsoleMeta();
   const parsers = useMemo(() => contextParsers(meta), [meta]);
   const [isPending, startTransition] = useNavigationTransition();
+  const guard = useNavigationGuard();
   const [raw, setRaw] = useQueryStates(parsers, { shallow: false, scroll: false, startTransition });
 
   const ctx = useMemo(() => normalizeContext(meta, raw), [meta, raw]);
@@ -33,33 +34,51 @@ export function useConsoleContext() {
         logEvent({ type: "invalid_context", message: result.reason });
         return;
       }
-      const { next } = result;
-      startTransition(() => {
-        void setRaw(
-          {
-            region: next.region ?? null,
-            market: next.market ?? null,
-            product: next.product ?? null,
-            period: next.period,
-            mode: next.mode,
-            metric: next.metric,
-            basis: next.basis,
-            cite: next.cite ?? null,
-            facts: next.facts ?? null,
-          },
-          { history: opts?.history ?? result.history, shallow: opts?.shallow ?? false },
-        );
-      });
-      logEvent({ type: "navigate", ctx: next });
+      const { next, history } = result;
+      function commit() {
+        // A retried navigation keeps its notice up until it lands; any other navigation supersedes the hold.
+        if (!guard?.sendingRef.current) guard?.release();
+        startTransition(() => {
+          void setRaw(
+            {
+              region: next.region ?? null,
+              market: next.market ?? null,
+              product: next.product ?? null,
+              period: next.period,
+              mode: next.mode,
+              metric: next.metric,
+              basis: next.basis,
+              cite: next.cite ?? null,
+              facts: next.facts ?? null,
+            },
+            { history: opts?.history ?? history, shallow: opts?.shallow ?? false },
+          );
+        });
+        logEvent({ type: "navigate", ctx: next });
+      }
+      // A change the server has to answer cannot be made offline: hold it, keep the view, offer Retry.
+      function attempt() {
+        if (!opts?.shallow && guard && isOffline()) guard.hold({ retry: attempt });
+        else commit();
+      }
+      attempt();
     },
-    [meta, ctx, setRaw, startTransition],
+    [meta, ctx, setRaw, startTransition, guard],
   );
 
   const reset = useCallback(() => {
-    startTransition(() => {
-      void setRaw(null, { history: "push" });
-    });
-  }, [setRaw, startTransition]);
+    function attempt() {
+      if (guard && isOffline()) {
+        guard.hold({ retry: attempt });
+        return;
+      }
+      if (!guard?.sendingRef.current) guard?.release();
+      startTransition(() => {
+        void setRaw(null, { history: "push" });
+      });
+    }
+    attempt();
+  }, [setRaw, startTransition, guard]);
 
   return { ctx, setContext, reset, isPending };
 }

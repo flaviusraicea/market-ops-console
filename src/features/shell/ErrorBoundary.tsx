@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
       <Notice
         title="This widget failed to load"
         actions={
-          <Button variant="secondary" onClick={this.reset}>
+          <Button variant="ghost" size="sm" onClick={this.reset}>
             Reload widget
           </Button>
         }

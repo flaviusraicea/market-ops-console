@@ -289,20 +289,26 @@ export function AlertForm({
             actions={
               <>
                 {failure.readOnly ? (
-                  <Button type="button" variant="secondary" onClick={() => onSwitchToAnalyst?.()}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSwitchToAnalyst?.()}
+                  >
                     Switch to Analyst
                   </Button>
                 ) : (
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="ghost"
+                    size="sm"
                     disabled={saving}
                     onClick={() => onRetry?.({ fail: simulateFail })}
                   >
                     Try again
                   </Button>
                 )}
-                <Button type="button" variant="ghost" onClick={() => onDismiss?.()}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => onDismiss?.()}>
                   Dismiss
                 </Button>
               </>

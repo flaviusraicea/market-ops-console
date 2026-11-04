@@ -23,7 +23,11 @@ export const Error: Story = {
   args: {
     title: "Request failed",
     children: "The assistant could not answer. Nothing was changed.",
-    actions: <Button variant="secondary">Retry</Button>,
+    actions: (
+      <Button variant="ghost" size="sm">
+        Retry
+      </Button>
+    ),
   },
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getByRole("alert")).toHaveTextContent("Request failed");
@@ -32,10 +36,14 @@ export const Error: Story = {
 
 export const Neutral: Story = {
   args: {
-    tone: "neutral",
+    tone: "fallback",
     title: "Read-only for Executives.",
     children: "Switch to Analyst to edit rules.",
-    actions: <Button variant="ghost">Switch to Analyst</Button>,
+    actions: (
+      <Button variant="ghost" size="sm">
+        Switch to Analyst
+      </Button>
+    ),
   },
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getByRole("note")).toHaveTextContent(
@@ -59,3 +67,22 @@ export const Rollback: Story = {
 };
 
 export const TitleOnly: Story = { args: { title: "Something went wrong" } };
+
+export const Offline: Story = {
+  args: { tone: "offline", title: "You’re offline", children: "showing the last view" },
+  render: (args) => <Notice {...args} open onRetry={() => {}} onDismiss={() => {}} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText("You’re offline")).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "Retry" })).toBeEnabled();
+    await expect(canvas.getByRole("button", { name: "Dismiss" })).toBeVisible();
+  },
+};
+
+export const LoadError: Story = {
+  args: { tone: "error", title: "Couldn’t load alert rules" },
+  render: (args) => <Notice {...args} open retrying onRetry={() => {}} onDismiss={() => {}} />,
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByRole("button", { name: "Retrying…" })).toBeDisabled();
+  },
+};

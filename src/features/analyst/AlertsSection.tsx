@@ -39,6 +39,7 @@ export function AlertsSection({
   onSwitchToAnalyst?: () => void;
 }) {
   const alerts = useAlertSave();
+  const [loadDismissed, setLoadDismissed] = useState(false);
   const headingId = useId();
   const open = useSyncExternalStore(openState.subscribe, readOpen, () => false);
 
@@ -57,18 +58,35 @@ export function AlertsSection({
             />
             <Eyebrow className="text-ink">Alerts</Eyebrow>
             <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-normal text-ink-muted">
-              {summaryOf(alerts.rules)}
+              {alerts.loadFailed ? "Couldn’t load rules" : summaryOf(alerts.rules)}
             </span>
           </CollapsibleTrigger>
         </h3>
         <CollapsibleContent>
           <div className="flex flex-col gap-4 px-[var(--pad-card)] pb-[var(--pad-card)]">
+            {alerts.loadFailed ? (
+              // The list is never shown as empty after a failed read; Dismiss only hides the notice.
+              <Notice
+                tone="error"
+                title="Couldn’t load alert rules"
+                open={!loadDismissed}
+                retrying={alerts.reloading}
+                onRetry={alerts.reload}
+                onDismiss={() => setLoadDismissed(true)}
+                className="mt-0 mb-0"
+              />
+            ) : null}
             {readOnly ? (
               <Notice
-                tone="neutral"
+                tone="fallback"
                 title="Read-only for Executives."
                 actions={
-                  <Button type="button" variant="ghost" onClick={() => onSwitchToAnalyst?.()}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSwitchToAnalyst?.()}
+                  >
                     Switch to Analyst
                   </Button>
                 }
@@ -86,15 +104,17 @@ export function AlertsSection({
               onDismiss={alerts.dismiss}
               onSwitchToAnalyst={onSwitchToAnalyst}
             />
-            <RuleList
-              rules={alerts.rules}
-              onDelete={alerts.remove}
-              deleteFailed={alerts.deleteFailed}
-              onDismissDeleteFailed={alerts.dismissDeleteFailed}
-              deleteReadOnly={alerts.deleteReadOnly}
-              onSwitchToAnalyst={onSwitchToAnalyst}
-              readOnly={readOnly}
-            />
+            {!alerts.loadFailed ? (
+              <RuleList
+                rules={alerts.rules}
+                onDelete={alerts.remove}
+                deleteFailed={alerts.deleteFailed}
+                onDismissDeleteFailed={alerts.dismissDeleteFailed}
+                deleteReadOnly={alerts.deleteReadOnly}
+                onSwitchToAnalyst={onSwitchToAnalyst}
+                readOnly={readOnly}
+              />
+            ) : null}
           </div>
         </CollapsibleContent>
       </section>
