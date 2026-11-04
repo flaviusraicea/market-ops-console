@@ -11,25 +11,57 @@ function Table({
   stickyFirst = false,
   ...props
 }: React.ComponentProps<"table"> & { scrollLabel?: string; stickyFirst?: boolean }) {
+  const { attach, more, update } = useOverflowEnd();
   return (
-    <div
-      data-slot="table-container"
-      className="relative w-full overflow-x-auto"
-      {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
-    >
-      <table
-        data-slot="table"
-        className={cn(
-          "w-full caption-bottom text-[length:var(--text-body)] leading-[18px]",
-          // Where the table is wider than its card, the first column stays in view while the rest scrolls.
-          stickyFirst &&
-            "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-accent-soft [&_thead_tr>:first-child]:bg-surface-2",
-          className,
-        )}
-        {...props}
-      />
+    <div className="relative w-full">
+      <div
+        ref={attach}
+        data-slot="table-container"
+        // A table wider than its card always shows a thin scrollbar, and a 24 px fade at the right edge while
+        // more columns are out of view (Fable, F04).
+        className="relative w-full overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]"
+        onScroll={update}
+        {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
+      >
+        <table
+          data-slot="table"
+          className={cn(
+            "w-full caption-bottom text-[length:var(--text-body)] leading-[18px]",
+            // Where the table is wider than its card, the first column stays in view while the rest scrolls.
+            stickyFirst &&
+              "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-accent-soft [&_thead_tr>:first-child]:bg-surface-2",
+            className,
+          )}
+          {...props}
+        />
+      </div>
+      {more ? (
+        <span
+          aria-hidden
+          data-slot="table-fade"
+          className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-surface to-transparent"
+        />
+      ) : null}
     </div>
   );
+}
+
+/** Whether a horizontally scrolling box has columns past its right edge; follows resizes and scrolling. */
+function useOverflowEnd() {
+  // A callback ref held in state, so render reads plain values and the observer follows the mounted element.
+  const [el, setEl] = React.useState<HTMLDivElement | null>(null);
+  const [more, setMore] = React.useState(false);
+  const update = React.useCallback(() => {
+    if (el) setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, [el]);
+  React.useEffect(() => {
+    if (!el) return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  }, [el, update]);
+  return { attach: setEl, more, update };
 }
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
