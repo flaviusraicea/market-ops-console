@@ -74,13 +74,15 @@ const LABEL_GAP = 8;
 /**
  * The smallest step at which every month label keeps LABEL_GAP to the next. Labels count back from the latest
  * month; each starts at its column's left edge except the last, which ends at the grid's right edge, so the last
- * pair is the tightest: the one before it starts (step + 1) columns from the end.
+ * pair is the tightest: from the left edge of the one before it to the grid's right edge is `step` pitches plus one
+ * column, which is a pitch less the gap between columns.
  */
-export function monthLabelStep(pitch: number, labelWidth: number): number {
+export function monthLabelStep(pitch: number, labelWidth: number, columnWidth = pitch): number {
   return (
     LABEL_STEPS.find(
       (step) =>
-        step * pitch - labelWidth >= LABEL_GAP && (step + 1) * pitch - 2 * labelWidth >= LABEL_GAP,
+        step * pitch - labelWidth >= LABEL_GAP &&
+        step * pitch + columnWidth - 2 * labelWidth >= LABEL_GAP,
     ) ?? 12
   );
 }
@@ -122,11 +124,20 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
       let widest = 0;
       for (const label of row.querySelectorAll<HTMLElement>("[data-month-label]"))
         widest = Math.max(widest, label.getBoundingClientRect().width);
-      setStep(monthLabelStep(second.left - first.left, widest));
+      setStep(monthLabelStep(second.left - first.left, widest, first.width));
     };
     const ro = new ResizeObserver(measure);
     ro.observe(grid);
-    return () => ro.disconnect();
+    // The web font can arrive after the first measure and widen the labels without resizing the grid.
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    let live = true;
+    void fonts?.ready.then(() => live && measure());
+    fonts?.addEventListener("loadingdone", measure);
+    return () => {
+      live = false;
+      ro.disconnect();
+      fonts?.removeEventListener("loadingdone", measure);
+    };
   }, []);
 
   const [pos, setPos] = useState<{ r: number; c: number }>({
