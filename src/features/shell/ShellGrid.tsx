@@ -54,7 +54,7 @@ export function ShellGrid({
               aria-hidden
               data-slot="scrim"
               onClick={collapse}
-              className="fixed inset-0 z-40 hidden bg-ink/[.32] lg:max-xl:block"
+              className="fixed inset-0 z-40 hidden bg-scrim lg:max-xl:block"
             />
           ) : null}
         </aside>

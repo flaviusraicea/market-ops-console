@@ -46,6 +46,7 @@
   --color-cat-5: var(--cat-5);
   --color-cat-6: var(--cat-6);
   --color-map-land: var(--map-land);
+  --color-scrim: var(--scrim);
   --color-seq-1: var(--seq-1);
   --color-seq-2: var(--seq-2);
   --color-seq-3: var(--seq-3);
@@ -432,7 +433,7 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
 }
 [data-slot="dialog-overlay"][data-state="closed"],
 [data-slot="bottom-sheet-scrim"][data-state="closed"] {
-  animation: scrim-out var(--dur-base) var(--ease-in) forwards;
+  animation: scrim-out var(--dur-fast) var(--ease-in) forwards;
 }
 [data-slot="bottom-sheet-content"][data-state="open"] {
   animation: sheet-in var(--dur-enter) var(--spring-smooth);
