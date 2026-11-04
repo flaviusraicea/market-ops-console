@@ -80,7 +80,7 @@ export function AnswerMachineProvider({
     if (ctx.cite !== undefined)
       setContext({ cite: undefined }, { history: "replace", shallow: true });
     const entity = entityOf(ctx);
-    machine.ask(question, about ?? askContext(entity, entityName(ds, entity), ctx.period));
+    void machine.ask(question, about ?? askContext(entity, entityName(ds, entity), ctx.period));
     setSubmitCount((n) => n + 1);
   }
 

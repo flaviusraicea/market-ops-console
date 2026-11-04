@@ -1,4 +1,5 @@
 import { entityName, type Dataset, type Entity } from "@/domain";
+import { askedLabel, list, marketsNamed } from "@/lib/stream/askedScope";
 import type { Answer } from "./useAnswerMachine";
 
 /** The market an entity sits in, or its region; undefined for the portfolio. */
@@ -53,4 +54,36 @@ export function scopeNote(ds: Dataset, answer: Answer): string | undefined {
   }
   const places = new Set(cited.map((e) => marketOf(e) ?? (e.kind === "region" ? e.regionId : "")));
   return places.size > 1 ? `Covers the whole portfolio, not ${viewName}` : undefined;
+}
+
+/**
+ * A question that names several markets and an answer that covers only some of them: the label narrows to the
+ * markets answered and the note says which were not compared. Undefined when the answer covers all it was asked
+ * about, or cites none of them (an abstain).
+ */
+export function answeredMarkets(
+  ds: Dataset,
+  answer: Answer,
+): { label: string | undefined; note: string } | undefined {
+  if (answer.status !== "done" || answer.kind === "abstain") return undefined;
+  const named = marketsNamed(ds, answer.question);
+  if (named.length < 2) return undefined;
+  const cited = new Set(
+    answer.citations.flatMap((c) => {
+      if (!c.resolution.ok) return [];
+      return [marketOf(c.resolution.target.entity) ?? ""];
+    }),
+  );
+  const answered = named.filter((m) => cited.has(m.id));
+  if (answered.length === 0 || answered.length === named.length) return undefined;
+  const missing = named.filter((m) => !cited.has(m.id));
+  return {
+    label: askedLabel(
+      ds,
+      answer.question,
+      answer.context,
+      answered.map((m) => m.id),
+    ),
+    note: `Covers ${list(answered.map((m) => m.name))}; ${list(missing.map((m) => m.name))} not compared`,
+  };
 }
