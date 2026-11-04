@@ -236,7 +236,14 @@ function TotalRow({
         <TableCell className="text-right num">{total.revenue}</TableCell>
         <TableCell className="text-right num">{total.forecast}</TableCell>
         <TableCell className="text-right num">{total.priorYear}</TableCell>
-        <TableCell className="text-right num">{total.attainment}</TableCell>
+        <TableCell className="text-right num">
+          {total.attainment}
+          {total.attainmentNote ? (
+            <InfoTip label={`Differs from source: ${total.label} attainment`}>
+              {total.attainmentNote}
+            </InfoTip>
+          ) : null}
+        </TableCell>
         <TableCell className={cn("text-right num", signColour(total.growthDirection))}>
           {total.growth}
         </TableCell>

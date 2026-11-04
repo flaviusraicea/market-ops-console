@@ -376,6 +376,53 @@ describe("what changed", () => {
     );
   });
 
+  it("names the lowest market, not the largest gap in either direction", () => {
+    // China sits at 106.0% and APAC is entirely above plan, so no market is "furthest from plan".
+    expect(whatChangedVM(ds, { ...base, region: "apac" }).text).toMatch(
+      /^All markets are at or above plan; closest is \w[\w ]* at \d+\.\d%\.$/,
+    );
+    expect(whatChangedVM(ds, { ...base, region: "eu", market: "es" }).text).toBe(
+      "All markets are at or above plan; closest is Spain at 104.5%.",
+    );
+  });
+
+  it("cites a dip only when it is not after the selected month", () => {
+    const early = whatChangedVM(ds, {
+      ...base,
+      region: "eu",
+      market: "de",
+      period: "2025-04" as Period,
+    });
+    expect(early.text).not.toMatch(/drop in/);
+    const at = whatChangedVM(ds, {
+      ...base,
+      region: "eu",
+      market: "de",
+      period: "2026-03" as Period,
+    });
+    expect(at.text).toMatch(/drop in March/);
+  });
+
+  it("says so when a product filter cannot narrow the scope", () => {
+    expect(whatChangedVM(ds, { ...base, product: "calyx" }).text).toBe(
+      "Portfolio-level summary · not filtered by Calyx",
+    );
+    expect(whatChangedVM(ds, { ...base, region: "eu", product: "calyx" }).text).toBe(
+      "Europe summary · not filtered by Calyx",
+    );
+  });
+
+  it("recomputes for the product when a market and a product are selected", () => {
+    const text = whatChangedVM(ds, {
+      ...base,
+      region: "eu",
+      market: "de",
+      product: "veltrix",
+    }).text;
+    expect(text).toMatch(/^Veltrix in Germany is /);
+    expect(text).not.toMatch(/drop in/);
+  });
+
   it("labels the panel context", () => {
     expect(panelContextVM(ds, base).about).toBe("About Portfolio · May 2026");
     expect(panelContextVM(ds, { ...base, region: "eu", market: "de" }).about).toBe(

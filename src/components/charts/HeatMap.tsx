@@ -29,6 +29,8 @@ export type HeatCell = {
   momPct: number | undefined;
   /** Set on a flagged anomaly month: the source's note. The cell gets a mark and the tooltip a line. */
   anomaly?: string | undefined;
+  /** Set when the series sum differs from the reported figure: the cell gets a mark and the tooltip a line. */
+  differs?: string | undefined;
 };
 export type HeatRow = { id: string; name: string; cells: readonly HeatCell[] };
 
@@ -299,6 +301,9 @@ export function HeatMapTable({
             {row.cells.map((cell) => (
               <TableCell key={cell.period} className="text-right num">
                 {cell.display}
+                {cell.differs ? (
+                  <span className="sr-only"> Differs from source: {cell.differs}</span>
+                ) : null}
                 {cell.anomaly ? (
                   <>
                     <TriangleAlert

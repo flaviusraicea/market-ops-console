@@ -14,6 +14,7 @@ import {
   type Market,
   type Period,
   STATUS_LABEL,
+  STATUS_RULE_TEXT,
 } from "@/domain";
 import { formatMoneyCompact, formatPct, formatPeriodAbbr } from "@/lib/format";
 import { readQuestion } from "./horizon";
@@ -100,6 +101,14 @@ export function pickFixture(
       )
     : undefined;
   const namedMarket = scoped ? undefined : singleMarketNamed(ds, q);
+  // "Why is Spain off track?" asks for a cause. Only a curated answer has one; otherwise the data cannot say.
+  const broader =
+    /\bmarkets\b|portfolio/.test(q) || ds.regions.some((r) => q.includes(r.name.toLowerCase()));
+  const whyTarget =
+    namedMarket ?? (broader ? undefined : ds.markets.find((m) => m.id === view?.entity.marketId));
+  const whyStatus = /\bwhy\b/.test(q) && STATUS_WORDS.test(q);
+  if (whyStatus && whyTarget && !hits.some((f) => f.marketId === whyTarget.id))
+    return fillStatusWhyAbstain(ds, whyTarget);
   // "Why" asks for an explanation, which a market's curated or template answer gives; "Is Germany at risk?" asks for the status.
   if (namedMarket && STATUS_WORDS.test(q) && !/\bwhy\b/.test(q))
     return fillMarketStatus(ds, namedMarket);
@@ -166,6 +175,20 @@ function fillMarketStatus(ds: Dataset, market: Market): Fixture {
     id: "market-status",
     kind: "normal",
     answer: { text, citations, confidence: "medium" },
+  };
+}
+
+/** The abstain card for "why is X <status>" when nothing in the data explains it: it says what the data does hold. */
+function fillStatusWhyAbstain(ds: Dataset, market: Market): Fixture {
+  const { status, forecastAttainmentPct } = market.kpis;
+  const text =
+    `I can't say why ${market.name} is ${STATUS_LABEL[status].toLowerCase()}. The data records its status and ` +
+    `${formatPct(forecastAttainmentPct, { sign: false })} attainment as of ${formatPeriodAbbr(ds.meta.latestPeriod)}, ` +
+    `but not the drivers behind them. ${STATUS_RULE_TEXT}`;
+  return {
+    id: "status-why-abstain",
+    kind: "abstain",
+    answer: { text, citations: [], confidence: "low" },
   };
 }
 

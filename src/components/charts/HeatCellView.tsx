@@ -45,7 +45,7 @@ export const HeatCellView = memo(function HeatCellView({
       aria-colindex={ci + 2}
       aria-selected={isSelected}
       tabIndex={isTabStop ? 0 : -1}
-      aria-label={`${rowName}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast${cell.anomaly ? ", anomaly" : ""}`}
+      aria-label={`${rowName}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast${cell.anomaly ? ", anomaly" : ""}${cell.differs ? `, differs from source: ${cell.differs}` : ""}`}
       data-period={cell.period}
       data-market={rowId}
       className="tween-fill relative h-6 cursor-pointer rounded-[2px]"
@@ -60,6 +60,13 @@ export const HeatCellView = memo(function HeatCellView({
       onFocus={(e) => h.focus(e, ri, ci)}
       onBlur={h.blur}
     >
+      {cell.differs ? (
+        // Decorative: the cell's name and its tooltip carry the note. A bottom-left tick, so it never meets the anomaly mark.
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-0.5 left-0.5 size-1.5 rounded-full border border-ink bg-transparent"
+        />
+      ) : null}
       {cell.anomaly ? (
         // The mark is decorative: the cell's name already says anomaly. A surface halo keeps it legible on any fill.
         <TriangleAlert

@@ -97,6 +97,29 @@ export function kpiFor(
   };
 }
 
+/**
+ * data.json states each market's attainment twice for the latest month: `kpis` (reported) and the sum of its
+ * `series` facts. They differ by up to 1.1 points for all 13 markets, and neither is changed. The reported figure
+ * leads (tiles, verdict, badges, narrative); a sum is shown where a sum is the point (footers, heat cells) with
+ * this pair beside it. Undefined when the two agree at one decimal, or when no reported figure exists for the
+ * view (any other month, portfolio, region, product).
+ */
+export function attainmentPair(
+  ds: Dataset,
+  marketId: string,
+  period: Period,
+): { series: number; reported: number } | undefined {
+  if (period !== ds.meta.latestPeriod) return undefined;
+  const market = ds.markets.find((m) => m.id === marketId);
+  if (!market) return undefined;
+  const series = attainmentPct(
+    totals(factsFor(ds, { entity: { kind: "market", marketId }, periods: [period] })),
+  );
+  const reported = market.kpis.forecastAttainmentPct;
+  if (series === reported) return undefined;
+  return { series, reported };
+}
+
 type Mover = { market: Market; growthPct: number };
 
 export function topMovers(ds: Dataset, n = 3): { rising: Mover[]; falling: Mover[] } {

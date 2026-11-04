@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { POST } from "@/app/api/chat/route";
-import { type SseEvent } from "@/domain";
+import { STATUS_RULE_TEXT, type SseEvent } from "@/domain";
 import { ChatContextSchema, parseSseLine } from "@/domain/stream";
 import fixtures from "@/data/fixtures.json";
 
@@ -132,13 +132,23 @@ describe("/api/chat follows the view the question was asked from", () => {
     }
   });
 
-  it("answers an Overview Ask why on France about France, quoting the dashboard's own attainment", async () => {
+  it("abstains on an Ask why about a status when only the data's figures exist, citing the status rule", async () => {
     const { text, done } = await ask({
       question: "Why is France at risk?",
       context: { entity: { kind: "market", marketId: "fr" }, period: "2026-05" },
     });
-    expect(text).toMatch(/^France's revenue in May 2026 was .* 96\.4% attainment; /);
-    expect(done).toMatchObject({ confidence: "medium" });
+    expect(text).toMatch(/^I can't say why France is at risk\. /);
+    expect(text).toContain("96.4% attainment");
+    expect(text).toContain(STATUS_RULE_TEXT);
+    expect(done).toMatchObject({ kind: "abstain", citations: [] });
+  });
+
+  it("does not abstain on a question about several markets from a market view", async () => {
+    const { done } = await ask({
+      question: "Which markets are at risk this quarter, and why?",
+      context: { entity: { kind: "market", marketId: "fr" }, period: "2026-05" },
+    });
+    expect(done).toMatchObject({ kind: "normal" });
   });
 
   const germany = { entity: { kind: "market", marketId: "de" }, period: "2026-03" };

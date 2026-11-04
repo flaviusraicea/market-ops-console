@@ -721,23 +721,46 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
   };
 }
 
-/** The market in scope furthest from plan, as one sentence for the panel's empty state. */
+/**
+ * The panel's "What changed" sentence (Derived). Four shapes, each a pure function of the data:
+ * a product filter that cannot narrow the scope says so; otherwise the market furthest below plan; otherwise
+ * the closest to falling below; and a dip is only cited when it is not after the selected month.
+ */
 export function whatChangedVM(ds: Dataset, ctx: Context): { text: string } {
-  const candidates = marketsIn(ds, entityOf(ctx)).map((market) => ({
+  const productName = ctx.product ? ds.products.find((p) => p.id === ctx.product)?.name : undefined;
+  if (ctx.product && !ctx.market) {
+    const scope = ctx.region ? entityName(ds, entityOf(ctx)) : "Portfolio-level";
+    return { text: `${scope} summary · not filtered by ${productName ?? ctx.product}` };
+  }
+  const entity = entityOf(ctx);
+  const candidates = marketsIn(ds, entity).map((market) => ({
     market,
-    k: kpiFor(ds, { kind: "market", marketId: market.id }, ctx.period, "month"),
+    k: kpiFor(
+      ds,
+      ctx.product
+        ? { kind: "product", marketId: market.id, productId: ctx.product }
+        : { kind: "market", marketId: market.id },
+      ctx.period,
+      "month",
+    ),
   }));
-  const furthest = candidates.reduce((a, b) =>
-    Math.abs(b.k.attainmentPct - 100) > Math.abs(a.k.attainmentPct - 100) ? b : a,
-  );
-  const { market, k } = furthest;
-  let text = `${market.name} is furthest from plan: ${formatPct(k.attainmentPct, { sign: false })} of forecast and ${formatPct(k.growthPct, { sign: true })} on last year`;
-  const dip = market.kpis.anomalies.find((a) => a.type === "dip");
-  const mom = dip
-    ? momChangePct(ds, { kind: "market", marketId: market.id }, dip.period)
-    : undefined;
+  const lowest = candidates.reduce((a, b) => (b.k.attainmentPct < a.k.attainmentPct ? b : a));
+  const pct = (n: number) => formatPct(n, { sign: false });
+  if (lowest.k.attainmentPct >= 100) {
+    return {
+      text: `All markets are at or above plan; closest is ${lowest.market.name} at ${pct(lowest.k.attainmentPct)}.`,
+    };
+  }
+  const { market, k } = lowest;
+  const subject = productName ? `${productName} in ${market.name}` : market.name;
+  let text = `${subject} is furthest from plan: ${pct(k.attainmentPct)} of forecast and ${formatPct(k.growthPct, { sign: true })} on last year`;
+  const dip = ctx.product ? undefined : market.kpis.anomalies.find((a) => a.type === "dip");
+  const mom =
+    dip && dip.period <= ctx.period
+      ? momChangePct(ds, { kind: "market", marketId: market.id }, dip.period)
+      : undefined;
   if (dip && mom !== undefined) {
-    text += `, after a ${formatPct(Math.abs(mom), { sign: false })} drop in ${formatMonthName(dip.period)}`;
+    text += `, after a ${pct(Math.abs(mom))} drop in ${formatMonthName(dip.period)}`;
   }
   return { text: `${text}.` };
 }

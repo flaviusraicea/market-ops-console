@@ -133,8 +133,10 @@ export function useLiveVM<T>(
 ): T {
   const { engine, dataset } = useLiveState();
   const { ctx } = useConsoleContext();
+  // Only the latest month ticks. Any other selected month keeps the server's model, so history is never revised.
+  const ticking = engine !== null && ctx.period === engine.full.meta.latestPeriod;
   return useMemo(
-    () => (engine && dataset ? select(engine, dataset, ctx) : initial),
-    [engine, dataset, ctx, initial, select],
+    () => (engine && dataset && ticking ? select(engine, dataset, ctx) : initial),
+    [engine, dataset, ticking, ctx, initial, select],
   );
 }

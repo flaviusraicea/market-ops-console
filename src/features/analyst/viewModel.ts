@@ -4,6 +4,7 @@ import {
   sourceLabel,
   STATUS_RULE_TEXT,
   askWhyPrompt,
+  attainmentPair,
   attainmentPct,
   effectiveBasis,
   entityName,
@@ -127,6 +128,8 @@ export type GridTotalVM = {
   growth: string;
   growthDirection: "up" | "down" | "flat";
   units: string;
+  /** Set when the footer's series sum differs from the reported KPI: `Series sum 93.8% · reported KPI 93.0%`. */
+  attainmentNote?: string;
 };
 
 type GridBase = {
@@ -224,6 +227,8 @@ export type HeatCellVM = {
   forecast: number;
   /** The source's note when this month is a flagged anomaly for the market. */
   anomaly?: string;
+  /** Set when this cell's series sum differs from the reported KPI: `Series sum 92.2% · reported KPI 92.0%`. */
+  differs?: string;
 };
 export type HeatRowVM = { id: string; name: string; cells: HeatCellVM[] };
 export type HeatMapVM = {
@@ -287,10 +292,18 @@ function sparkFor(ds: Dataset, entity: Entity, anomalyPeriod?: string): SparkVM 
   };
 }
 
+/** `Series sum 93.8% · reported KPI 93.0%`, the note beside a sum that differs from the reported figure. */
+function pairNote(pair: { series: number; reported: number }): string {
+  const pct = (n: number) => formatPct(n, { sign: false });
+  return `Series sum ${pct(pair.series)} · reported KPI ${pct(pair.reported)}`;
+}
+
 function totalFor(ds: Dataset, entity: Entity, period: Period, label: string): GridTotalVM {
   const t = totals(factsFor(ds, { entity, periods: [period] }));
   const growth = growthPct(t);
+  const pair = entity.kind === "market" ? attainmentPair(ds, entity.marketId, period) : undefined;
   return {
+    ...(pair ? { attainmentNote: pairNote(pair) } : {}),
     label,
     revenue: formatMoneyCompact(t.actual),
     forecast: formatMoneyCompact(t.forecast),
@@ -592,8 +605,10 @@ function heatMapVM(ds: Dataset, ctx: Context): HeatMapVM {
       const momPct = before ? changePct(t.actual, before) : undefined;
       before = t.actual;
       const anomaly = m.kpis.anomalies.find((a) => a.period === period);
+      const pair = attainmentPair(ds, m.id, period);
       return {
         period,
+        ...(pair ? { differs: pairNote(pair) } : {}),
         momPct,
         value,
         display: formatPct(value, { sign: false }),
