@@ -121,7 +121,7 @@ function MapSvg({
   // The map frames the markets that matter, not the world: all of the portfolio's markets, or the drilled
   // region's. Land outside the frame is clipped by the SVG, so Europe's five markets fill the card on a drill.
   const framed = useMemo<FeatureCollection | undefined>(() => {
-    const shown = focus ? markets.filter((f) => focus.includes(marketIdOf(f)!)) : markets;
+    const shown = focus ? markets.filter((f) => focus.includes(marketIdOf(f) ?? "")) : markets;
     const features = shown.length ? shown : markets;
     return features.length
       ? { type: "FeatureCollection", features: features.map(mainland) }
@@ -168,17 +168,47 @@ function MapSvg({
     const k = prev.scale / scale;
     const tx = prev.translate[0] - k * translate[0];
     const ty = prev.translate[1] - k * translate[1];
+    // Hold the old view before paint, then start the move two frames later: the drill also re-renders the
+    // other charts, and a transition that starts in the same frames as that commit drops frames.
     g.style.transition = "none";
     g.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
-    void g.getBoundingClientRect();
-    g.style.transition = "transform var(--dur-chart) var(--ease-out)";
-    g.style.transform = "";
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => {
+        g.style.transition = "transform var(--dur-chart) var(--ease-out)";
+        g.style.transform = "";
+      });
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+      g.style.transition = "none";
+      g.style.transform = "";
+    };
   }, [scale, translate, width, height]);
 
   // Path strings are the expensive part (d3-geo projects every vertex), and a tooltip move re-renders this
   // component, so they are built once per geometry and size.
   const landD = useMemo(() => (land ? (path(land) ?? "") : ""), [land, path]);
   const marketD = useMemo(() => markets.map((f) => path(f) ?? ""), [markets, path]);
+
+  // Where each market's tooltip points: the middle and top of its mainland, so France's sits on France, not
+  // between France and French Guiana. A market whose mainland falls outside the frame after a drill is not
+  // drawn in view, so it leaves the keyboard order and the accessible map: Tab never lands on a hidden mark.
+  const anchors = useMemo(
+    () =>
+      markets.map((f) => {
+        const m = mainland(f);
+        const [x, y] = path.centroid(m);
+        const top = path.bounds(m)[0][1];
+        return { x, top, inView: x >= 0 && x <= width && y >= 0 && y <= height };
+      }),
+    [markets, path, width, height],
+  );
+  const reachable = useMemo(
+    () => markets.flatMap((_, i) => (anchors[i]?.inView ? [i] : [])),
+    [markets, anchors],
+  );
 
   const max = useMemo(() => Math.max(...Object.values(values).map((v) => v.value), 0), [values]);
 
@@ -209,27 +239,27 @@ function MapSvg({
     [markets, values, metricLabel, tip],
   );
 
+  // The keyboard walks the markets in view; its indices are positions in `reachable`.
   const keyboard = useChartKeyboard({
-    count: markets.length,
-    onActivate: (i) => {
-      const f = markets[i];
+    count: reachable.length,
+    onActivate: (k) => {
+      const f = markets[reachable[k] ?? -1];
       const id = f && marketIdOf(f);
       if (id) onSelect(id);
     },
-    onMove: (i) => pathRefs.current[i]?.focus(),
+    onMove: (k) => pathRefs.current[reachable[k] ?? -1]?.focus(),
     // Tab lands on the selected market, not the first one in the list.
     initialIndex: Math.max(
-      markets.findIndex((f) => marketIdOf(f) === selected),
+      reachable.findIndex((i) => marketIdOf(markets[i]!) === selected),
       0,
     ),
   });
 
   function onFocus(index: number, e: FocusEvent<SVGPathElement>) {
-    keyboard.setActiveIndex(index);
+    keyboard.setActiveIndex(Math.max(reachable.indexOf(index), 0));
     setRingIndex(e.currentTarget.matches(":focus-visible") ? index : null);
-    const wrap = wrapRef.current?.getBoundingClientRect();
-    const box = e.currentTarget.getBoundingClientRect();
-    if (wrap) showFor(index, box.left - wrap.left + box.width / 2, box.top - wrap.top);
+    const a = anchors[index];
+    if (a) showFor(index, a.x, Math.max(a.top, 0));
   }
 
   function onMouse(index: number, e: MouseEvent<SVGPathElement>) {
@@ -263,6 +293,7 @@ function MapSvg({
             const v = values[id]!;
             const isSelected = selected === id;
             const dim = !!focus && !focus.includes(id);
+            const k = reachable.indexOf(i);
             return (
               <path
                 key={id}
@@ -270,10 +301,14 @@ function MapSvg({
                   pathRefs.current[i] = el;
                 }}
                 d={marketD[i] ?? ""}
-                role="button"
-                tabIndex={i === keyboard.activeIndex ? 0 : -1}
+                {...(k < 0
+                  ? { "aria-hidden": true }
+                  : {
+                      role: "button",
+                      tabIndex: k === keyboard.activeIndex ? 0 : -1,
+                      "aria-pressed": isSelected,
+                    })}
                 aria-label={`${v.name}, ${v.statusLabel.toLowerCase()}, ${v.label}`}
-                aria-pressed={isSelected}
                 data-dim={dim}
                 fillOpacity={dim ? 0.6 : 1}
                 fill={`var(${scheme === "status" ? STATUS_FILL[v.status] : colourFor(metric, v.value, max)})`}
@@ -293,8 +328,9 @@ function MapSvg({
                 onClick={() => onSelect(id)}
                 onKeyDown={(e) => {
                   // A key press is keyboard use: draw the ring even if the market was focused by a click.
+                  if (k < 0) return;
                   setRingIndex(i);
-                  keyboard.onKeyDown(e, i);
+                  keyboard.onKeyDown(e, k);
                 }}
               />
             );

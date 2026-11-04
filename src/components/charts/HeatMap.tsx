@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+} from "react";
 
 import {
   Table,
@@ -52,6 +60,10 @@ type HeatMapProps = {
 };
 
 const NAME_COL = "6.5rem";
+/** The grid's gap between cells, and so between the name column and the first month. */
+const CELL_GAP = "2px";
+/** Where the first month column starts: past the market names and one gap. A legend under the plot starts here. */
+export const HEAT_PLOT_INSET = `calc(${NAME_COL} + ${CELL_GAP})`;
 const PAGE = 6;
 
 /**
@@ -200,8 +212,13 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
           aria-label={label}
           aria-rowcount={rows.length + 1}
           aria-colcount={nCols + 1}
-          className="grid min-w-[26rem] gap-[2px] bg-surface"
-          style={{ gridTemplateColumns: `${NAME_COL} repeat(${nCols}, minmax(0, 1fr))` }}
+          className="grid min-w-[26rem] gap-[var(--heat-gap)] bg-surface"
+          style={
+            {
+              gridTemplateColumns: `${NAME_COL} repeat(${nCols}, minmax(0, 1fr))`,
+              "--heat-gap": CELL_GAP,
+            } as CSSProperties
+          }
         >
           <div role="row" aria-rowindex={1} className="contents">
             <div

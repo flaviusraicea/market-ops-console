@@ -1,8 +1,8 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type CSSProperties } from "react";
 
-import { HeatMap, HeatMapTable } from "@/components/charts/HeatMap";
+import { HEAT_PLOT_INSET, HeatMap, HeatMapTable } from "@/components/charts/HeatMap";
 import { Legend } from "@/components/charts/Legend";
 import { ATTAINMENT_LEGEND } from "@/components/charts/scales";
 import { TableView, ViewAsTableToggle } from "@/components/charts/ViewAsTable";
@@ -62,8 +62,11 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
           table={<HeatMapTable caption={vm.title} rows={vm.rows} periods={vm.periods} />}
         />
         {pressed ? null : (
-          // The scale starts at the plot's first month column, past the 6.5rem market names (A4).
-          <div className="md:pl-[calc(6.5rem+2px)]">
+          // The scale starts at the plot's first month column, past the market names.
+          <div
+            className="md:pl-[var(--heat-inset)]"
+            style={{ "--heat-inset": HEAT_PLOT_INSET } as CSSProperties}
+          >
             <Legend
               label="Attainment colour scale"
               items={ATTAINMENT_LEGEND.map((b) => ({
