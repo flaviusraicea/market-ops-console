@@ -24,9 +24,10 @@ const withGlobalsToRoot: NonNullable<Preview["decorators"]>[number] = (Story, co
     density: string;
     reducedMotion: string;
   };
-  // Apply synchronously for the first render as well, so the a11y run sees the right tokens.
+  // Apply synchronously for the first render as well, so the a11y run sees the right tokens. The theme is set
+  // both ways: with no attribute, tokens.css follows prefers-color-scheme and Light would render dark on a dark OS.
   if (typeof document !== "undefined") {
-    setAttr("data-theme", theme === "dark" ? "dark" : null);
+    setAttr("data-theme", theme === "dark" ? "dark" : "light");
     setAttr("data-density", density === "analyst" ? "analyst" : null);
     setAttr("data-reduced-motion", reducedMotion === "on" ? "true" : null);
   }
