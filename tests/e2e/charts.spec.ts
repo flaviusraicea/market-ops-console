@@ -169,10 +169,13 @@ test("Overview cards put the provenance caption bottom-right of the card, not in
   for (const width of [1440, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await open(page, OVERVIEW);
-    for (const name of ["Needs attention", "By region"]) {
+    for (const [name, captionText] of [
+      ["Needs attention", /^Source · data\.json$/],
+      ["By region", /^(Source|Derived) · /],
+    ] as const) {
       const region = card(page, name);
       const header = region.locator('[data-slot="card-header"]');
-      const caption = region.locator("p.self-end").last();
+      const caption = region.getByText(captionText);
       const r = await region.boundingBox();
       const h = await header.boundingBox();
       const c = await caption.boundingBox();

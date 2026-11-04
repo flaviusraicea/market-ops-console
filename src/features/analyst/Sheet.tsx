@@ -1,5 +1,6 @@
 import { useId, type CSSProperties, type ReactNode, type Ref } from "react";
 
+import { CardCaption } from "@/components/CardHeader";
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { pageHeadingProps } from "@/lib/motion";
@@ -98,11 +99,7 @@ export function SheetSection({
       </div>
       {legend}
       {children}
-      {caption ? (
-        <p className="mt-2 self-end text-right text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
-          {caption}
-        </p>
-      ) : null}
+      {caption ? <CardCaption>{caption}</CardCaption> : null}
     </section>
   );
 }
