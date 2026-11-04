@@ -60,7 +60,10 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
   const dotRefs = useRef<Array<SVGCircleElement | null>>([]);
   const tip = useChartTooltip();
   const n = axes.length;
-  const labels = useMemo(() => measureLabels(axes), [axes]);
+  // Keyed on the names, not the array: a parent may pass a new array with the same axes on every render.
+  const axesKey = axes.join("\u0000");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- axesKey stands for axes
+  const labels = useMemo(() => measureLabels(axes), [axesKey]);
   const geometry = useMemo<Geometry>(
     () => ({
       cx: width / 2,
