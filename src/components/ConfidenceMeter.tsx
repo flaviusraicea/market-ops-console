@@ -1,6 +1,5 @@
 import { ICON_STROKE, Shield, ShieldAlert, ShieldCheck } from "@/components/icons";
 import { cn } from "@/components/cn";
-import { Eyebrow } from "@/components/Eyebrow";
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
@@ -33,7 +32,7 @@ export function ConfidenceMeter({
 }: {
   level: ConfidenceLevel;
   className?: string;
-  /** The answer card's header form: `CONFIDENCE ▬▬▬ ✓ High`. The accessible name stays the full sentence. */
+  /** The answer card's header form: `▬▬▬ ✓ High` (the meter says what it is). The accessible name stays the full sentence. */
   compact?: boolean;
 }) {
   const { bars, word, meaning, Icon } = LEVELS[level];
@@ -45,7 +44,6 @@ export function ConfidenceMeter({
         aria-label={label}
         className={cn("inline-flex items-center gap-1.5", className)}
       >
-        <Eyebrow>Confidence</Eyebrow>
         <span aria-hidden className="inline-flex gap-[2px]">
           {[1, 2, 3].map((n) => (
             <span

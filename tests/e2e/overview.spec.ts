@@ -80,7 +80,7 @@ test("the attention list ranks the flagged markets and Ask why sends", async ({ 
   await expect(page.getByRole("region", { name: "Conversation" })).toContainText(
     "Why did Germany's revenue dip?",
   );
-  await expect(page.getByText("You asked, about Germany · May 2026:")).toBeVisible();
+  await expect(page.getByText("Asked about Germany · May 2026")).toBeVisible();
   await expect(page.getByRole("list", { name: "Citations" })).toBeVisible({ timeout: 8000 });
   await expect(composer).toBeFocused();
 });
@@ -144,7 +144,7 @@ test("the revenue tile carries a 24-month trend", async ({ page }) => {
   await expect(
     page
       .getByRole("group", { name: "PORTFOLIO REVENUE" })
-      .getByRole("img", { name: "24-month revenue trend, latest $22.85M" }),
+      .getByRole("img", { name: "24-month revenue trend, latest $22.9M" }),
   ).toBeVisible();
 });
 

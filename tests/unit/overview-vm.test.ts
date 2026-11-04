@@ -35,7 +35,7 @@ describe("overview view model", () => {
     expect(strings(base)).toEqual([
       {
         label: "PORTFOLIO REVENUE",
-        headline: "$22.85M",
+        headline: "$22.9M",
         delta: "+7.3% vs May 2025",
         direction: "up",
         provenance: "Derived · sum of series",
@@ -43,7 +43,7 @@ describe("overview view model", () => {
       {
         label: "FORECAST ATTAINMENT",
         headline: "100.4%",
-        delta: "+$0.10M vs forecast",
+        delta: "+$102K vs forecast",
         direction: "up",
         provenance: "Derived · sum of series",
       },
@@ -75,7 +75,7 @@ describe("overview view model", () => {
     });
     expect(tiles[1]).toMatchObject({
       headline: "92.0%",
-      delta: "−$0.14M vs forecast",
+      delta: "−$141K vs forecast",
       direction: "down",
     });
     expect(tiles[2]).toMatchObject({ headline: "−9.7%", direction: "down" });
@@ -330,7 +330,7 @@ describe("revenue trend", () => {
     const tile = overviewVM(ds, base).tiles[0];
     expect(tile?.trend?.actual).toHaveLength(24);
     expect(tile?.trend?.forecast).toHaveLength(24);
-    expect(tile?.trend?.label).toBe("24-month revenue trend, latest $22.85M");
+    expect(tile?.trend?.label).toBe("24-month revenue trend, latest $22.9M");
   });
   it("follows the entity in scope", () => {
     const tile = overviewVM(ds, { ...base, region: "eu", market: "de" }).tiles[0];

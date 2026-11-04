@@ -4,8 +4,8 @@ import { expect, test } from "@playwright/test";
 import { open } from "./helpers";
 
 const TILES = [
-  { label: "PORTFOLIO REVENUE", headline: "$22.85M", delta: "+7.3% vs May 2025" },
-  { label: "FORECAST ATTAINMENT", headline: "100.4%", delta: "+$0.10M vs forecast" },
+  { label: "PORTFOLIO REVENUE", headline: "$22.9M", delta: "+7.3% vs May 2025" },
+  { label: "FORECAST ATTAINMENT", headline: "100.4%", delta: "+$102K vs forecast" },
   { label: "GROWTH, YEAR ON YEAR", headline: "+7.3%", delta: "YTD +6.1% vs 2025" },
   { label: "NEEDS ATTENTION", headline: "6 of 13", delta: "4 at risk · 2 off track" },
 ];

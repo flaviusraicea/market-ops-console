@@ -81,8 +81,9 @@ function PanelBody({
     onSubmit?.(question);
     machine.submit(question, about);
     // Focus stays in the textarea after Send (also when Send was clicked or a suggestion was picked), except that
-    // picking a suggestion on a touch screen must not raise the keyboard over the answer.
-    if (!(keepKeyboardDown && coarse)) ref.current?.focus();
+    // picking a suggestion on a touch screen must not raise the keyboard over the answer. The panel is in view (it is
+    // sticky), so moving focus must never scroll the page: Chrome otherwise scrolls a sticky field "into view".
+    if (!(keepKeyboardDown && coarse)) ref.current?.focus({ preventScroll: true });
   }
 
   // An "Ask why" button elsewhere either fills the composer or has sent its question already (see AnswerMachine).
@@ -113,7 +114,7 @@ function PanelBody({
   function fill(text: string) {
     setDraft(text);
     setPending(null);
-    ref.current?.focus();
+    ref.current?.focus({ preventScroll: true });
   }
 
   return (
@@ -124,7 +125,8 @@ function PanelBody({
       className={cn(
         "relative flex flex-col gap-4 p-[var(--pad-card)]",
         sheet
-          ? "h-full min-h-0 bg-surface-overlay"
+          ? // The answer list's bottom fade ends in the panel's own background.
+            "h-full min-h-0 bg-surface-overlay [--panel-bg:var(--surface-overlay)]"
           : [
               "rounded-sheet layer-raised",
               // From 1024 px the panel is sticky in its column. ShellGrid's data-panel hides it once closed, after
@@ -148,12 +150,12 @@ function PanelBody({
             </Eyebrow>
           </h2>
           <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-            Answers are AI-generated. Numbers link to source.
+            Every answer cites its source.
           </span>
         </div>
         <Button
           type="button"
-          variant="secondary"
+          variant="ghost"
           size="icon"
           aria-label="Collapse assistant"
           aria-controls="assistant-panel"

@@ -314,6 +314,24 @@
         "confidence": "low"
       },
       "error": "Simulated upstream failure: the model service timed out. Ask anything containing the phrase 'force error' to exercise your error state."
+    },
+    {
+      "id": "off-topic",
+      "kind": "abstain",
+      "answer": {
+        "text": "I can't answer that from this data. Try a market, region, product or KPI.",
+        "citations": [],
+        "confidence": "low"
+      }
+    },
+    {
+      "id": "why-status",
+      "kind": "abstain",
+      "answer": {
+        "text": "I can't say why from this data. It gives each market's status and figures, not the reasons behind them.",
+        "citations": [],
+        "confidence": "low"
+      }
     }
   ]
 }

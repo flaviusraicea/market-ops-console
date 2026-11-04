@@ -18,6 +18,7 @@ export {
   Info,
   Link2,
   MapPin,
+  RotateCw,
   Minus,
   Moon,
   Package,

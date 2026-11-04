@@ -30,7 +30,7 @@ test("the differs note leads the chip area and the sources table is open", async
     "aria-expanded",
     "true",
   );
-  await expect(page.getByRole("region", { name: "Sources table" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Sources" })).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
@@ -40,7 +40,7 @@ test("the echo says where the question was asked", async ({ page }) => {
   await page.goto("/");
   await ask(page, "Which markets are at risk?");
   await expect(page.locator('[data-slot="question-echo"]')).toHaveText(
-    "You asked, about Portfolio · May 2026:Which markets are at risk?",
+    "Asked about Portfolio · May 2026Which markets are at risk?",
   );
 });
 

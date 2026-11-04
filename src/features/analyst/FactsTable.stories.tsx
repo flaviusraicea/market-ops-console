@@ -3,6 +3,7 @@ import { expect, userEvent, waitFor, within } from "storybook/test";
 
 import { dataset as ds, portfolioMay, withDataset } from "../../../.storybook/decorators";
 
+import { formatPeriodAbbr } from "@/lib/format";
 import { FactsTable } from "./FactsTable";
 import { factsVM } from "./viewModel";
 
@@ -32,7 +33,7 @@ export const AllFacts: Story = {
     await waitFor(() => {
       const row = canvasElement.querySelector('tr[aria-rowindex="1561"]');
       expect(row).not.toBeNull();
-      expect(row).toHaveTextContent(last.period);
+      expect(row).toHaveTextContent(formatPeriodAbbr(last.period));
     });
     await expect(canvasElement.querySelectorAll("tr").length).toBeLessThan(40);
 
