@@ -12,6 +12,6 @@ export function avatarTriggerProps(role: Role) {
     // is not part of it would fail WCAG 2.5.3 (Label in Name).
     "data-initials": user.initials,
     className:
-      "flex size-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[length:var(--text-label)] leading-none font-semibold text-accent after:content-[attr(data-initials)]",
+      "flex size-7 shrink-0 items-center justify-center rounded-pill bg-accent-soft text-[length:var(--text-label)] leading-none font-semibold text-accent after:content-[attr(data-initials)]",
   } as const;
 }

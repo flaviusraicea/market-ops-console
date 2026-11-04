@@ -50,7 +50,7 @@ export type CommandPaletteProps = {
 
 function Kbd({ children }: { children: ReactNode }) {
   return (
-    <kbd className="rounded-[4px] border border-border bg-surface px-1 font-sans text-[length:var(--text-caption)] leading-4 text-ink-2">
+    <kbd className="rounded-mark border border-border bg-surface px-1 font-sans text-[length:var(--text-caption)] leading-4 text-ink-2">
       {children}
     </kbd>
   );
@@ -132,7 +132,7 @@ export function CommandPalette({
                     key={item.id}
                     value={item.id}
                     onSelect={() => choose(item)}
-                    className="flex min-h-10 cursor-default items-center gap-3 rounded-control px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink data-[selected=true]:bg-accent-soft"
+                    className="flex min-h-10 cursor-default items-center gap-3 rounded-menu px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink data-[selected=true]:bg-accent-soft"
                   >
                     <Icon
                       aria-hidden

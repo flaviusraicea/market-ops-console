@@ -59,7 +59,7 @@ export function KpiTile({
         "@container/kpi flex min-w-0 flex-col gap-1",
         // The Overview tile is its own card; the Analyst cell is one section of the ruled strip.
         variant === "tile"
-          ? "rounded-card layer-card p-[var(--pad-card)]"
+          ? "rounded-sheet layer-card p-[var(--pad-card)]"
           : "px-[var(--pad-card)] py-3",
         className,
       )}
