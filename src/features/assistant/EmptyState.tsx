@@ -24,7 +24,7 @@ export function EmptyState({
       {context.about ? (
         <div
           data-ai
-          className="flex flex-col gap-1 rounded-card border border-ai-border bg-ai-bg p-3"
+          className="flex flex-col gap-1 rounded-sheet border border-ai-border bg-ai-bg p-3"
         >
           <Eyebrow className="text-ai-label">Context</Eyebrow>
           <p className="font-medium text-ink">{context.about}</p>

@@ -67,7 +67,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
             "You asked:"
           )}
         </p>
-        <p className="max-w-[92%] rounded-card border border-border bg-surface-2 px-3 py-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink">
+        <p className="max-w-[92%] rounded-sheet border border-border bg-surface-2 px-3 py-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink">
           {question}
         </p>
       </div>
@@ -145,7 +145,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
 
 function Card({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 rounded-card border border-ai-border bg-ai-bg shadow-card p-[var(--pad-card)]">
+    <div className="flex flex-col gap-3 rounded-sheet border border-ai-border bg-ai-bg shadow-card p-[var(--pad-card)]">
       {children}
     </div>
   );
@@ -241,7 +241,7 @@ function DiffersNote({ children, long }: { children: ReactNode; long?: boolean }
   return (
     <p
       role="note"
-      className={`inline-flex max-w-full items-start gap-1.5 ${long ? "rounded-card" : "rounded-pill"} bg-warn-bg px-2.5 py-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-warn-text`}
+      className={`inline-flex max-w-full items-start gap-1.5 ${long ? "rounded-control" : "rounded-pill"} bg-warn-bg px-2.5 py-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-warn-text`}
     >
       <TriangleAlert aria-hidden className="mt-0.5 size-3 shrink-0" strokeWidth={ICON_STROKE} />
       <span>{children}</span>

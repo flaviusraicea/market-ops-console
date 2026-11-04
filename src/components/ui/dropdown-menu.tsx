@@ -29,7 +29,7 @@ function DropdownMenuContent({
         sideOffset={sideOffset}
         align={align}
         className={cn(
-          "z-50 min-w-60 overflow-hidden rounded-card layer-overlay p-1 text-ink",
+          "z-50 min-w-60 overflow-hidden rounded-sheet layer-overlay p-1 text-ink",
           className,
         )}
         {...props}
@@ -52,7 +52,7 @@ function DropdownMenuLabel({
 }
 
 const itemClass =
-  "relative flex w-full cursor-default items-center gap-2 rounded-control py-1.5 pr-2 pl-8 text-[length:var(--text-body)] leading-[var(--text-body-lh)] outline-hidden select-none focus:bg-accent-soft focus:text-ink data-[disabled]:pointer-events-none data-[disabled]:text-ink-disabled";
+  "relative flex w-full cursor-default items-center gap-2 rounded-menu py-1.5 pr-2 pl-8 text-[length:var(--text-body)] leading-[var(--text-body-lh)] outline-hidden select-none focus:bg-accent-soft focus:text-ink data-[disabled]:pointer-events-none data-[disabled]:text-ink-disabled";
 
 function DropdownMenuItem({
   className,

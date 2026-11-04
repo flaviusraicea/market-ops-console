@@ -281,7 +281,7 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
     return (
       <section
         aria-labelledby="attention-h"
-        className="flex flex-col gap-3 rounded-card layer-card p-[var(--pad-card)]"
+        className="flex flex-col gap-3 rounded-sheet layer-card p-[var(--pad-card)]"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-x-4">
           <Eyebrow as="h3" id="attention-h">
@@ -307,7 +307,7 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
   return (
     <section
       aria-labelledby="attention-h"
-      className="flex flex-col gap-3 rounded-card layer-card p-[var(--pad-card)]"
+      className="flex flex-col gap-3 rounded-sheet layer-card p-[var(--pad-card)]"
     >
       <CardHeader title="Needs attention" titleId="attention-h" subtitle={attention.caption} />
       {attention.rows.length === 0 ? (

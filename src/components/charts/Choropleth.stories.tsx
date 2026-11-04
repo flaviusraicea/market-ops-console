@@ -14,32 +14,6 @@ const geoModules = import.meta.glob<FeatureCollection>("../../../public/geo/mark
 });
 const realGeo = Object.values(geoModules)[0] as FeatureCollection;
 
-const square = (x: number, y: number, w: number, h: number) => ({
-  type: "Polygon" as const,
-  coordinates: [
-    [
-      [x, y],
-      [x + w, y],
-      [x + w, y + h],
-      [x, y + h],
-      [x, y],
-    ],
-  ],
-});
-
-const fixtureGeo: FeatureCollection = {
-  type: "FeatureCollection",
-  features: [
-    {
-      type: "Feature",
-      properties: { kind: "land" },
-      geometry: { type: "MultiPolygon", coordinates: [[square(-20, -10, 60, 60).coordinates[0]!]] },
-    },
-    { type: "Feature", properties: { marketId: "de" }, geometry: square(6, 47, 9, 8) },
-    { type: "Feature", properties: { marketId: "fr" }, geometry: square(-4, 42, 10, 9) },
-  ],
-};
-
 const two: Record<string, MarketValue> = {
   de: {
     name: "Germany",
@@ -72,7 +46,7 @@ const meta = {
     ),
   ],
   args: {
-    geo: fixtureGeo,
+    geo: realGeo,
     values: two,
     metric: "attainment",
     metricLabel: "Attainment",
@@ -85,10 +59,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const TwoMarkets: Story = {
+  // The served geometry, so the map is projected and fitted exactly as in the app; only two markets have values.
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     const de = await canvas.findByRole("button", { name: "Germany, off track, 92.0% attainment" });
     const fr = canvas.getByRole("button", { name: "France, on track, 104.5% attainment" });
+    await expect(canvas.getAllByRole("button")).toHaveLength(2);
     await expect(de).toHaveAttribute("role", "button");
 
     // Land carries the dedicated token and the hairline outline in both themes.

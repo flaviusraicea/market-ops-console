@@ -8,7 +8,7 @@ const meta = {
   component: SourcesTable,
   decorators: [
     (Story) => (
-      <div className="max-w-[380px] rounded-card border border-ai-border bg-ai-bg p-4">
+      <div className="max-w-[380px] rounded-sheet border border-ai-border bg-ai-bg p-4">
         <Story />
       </div>
     ),

@@ -8,6 +8,18 @@ test("serves the shell", async ({ page }) => {
   await expect(page.getByText(/data through may 2026/i).locator("visible=true")).toBeVisible();
 });
 
+test("the console and the sign-in screen ask search engines not to index them", async ({
+  page,
+}) => {
+  for (const path of ["/", "/sign-in"]) {
+    await page.goto(path);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex, nofollow",
+    );
+  }
+});
+
 test("theme toggle sets data-theme and persists across reload", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");

@@ -20,7 +20,8 @@
     "docs:a11y": "tsx scripts/gen-a11y-docs.ts",
     "build:geo": "tsx scripts/build-geo.ts",
     "format:check": "prettier --check .",
-    "ci": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm check:contrast && pnpm docs:a11y --check && pnpm test && pnpm build && pnpm check:budget && pnpm build-storybook"
+    "ci": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm check:contrast && pnpm check:radius && pnpm docs:a11y --check && pnpm test && pnpm build && pnpm check:budget && pnpm build-storybook",
+    "check:radius": "tsx scripts/check-radius.ts"
   },
   "dependencies": {
     "@tailwindcss/postcss": "4.3.3",
