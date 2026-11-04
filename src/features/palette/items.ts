@@ -28,7 +28,7 @@ export type PaletteItem = {
   /** `accent` colours the meta text (market status). */
   tone?: "accent";
   icon: PaletteIcon;
-  /** Extra words the fuzzy filter also matches on. */
+  /** Extra words the filter also matches on, as whole-word prefixes. */
   keywords?: string[];
   action: PaletteAction;
 };
@@ -142,19 +142,50 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
   return groups;
 }
 
+/** A match at the start of a word (cmdk scores these about 0.8 to 0.9). When any item has one, weaker matches drop. */
+const STRONG = 0.5;
+/** A run of the query inside a word ("ana" in Canada). Scattered letters score lower and never show. */
+const WEAK = 0.1;
+/** A keyword counts only when one of its words starts with the query: "ana" finds Analyst, not "animation". */
+const KEYWORD = 0.9;
+
+/** How well `item` matches `q`: cmdk's fuzzy score on the label, or a keyword's whole-word prefix. */
+export function scoreItem(item: PaletteItem, q: string): number {
+  const label = defaultFilter(item.label, q, []);
+  const needle = q.toLowerCase();
+  const keyword = (item.keywords ?? []).some((k) =>
+    k
+      .toLowerCase()
+      .split(/\s+/)
+      .some((word) => word.startsWith(needle)),
+  );
+  return Math.max(label, keyword ? KEYWORD : 0);
+}
+
 /**
- * Applies the query with cmdk's own fuzzy scorer, keeps the group order, and drops empty groups.
+ * Applies the query and ranks what is left, so the highlighted first row is always the best match.
+ * - Strong matches win: when any item matches at a word start, only those show; otherwise in-word runs show.
+ * - Items are sorted by score inside their group, and groups by their best item. Ties keep catalogue order.
  * A query that matches nothing offers `Ask: "{query}"`, so there is always a way forward.
  */
 export function filterGroups(groups: PaletteGroup[], query: string): PaletteGroup[] {
   const q = query.trim();
   if (!q) return groups;
-  const kept = groups
-    .map((g) => ({
-      ...g,
-      items: g.items.filter((item) => defaultFilter(item.label, q, item.keywords ?? []) > 0),
-    }))
-    .filter((g) => g.items.length > 0);
+  const scored = groups.map((g) => ({
+    ...g,
+    items: g.items.map((item) => ({ item, score: scoreItem(item, q) })),
+  }));
+  const best = Math.max(0, ...scored.flatMap((g) => g.items.map((i) => i.score)));
+  const floor = best >= STRONG ? STRONG : WEAK;
+  const kept = scored
+    .map((g) => {
+      // Array.prototype.sort is stable, so equal scores keep catalogue order.
+      const items = g.items.filter((i) => i.score >= floor).sort((a, b) => b.score - a.score);
+      return { group: g, items, top: items[0]?.score ?? 0 };
+    })
+    .filter((g) => g.items.length > 0)
+    .sort((a, b) => b.top - a.top)
+    .map(({ group, items }) => ({ ...group, items: items.map((i) => i.item) }));
 
   if (kept.length > 0) return kept;
   return [

@@ -25,6 +25,7 @@ import {
   type PaletteIcon,
   type PaletteItem,
 } from "./items";
+import { useShortcutLabel } from "./useShortcutLabel";
 
 const ICONS: Record<PaletteIcon, typeof Search> = {
   market: MapPin,
@@ -71,6 +72,7 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const ds = useDataset();
   const [query, setQuery] = useState("");
+  const shortcut = useShortcutLabel();
   const pending = useRef<PaletteAction | null>(null);
 
   const groups = useMemo(
@@ -170,7 +172,7 @@ export function CommandPalette({
             </span>
           </span>
           <span className="flex items-center gap-1.5" aria-hidden>
-            Command palette · <Kbd>⌘K</Kbd>
+            Command palette · <Kbd>{shortcut}</Kbd>
           </span>
         </div>
       </Command>
