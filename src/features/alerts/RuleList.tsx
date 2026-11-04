@@ -42,11 +42,21 @@ export function RuleList({
           actions={
             <>
               {deleteReadOnly ? (
-                <Button type="button" variant="secondary" onClick={() => onSwitchToAnalyst?.()}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSwitchToAnalyst?.()}
+                >
                   Switch to Analyst
                 </Button>
               ) : null}
-              <Button type="button" variant="ghost" onClick={() => onDismissDeleteFailed?.()}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onDismissDeleteFailed?.()}
+              >
                 Dismiss
               </Button>
             </>
