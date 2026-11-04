@@ -15,59 +15,59 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 2. Live
 3. Paused
 4. Executive
-5. Switch to dark theme
-6. Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu
-7. Period
-8. Product. Select a market first.
-9. About this verdict
-10. Drill into North America · 2
-11. United States, on track
-12. Canada, on track
-13. Drill into Europe · 5
-14. Germany, off track
-15. Spain, off track
-16. Italy, at risk
-17. United Kingdom, at risk
-18. France, at risk
-19. Drill into APAC · 4
-20. Japan, on track
-21. China, on track
-22. India, on track
-23. Australia, on track
-24. Drill into LATAM · 2
-25. Brazil, at risk
-26. Mexico, on track
-27. About portfolio revenue
-28. About forecast attainment
-29. About year-on-year growth
-30. About markets needing attention
-31. Germany
-32. Ask why Germany dipped
-33. Spain
-34. Ask why Spain is off track
-35. Italy
-36. Ask why Italy is at risk
-37. United Kingdom
-38. Ask why United Kingdom is at risk
-39. Brazil
-40. Ask why Brazil is at risk
-41. France
-42. Ask why France is at risk
-43. Drill into China, On track, +18.2%
-44. Drill into France, At risk, +11.6%
-45. Drill into Canada, On track, +10.7%
-46. Drill into Germany, Off track, −9.7%
-47. Drill into Spain, Off track, −4.6%
-48. View as table of the markets map
-49. Australia, on track, 101.8% attainment
-50. Drill into North America, $4.38M, On track, 101.0%
-51. Drill into Europe, $7.06M, At risk, 95.4%
-52. Drill into APAC, $9.49M, On track, 104.9%
-53. Drill into LATAM, $1.92M, At risk, 98.0%
-54. Collapse assistant
-55. Ask about a market or period…
-56. Send
-57. Open command palette
+5. Search and commands
+6. Switch to dark theme
+7. Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu
+8. Period
+9. Product. Select a market first.
+10. About this verdict
+11. Drill into North America · 2
+12. United States, on track
+13. Canada, on track
+14. Drill into Europe · 5
+15. Germany, off track
+16. Spain, off track
+17. Italy, at risk
+18. United Kingdom, at risk
+19. France, at risk
+20. Drill into APAC · 4
+21. Japan, on track
+22. China, on track
+23. India, on track
+24. Australia, on track
+25. Drill into LATAM · 2
+26. Brazil, at risk
+27. Mexico, on track
+28. About portfolio revenue
+29. About forecast attainment
+30. About year-on-year growth
+31. About markets needing attention
+32. Germany
+33. Ask why Germany dipped
+34. Spain
+35. Ask why Spain is off track
+36. Italy
+37. Ask why Italy is at risk
+38. United Kingdom
+39. Ask why United Kingdom is at risk
+40. Brazil
+41. Ask why Brazil is at risk
+42. France
+43. Ask why France is at risk
+44. Drill into China, On track, +18.2%
+45. Drill into France, At risk, +11.6%
+46. Drill into Canada, On track, +10.7%
+47. Drill into Germany, Off track, −9.7%
+48. Drill into Spain, Off track, −4.6%
+49. View as table of the markets map
+50. Australia, on track, 101.8% attainment
+51. Drill into North America, $4.38M, On track, 101.0%
+52. Drill into Europe, $7.06M, At risk, 95.4%
+53. Drill into APAC, $9.49M, On track, 104.9%
+54. Drill into LATAM, $1.92M, At risk, 98.0%
+55. Collapse assistant
+56. Ask about a market or period…
+57. Send
 58. Which markets are at risk?
 59. Why did Germany dip?
 60. Compare APAC and Europe
@@ -80,50 +80,50 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 4. Live
 5. Paused
 6. Analyst
-7. Switch to dark theme
-8. Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu
-9. Period
-10. Product
-11. Month
-12. Status rule
-13. All facts
-14. About Germany revenue
-15. About forecast attainment
-16. Differs from source: forecast variance
-17. About year-on-year growth
-18. About status
-19. Products · Germany, scrollable
-20. Product
-21. Revenue
-22. Forecast
-23. Prior year
-24. Attainment
-25. Growth YoY
-26. Units
-27. Veltrix $574K $620K $639K 92.7% −10.1% 3,431
-28. Nuvora $405K $445K $444K 91.1% −8.7% 1,120
-29. Orbispan $322K $350K $355K 91.9% −9.3% 1,157
-30. Calyx $229K $245K $257K 93.4% −10.9% 858
-31. Zephyra $147K $159K $163K 92.6% −10.0% 1,052
-32. Differs from source: Germany attainment
-33. Attainment
-34. View as table of the markets map
-35. Germany, off track, 92.0% attainment
-36. Drill into North America, $4.38M, On track, 101.0%
-37. Drill into Europe, $7.06M, At risk, 95.4%
-38. Drill into APAC, $9.49M, On track, 104.9%
-39. Drill into LATAM, $1.92M, At risk, 98.0%
-40. View as table of the Germany revenue chart
-41. Month
-42. Anomaly: March 2026 revenue fell 27 percent versus February
-43. View as table of the compare radar chart
-44. France, Attainment: 96.4%
-45. View as table of the attainment by month heat map
-46. Differs from source: latest month
-47. Germany, May 2026, 92.2% of forecast, differs from source: reported KPI 92.0%
-48. AlertsNo rules
-49. Open assistant
-50. Open command palette
+7. Search and commands
+8. Switch to dark theme
+9. Signed in as Dana Whitfield, Executive role, alerts read-only. Account menu
+10. Period
+11. Product
+12. Month
+13. Status rule
+14. All facts
+15. About Germany revenue
+16. About forecast attainment
+17. Differs from source: forecast variance
+18. About year-on-year growth
+19. About status
+20. Products · Germany, scrollable
+21. Product
+22. Revenue
+23. Forecast
+24. Prior year
+25. Attainment
+26. Growth YoY
+27. Units
+28. Veltrix $574K $620K $639K 92.7% −10.1% 3,431
+29. Nuvora $405K $445K $444K 91.1% −8.7% 1,120
+30. Orbispan $322K $350K $355K 91.9% −9.3% 1,157
+31. Calyx $229K $245K $257K 93.4% −10.9% 858
+32. Zephyra $147K $159K $163K 92.6% −10.0% 1,052
+33. Differs from source: Germany attainment
+34. Attainment
+35. View as table of the markets map
+36. Germany, off track, 92.0% attainment
+37. Drill into North America, $4.38M, On track, 101.0%
+38. Drill into Europe, $7.06M, At risk, 95.4%
+39. Drill into APAC, $9.49M, On track, 104.9%
+40. Drill into LATAM, $1.92M, At risk, 98.0%
+41. View as table of the Germany revenue chart
+42. Month
+43. Anomaly: March 2026 revenue fell 27 percent versus February
+44. View as table of the compare radar chart
+45. France, Attainment: 96.4%
+46. View as table of the attainment by month heat map
+47. Differs from source: latest month
+48. Germany, May 2026, 92.2% of forecast, differs from source: reported KPI 92.0%
+49. AlertsNo rules
+50. Open assistant
 <!-- tab-order:end -->
 
 ### Shortcuts

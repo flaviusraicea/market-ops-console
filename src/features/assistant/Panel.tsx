@@ -188,9 +188,9 @@ function PanelBody({
         note={pending?.note ?? null}
         simulated={isSimulated(live)}
       />
-      {/* After the composer in the DOM so the composer stays first in tab order; placed top right. */}
-      <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:right-[calc(var(--pad-card)+var(--control-h)+8px)]">
-        <PaletteButton />
+      {/* The sheet below 1024 px only: from there the page header's search button is the one entry point. */}
+      <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:hidden">
+        <PaletteButton placement="phone" />
       </div>
       <AnswerList
         answers={answers}

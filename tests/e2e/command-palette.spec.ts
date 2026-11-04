@@ -5,7 +5,7 @@ import { open } from "./helpers";
 
 const palette = (page: Page) => page.getByRole("dialog", { name: "Command palette" });
 const input = (page: Page) => palette(page).getByRole("combobox");
-const opener = (page: Page) => page.getByRole("button", { name: "Open command palette" });
+const opener = (page: Page) => page.getByRole("button", { name: "Search and commands" });
 
 test("Ctrl+K focuses the palette input; germ + Enter drills to Germany and focus lands on the verdict", async ({
   page,
@@ -26,23 +26,10 @@ test("Ctrl+K focuses the palette input; germ + Enter drills to Germany and focus
   await expect(page.locator("#verdict-h")).toBeFocused();
 });
 
-test("the assistant header button opens it, and Escape returns focus to the button", async ({
+test("the header search button opens it, and Escape returns focus to the button", async ({
   page,
 }) => {
   await open(page, "/?mode=analyst");
-  await opener(page).click();
-  await expect(input(page)).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(palette(page)).toBeHidden();
-  await expect(opener(page)).toBeFocused();
-});
-
-test("the rail icon on Analyst opens it, and Escape returns focus to the icon", async ({
-  page,
-}) => {
-  await open(page, "/?mode=analyst");
-  await page.waitForLoadState("networkidle");
-  await expect(page.locator("#assistant-panel")).toBeHidden();
   await opener(page).click();
   await expect(input(page)).toBeFocused();
   await page.keyboard.press("Escape");
@@ -124,7 +111,8 @@ test.describe("phone", () => {
 
   test("opens as a full-height sheet and Go to Germany works", async ({ page }) => {
     await page.goto("/");
-    await opener(page).tap();
+    // The phone bar keeps its own label; the header's search button starts at 1024 px.
+    await page.getByRole("button", { name: "Open command palette" }).tap();
     // The sheet enters with a short scale and rise; measure it once it has settled.
     await palette(page).evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
     const box = await palette(page).boundingBox();
