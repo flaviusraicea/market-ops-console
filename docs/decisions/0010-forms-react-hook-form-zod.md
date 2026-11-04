@@ -17,4 +17,4 @@ react-hook-form with `AlertRuleSchema`, shared by the form, the route handler an
 
 ## Consequences
 
-One schema end to end. A "Simulate failure" switch in Analyst mode demonstrates rollback.
+One schema end to end. A "Demo · simulate a failed save" switch in Analyst mode demonstrates rollback.

@@ -32,8 +32,9 @@ export function Verdict({ verdict }: { verdict: VerdictVM }) {
       {/* The header's stamp is hidden under 768 px; the Overview carries it here instead. */}
       <DataStamp latestPeriod={verdict.latestPeriod} className="md:hidden" />
       {/* The ⓘ sits inline after the last word, so it reads as a footnote mark on the sentence, not a far-right control.
-          The heading keeps the global focus ring; its radius makes the ring follow the wrapped text. */}
-      <div className="text-balance">
+          The heading keeps the global focus ring; its radius makes the ring follow the wrapped text. The block
+          reserves two display lines: a one-line verdict after a drill then leaves the KPI strip where it was. */}
+      <div className="min-h-[calc(2*var(--text-display-lh))] text-balance">
         <h2
           id="verdict-h"
           {...pageHeadingProps}

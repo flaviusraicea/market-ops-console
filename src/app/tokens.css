@@ -267,17 +267,22 @@ html[data-density="analyst"] {
   --grid-cols: 3;
 }
 
-/* Chrome does not follow density: the desktop header re-declares the Executive values, so it is identical in both
-   modes. (data-density stays on <html> so portalled popovers keep it.) Below 1024 px the phone and tablet header is
-   frozen as it was. */
+/* Chrome does not follow density. Density is for the data surface (tiles, tables, chart cards and their popovers)
+   only; the controls around it (the header, the toolbar card, the assistant panel column, the command palette and
+   the menus those controls open) carry `data-chrome` and re-declare the Executive values, so they are identical in
+   both modes. Every derived token is restated as a number: a var() formula on :root resolves on <html>, where the
+   Analyst values apply, and the chrome would inherit the already-resolved number. (data-density stays on <html> so
+   the data surface's portalled popovers keep it.) Below 1024 px the phone and tablet chrome is frozen as it was. */
 @media (min-width: 1024px) {
-  .app-header {
+  [data-chrome] {
     --space-unit: 8px;
     --gap: 16px;
     --control-h: 36px;
+    --track-h: 36px;
     --chip-h: 24px;
     --text-body: 14px;
     --text-body-lh: 20px;
+    --composer-row: 34px;
   }
 }
 
@@ -291,8 +296,9 @@ html[data-density="analyst"] {
     --row-h: 44px;
   }
   @media (min-width: 1024px) {
-    .app-header {
+    [data-chrome] {
       --control-h: 44px;
+      --track-h: 48px;
       --chip-h: 36px;
     }
   }

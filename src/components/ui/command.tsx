@@ -31,6 +31,7 @@ function CommandDialog({
         <DialogOverlay />
         <DialogPrimitive.Content
           data-slot="command-dialog"
+          data-chrome=""
           onCloseAutoFocus={onCloseAutoFocus}
           className={cn(
             "fixed top-[104px] left-1/2 z-50 flex w-[600px] max-w-[calc(100%-2rem)] -translate-x-1/2 flex-col overflow-hidden rounded-sheet layer-overlay text-ink outline-none",

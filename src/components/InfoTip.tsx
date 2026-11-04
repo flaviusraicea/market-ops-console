@@ -85,10 +85,11 @@ export function InfoTip({
             text
               ? cn(buttonVariants({ variant: "ghost" }), className)
               : cn(
-                  "relative inline-flex size-5 items-center justify-center rounded-control after:absolute after:-inset-3",
+                  "relative inline-flex items-center justify-center rounded-control after:absolute after:-inset-3",
+                  // The warn mark sits beside other controls, so its own box is the 24 px target (WCAG 2.5.8).
                   tone === "warn"
-                    ? "text-warn-mark hover:text-warn-text"
-                    : "text-ink-muted hover:text-ink",
+                    ? "size-6 text-warn-mark hover:text-warn-text"
+                    : "size-5 text-ink-muted hover:text-ink",
                   className,
                 )
           }

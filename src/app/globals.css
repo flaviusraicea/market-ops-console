@@ -377,7 +377,7 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   transform: none;
 }
 
-/* Heat-map cell states (Fable ruling). Selected: an offset ring, a 2 px surface gap then 2 px ink, which clears 1.4.11
+/* Heat-map cell states. Selected: an offset ring, a 2 px surface gap then 2 px ink, which clears 1.4.11
    on every fill where the accent did not. Hover: a 2 px ink outline drawn inside the cell plus a small lift, so hover is
    not a movement alone. Keyboard focus keeps the global ring, which differs from selection by colour and by the gap;
    on a selected cell it steps outside the ink ring behind its own 2 px surface gap, so it never touches the ink or a
@@ -525,8 +525,10 @@ html[data-reduced-motion="true"] .heat-cell:hover {
     --control-h: 32px;
     --gap: 12px;
     --text-body: 14px;
-    /* 18 + the composer's 14 px of padding = one 32 px control, so the empty composer is level with Send. */
     --text-body-lh: 18px;
+    /* 18 + the composer's 14 px of padding = one 32 px control, so the empty composer is level with Send. Stated as
+       a number: the :root formula resolves on <html>, in the dashboard's density. */
+    --composer-row: 32px;
   }
 }
 
