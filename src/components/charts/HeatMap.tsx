@@ -77,6 +77,9 @@ let measureCanvas: HTMLCanvasElement | undefined;
 /** Width of the fade at a side that can still scroll, in px (Tailwind `w-6`). */
 const FADE = 24;
 const PAGE = 6;
+/** A scroll this soon after the reader's wheel, pointer, touch or key input is theirs. */
+const INTENT_MS = 1000;
+
 /**
  * Markets by month, coloured by forecast attainment (ADR 0008). A roving-tabindex grid: one tab stop,
  * arrows move, PageUp and PageDown jump six months, Enter selects the cell.
@@ -108,6 +111,8 @@ export function HeatMap({
   // so it holds for any font, zoom or panel width. Until measured, every third month from the latest.
   const [layout, setLayout] = useState<(LabelLayout & { phone: boolean }) | null>(null);
   const measureRef = useRef<() => void>(() => {});
+  // Whether the grid follows its latest month through resizes (see the measure below).
+  const pinnedRef = useRef(true);
   const periodsRef = useRef(periods);
   useLayoutEffect(() => {
     periodsRef.current = periods;
@@ -118,14 +123,20 @@ export function HeatMap({
     const grid = row?.parentElement;
     if (!el || !row || !grid) return;
     let overflowed = false;
-    // Whether the reader has left the grid at its end. Only scroll events change it, so a resize (the assistant
-    // docking narrows the card over 400 ms, which raises the maximum scroll without a scroll event) keeps it.
-    let pinned = true;
-    const onScrollEnd = () => {
-      pinned = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
+    // The grid stays at its end through every resize (the assistant docking narrows the card over 400 ms) until the
+    // reader scrolls it. Only a scroll that follows the reader's own input counts: scroll events arrive a frame
+    // late, so the one our own write causes can report "not at the end" mid-resize. Read before the scroll's
+    // measure runs, so a reader's scroll is never pulled back to the end.
+    let intentAt = -Infinity;
+    const intent = () => {
+      intentAt = performance.now();
     };
-    el.addEventListener("scroll", onScrollEnd, { passive: true });
-    const measure = () => {
+    const INTENT_EVENTS = ["wheel", "pointerdown", "touchstart", "keydown"] as const;
+    for (const type of INTENT_EVENTS) el.addEventListener(type, intent, { passive: true });
+    const measure = (fromScroll = false) => {
+      if (fromScroll && performance.now() - intentAt < INTENT_MS)
+        pinnedRef.current = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
+      const pinned = pinnedRef.current;
       const overflow = el.scrollWidth > el.clientWidth + 1;
       // The grid opens at its end, and again whenever it starts to overflow, as when the assistant docks. It stays
       // at its end through every resize until the reader scrolls away.
@@ -177,21 +188,22 @@ export function HeatMap({
           : next2,
       );
     };
-    measureRef.current = measure;
+    measureRef.current = () => measure(true);
     measure();
-    const ro = new ResizeObserver(measure);
+    const ro = new ResizeObserver(() => measure());
     ro.observe(el);
     ro.observe(grid);
     // The web font can arrive after the first measure and widen the labels without resizing the grid.
     const fonts = typeof document !== "undefined" ? document.fonts : undefined;
     let live = true;
     void fonts?.ready.then(() => live && measure());
-    fonts?.addEventListener("loadingdone", measure);
+    const onFonts = () => measure();
+    fonts?.addEventListener("loadingdone", onFonts);
     return () => {
       live = false;
-      el.removeEventListener("scroll", onScrollEnd);
+      for (const type of INTENT_EVENTS) el.removeEventListener(type, intent);
       ro.disconnect();
-      fonts?.removeEventListener("loadingdone", measure);
+      fonts?.removeEventListener("loadingdone", onFonts);
     };
   }, []);
 
@@ -209,6 +221,8 @@ export function HeatMap({
     const right = box.right - parseFloat(pad.paddingRight);
     const by = c.left < left ? c.left - left : c.right > right ? c.right - right : 0;
     if (Math.abs(by) < 1) return;
+    // A selected month to the left of the view takes the grid off its end, so a resize does not scroll it away.
+    if (by < 0) pinnedRef.current = false;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollBy({ left: by, behavior: reduce ? "auto" : "smooth" });
   }, [selectedCol]);
@@ -346,8 +360,9 @@ export function HeatMap({
   return (
     <div ref={wrapRef} className="relative">
       {differsNote ? (
-        // Outside the grid, so the roving tab stop stays one; it sits over the latest month's column header.
-        <div className="absolute top-0 right-0 z-[2]">
+        // Outside the grid, so the roving tab stop stays one; it sits beside the latest month's label in the column
+        // header row. A phone keeps it above the grid, where its every-third-month labels leave no room beside.
+        <div className="absolute top-0 right-0 z-[2] max-md:-top-5">
           <InfoTip label="Differs from source: latest month" tone="warn">
             {differsNote}
           </InfoTip>
@@ -385,9 +400,7 @@ export function HeatMap({
                 role="columnheader"
                 aria-colindex={i + 2}
                 data-month=""
-                className={cn(
-                  "relative h-4 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted",
-                )}
+                className="relative h-4 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
               >
                 <span className="sr-only">{formatPeriodAbbr(p)}</span>
                 {/* The last month in view ends at the visible edge instead of running past it. */}
@@ -399,7 +412,7 @@ export function HeatMap({
                       "absolute bottom-0 whitespace-nowrap",
                       labels.get(i) === "end" ? "right-0" : "left-0",
                       // Ends 16 px before the edge, leaving room for the warning mark beside the latest month.
-                      differsNote && i === nCols - 1 && "pr-4",
+                      differsNote && i === nCols - 1 && "md:pr-4",
                     )}
                   >
                     {/* A phone has columns about 20 px wide: the month alone keeps neighbouring labels apart. */}

@@ -46,24 +46,30 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
           fixedBox
           chart={
             <div className="flex flex-col gap-3">
-              <HeatMap
-                rows={vm.rows}
-                periods={vm.periods}
-                selected={selected}
-                label={vm.title}
-                differsNote={vm.differsNote}
-                onCell={(market, period) => setContext({ market, period: toPeriod(period) })}
-                onAsk={({ market, marketName, period, momPct }) =>
-                  prefill(
-                    cellQuestion(marketName, period, momPct),
-                    askContext({ kind: "market", marketId: market }, marketName, toPeriod(period)),
-                    "the heat map cell",
-                  )
-                }
-              />
-              <p className="mt-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-                {vm.hint}
-              </p>
+              <div>
+                <HeatMap
+                  rows={vm.rows}
+                  periods={vm.periods}
+                  selected={selected}
+                  label={vm.title}
+                  differsNote={vm.differsNote}
+                  onCell={(market, period) => setContext({ market, period: toPeriod(period) })}
+                  onAsk={({ market, marketName, period, momPct }) =>
+                    prefill(
+                      cellQuestion(marketName, period, momPct),
+                      askContext(
+                        { kind: "market", marketId: market },
+                        marketName,
+                        toPeriod(period),
+                      ),
+                      "the heat map cell",
+                    )
+                  }
+                />
+                <p className="mt-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+                  {vm.hint}
+                </p>
+              </div>
               {/* The scale starts at the plot's first month column, past the market names. */}
               <div
                 className="md:pl-[var(--heat-inset)]"

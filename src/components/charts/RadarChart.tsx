@@ -184,10 +184,10 @@ export function RadarChart(props: RadarChartProps) {
   );
 }
 
-/** One row per series with the raw values, one column per axis. */
 /** Short column heads for a narrow table, by axis position (the five axes are fixed). */
 const SHORT_HEADS = ["Attain", "Growth", "Share", "MoM", "Units"] as const;
 
+/** One row per series with the raw values, one column per axis. */
 export function RadarChartTable({
   caption,
   rowLabel = "Market",

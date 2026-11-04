@@ -8,7 +8,7 @@ Status: accepted, decided on 2026-11-04.
 
 ## Decision
 
-Density applies to the data surface only. `.app-header` re-declares the Executive values (`--control-h`, `--chip-h`, `--text-body`, `--text-body-lh`, `--gap`, `--space-unit`), so the header is identical in both modes. `data-density` stays on `<html>` so portalled popovers keep it. Touch sizes (44 px) still apply.
+Density applies to the data surface only. `.app-header` re-declares the Executive values (`--control-h`, `--chip-h`, `--text-body`, `--text-body-lh`, `--gap`, `--space-unit`) at 1024 px and up, so the desktop header is identical in both modes. The phone and tablet header below 1024 px is unchanged. `data-density` stays on `<html>` so portalled popovers keep it. Touch sizes (44 px) still apply.
 
 ## Consequences
 

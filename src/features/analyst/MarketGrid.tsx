@@ -55,8 +55,6 @@ function rowProps(selected: boolean, onSelect: () => void, landed = false) {
   return {
     "data-landing-target": "",
     "data-landed": landed ? "" : undefined,
-    // A landed row is focused from code, so it draws no ring of its own; the landing ring marks it.
-    "data-focus-ring": landed ? ("none" as const) : undefined,
     tabIndex: 0,
     "aria-selected": selected ? ("true" as const) : undefined,
     "data-state": selected ? "selected" : undefined,
