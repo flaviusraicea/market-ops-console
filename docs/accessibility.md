@@ -99,11 +99,11 @@ Recorded from the production build at 1440 px, one Tab at a time from the skip l
 23. Attainment
 24. Growth YoY
 25. Units
-26. Veltrix $0.57M $0.62M $0.64M 92.7% −10.1% 3,431
-27. Nuvora $0.40M $0.44M $0.44M 91.1% −8.7% 1,120
-28. Orbispan $0.32M $0.35M $0.35M 91.9% −9.3% 1,157
-29. Calyx $0.23M $0.24M $0.26M 93.4% −10.9% 858
-30. Zephyra $0.15M $0.16M $0.16M 92.6% −10.0% 1,052
+26. Veltrix $574K $620K $639K 92.7% −10.1% 3,431
+27. Nuvora $405K $445K $444K 91.1% −8.7% 1,120
+28. Orbispan $322K $350K $355K 91.9% −9.3% 1,157
+29. Calyx $229K $245K $257K 93.4% −10.9% 858
+30. Zephyra $147K $159K $163K 92.6% −10.0% 1,052
 31. Attainment
 32. View as table of the markets map
 33. Germany, off track, 92.0% attainment
