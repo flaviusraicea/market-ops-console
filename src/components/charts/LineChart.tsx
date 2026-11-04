@@ -422,7 +422,7 @@ export function LineChartTable({
             key={p.period}
             data-period={p.period}
             {...(p.period === selectedPeriod
-              ? { "data-state": "selected", "aria-current": "true" as const }
+              ? { "data-state": "selected", "aria-selected": "true" as const }
               : {})}
           >
             <TableCell className="font-medium">

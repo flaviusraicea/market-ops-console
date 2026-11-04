@@ -128,7 +128,12 @@ export function MarketsTable({ map }: { map: OverviewVM["map"] }) {
       </TableHeader>
       <TableBody>
         {map.rows.map((r) => (
-          <TableRow key={r.id} {...(map.selected === r.id ? { "data-state": "selected" } : {})}>
+          <TableRow
+            key={r.id}
+            {...(map.selected === r.id
+              ? { "data-state": "selected", "aria-selected": "true" as const }
+              : {})}
+          >
             <TableCell className="font-medium">{r.name}</TableCell>
             <TableCell className="text-ink-2 max-md:px-2 max-md:whitespace-normal">
               {r.region}

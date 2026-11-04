@@ -88,7 +88,7 @@ test("the time-series table shows compact dollars with the exact figure on hover
   const selected = table.locator('tr[data-state="selected"]');
   await expect(selected).toHaveCount(1);
   await expect(selected).toHaveAttribute("data-period", "2026-05");
-  await expect(selected).toHaveAttribute("aria-current", "true");
+  await expect(selected).toHaveAttribute("aria-selected", "true");
   const actual = selected.locator("td").nth(1);
   await expect(actual).toHaveText(/^\$\d\.\d{2}M$/);
   await expect(actual).toHaveAttribute("title", /^\$[\d,]+$/);

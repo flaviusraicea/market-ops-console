@@ -90,13 +90,6 @@
   background-color: var(--surface);
   box-shadow: var(--shadow-card);
 }
-/* The selected row of any list or table: a tint and a 3 px accent edge, so a selection reads the same everywhere. */
-@utility selected-row {
-  background-color: var(--accent-soft);
-  box-shadow:
-    inset 3px 0 0 var(--accent),
-    inset 0 1px 0 var(--selected-edge);
-}
 @utility layer-raised {
   border: 1px solid var(--border);
   background-color: var(--surface-raised);

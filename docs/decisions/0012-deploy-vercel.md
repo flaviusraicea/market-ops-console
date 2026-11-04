@@ -4,7 +4,7 @@ Status: accepted, decided on 2026-11-02.
 
 ## Context
 
-The app and the streaming route need a zero-configuration host with preview deployments.
+The app and the streaming route need a zero-configuration host that can be deployed by hand.
 
 ## Options
 
@@ -13,7 +13,7 @@ The app and the streaming route need a zero-configuration host with preview depl
 
 ## Decision
 
-Vercel, with a preview per pull request and `main` as production. A second project builds Storybook.
+Vercel, with `main` as production and a second project for Storybook. Git-triggered deploys are off (`git.deploymentEnabled: false` in `vercel.json`, and `github.silent`), so nothing builds or comments on a push and a deploy is started by hand.
 
 ## Consequences
 
