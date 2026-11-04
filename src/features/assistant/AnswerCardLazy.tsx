@@ -64,7 +64,8 @@ export function AnswerCard(props: ComponentProps<Card>) {
         actions={
           <Button
             type="button"
-            variant="secondary"
+            variant="ghost"
+            size="sm"
             onClick={() => {
               setFailed(false);
               request();

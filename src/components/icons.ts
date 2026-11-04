@@ -32,6 +32,7 @@ export {
   SunMoon,
   Table as TableIcon,
   TriangleAlert,
+  WifiOff,
   X,
 } from "lucide-react";
 export const ICON_STROKE = 1.75;

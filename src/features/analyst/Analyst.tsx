@@ -1,6 +1,7 @@
 import type { Context } from "@/domain";
 import { overviewVM, regionBarsVM } from "@/features/overview/viewModel";
 import { ErrorBoundary } from "@/features/shell/ErrorBoundary";
+import { OfflineNotice } from "@/features/shell/OfflineNotice";
 import { DatasetProvider } from "@/lib/context/dataset";
 import { lightDataset } from "@/lib/context/invariants";
 import { getDataset } from "@/lib/dataset";
@@ -37,6 +38,7 @@ export function Analyst({ ctx }: { ctx: Context }) {
         matDisabled={vm.matDisabled}
         statusRule={vm.statusRule}
       />
+      <OfflineNotice />
       <Sheet style={reserveStyle(vm.grid.rows.length, Boolean(ctx.market))}>
         <ErrorBoundary widget="kpi-strip">
           <LiveKpiStrip tiles={overview.tiles} provenance={overview.tilesProvenance} />

@@ -8,7 +8,13 @@ import { ChevronDown, ICON_STROKE } from "@/components/icons";
 import { Eyebrow } from "@/components/Eyebrow";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
-import { readRuleSummaries, subscribeToSummaries, summaryOf } from "@/features/alerts/summary";
+import {
+  readRuleSummaries,
+  readRulesLoadFailed,
+  subscribeToLoadFailed,
+  subscribeToSummaries,
+  summaryOf,
+} from "@/features/alerts/summary";
 import { useRole } from "@/lib/role";
 import { canEditAlerts } from "@/lib/roles";
 import { createStoredState } from "@/lib/storedState";
@@ -38,6 +44,7 @@ export function AlertsSection({
   onSwitchToAnalyst?: () => void;
 }) {
   const rules = useSyncExternalStore(subscribeToSummaries, readRuleSummaries, () => NO_RULES);
+  const loadFailed = useSyncExternalStore(subscribeToLoadFailed, readRulesLoadFailed, () => false);
   const headingId = useId();
   const open = useSyncExternalStore(openState.subscribe, readOpen, () => false);
 
@@ -61,7 +68,7 @@ export function AlertsSection({
             />
             <Eyebrow className="text-ink">Alerts</Eyebrow>
             <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-normal text-ink-muted">
-              {summaryOf(rules)}
+              {loadFailed ? "Couldn’t load rules" : summaryOf(rules)}
             </span>
           </CollapsibleTrigger>
         </h3>

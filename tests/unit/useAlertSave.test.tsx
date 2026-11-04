@@ -226,3 +226,25 @@ describe("normalizeRules", () => {
     expect(order(normalizeRules([...rows].reverse()))).toEqual(expected);
   });
 });
+
+describe("useAlertSave load failure", () => {
+  it("reports a failed load instead of an empty list, and Retry reads again", async () => {
+    let fail = true;
+    const api = {
+      listRules: vi.fn(() => (fail ? Promise.reject(new Error("500")) : Promise.resolve([saved]))),
+      saveRule: vi.fn(),
+      deleteRule: vi.fn(),
+    };
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    const { result } = renderHook(() => useAlertSave(api), { wrapper });
+    await waitFor(() => expect(result.current.loadFailed).toBe(true));
+    expect(result.current.rules).toEqual([]);
+    fail = false;
+    act(() => result.current.reload());
+    await waitFor(() => expect(result.current.loadFailed).toBe(false));
+    expect(result.current.rules).toHaveLength(1);
+  });
+});
