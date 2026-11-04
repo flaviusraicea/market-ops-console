@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { z } from "@/domain/zod";
 
 import { ROLE_COOKIE, ROLES, roleCookie } from "@/lib/roles";
 

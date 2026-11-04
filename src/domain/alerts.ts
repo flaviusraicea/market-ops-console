@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod";
 
 import { RegionIdSchema, type Dataset, type Entity, type Market } from "./dataset";
 import { marketsIn } from "./scope";

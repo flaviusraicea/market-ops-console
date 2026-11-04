@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod";
 
 import { EntitySchema, PeriodSchema, RegionIdSchema } from "./dataset";
 import { CONFIDENCES, SSE_KINDS } from "./sseGuard";
