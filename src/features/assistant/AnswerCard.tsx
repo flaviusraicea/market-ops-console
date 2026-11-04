@@ -94,7 +94,7 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
           <Notice
             title="Request failed"
             actions={
-              <Button type="button" variant="secondary" onClick={onRetry}>
+              <Button type="button" variant="ghost" size="sm" onClick={onRetry}>
                 Retry
               </Button>
             }

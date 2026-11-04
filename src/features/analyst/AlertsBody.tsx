@@ -1,12 +1,13 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { QueryClient, QueryClientContext, QueryClientProvider } from "@tanstack/react-query";
+import { useContext, useEffect, useState } from "react";
 
 import { Notice } from "@/components/Notice";
 import { Button } from "@/components/ui/button";
 import { AlertForm } from "@/features/alerts/AlertForm";
 import { RuleList } from "@/features/alerts/RuleList";
+import { setRulesLoadFailed } from "@/features/alerts/summary";
 import { useAlertSave } from "@/features/alerts/useAlertSave";
 
 export type AlertsBodyProps = {
@@ -16,11 +17,25 @@ export type AlertsBodyProps = {
 
 function Body({ readOnly, onSwitchToAnalyst }: AlertsBodyProps) {
   const alerts = useAlertSave();
+  const [loadDismissed, setLoadDismissed] = useState(false);
+  useEffect(() => setRulesLoadFailed(alerts.loadFailed), [alerts.loadFailed]);
   return (
     <>
+      {alerts.loadFailed ? (
+        // The list is never shown as empty after a failed read; Dismiss only hides the notice.
+        <Notice
+          tone="error"
+          title="Couldn’t load alert rules"
+          open={!loadDismissed}
+          retrying={alerts.reloading}
+          onRetry={alerts.reload}
+          onDismiss={() => setLoadDismissed(true)}
+          className="mt-0 mb-0"
+        />
+      ) : null}
       {readOnly ? (
         <Notice
-          tone="neutral"
+          tone="fallback"
           title="Read-only for Executives."
           actions={
             <Button type="button" variant="ghost" size="sm" onClick={() => onSwitchToAnalyst?.()}>
@@ -41,16 +56,18 @@ function Body({ readOnly, onSwitchToAnalyst }: AlertsBodyProps) {
         onDismiss={alerts.dismiss}
         onSwitchToAnalyst={onSwitchToAnalyst}
       />
-      <RuleList
-        rules={alerts.rules}
-        onDelete={alerts.remove}
-        deleteFailed={alerts.deleteFailed}
-        onDismissDeleteFailed={alerts.dismissDeleteFailed}
-        deleteReadOnly={alerts.deleteReadOnly}
-        onSwitchToAnalyst={onSwitchToAnalyst}
-        readOnly={readOnly}
-        saving={alerts.status === "saving"}
-      />
+      {alerts.loadFailed ? null : (
+        <RuleList
+          rules={alerts.rules}
+          onDelete={alerts.remove}
+          deleteFailed={alerts.deleteFailed}
+          onDismissDeleteFailed={alerts.dismissDeleteFailed}
+          deleteReadOnly={alerts.deleteReadOnly}
+          onSwitchToAnalyst={onSwitchToAnalyst}
+          readOnly={readOnly}
+          saving={alerts.status === "saving"}
+        />
+      )}
     </>
   );
 }
@@ -61,7 +78,9 @@ function Body({ readOnly, onSwitchToAnalyst }: AlertsBodyProps) {
  * by the alert mutations alone, so its provider lives here too.
  */
 export function AlertsBody(props: AlertsBodyProps) {
-  const [client] = useState(() => new QueryClient());
+  // A host that already provides a client (a test, a story) keeps it.
+  const outer = useContext(QueryClientContext);
+  const [client] = useState(() => outer ?? new QueryClient());
   return (
     <QueryClientProvider client={client}>
       <Body {...props} />

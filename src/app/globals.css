@@ -593,3 +593,39 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
     }
   }
 }
+
+/* Notice (inline tones): enters with opacity and a 4px rise, leaves with opacity only. The blanket reduced-motion rule above
+   shortens both to nothing, and the translate is dropped so only opacity is ever animated for those users. */
+@keyframes notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes notice-out {
+  to {
+    opacity: 0;
+  }
+}
+.page-notice {
+  animation: notice-in var(--dur-base) var(--ease-out);
+}
+.page-notice[data-leaving="true"] {
+  animation: notice-out var(--dur-fast) var(--ease-in) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-notice {
+    animation-name: notice-fade;
+  }
+}
+@keyframes notice-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A control whose navigation is held and being retried (notice-spec pending state): no spinner, just quieter. */
+[data-nav-busy] {
+  opacity: 0.6;
+  cursor: progress;
+}

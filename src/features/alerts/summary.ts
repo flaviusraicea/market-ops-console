@@ -66,3 +66,21 @@ export function subscribeToSummaries(onChange: () => void): () => void {
     window.removeEventListener(RULES_CHANGED, onChange);
   };
 }
+
+// Whether the open section's last read of the rules failed. The form reports it, so the folded row can say
+// "Couldn’t load rules" instead of a count it cannot trust, without loading the form's code itself.
+let loadFailed = false;
+const loadListeners = new Set<() => void>();
+
+export function setRulesLoadFailed(next: boolean) {
+  if (next === loadFailed) return;
+  loadFailed = next;
+  for (const l of loadListeners) l();
+}
+
+export const readRulesLoadFailed = () => loadFailed;
+
+export function subscribeToLoadFailed(onChange: () => void): () => void {
+  loadListeners.add(onChange);
+  return () => loadListeners.delete(onChange);
+}
