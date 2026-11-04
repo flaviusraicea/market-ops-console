@@ -28,8 +28,9 @@ export function Sheet({
 }
 
 /**
- * One ruled section of the sheet: eyebrow title, a muted subtitle on the same line, the provenance caption
- * and actions on the right. The eyebrow and subtitle name the region landmark.
+ * One ruled section of the sheet: eyebrow title and a muted subtitle on the same line, the actions (the
+ * View as table toggle) on the right, top-aligned with the eyebrow. The provenance caption sits bottom-right of
+ * the card body, never in the title row. The eyebrow and subtitle name the region landmark.
  */
 export function SheetSection({
   eyebrow,
@@ -71,11 +72,11 @@ export function SheetSection({
     >
       <div
         data-slot="card-header"
-        className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1"
+        className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 md:flex-nowrap"
       >
         <h3
           {...(pageHeading ? pageHeadingProps : {})}
-          className="flex min-w-0 flex-wrap items-baseline gap-x-3"
+          className="flex min-w-0 flex-wrap items-baseline gap-x-3 md:flex-1"
         >
           <Eyebrow id={id} className={allProducts ? "text-ink-2" : "text-ink"}>
             {eyebrow}
@@ -89,19 +90,19 @@ export function SheetSection({
             </span>
           ) : null}
         </h3>
-        {caption || actions ? (
-          <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
-            {caption ? (
-              <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-                {caption}
-              </p>
-            ) : null}
+        {actions ? (
+          <div className="flex flex-wrap items-start justify-end gap-x-3 gap-y-2 md:shrink-0">
             {actions}
           </div>
         ) : null}
       </div>
       {legend}
       {children}
+      {caption ? (
+        <p className="mt-2 self-end text-right text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
+          {caption}
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -132,3 +132,33 @@ test("series legends sit on their own row under the title at every width, scale 
     expect(sc.y - (g.y + g.height)).toBeGreaterThanOrEqual(11);
   }
 });
+
+for (const [width, rail] of [
+  [1440, "with the rail open"],
+  [1280, ""],
+] as const) {
+  test(
+    `the radar toggle is top-aligned with the title and the caption sits bottom-right ${rail || "at 1280"}`.trim(),
+    async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await open(page, `${EUROPE}&market=de`);
+      const region = card(page, /^Compare/);
+      const header = region.locator('[data-slot="card-header"]');
+      const eyebrow = header.getByRole("heading").locator("span").first();
+      const toggle = header.getByRole("button", { name: /^View as table/ });
+      const caption = region.getByText(/derived · share from data\.json/);
+      const e = await eyebrow.boundingBox();
+      const t = await toggle.boundingBox();
+      const c = await caption.boundingBox();
+      const r = await region.boundingBox();
+      const h = await header.boundingBox();
+      if (!e || !t || !c || !r || !h) throw new Error("radar card not laid out");
+      // The toggle's top matches the eyebrow's line, give or take the button's own padding.
+      expect(Math.abs(t.y - h.y)).toBeLessThanOrEqual(6);
+      expect(Math.abs(e.y - h.y)).toBeLessThanOrEqual(6);
+      // The caption is below the chart, flush with the card's right padding, and not in the title row.
+      expect(c.y).toBeGreaterThanOrEqual(h.y + h.height);
+      expect(r.x + r.width - (c.x + c.width)).toBeLessThanOrEqual(40);
+    },
+  );
+}
