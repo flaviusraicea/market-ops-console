@@ -2,42 +2,46 @@ import { expect, test } from "@playwright/test";
 
 import { open } from "./helpers";
 
-test("after a drill, the map's keyboard order holds only the markets in view", async ({ page }) => {
+test("a drill never moves or zooms the map, and every market stays reachable", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await open(page, "/?mode=executive&region=eu");
+  await open(page, "/?mode=executive");
   const map = page
     .locator("svg[role='group']")
     .filter({ has: page.locator("path[role='button']") });
   const markets = map.locator("path[role='button']");
   await expect(markets.first()).toBeAttached();
-  // Every market the keyboard can reach is drawn inside the map.
-  const out = await markets.evaluateAll((els) => {
-    const svg = els[0]!.closest("svg")!.getBoundingClientRect();
-    return els
-      .map((el) => {
-        const r = el.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const inside = cx >= svg.left && cx <= svg.right && cy >= svg.top && cy <= svg.bottom;
-        return { name: el.getAttribute("aria-label") ?? "", inside };
-      })
-      .filter((m) => !m.inside);
-  });
-  // France's box spans French Guiana, so its box centre may sit outside; its mainland is inside.
-  expect(out.filter((m) => !m.name.startsWith("France"))).toEqual([]);
-  // The off-frame markets are gone from the accessible map: Australia is not a button in a Europe drill.
-  await expect(map.getByRole("button", { name: /^Australia/ })).toHaveCount(0);
-  // The one tab stop is a European market.
+  // Centre of a market relative to the map, so page scroll and a selected market's thicker stroke do not count.
+  const boxOf = async (name: RegExp) => {
+    const [m, svg] = await Promise.all([
+      map.getByRole("button", { name }).boundingBox(),
+      map.boundingBox(),
+    ]);
+    return {
+      x: Math.round(m!.x + m!.width / 2 - svg!.x),
+      y: Math.round(m!.y + m!.height / 2 - svg!.y),
+    };
+  };
+  const before = await boxOf(/^Germany/);
+
+  // Clicking a market drills without changing the frame: same geometry, nothing zoomed.
+  await map.getByRole("button", { name: /^Germany/ }).click();
+  await expect(page).toHaveURL(/market=/);
+  const after = await boxOf(/^Germany/);
+  expect(after).toEqual(before);
+  // A mouse click leaves no focus box behind: no native outline, no ring.
+  await expect(map.locator("path[role='button']:focus")).toHaveCSS("outline-style", "none");
+
+  // Wheel and double-click do nothing to the map either.
+  const mapBox = (await map.boundingBox())!;
+  await page.mouse.move(mapBox.x + mapBox.width / 2, mapBox.y + mapBox.height / 2);
+  await page.mouse.wheel(0, -400);
+  await page.mouse.dblclick(mapBox.x + mapBox.width / 2, mapBox.y + mapBox.height / 2);
+  expect(await boxOf(/^Germany/)).toEqual(before);
+
+  // A region drill dims the others but keeps all of them in the accessible map.
+  await open(page, "/?mode=executive&region=eu");
+  await expect(map.getByRole("button", { name: /^Australia/ })).toHaveCount(1);
+  expect(await boxOf(/^Germany/)).toEqual(before);
   const stop = map.locator("path[tabindex='0']");
   await expect(stop).toHaveCount(1);
-  await stop.focus();
-  await expect(stop).toHaveAttribute("aria-label", /^(France|Germany|Italy|Spain|United Kingdom)/);
-  // The United Kingdom sits at the top of the drilled frame: its tooltip drops below it rather than opening
-  // over the card header, so every row shows.
-  await map.getByRole("button", { name: /^United Kingdom/ }).focus();
-  const tip = page.getByRole("tooltip");
-  await expect(tip).toBeVisible();
-  await expect(tip).toContainText("Status");
-  const [tipBox, mapBox] = await Promise.all([tip.boundingBox(), map.boundingBox()]);
-  expect(tipBox!.y).toBeGreaterThanOrEqual(mapBox!.y);
 });
