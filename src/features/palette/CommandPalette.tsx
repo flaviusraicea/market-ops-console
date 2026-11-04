@@ -134,7 +134,7 @@ export function CommandPalette({
                     key={item.id}
                     value={item.id}
                     onSelect={() => choose(item)}
-                    className="flex min-h-10 cursor-default items-center gap-3 rounded-menu px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink data-[selected=true]:bg-accent-soft"
+                    className="flex min-h-10 cursor-pointer items-center gap-3 rounded-menu px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink data-[selected=true]:bg-accent-soft"
                   >
                     <Icon
                       aria-hidden

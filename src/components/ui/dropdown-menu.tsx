@@ -52,7 +52,7 @@ function DropdownMenuLabel({
 }
 
 const itemClass =
-  "relative flex w-full cursor-default items-center gap-2 rounded-menu py-1.5 pr-2 pl-8 text-[length:var(--text-body)] leading-[var(--text-body-lh)] outline-hidden select-none focus:bg-accent-soft focus:text-ink data-[disabled]:pointer-events-none data-[disabled]:text-ink-disabled";
+  "relative flex w-full cursor-pointer items-center gap-2 rounded-menu py-1.5 pr-2 pl-8 text-[length:var(--text-body)] leading-[var(--text-body-lh)] outline-hidden select-none focus:bg-accent-soft focus:text-ink data-[disabled]:cursor-not-allowed data-[disabled]:text-ink-disabled";
 
 function DropdownMenuItem({
   className,
