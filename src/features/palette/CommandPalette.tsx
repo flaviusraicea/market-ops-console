@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
@@ -48,6 +48,25 @@ export type CommandPaletteProps = {
   hasMarket: boolean;
   reducedMotion: boolean;
 };
+
+/**
+ * Mounts its children one commit after itself, in a transition. The dialog and its input commit first; the list
+ * (about thirty items with icons) then renders in time slices, so opening is never one long task on a slow machine.
+ * Until then an empty block holds the list's height, so the dialog opens at its full size.
+ */
+function AfterFirstPaint({ children }: { children: ReactNode }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    startTransition(() => setReady(true));
+  }, []);
+  // The list's desktop height: the dialog minus its input row and footer (the list's own max-h). Below 1024 px
+  // the sheet is full height and the list fills it, so nothing needs holding.
+  return ready ? (
+    children
+  ) : (
+    <div aria-hidden className="h-[min(440px,calc(100dvh-104px-96px))] max-lg:h-0" />
+  );
+}
 
 function Kbd({ children }: { children: ReactNode }) {
   return (
@@ -116,47 +135,49 @@ export function CommandPalette({
           />
         </div>
         <Command.List className="max-h-[min(440px,calc(100dvh-104px-96px))] min-h-0 flex-1 overflow-y-auto p-2 max-lg:max-h-none">
-          {groups.map((group) => (
-            <Command.Group
-              key={group.id}
-              heading={
-                <Eyebrow className="flex items-center justify-between">
-                  <span>{group.heading}</span>
-                  <span className="num">{group.items.length}</span>
-                </Eyebrow>
-              }
-              className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1"
-            >
-              {group.items.map((item) => {
-                const Icon = ICONS[item.icon];
-                return (
-                  <Command.Item
-                    key={item.id}
-                    value={item.id}
-                    onSelect={() => choose(item)}
-                    className="flex min-h-10 cursor-pointer items-center gap-3 rounded-menu px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink data-[selected=true]:bg-accent-soft"
-                  >
-                    <Icon
-                      aria-hidden
-                      className="size-4 shrink-0 text-ink-2"
-                      strokeWidth={ICON_STROKE}
-                    />
-                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                    {item.meta ? (
-                      <span
-                        className={cn(
-                          "shrink-0 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
-                          item.tone === "accent" ? "text-accent" : "text-ink-2",
-                        )}
-                      >
-                        {item.meta}
-                      </span>
-                    ) : null}
-                  </Command.Item>
-                );
-              })}
-            </Command.Group>
-          ))}
+          <AfterFirstPaint>
+            {groups.map((group) => (
+              <Command.Group
+                key={group.id}
+                heading={
+                  <Eyebrow className="flex items-center justify-between">
+                    <span>{group.heading}</span>
+                    <span className="num">{group.items.length}</span>
+                  </Eyebrow>
+                }
+                className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1"
+              >
+                {group.items.map((item) => {
+                  const Icon = ICONS[item.icon];
+                  return (
+                    <Command.Item
+                      key={item.id}
+                      value={item.id}
+                      onSelect={() => choose(item)}
+                      className="flex min-h-10 cursor-pointer items-center gap-3 rounded-menu px-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink data-[selected=true]:bg-accent-soft"
+                    >
+                      <Icon
+                        aria-hidden
+                        className="size-4 shrink-0 text-ink-2"
+                        strokeWidth={ICON_STROKE}
+                      />
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                      {item.meta ? (
+                        <span
+                          className={cn(
+                            "shrink-0 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
+                            item.tone === "accent" ? "text-accent" : "text-ink-2",
+                          )}
+                        >
+                          {item.meta}
+                        </span>
+                      ) : null}
+                    </Command.Item>
+                  );
+                })}
+              </Command.Group>
+            ))}
+          </AfterFirstPaint>
         </Command.List>
         <div className="flex items-center justify-between gap-4 border-t border-border bg-surface-2 px-4 py-2.5 max-lg:hidden text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
           <span className="flex items-center gap-3" aria-hidden>

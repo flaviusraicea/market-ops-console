@@ -8,6 +8,8 @@ import { Eyebrow } from "@/components/Eyebrow";
 import { Notice } from "@/components/Notice";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { RuleList } from "@/features/alerts/RuleList";
+import { normalizeRules } from "@/features/alerts/rules";
 import {
   readRuleSummaries,
   readRulesLoadFailed,
@@ -18,41 +20,29 @@ import {
 import { reportError } from "@/lib/events";
 import { useRole } from "@/lib/role";
 import { canEditAlerts } from "@/lib/roles";
+import { lazyOnce } from "@/lib/lazyOnce";
 import { createStoredState } from "@/lib/storedState";
-import type { AlertsBody as AlertsBodyType } from "./AlertsBody";
-import { AlertsBodyShell } from "./AlertsBodyShell";
 
 const openState = createStoredState("market-ops:alerts-open", "session");
 const readOpen = () => openState.read() === "1";
 const writeOpen = (next: boolean) => openState.write(next ? "1" : "0");
 
-type Body = typeof AlertsBodyType;
-let loaded: Body | null = null;
-let loading: Promise<Body> | null = null;
-/** One import for the page. A failed one is forgotten, so the next attempt fetches the chunk again. */
-const loadBody = () =>
-  (loading ??= import("./AlertsBody").then(
-    (m) => (loaded = m.AlertsBody),
-    (error: unknown) => {
-      loading = null;
-      throw error;
-    },
-  ));
+/** The open section's code, fetched once for the page; a failed fetch is forgotten, so Retry fetches it again. */
+const body = lazyOnce(() => import("./AlertsBody").then((m) => m.AlertsBody));
 
 /**
  * The open section's code (the form, zod, TanStack Query) loads on intent: a pointer over the section, focus on its
- * header, or opening it. Until it attaches, the shell shows the same markup with every control disabled. If the
- * chunk fails to load (a flaky network, a new deploy), the open section says so and offers Retry.
+ * header, or opening it. Until it attaches, the saved rules are listed and a placeholder holds the form's place.
+ * If the chunk fails to load (a flaky network, a new deploy), the open section says so and offers Retry.
  */
 function useAlertsBody(open: boolean) {
-  // A function: wrap it, or useState would call the component as an initializer.
-  const [body, setBody] = useState<Body | null>(() => loaded);
+  const [Body, setBody] = useState(body.peek);
   const [failed, setFailed] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const load = useCallback(() => {
-    void loadBody().then(
-      (b) => {
-        setBody(() => b);
+    void body.load().then(
+      (loaded) => {
+        setBody(() => loaded);
         setFailed(false);
         setRetrying(false);
       },
@@ -64,16 +54,17 @@ function useAlertsBody(open: boolean) {
     );
   }, []);
   useEffect(() => {
-    if (open && !body && !failed) load();
-  }, [open, body, failed, load]);
+    if (open && !Body && !failed) load();
+  }, [open, Body, failed, load]);
   const retry = () => {
     setRetrying(true);
     load();
   };
-  return { Body: body, load: body ? undefined : load, failed: failed && !body, retrying, retry };
+  return { Body, load: Body ? undefined : load, failed: failed && !Body, retrying, retry };
 }
 
 const NO_RULES: ReturnType<typeof readRuleSummaries> = [];
+const noop = () => {};
 
 /** Alerts folded away at the end of the sheet; opening shows the form and the saved rules. */
 export function AlertsSection({
@@ -150,7 +141,24 @@ export function AlertsSection({
                 initialRules={rules}
               />
             ) : (
-              <AlertsBodyShell readOnly={readOnly} rules={rules} busy={!failed} />
+              // The rules are on screen from the first frame; the editor takes its place when its code attaches.
+              <>
+                {failed ? null : (
+                  <div
+                    role="status"
+                    aria-busy="true"
+                    className="rounded-control border border-border p-3 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted"
+                  >
+                    Loading the alert editor…
+                  </div>
+                )}
+                <RuleList
+                  rules={normalizeRules(rules)}
+                  onDelete={noop}
+                  readOnly={readOnly}
+                  saving
+                />
+              </>
             )}
           </div>
         </CollapsibleContent>

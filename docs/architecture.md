@@ -32,8 +32,8 @@ Everything lives under `src/`, one file per concept inside `domain/` and `lib/`,
 
 ```
 src/
-  proxy.ts                   runs before each page request: mode=overview → mode=executive (308); / without mode →
-                             the signed-in role's view; a first visit is signed in as the default persona
+  proxy.ts                   runs before each page request: / without mode → the signed-in role's view; a first
+                             visit is signed in as the default persona
   app/
     layout.tsx               fonts, providers; pre-paint script for data-theme, data-reduced-motion and
                              data-density; preloads the map geometry
@@ -137,7 +137,7 @@ src/data/data.json ──(server, once, cached)──▶ parseDataset ──▶ 
                             with new searchParams → new view models → islands update
 ```
 
-- The page is a server component that reads `searchParams`, so a shared link renders correctly on first paint and Back and Forward are navigations, not state patches. The dashboard streams in behind a skeleton of the same shape, so the swap does not shift the page.
+- The page is a server component that reads `searchParams`, so a shared link renders correctly on first paint and Back and Forward are navigations, not state patches. Each lazy Analyst section streams in behind a placeholder of its own height, so the swap does not shift the page.
 - View models are computed on the server. Interactions that do not change the URL (hover, tooltip, table toggle) stay inside the client component.
 - The client gets the dataset without its fact series (`lightDataset`), enough to resolve citations and build the palette. The full series reaches the browser only in the live-mode chunk, loaded when Live is first turned on.
 - The assistant, the alert save and delete, and the session switch are the only things that call route handlers.
@@ -150,7 +150,7 @@ src/data/data.json ──(server, once, cached)──▶ parseDataset ──▶ 
 | `market` | market id | absent | implies `region`; written together |
 | `product` | product id | absent | requires `market` |
 | `period` | `YYYY-MM` within `meta.periods` | `2026-05` (latest) | out-of-range values clamp to latest |
-| `mode` | `executive \| analyst` | the signed-in role's view | drives density; always written, so a copied link names its view; `overview` is redirected (308) to `executive` |
+| `mode` | `executive \| analyst` | the signed-in role's view | drives density; always written, so a copied link names its view |
 | `metric` | `attainment \| revenue \| growth` | `attainment` | map colouring |
 | `basis` | `month \| ytd \| mat` | `month` | Analyst only; MAT falls back to Month before twelve months of data |
 | `cite` | integer index into the open answer's citations | absent | cleared when any other part of the Context changes |
@@ -212,7 +212,7 @@ RootLayout (server)                        fonts, pre-paint script, Providers (n
    └─ Layout                               rail, Ask why, answer store, landing, live, answer machine, palette providers
       ├─ Header (client)                   Breadcrumbs · LiveToggle · DataStamp · ModeSwitch · ThemeToggle · AvatarMenu
       ├─ ShellGrid
-      │  ├─ DashboardColumn                Suspense; fallback: the skeleton of the current mode
+      │  ├─ DashboardColumn                the current mode's view; each lazy Analyst section has its own Suspense
       │  │  ├─ mode=executive: Overview (server)
       │  │  │  ├─ PageToolbar              period, product
       │  │  │  ├─ Verdict
@@ -274,7 +274,7 @@ The Analyst widgets, the alerts section, the facts table, the map, the answer ca
 
 ## 11. Performance and observability
 
-- Core Web Vitals: server-rendered first paint with no client fetch of data; fonts with `display: swap` and fallbacks; charts hydrate as islands; the map geometry is a static file of about 70 KB, preloaded with the HTML and fetched once; the facts table is virtualised; skeletons reserve the dashboard's heights and density is set before first paint, so nothing shifts.
+- Core Web Vitals: server-rendered first paint with no client fetch of data; fonts with `display: swap` and fallbacks; charts hydrate as islands; the map geometry is a static file of about 70 KB, preloaded with the HTML and fetched once; the facts table is virtualised; placeholders reserve each lazy section's height and density is set before first paint, so nothing shifts.
 - Bundle: visx is imported per package (`@visx/scale`, `@visx/shape` and so on), so only the primitives in use ship. Overview ships the shell and its own islands; every Analyst widget, the alerts section (with TanStack Query, react-hook-form and zod), the map code (d3-geo), the answer card, the live engine and cmdk are separate chunks loaded when first rendered. The domain barrel (`@/domain`) carries types and pure logic only; the zod schemas are imported from their modules by the server routes, the dataset loader, the alert form and the tests, so the schema library never reaches the first load. Budgets are in `package.json` and enforced by `pnpm check:budget` (see `performance-monitoring.md`).
 - Caching: `/geo/*` is content-hashed and served immutable; the page is `private, no-cache`, because the URL is the state and the role cookie picks the view; `/api/*` is `no-store`; `/_next/static` is immutable by default.
 - No jank while streaming: tokens collect in a buffer and are flushed with `requestAnimationFrame`, one render per frame at most; chart transitions are CSS tweens on SVG attributes (`--dur-chart`, 240 ms), zeroed under reduced motion.

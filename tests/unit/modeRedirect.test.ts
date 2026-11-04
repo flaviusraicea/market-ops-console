@@ -7,16 +7,8 @@ import { ROLE_COOKIE } from "@/lib/roles";
 const call = (url: string, cookie?: string) =>
   proxy(new NextRequest(url, cookie ? { headers: { cookie } } : undefined));
 
-describe("proxy: mode=overview redirect", () => {
-  it("redirects an old link permanently, keeping every other parameter", () => {
-    const res = call("http://localhost/?mode=overview&market=de");
-    expect(res.status).toBe(308);
-    expect(res.headers.get("location")).toBe("http://localhost/?mode=executive&market=de");
-  });
-  it("redirects before it touches the role cookie", () => {
-    expect(call("http://localhost/?mode=overview").headers.get("set-cookie")).toBeNull();
-  });
-  it("leaves the current values alone", () => {
+describe("proxy: a named mode", () => {
+  it("is left alone", () => {
     expect(call("http://localhost/?mode=analyst", `${ROLE_COOKIE}=analyst`).status).toBe(200);
   });
 });

@@ -3,26 +3,16 @@
 import { useState, type ComponentType, type KeyboardEvent, type MouseEvent } from "react";
 
 import { reportError } from "@/lib/events";
+import { lazyOnce } from "@/lib/lazyOnce";
 import { useRole } from "@/lib/role";
 import type { AvatarMenuProps } from "./AvatarMenu";
 import { avatarTriggerProps } from "./avatarTrigger";
 
 type Menu = ComponentType<AvatarMenuProps>;
 
-let loading: Promise<Menu> | null = null;
-
-/** Fetches the menu code once. A failed fetch is forgotten, so the next click tries again. */
-function load(): Promise<Menu> {
-  loading ??= import("./AvatarMenu").then(
-    (m) => m.AvatarMenu,
-    (error: unknown) => {
-      loading = null;
-      throw error;
-    },
-  );
-  return loading;
-}
-const preload = () => void load().catch(() => {});
+/** The menu's code, fetched once; a failed fetch is forgotten, so the next click tries again. */
+const menu = lazyOnce(() => import("./AvatarMenu").then((m) => m.AvatarMenu));
+const preload = () => void menu.load().catch(() => {});
 
 /**
  * The header's menu, wired to the signed-in role. Menu code (Radix menu, roving focus) is not needed to paint the
@@ -39,7 +29,7 @@ export function ConnectedAvatarMenu() {
   function activate(by: "keyboard" | "pointer") {
     setOpenedBy(by);
     setFailed(false);
-    load().then(
+    menu.load().then(
       (m) => setMenu(() => m),
       (error: unknown) => {
         setFailed(true);

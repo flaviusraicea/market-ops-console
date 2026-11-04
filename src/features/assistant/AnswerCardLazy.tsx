@@ -3,47 +3,36 @@
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
 
 import { reportError } from "@/lib/events";
+import { lazyOnce } from "@/lib/lazyOnce";
 import type { AnswerCard as AnswerCardView } from "./AnswerCard";
 import { AiCard, AiLabel, FailedRow, QuestionEcho } from "./AnswerShell";
 
 type Card = typeof AnswerCardView;
 
-let loaded: Card | null = null;
-let pending: Promise<void> | null = null;
-
 /**
  * The answer card, with its sources table and citations, is only needed once a question has been asked, so it
  * stays out of the first load. Starting the download early (first keystroke, a sent question, an Ask why) means it
- * has arrived before the first token does. Safe to call more than once. A failed download is forgotten, so a
- * retry fetches it again. (Not React.lazy: a story that renders an answer on the first frame needs the card to be
- * synchronous once it has loaded, which React.lazy only is after a Suspense round trip.)
+ * has arrived before the first token does. (Not React.lazy: a story that renders an answer on the first frame needs
+ * the card to be synchronous once it has loaded, which React.lazy only is after a Suspense round trip.)
  */
-export function preloadAnswerCard(): Promise<void> {
-  pending ??= import("./AnswerCard").then(
-    (m) => {
-      loaded = m.AnswerCard;
-    },
-    (error: unknown) => {
-      pending = null;
-      throw error;
-    },
-  );
-  return pending;
-}
+const card = lazyOnce(() => import("./AnswerCard").then((m) => m.AnswerCard));
+
+/** The card's download, for a story's loader: an answer story needs the card on its first frame. */
+export const preloadAnswerCard = (): Promise<unknown> => card.load();
 
 /** Starts the download without caring about the outcome: a card that needs it shows its own error and retries. */
 export function warmAnswerCard(): void {
-  preloadAnswerCard().catch(() => {});
+  card.load().catch(() => {});
 }
 
 /** Renders the card as soon as it is loaded, and synchronously on every use after the first. */
 export function AnswerCard(props: ComponentProps<Card>) {
-  const [Loaded, setLoaded] = useState<Card | null>(() => loaded);
+  const [Loaded, setLoaded] = useState<Card | undefined>(card.peek);
   const [failed, setFailed] = useState(false);
 
   const request = useCallback(() => {
-    preloadAnswerCard().then(
-      () => setLoaded(() => loaded),
+    card.load().then(
+      (loaded) => setLoaded(() => loaded),
       (error: unknown) => {
         reportError(error, { source: "fetch", route: "answer-card chunk" });
         setFailed(true);

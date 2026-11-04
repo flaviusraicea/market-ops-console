@@ -300,6 +300,6 @@ Tested in `live-data.spec.ts`.
 
 User and job: the reviewer, trying both views. "See what each role gets."
 
-Steps: open the account menu and switch to Analyst: the Analyst view opens with editable alerts. Sign out to reach the sign-in screen and pick a persona card to return to its view. A shared link with a `mode` always shows that mode, whoever opens it; a legacy `mode=overview` link is redirected to `mode=executive`.
+Steps: open the account menu and switch to Analyst: the Analyst view opens with editable alerts. Sign out to reach the sign-in screen and pick a persona card to return to its view. A shared link with a `mode` always shows that mode, whoever opens it.
 
 Tested in `roles.spec.ts`.

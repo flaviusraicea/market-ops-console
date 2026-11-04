@@ -1,9 +1,6 @@
 import type { CSSProperties } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageToolbarSkeleton } from "@/features/shell/PageToolbarSkeleton";
-import { FACTS_VIEWPORT_H } from "./factsViewport";
-import { Sheet } from "./Sheet";
 
 /**
  * The rendered height of each lazy Analyst section at 1440 wide, in px. A section whose height depends on the
@@ -18,8 +15,6 @@ export const RESERVE = {
   radar: 480,
   heat: 480,
   alerts: 40,
-  /** The All facts table: its scroll viewport (factsViewport.ts) plus the section header. */
-  facts: FACTS_VIEWPORT_H + 72,
 };
 export type Reserve = keyof typeof RESERVE;
 
@@ -53,38 +48,6 @@ export function SectionSkeleton({ label, reserve }: { label: string; reserve: Re
       <span className="sr-only">Loading {label}</span>
       <Skeleton aria-hidden className="h-3 w-40" />
       <Skeleton aria-hidden className="w-full flex-1" />
-    </div>
-  );
-}
-
-/**
- * Stands in for the whole Analyst view while the server streams it: same toolbar, same sheet, each section held
- * at its real height, so the swap to the real view moves nothing. Overview has its own (OverviewSkeleton).
- */
-export function AnalystSkeleton({
-  style,
-  facts,
-}: {
-  style: CSSProperties;
-  /** A `facts=1` link also opens the All facts table under the grid. */
-  facts: boolean;
-}) {
-  return (
-    <div className="flex flex-col" aria-busy="true" data-slot="analyst-skeleton">
-      <span className="sr-only">Loading dashboard</span>
-      <PageToolbarSkeleton label="Loading analyst controls" />
-      <Sheet style={style}>
-        <SectionSkeleton label="key figures" reserve="kpi" />
-        <SectionSkeleton label="market grid" reserve="grid" />
-        {facts ? <SectionSkeleton label="all facts" reserve="facts" /> : null}
-        <SectionSkeleton label="map" reserve="map" />
-        <SectionSkeleton label="time series" reserve="series" />
-        <div className="grid min-[1024px]:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] max-[1023px]:divide-y max-[1023px]:divide-border min-[1024px]:divide-x min-[1024px]:divide-border">
-          <SectionSkeleton label="compare chart" reserve="radar" />
-          <SectionSkeleton label="heat map" reserve="heat" />
-        </div>
-        <SectionSkeleton label="alerts" reserve="alerts" />
-      </Sheet>
     </div>
   );
 }

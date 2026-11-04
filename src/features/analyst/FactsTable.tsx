@@ -14,6 +14,8 @@ import type { FactRowVM, FactsVM } from "./viewModel";
 
 const ROW_H = 32;
 const OVERSCAN = 8;
+/** The most rows the virtualiser mounts at once: the viewport's rows plus the overscan on both sides. */
+const MAX_MOUNTED = Math.ceil(FACTS_VIEWPORT_H / ROW_H) + 1 + 2 * OVERSCAN;
 
 type Column = {
   key: keyof FactRowVM;
@@ -130,9 +132,18 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
     overscan: OVERSCAN,
     initialRect: { width: 0, height: FACTS_VIEWPORT_H },
   });
-  const items = virtualizer.getVirtualItems();
-  const padTop = items[0]?.start ?? 0;
-  const padBottom = items.length ? virtualizer.getTotalSize() - (items.at(-1)?.end ?? 0) : 0;
+  // Always MAX_MOUNTED rows are in the DOM (the window is pulled up at the end of the list), after one spacer row
+  // group whose height makes the table as tall as every row, so the header stays sticky all the way down. Each
+  // mounted row is moved to its place with a transform. Nothing in the layout moves as the window advances (the
+  // spacer, the row group and the row slots keep their starts; only the transform changes), so a long scroll
+  // reports no layout shift, where spacer rows that grew and shrank around the mounted rows did.
+  const first = Math.max(
+    0,
+    Math.min(virtualizer.getVirtualItems()[0]?.index ?? 0, rows.length - MAX_MOUNTED),
+  );
+  const mounted = rows.slice(first, first + MAX_MOUNTED);
+  const spacer = Math.max(0, rows.length - MAX_MOUNTED) * ROW_H;
+  const shift = first * ROW_H - spacer;
   const count = `${formatInt(rows.length)} of ${formatInt(facts.total)} facts`;
 
   // A new sort order starts at the top, so the first rows you see are the ones the sort is about.
@@ -200,17 +211,22 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {padTop > 0 ? (
-              <tr aria-hidden style={{ height: padTop }}>
-                <td colSpan={COLUMNS.length} />
+          {spacer > 0 ? (
+            <tbody aria-hidden>
+              <tr style={{ height: spacer }}>
+                <td colSpan={COLUMNS.length} className="p-0" />
               </tr>
-            ) : null}
-            {items.map((item) => {
-              const r = rows[item.index];
-              if (!r) return null;
+            </tbody>
+          ) : null}
+          <TableBody>
+            {mounted.map((r, i) => {
+              const index = first + i;
               return (
-                <TableRow key={item.key} aria-rowindex={item.index + 2} style={{ height: ROW_H }}>
+                <TableRow
+                  key={index}
+                  aria-rowindex={index + 2}
+                  style={{ height: ROW_H, transform: `translateY(${shift}px)` }}
+                >
                   {COLUMNS.map((c) => (
                     <TableCell
                       key={c.key}
@@ -227,11 +243,6 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
                 </TableRow>
               );
             })}
-            {padBottom > 0 ? (
-              <tr aria-hidden style={{ height: padBottom }}>
-                <td colSpan={COLUMNS.length} />
-              </tr>
-            ) : null}
           </TableBody>
         </table>
       </div>

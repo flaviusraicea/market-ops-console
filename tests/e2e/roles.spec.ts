@@ -89,16 +89,6 @@ test.describe("signed in as the Analyst", () => {
     await expect(page.getByRole("radio", { name: "Executive" })).toBeChecked();
     await expect(avatar(page, "Sam Okafor")).toBeVisible();
   });
-
-  test("a legacy mode=overview link is redirected to mode=executive and keeps its scope", async ({
-    page,
-  }) => {
-    await page.goto("/?mode=overview&market=de");
-    await page.getByRole("main").waitFor();
-    expect(new URL(page.url()).search).toBe("?mode=executive&market=de");
-    await expect(page.getByRole("radio", { name: "Executive" })).toBeChecked();
-    await expect(page.getByRole("navigation", { name: "Drill path" })).toContainText("Germany");
-  });
 });
 
 test("Sign out goes to the sign-in screen, and picking a persona returns to its view", async ({
