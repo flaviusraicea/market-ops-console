@@ -1,5 +1,6 @@
 import type { Context } from "@/domain";
 import { getDataset } from "@/lib/dataset";
+import { OfflineNotice } from "@/features/shell/OfflineNotice";
 import { PageToolbar } from "@/features/shell/PageToolbar";
 import { ErrorBoundary } from "@/features/shell/ErrorBoundary";
 import {
@@ -27,6 +28,7 @@ export function Overview({ ctx }: { ctx: Context }) {
         products={ds.products.map((p) => ({ id: p.id, name: p.name }))}
         className="max-md:hidden"
       />
+      <OfflineNotice />
       <div className="flex flex-col gap-[var(--gap-section)]">
         <LiveVerdict verdict={verdictVM(ds, ctx)} />
         {strip.length > 0 ? (
