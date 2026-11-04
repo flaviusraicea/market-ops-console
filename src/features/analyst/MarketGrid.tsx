@@ -103,7 +103,9 @@ function DrillLink({
         e.preventDefault();
         onNavigate();
       }}
-      className="rounded-control underline-offset-4 hover:underline focus-visible:underline"
+      // Its own box, so a long name truncates inside the link and a touch screen gets the 44 px target the
+      // breadcrumbs use (pointer-coarse: 44 px line height), without the cell clipping the focus ring.
+      className="inline-block max-w-full truncate rounded-control align-bottom underline-offset-4 pointer-coarse:leading-11 hover:underline focus-visible:underline"
     >
       {children}
     </Link>
@@ -214,8 +216,8 @@ function MarketRows({
         {sorted.map((r) => (
           <TableRow key={r.id} {...rowProps(false, () => setContext({ market: r.id }))}>
             <TableCell data-pin="start" className={cn(PINNED_CELL, "font-medium text-ink")}>
-              {/* The ellipsis clips an inner box, so the pinned cell's fade can reach past the cell. */}
-              <span className="block truncate">
+              {/* One line: the link truncates its own text, and the code sits after it. */}
+              <span className="block whitespace-nowrap">
                 <DrillLink
                   href={drillHref(meta, ctx, { market: r.id })}
                   onNavigate={() => setContext({ market: r.id })}
