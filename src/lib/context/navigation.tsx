@@ -63,7 +63,10 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   // Remember what the reader last pressed, so a held navigation can show which control is waiting.
   useEffect(() => {
     const remember = (e: Event) => {
-      const target = e.target instanceof Element ? e.target.closest<HTMLElement>(ACTIONABLE) : null;
+      if (!(e.target instanceof Element)) return;
+      // A press inside the notice (Retry, Dismiss) is not the navigation the reader asked for.
+      if (e.target.closest('[data-slot="page-notice"]')) return;
+      const target = e.target.closest<HTMLElement>(ACTIONABLE);
       if (target) lastControl.current = target;
     };
     document.addEventListener("pointerdown", remember, true);

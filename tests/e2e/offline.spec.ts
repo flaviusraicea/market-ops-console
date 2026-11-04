@@ -34,7 +34,18 @@ test("a drill while offline keeps the view and the conversation, and Retry compl
   expect(page.url()).toBe(before);
 
   await context.setOffline(false);
+  // Slow the server down so the pending state is observable: the control that was pressed waits, not Retry.
+  await page.route(/_rsc=/, async (route) => {
+    await new Promise((r) => setTimeout(r, 700));
+    await route.continue();
+  });
   await notice(page).getByRole("button", { name: "Retry" }).click();
+  await expect(page.locator("[data-nav-busy]")).toHaveCount(1);
+  await expect(page.locator("[data-nav-busy]")).toContainText("Germany");
+  await expect(notice(page).getByRole("button", { name: "Retry" })).not.toHaveAttribute(
+    "aria-busy",
+    "true",
+  );
   await expect(page).toHaveURL(/market=de/);
   await expect(notice(page)).toHaveCount(0);
   await expect(page.getByText("Three markets stand out as at risk")).toBeVisible();
@@ -46,7 +57,7 @@ test("a citation chip click while offline is held too, and Dismiss or Escape clo
 }) => {
   await open(page, "/");
   await ask(page, "Is Germany at risk?");
-  const chip = page.getByRole("button", { name: /Germany/ }).last();
+  const chip = page.getByRole("button", { name: "Go to Germany, latest period" }).last();
   await expect(chip).toBeVisible();
   const before = page.url();
   await context.setOffline(true);
@@ -61,6 +72,8 @@ test("a citation chip click while offline is held too, and Dismiss or Escape clo
     ).violations,
   ).toEqual([]);
 
+  // The chip's tooltip owns the first Escape while the chip has focus; move focus off it so the key reaches the notice.
+  await chip.evaluate((el) => (el as HTMLElement).blur());
   await page.keyboard.press("Escape");
   await expect(notice(page)).toHaveCount(0);
   await context.setOffline(false);
