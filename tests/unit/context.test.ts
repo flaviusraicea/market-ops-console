@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import raw from "@/data/data.json";
 import { parseDataset } from "@/domain/dataset";
 import { applyContextChange, metaFromDataset } from "@/lib/context/invariants";
-import { parseContextFromSearchParams } from "@/lib/context/parsers";
+import { hasInvalidContextParams, parseContextFromSearchParams } from "@/lib/context/parsers";
 
 const ds = parseDataset(raw);
 
@@ -55,8 +55,53 @@ describe("applyContextChange invariants", () => {
     const r = applyContextChange(meta, base as never, { market: "de" });
     expect(r.ok && r.next.region).toBe("eu");
   });
+  it("derives no region from a name on the object prototype", () => {
+    const r = applyContextChange(meta, base as never, { market: "constructor" });
+    expect(r.ok && r.next.region).toBeUndefined();
+  });
   it("rejects a product with no market", () => {
     const r = applyContextChange(meta, base as never, { product: "veltrix" });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("hasInvalidContextParams", () => {
+  const invalid = (params: Record<string, string>) =>
+    hasInvalidContextParams(params, parseContextFromSearchParams(ds, params));
+
+  it("accepts every value that parses as written, including the defaults", () => {
+    expect(invalid({})).toBe(false);
+    expect(invalid({ period: "2026-05", mode: "executive", metric: "attainment" })).toBe(false);
+    expect(
+      invalid({
+        region: "eu",
+        market: "de",
+        product: "veltrix",
+        period: "2026-03",
+        mode: "analyst",
+        basis: "ytd",
+        cite: "1",
+        facts: "1",
+      }),
+    ).toBe(false);
+  });
+  it("does not count what parsing adds: a market's region", () => {
+    expect(invalid({ market: "de" })).toBe(false);
+  });
+  it("flags a value that fell back", () => {
+    expect(invalid({ period: "2030-01" })).toBe(true);
+    expect(invalid({ market: "xx" })).toBe(true);
+    expect(invalid({ region: "na", market: "de" })).toBe(true);
+    expect(invalid({ product: "veltrix" })).toBe(true);
+    expect(invalid({ metric: "share" })).toBe(true);
+    expect(invalid({ cite: "first" })).toBe(true);
+    expect(invalid({ facts: "true" })).toBe(true);
+  });
+  it("treats names on the object prototype as unknown markets", () => {
+    for (const market of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+      expect(parseContextFromSearchParams(ds, { market }).market).toBeUndefined();
+      expect(parseContextFromSearchParams(ds, { market }).region).toBeUndefined();
+      expect(invalid({ market })).toBe(true);
+    }
   });
 });

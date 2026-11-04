@@ -43,7 +43,7 @@ export type RawContext = {
   facts?: boolean | null | undefined;
 };
 
-export const MODES = ["executive", "analyst"] as const;
+const MODES = ["executive", "analyst"] as const;
 
 /** Mode as a URL value. Links written before the rename say `overview`; they mean `executive`. */
 export function parseMode(v: string | null | undefined): Mode | null {
@@ -67,7 +67,9 @@ export function normalizeContext(meta: ConsoleMeta, raw: RawContext): Context {
     metric: pick<Metric>(METRICS, raw.metric, "attainment"),
     basis: pick<Basis>(BASES, raw.basis, "month"),
   };
-  const market = raw.market && meta.marketRegion[raw.market] ? raw.market : undefined;
+  // Own keys only: a plain-object lookup would accept "constructor" or "__proto__" as a market.
+  const market =
+    raw.market && Object.hasOwn(meta.marketRegion, raw.market) ? raw.market : undefined;
   if (market) {
     ctx.market = market;
     ctx.region = meta.marketRegion[market] as RegionId;
@@ -100,8 +102,8 @@ export function applyContextChange(
   const out: Context = { ...merged };
 
   if (has("market") && partial.market) {
-    const r = meta.marketRegion[partial.market];
-    if (r) out.region = r;
+    if (Object.hasOwn(meta.marketRegion, partial.market))
+      out.region = meta.marketRegion[partial.market] as RegionId;
   }
   if (has("region") && !partial.region) {
     delete out.region;
