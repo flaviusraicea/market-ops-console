@@ -141,6 +141,17 @@ describe("/api/chat follows the view the question was asked from", () => {
     expect(done).toMatchObject({ kind: "abstain", citations: [] });
   });
 
+  it("answers a generic why question from a market view with the portfolio answer, not the why abstain", async () => {
+    const question = "Why are markets off track?";
+    const portfolio = await ask({ question });
+    const { text, done } = await ask({
+      question,
+      context: { entity: { kind: "market", marketId: "it" }, period: "2026-05" },
+    });
+    expect(done).not.toMatchObject({ kind: "abstain" });
+    expect(text).toBe(portfolio.text);
+  });
+
   it("answers a dip question in a product view with that product's figures", async () => {
     const { text, done } = await ask({
       question: "Why did revenue dip?",

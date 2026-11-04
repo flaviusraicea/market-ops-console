@@ -34,7 +34,7 @@ function within(ds: Dataset, cited: Entity, asked: Entity): boolean {
  * asked about it), or abstains.
  */
 export function scopeNote(ds: Dataset, answer: Answer): string | undefined {
-  const { asked } = answer;
+  const asked = answer.context?.entity;
   if (answer.status !== "done" || !asked || asked.kind === "portfolio") return undefined;
   if (answer.kind === "abstain") return undefined;
   const viewName = entityName(ds, asked);

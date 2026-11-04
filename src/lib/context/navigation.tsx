@@ -57,6 +57,7 @@ export function useSlowPending(pending: boolean, delay = SLOW_NAVIGATION_MS): bo
   const [slow, setSlow] = useState(false);
   useEffect(() => {
     if (!pending) {
+      // The dim must clear in the same commit the navigation settles in, not one timer later.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSlow(false);
       return;

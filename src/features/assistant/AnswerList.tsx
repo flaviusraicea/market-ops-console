@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { onScrollIntent, prefersReducedMotion } from "@/lib/motion";
 import { AnswerCard } from "./AnswerCardLazy";
 import { EmptyState, type PanelContext } from "./EmptyState";
-import type { Answer } from "./useAnswerMachine";
+import { slotOf, type Answer } from "./useAnswerMachine";
 
 type AnswerListProps = {
   answers: readonly Answer[];
@@ -124,6 +124,19 @@ export function AnswerList({
     rememberHeights();
   }, [scrollSignal]);
 
+  // The list item survives a retry (it is keyed by slot), so a header Retry keeps focus as it turns into Stop. A
+  // failed card's Retry sits in the failed row, which the retry removes: focus then moves to the new Stop.
+  function retryKeepingFocus(a: Answer) {
+    const item = scrollerRef.current?.querySelector(`[data-answer-slot="${slotOf(a)}"]`);
+    const hadFocus = item?.contains(document.activeElement) ?? false;
+    onRetry(a.id);
+    if (!hadFocus) return;
+    requestAnimationFrame(() => {
+      if (item?.contains(document.activeElement)) return;
+      item?.querySelector<HTMLElement>('button[aria-label="Stop generating"]')?.focus();
+    });
+  }
+
   const showNewText = hasAnswers && leftAt !== null && leftAt !== signature;
   // More answer below the panel's edge: the list fades out over its last 24 px instead of cutting text off.
   const moreBelow = hasAnswers && leftAt !== null;
@@ -140,12 +153,16 @@ export function AnswerList({
         >
           <ol className="flex flex-col gap-4" aria-busy={streaming}>
             {answers.map((a) => (
-              <li key={a.id} className={a.retried ? "answer-retry" : undefined}>
+              <li
+                key={slotOf(a)}
+                data-answer-slot={slotOf(a)}
+                className={a.retried ? "answer-retry" : undefined}
+              >
                 <AnswerCard
                   answer={a}
                   isLatest={a.id === last?.id}
                   onStop={() => onStop(a.id)}
-                  onRetry={() => onRetry(a.id)}
+                  onRetry={() => retryKeepingFocus(a)}
                   onTry={onTry}
                 />
               </li>

@@ -49,11 +49,6 @@ type ComposerProps = {
   note?: string | null;
   /** Live data is on: say that answers still come from the saved data. */
   simulated?: boolean;
-  /**
-   * Keeps the helper row's height once a conversation exists, so the "Wait for the answer" line coming and going
-   * with each stream never moves the answers under it.
-   */
-  reserveHint?: boolean;
 };
 
 export function Composer({
@@ -66,7 +61,6 @@ export function Composer({
   onClearAbout,
   note,
   simulated,
-  reserveHint,
 }: ComposerProps) {
   useLayoutEffect(() => {
     if (!NATIVE_SIZING) fitToText(value);
@@ -165,19 +159,19 @@ export function Composer({
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
         </Button>
       </form>
-      {disabled || showCount || reserveHint ? (
-        <div className="flex min-h-[var(--text-caption-lh)] items-start justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
-          {disabled ? <p id="ask-wait">Wait for the answer, or Stop.</p> : <span />}
-          {showCount ? (
-            <p
-              id="ask-count"
-              className={cn("num shrink-0", tooLong && "font-medium text-bad-text")}
-            >
-              {formatInt(value.length)} / {formatInt(MAX_CHARS)}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      {/* One fixed 20 px helper slot, always there: the wait line while an answer streams, the counter from 900
+          characters, or nothing. Its height never changes, so nothing under the composer moves. */}
+      <div
+        data-slot="composer-helper"
+        className="flex h-5 items-center justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
+      >
+        {disabled ? <p id="ask-wait">Wait for the answer, or Stop.</p> : <span />}
+        {showCount ? (
+          <p id="ask-count" className={cn("num shrink-0", tooLong && "font-medium text-bad-text")}>
+            {formatInt(value.length)} / {formatInt(MAX_CHARS)}
+          </p>
+        ) : null}
+      </div>
       {simulated ? (
         <p
           id="ask-live"

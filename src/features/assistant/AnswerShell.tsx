@@ -56,12 +56,21 @@ export function AiLabel() {
   );
 }
 
-/** Retry: the same ghost button the stopped card's header uses. */
+/** Retry's icon and label: the one look of Retry, here and in the stopped card's header (one Stop/Retry button). */
+export function RetryLabel() {
+  return (
+    <>
+      <RotateCw aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
+      Retry
+    </>
+  );
+}
+
+/** Retry on a failed card: the same ghost sm button as the header's. */
 export function RetryButton({ onRetry }: { onRetry: () => void }) {
   return (
     <Button type="button" size="sm" variant="ghost" onClick={onRetry}>
-      <RotateCw aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
-      Retry
+      <RetryLabel />
     </Button>
   );
 }

@@ -81,8 +81,9 @@ function PanelBody({
     onSubmit?.(question);
     machine.submit(question, about);
     // Focus stays in the textarea after Send (also when Send was clicked or a suggestion was picked), except that
-    // picking a suggestion on a touch screen must not raise the keyboard over the answer.
-    if (!(keepKeyboardDown && coarse)) ref.current?.focus();
+    // picking a suggestion on a touch screen must not raise the keyboard over the answer. The panel is in view (it is
+    // sticky), so moving focus must never scroll the page: Chrome otherwise scrolls a sticky field "into view".
+    if (!(keepKeyboardDown && coarse)) ref.current?.focus({ preventScroll: true });
   }
 
   // An "Ask why" button elsewhere either fills the composer or has sent its question already (see AnswerMachine).
@@ -113,7 +114,7 @@ function PanelBody({
   function fill(text: string) {
     setDraft(text);
     setPending(null);
-    ref.current?.focus();
+    ref.current?.focus({ preventScroll: true });
   }
 
   return (
@@ -185,7 +186,6 @@ function PanelBody({
         onClearAbout={() => setPending(null)}
         note={pending?.note ?? null}
         simulated={isSimulated(live)}
-        reserveHint={answers.length > 0}
       />
       {/* After the composer in the DOM so the composer stays first in tab order; placed top right. */}
       <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:right-[calc(var(--pad-card)+var(--control-h)+8px)]">

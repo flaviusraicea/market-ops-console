@@ -115,8 +115,9 @@ test("desktop: the panel is sticky, only the list scrolls, and New text appears 
   const box = page.getByRole("textbox", { name: "Ask the assistant" });
   for (let i = 0; i < 3; i++) {
     await ask(page, "Give me a full summary");
+    // The long summary can take over 8 s on a loaded runner; the same budget as every finished answer elsewhere.
     await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(i + 1, {
-      timeout: 8000,
+      timeout: 15_000,
     });
   }
   const region = page.getByRole("region", { name: "Conversation" });

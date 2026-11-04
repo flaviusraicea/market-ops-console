@@ -133,8 +133,12 @@ export function pickFixture(
   const aboutNamed = namedMarket && hits.find((f) => f.marketId === namedMarket.id);
   // "Why is Italy at risk?" asks for reasons. Only a curated answer gives reasons; the data has the status and the
   // figures, so without one the assistant says it can't explain rather than echoing the numbers (the card then shows
-  // the status rule).
-  const curated = aboutNamed || (scoped !== undefined && scoped.template === undefined);
+  // the status rule). A question that names no market and matches an unscoped answer ("Why are markets off track?")
+  // is about the portfolio, so it gets that answer from any view; the card's scope line says so.
+  const curated =
+    aboutNamed ||
+    (scoped !== undefined && scoped.template === undefined) ||
+    (!singleMarketNamed(ds, q) && hits.some((f) => f.scope === undefined));
   if (asksWhyStatus(q) && (namedMarket || view) && !curated) {
     return file.fixtures.find((f) => f.id === WHY_STATUS_ID) ?? file.default;
   }

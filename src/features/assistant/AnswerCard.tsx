@@ -4,21 +4,14 @@ import { useState, type ReactNode } from "react";
 
 import { ConfidenceMeter } from "@/components/ConfidenceMeter";
 import { EYEBROW_CLASS } from "@/components/Eyebrow";
-import {
-  ChevronDown,
-  CircleSlash,
-  ICON_STROKE,
-  Info,
-  RotateCw,
-  TriangleAlert,
-} from "@/components/icons";
+import { ChevronDown, CircleSlash, ICON_STROKE, Info, TriangleAlert } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { STATUS_RULE_TEXT, asksWhyStatus } from "@/domain";
 import { useDataset } from "@/lib/context/dataset";
 import { formatPeriodAbbr } from "@/lib/format";
-import { AiCard, AiLabel, FailedRow, QuestionEcho } from "./AnswerShell";
+import { AiCard, AiLabel, FailedRow, QuestionEcho, RetryLabel } from "./AnswerShell";
 import { scopeNote } from "./scopeNote";
 import { SUGGESTIONS } from "./Suggestions";
 import { CitationRow, useFollowCitation } from "./CitationRow";
@@ -64,14 +57,14 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
       <QuestionEcho question={question} about={answer.about} />
       {status === "failed" ? (
         // The same AI card as every other state, so a failure reads as this answer's outcome, not a page alert.
-        <Card>
+        <AiCard>
           <CardHeader status="failed" />
           {text ? <AnswerText body={[text]} trailing={null} /> : null}
           <FailedRow partial={Boolean(text)} onRetry={onRetry} />
           {text ? <p className={STATE_NOTE}>{NO_SOURCES_NOTE.failed}</p> : null}
-        </Card>
+        </AiCard>
       ) : (
-        <Card>
+        <AiCard>
           <CardHeader
             status={status}
             confidence={
@@ -95,13 +88,11 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
             <AbstainNote question={question} onTry={onTry} />
           ) : null}
           <Footer answer={answer} />
-        </Card>
+        </AiCard>
       )}
     </div>
   );
 }
-
-const Card = AiCard;
 
 /**
  * First row of the card, 24 px high in every state so nothing under it moves when the state changes. The AI label
@@ -147,10 +138,7 @@ function CardHeader({
                 Stop
               </>
             ) : (
-              <>
-                <RotateCw aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
-                Retry
-              </>
+              <RetryLabel />
             )}
           </Button>
         ) : confidence ? (

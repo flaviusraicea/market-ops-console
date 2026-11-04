@@ -8,7 +8,6 @@ import {
   type ChatContext,
   type Confidence,
   type Dataset,
-  type Entity,
   type Kind,
   type Resolution,
 } from "@/domain";
@@ -22,24 +21,34 @@ import { askStream, type AskStream } from "@/lib/stream/chatClient";
 export type Resolved = { citation: Citation; resolution: Resolution };
 
 /**
- * `about` is where the question was asked from, e.g. "Portfolio · May 2026"; `asked` is that view's entity, so the
- * card can say when an answer covers more than the view (scopeNote.ts).
+ * `about` is where the question was asked from, e.g. "Portfolio · May 2026"; `context` is that view (entity and
+ * period), sent with the question and again with a retry, also after a reload, and read by the card to say when an
+ * answer covers more than the view (scopeNote.ts).
  */
 type Base = {
   id: string;
   question: string;
   about?: string;
-  asked?: Entity;
+  context?: ChatContext;
+  /**
+   * The first id of the answer in this place in the list. A retry gets a new id (a new stream) but keeps the slot,
+   * so the list item, and the Stop/Retry button that had focus, survive the retry.
+   */
+  slot?: string;
   /** This answer replaced a stopped or failed one in place: its card fades in (globals.css `.answer-retry`). */
   retried?: boolean;
 };
-type Origin = Pick<Base, "about" | "asked">;
+type Origin = Pick<Base, "about" | "context" | "slot">;
 
 /** Where a question came from, carried from one state of its answer to the next. */
-const carry = ({ about, asked }: Origin): Origin => ({
+const carry = ({ about, context, slot }: Origin): Origin => ({
   ...(about ? { about } : {}),
-  ...(asked ? { asked } : {}),
+  ...(context ? { context } : {}),
+  ...(slot ? { slot } : {}),
 });
+
+/** The key that keeps an answer's place in the list across retries. */
+export const slotOf = (a: Pick<Base, "id" | "slot">): string => a.slot ?? a.id;
 
 /** One answer's lifecycle (architecture.md section 7). A stopped answer is partial: no citations, no confidence. */
 export type AnswerState =
@@ -132,6 +141,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         id: action.id,
         question: state.question,
         ...carry(state),
+        slot: slotOf(state),
         text: "",
         controller: action.controller,
       };
@@ -179,8 +189,6 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   const answersRef = useRef<readonly Answer[]>(answers);
   const flushers = useRef(new Map<string, () => void>());
   const seq = useRef(0);
-  // The view each answer was asked about, so a retry asks about the same view and not the one on screen now.
-  const contexts = useRef(new Map<string, ChatContext>());
 
   useEffect(() => {
     answersRef.current = answers;
@@ -213,7 +221,12 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   }, []);
 
   const run = useCallback(
-    async (id: string, question: string, controller: AbortController) => {
+    async (
+      id: string,
+      question: string,
+      context: ChatContext | undefined,
+      controller: AbortController,
+    ) => {
       // Tokens collect in a buffer; one TOKEN_FLUSH per animation frame keeps renders at frame rate.
       let pending = "";
       let frame = 0;
@@ -236,7 +249,6 @@ export function useAnswerMachine(stream: AskStream = askStream) {
       };
 
       try {
-        const context = contexts.current.get(id);
         await stream(question, {
           ...(context ? { context } : {}),
           signal: controller.signal,
@@ -288,7 +300,7 @@ export function useAnswerMachine(stream: AskStream = askStream) {
     (question: string, about?: AskContext) => {
       const id = `a${++seq.current}`;
       const controller = new AbortController();
-      if (about?.period) contexts.current.set(id, { entity: about.entity, period: about.period });
+      const context = about?.period ? { entity: about.entity, period: about.period } : undefined;
       dispatch({
         id,
         action: {
@@ -296,11 +308,11 @@ export function useAnswerMachine(stream: AskStream = askStream) {
           id,
           question,
           ...(about ? { about: about.label } : {}),
-          ...(about?.period ? { asked: about.entity } : {}),
+          ...(context ? { context } : {}),
           controller,
         },
       });
-      void run(id, question, controller);
+      void run(id, question, context, controller);
     },
     [run],
   );
@@ -319,10 +331,9 @@ export function useAnswerMachine(stream: AskStream = askStream) {
       if (!source || source.status === "streaming") return;
       const id = `a${++seq.current}`;
       const controller = new AbortController();
-      const context = contexts.current.get(fromId);
-      if (context) contexts.current.set(id, context);
+      // The view the question was first asked about (kept through a reload), not the one on screen now.
       dispatch({ id: fromId, action: { type: "RETRY", id, controller } });
-      void run(id, source.question, controller);
+      void run(id, source.question, source.context, controller);
     },
     [run],
   );
