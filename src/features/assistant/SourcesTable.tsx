@@ -73,7 +73,7 @@ export function SourcesTable({
                       {row.claim}
                     </th>
                     <td className={cn(CELL, !row.resolved && "text-ink-muted")}>{row.entity}</td>
-                    <td className={cn(CELL, "font-mono whitespace-nowrap")}>{row.period}</td>
+                    <td className={cn(CELL, "whitespace-nowrap")}>{row.period}</td>
                     <td className={CELL}>{row.sourceValue}</td>
                     <td className={cn(CELL, row.disagreement && "text-warn-text")}>
                       {row.assistant}

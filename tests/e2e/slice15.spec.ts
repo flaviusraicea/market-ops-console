@@ -80,7 +80,7 @@ test("the attention list ranks the flagged markets and Ask why sends", async ({ 
   await expect(page.getByRole("region", { name: "Conversation" })).toContainText(
     "Why did Germany's revenue dip?",
   );
-  await expect(page.getByText("You asked, about Germany · May 2026:")).toBeVisible();
+  await expect(page.getByText("Asked about Germany · May 2026")).toBeVisible();
   await expect(page.getByRole("list", { name: "Citations" })).toBeVisible({ timeout: 8000 });
   await expect(composer).toBeFocused();
 });
@@ -103,7 +103,7 @@ test("the panel empty state puts the composer first", async ({ page }) => {
   await expect(panel.getByText(/^Germany is furthest from plan/)).toHaveText(
     "Germany is furthest from plan: 92.0% of forecast and −9.7% on last year, after a 27.2% drop in March.",
   );
-  await expect(panel.getByText("About Portfolio · May 2026")).toBeVisible();
+  await expect(panel.getByText("Asked about Portfolio · May 2026")).toBeVisible();
 });
 
 test("a region scopes the verdict and the strip", async ({ page }) => {

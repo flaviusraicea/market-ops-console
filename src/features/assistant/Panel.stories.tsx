@@ -119,7 +119,7 @@ export const StopThenRetry: Story = {
     asked.length = 0;
     const canvas = within(canvasElement);
     await userEvent.type(canvas.getByRole("textbox", { name: "Ask the assistant" }), "Why?{Enter}");
-    await userEvent.click(await canvas.findByRole("button", { name: "Stop" }));
+    await userEvent.click(await canvas.findByRole("button", { name: "Stop generating" }));
     await expect(await canvas.findByText("Stopped \u00b7 partial answer")).toBeInTheDocument();
     await userEvent.click(canvas.getByRole("button", { name: "Retry" }));
     // The old card stays marked partial; a new request carries the same question.

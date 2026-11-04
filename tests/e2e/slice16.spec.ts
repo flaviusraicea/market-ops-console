@@ -40,7 +40,7 @@ test("the echo says where the question was asked", async ({ page }) => {
   await page.goto("/");
   await ask(page, "Which markets are at risk?");
   await expect(page.locator('[data-slot="question-echo"]')).toHaveText(
-    "You asked, about Portfolio · May 2026:Which markets are at risk?",
+    "Asked about Portfolio · May 2026Which markets are at risk?",
   );
 });
 

@@ -125,7 +125,8 @@ function PanelBody({
       className={cn(
         "relative flex flex-col gap-4 p-[var(--pad-card)]",
         sheet
-          ? "h-full min-h-0 bg-surface-overlay"
+          ? // The answer list's bottom fade ends in the panel's own background.
+            "h-full min-h-0 bg-surface-overlay [--panel-bg:var(--surface-overlay)]"
           : [
               "panel-enter rounded-card layer-raised",
               // From 1280 px the panel is sticky in its column; from 1024 to 1279 px it overlays the dashboard when open.
@@ -150,12 +151,12 @@ function PanelBody({
             </Eyebrow>
           </h2>
           <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-            Answers are AI-generated. Numbers link to source.
+            Every answer cites its source.
           </span>
         </div>
         <Button
           type="button"
-          variant="secondary"
+          variant="ghost"
           size="icon"
           aria-label="Collapse assistant"
           aria-controls="assistant-panel"

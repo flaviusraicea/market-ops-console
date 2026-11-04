@@ -34,8 +34,8 @@ describe("analyst view model", () => {
       ["United Kingdom", "GB", "At risk", "$2.07M", "94.3%", "+8.8%", "14.0%"],
       ["Germany", "DE", "Off track", "$1.68M", "92.0%", "−9.7%", "8.9%"],
       ["France", "FR", "At risk", "$1.61M", "96.4%", "+11.6%", "25.7%"],
-      ["Italy", "IT", "At risk", "$0.94M", "93.0%", "+0.3%", "28.9%"],
-      ["Spain", "ES", "Off track", "$0.76M", "104.5%", "−4.6%", "18.1%"],
+      ["Italy", "IT", "At risk", "$941K", "93.0%", "+0.3%", "28.9%"],
+      ["Spain", "ES", "Off track", "$765K", "104.5%", "−4.6%", "18.1%"],
     ]);
     expect(grid.title).toBe("Markets · Europe");
     expect(grid.rows.every((r) => r.trend.values.length === 24)).toBe(true);
@@ -54,7 +54,7 @@ describe("analyst view model", () => {
     expect(grid.kind === "markets" && grid.rows).toHaveLength(13);
   });
 
-  it("gridVM for Germany: five product rows with Veltrix $0.57M and 92.7%", () => {
+  it("gridVM for Germany: five product rows with Veltrix $574K and 92.7%", () => {
     const grid = analystVM(ds, germany).grid;
     if (grid.kind !== "products") throw new Error("expected product rows");
     expect(grid.rows).toHaveLength(5);
@@ -62,7 +62,7 @@ describe("analyst view model", () => {
     expect(grid.summary).toBe("5 products · May 2026");
     expect(grid.caption).toBe("Derived · sum of series");
     const veltrix = grid.rows.find((r) => r.id === "veltrix");
-    expect(veltrix?.revenue).toBe("$0.57M");
+    expect(veltrix?.revenue).toBe("$574K");
     expect(veltrix?.attainment).toBe("92.7%");
     const selected = analystVM(ds, { ...germany, product: "nuvora" }).grid;
     if (selected.kind !== "products") throw new Error("expected product rows");
@@ -192,14 +192,24 @@ describe("analyst view model", () => {
     expect(shares.reduce((a, b) => a + b, 0)).toBeCloseTo(100, 0);
   });
 
-  it("radarVM drops an axis nobody has a value for, and says so in the subtitle", () => {
+  it("radarVM keeps all five axes; one nobody has a value for is null for every market, and the subtitle says so", () => {
     // Units YoY needs the same month a year earlier, which the first twelve months lack.
     const early = analystVM(ds, { ...europe, period: "2025-03" as Period }).radar;
-    expect(early.axes).toEqual(["Attainment", "Growth YoY", "Share (given)", "Month on month"]);
+    expect(early.axes).toEqual(RADAR_AXES_GIVEN);
     expect(early.subtitle).toContain("Units YoY unavailable before Jun 2025");
+    expect(early.caption).toContain("Attainment and growth derived");
     expect(
-      early.series.every((s) => s.values.length === 4 && s.values.every((v) => v !== null)),
+      early.series.every(
+        (s) =>
+          s.values.length === 5 &&
+          s.values[4] === null &&
+          s.values.slice(0, 4).every((v) => v !== null),
+      ),
     ).toBe(true);
+    // The first month has neither month on month nor units YoY, and still draws five axes.
+    const first = analystVM(ds, { ...europe, period: "2024-06" as Period }).radar;
+    expect(first.axes).toHaveLength(5);
+    expect(first.series.every((s) => s.values[3] === null && s.values[4] === null)).toBe(true);
     // From Jun 2025 the axis is back, with a value for every market.
     const later = analystVM(ds, { ...europe, period: "2025-06" as Period }).radar;
     expect(later.axes).toHaveLength(5);
@@ -243,9 +253,9 @@ describe("ledger grid (slice 14a)", () => {
     const grid = analystVM(ds, base).grid;
     expect(grid.total).toEqual({
       label: "Portfolio",
-      revenue: "$22.85M",
-      forecast: "$22.75M",
-      priorYear: "$21.29M",
+      revenue: "$22.9M",
+      forecast: "$22.7M",
+      priorYear: "$21.3M",
       attainment: "100.4%",
       growth: "+7.3%",
       growthDirection: "up",

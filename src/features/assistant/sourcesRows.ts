@@ -11,7 +11,7 @@ import {
   type Entity,
   type Period,
 } from "@/domain";
-import { formatMoneyCompact, formatMonthShort, formatPct } from "@/lib/format";
+import { formatMoneyCompact, formatMonthShort, formatPct, formatPeriodAbbr } from "@/lib/format";
 import type { Resolved } from "./useAnswerMachine";
 
 /** Per-answer wording that is not in the citation itself. In slice 6 `inlineMap.ts` supplies it per fixture. */
@@ -68,7 +68,9 @@ export function sourcesRows(
     return {
       claim: item?.claim ?? label,
       entity: entityName(ds, entity),
-      period: resolution.target.periodDefaulted ? `${period} (latest)` : period,
+      period: resolution.target.periodDefaulted
+        ? `${formatPeriodAbbr(period)} (latest)`
+        : formatPeriodAbbr(period),
       sourceValue: sourceValue(ds, entity, period, meta.withRevenue ?? false),
       derived: !isDashboardKpi(ds, entity, period),
       assistant: resolution.disagreement

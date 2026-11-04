@@ -4,15 +4,18 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useLiveState } from "@/features/live/LiveProvider";
 import { PAGE_HEADING_ATTR, TWEEN_SETTLE_MS } from "@/lib/motion";
+import { useSlowPending } from "@/lib/context/navigation";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 
 /**
- * The dashboard column. While a context change is in flight it carries `data-pending` (globals.css dims it);
- * a drill started from the keyboard then moves focus to the new page heading, because the trigger is gone.
+ * The dashboard column. When a context change takes longer than 250 ms it carries `data-pending` (globals.css dims
+ * it), so a fast response never flashes. A drill started from the keyboard then moves focus to the new page heading,
+ * because the trigger is gone.
  */
 export function DashboardColumn({ children }: { children: ReactNode }) {
   const { ctx, isPending } = useConsoleContext();
   const { tweening } = useLiveState();
+  const slow = useSlowPending(isPending);
   const ref = useRef<HTMLElement>(null);
   const scope = `${ctx.region ?? ""}|${ctx.market ?? ""}|${ctx.product ?? ""}`;
   // What was true when the navigation started: the drill scope, and whether the trigger showed a focus ring.
@@ -51,7 +54,7 @@ export function DashboardColumn({ children }: { children: ReactNode }) {
       ref={ref}
       aria-label="Dashboard"
       data-slot="dashboard"
-      data-pending={isPending}
+      data-pending={slow}
       data-tween={isPending || settling || tweening}
       className="min-w-0"
     >

@@ -8,6 +8,7 @@ import {
   type ChatContext,
   type Confidence,
   type Dataset,
+  type Entity,
   type Kind,
   type Resolution,
 } from "@/domain";
@@ -19,8 +20,18 @@ import { askStream, type AskStream } from "@/lib/stream/chatClient";
 
 export type Resolved = { citation: Citation; resolution: Resolution };
 
-/** `about` is where the question was asked from, e.g. "Portfolio · May 2026". */
-type Base = { id: string; question: string; about?: string };
+/**
+ * `about` is where the question was asked from, e.g. "Portfolio · May 2026"; `asked` is that view's entity, so the
+ * card can say when an answer covers more than the view (scopeNote.ts).
+ */
+type Base = { id: string; question: string; about?: string; asked?: Entity };
+type Origin = Pick<Base, "about" | "asked">;
+
+/** Where a question came from, carried from one state of its answer to the next. */
+const carry = ({ about, asked }: Origin): Origin => ({
+  ...(about ? { about } : {}),
+  ...(asked ? { asked } : {}),
+});
 
 /** One answer's lifecycle (architecture.md section 7). A stopped answer is partial: no citations, no confidence. */
 export type AnswerState =
@@ -39,7 +50,7 @@ export type AnswerState =
 export type Answer = Exclude<AnswerState, { status: "idle" }>;
 
 export type AnswerAction =
-  | { type: "ASK"; id: string; question: string; about?: string; controller: AbortController }
+  | ({ type: "ASK"; id: string; question: string; controller: AbortController } & Origin)
   | { type: "TOKEN_FLUSH"; text: string }
   | {
       type: "DONE";
@@ -59,7 +70,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "streaming",
         id: action.id,
         question: action.question,
-        ...(action.about ? { about: action.about } : {}),
+        ...carry(action),
         text: "",
         controller: action.controller,
       };
@@ -80,7 +91,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "done",
         id: state.id,
         question: state.question,
-        ...(state.about ? { about: state.about } : {}),
+        ...carry(state),
         text: state.text,
         kind: action.kind,
         confidence: action.confidence,
@@ -93,7 +104,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "stopped",
         id: state.id,
         question: state.question,
-        ...(state.about ? { about: state.about } : {}),
+        ...carry(state),
         text: state.text,
       };
     case "ERROR":
@@ -102,7 +113,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "failed",
         id: state.id,
         question: state.question,
-        ...(state.about ? { about: state.about } : {}),
+        ...carry(state),
         text: state.text,
         message: action.message,
       };
@@ -112,7 +123,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "streaming",
         id: action.id,
         question: state.question,
-        ...(state.about ? { about: state.about } : {}),
+        ...carry(state),
         text: "",
         controller: action.controller,
       };
@@ -253,6 +264,7 @@ export function useAnswerMachine(stream: AskStream = askStream) {
           id,
           question,
           ...(about ? { about: about.label } : {}),
+          ...(about?.period ? { asked: about.entity } : {}),
           controller,
         },
       });

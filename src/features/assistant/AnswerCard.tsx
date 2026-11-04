@@ -4,20 +4,23 @@ import { useState, type ReactNode } from "react";
 
 import { ConfidenceMeter } from "@/components/ConfidenceMeter";
 import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
-import { Notice } from "@/components/Notice";
 import {
   ChevronDown,
-  CirclePause,
   CircleSlash,
+  CircleAlert,
   ICON_STROKE,
+  Info,
+  RotateCw,
   Sparkles,
-  Square,
   TriangleAlert,
 } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { STATUS_RULE_TEXT, asksWhyStatus } from "@/domain";
 import { useDataset } from "@/lib/context/dataset";
 import { formatPeriodAbbr } from "@/lib/format";
+import { scopeNote } from "./scopeNote";
 import { SUGGESTIONS } from "./Suggestions";
 import { CitationRow } from "./CitationRow";
 import { SourcesTable } from "./SourcesTable";
@@ -45,8 +48,10 @@ const CAPTION = `${EYEBROW_CLASS} text-ink-muted`;
 const STATE_NOTE =
   "text-pretty text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted";
 
-/** An answer that ended before its sources arrived says so in the header and where the citation chips go. */
-const NO_SOURCES_CAPTION = "Partial \u00b7 no sources";
+/** A stopped answer says so in the header (in place of the confidence meter) and, under its text, that it has no sources. */
+const STOPPED_BADGE = "Partial \u00b7 stopped";
+const FAILED_EMPTY = "Request failed \u00b7 nothing was answered";
+const FAILED_PARTIAL = "Request failed \u00b7 partial answer";
 const NO_SOURCES_NOTE: Record<"stopped" | "failed", string> = {
   stopped: "Stopped before sources arrived. Retry to get citations.",
   failed: "Request failed before sources arrived. Retry to get citations.",
@@ -55,16 +60,18 @@ const NO_SOURCES_NOTE: Record<"stopped" | "failed", string> = {
 /** Design-system.md 6.5: question echo, then the AI card. */
 export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: AnswerCardProps) {
   const { status, text, question } = answer;
+  const ds = useDataset();
+  const scope = scopeNote(ds, answer);
   return (
     <div className="flex flex-col gap-2">
       <div data-slot="question-echo" className="flex flex-col items-end gap-1.5">
         <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
           {answer.about ? (
             <>
-              You asked, about <span className="font-semibold text-ink-2">{answer.about}</span>:
+              Asked about <span className="font-semibold text-ink-2">{answer.about}</span>
             </>
           ) : (
-            "You asked:"
+            "You asked"
           )}
         </p>
         <p className="max-w-[92%] rounded-card border border-border bg-surface-2 px-3 py-2 text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink">
@@ -72,36 +79,23 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
         </p>
       </div>
       {status === "failed" ? (
-        <>
-          {text ? (
-            <Card>
-              <CardHeader status="failed" />
-              <AnswerText
-                body={[text]}
-                trailing={
-                  <>
-                    {" "}
-                    <span className={`${PILL} align-middle`}>
-                      <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-                      Failed · partial answer
-                    </span>
-                  </>
-                }
+        // The same AI card as every other state, so a failure reads as this answer's outcome, not a page alert.
+        <Card>
+          <CardHeader status="failed" />
+          {text ? <AnswerText body={[text]} trailing={null} /> : null}
+          <div role="alert" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <p className="inline-flex items-start gap-1.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] font-medium text-ink">
+              <CircleAlert
+                aria-hidden
+                className="size-4 shrink-0 text-bad-mark"
+                strokeWidth={ICON_STROKE}
               />
-              <p className={STATE_NOTE}>{NO_SOURCES_NOTE.failed}</p>
-            </Card>
-          ) : null}
-          <Notice
-            title="Request failed"
-            actions={
-              <Button type="button" variant="secondary" onClick={onRetry}>
-                Retry
-              </Button>
-            }
-          >
-            The assistant could not answer. Nothing was changed.
-          </Notice>
-        </>
+              {text ? FAILED_PARTIAL : FAILED_EMPTY}
+            </p>
+            <RetryButton onRetry={onRetry} />
+          </div>
+          {text ? <p className={STATE_NOTE}>{NO_SOURCES_NOTE.failed}</p> : null}
+        </Card>
       ) : (
         <Card>
           <CardHeader
@@ -112,30 +106,20 @@ export function AnswerCard({ answer, onStop, onRetry, onTry, isLatest = true }: 
             onStop={onStop}
             onRetry={onRetry}
           />
+          {scope ? <ScopeNote>{scope}</ScopeNote> : null}
           <AnswerText
             body={
               status === "done" ? renderWithCitations(text, answer.citations, answer.id) : [text]
             }
-            trailing={
-              <>
-                {status === "streaming" ? <span aria-hidden className="caret" /> : null}
-                {status === "stopped" ? (
-                  <>
-                    {" "}
-                    <span className={`${PILL} align-middle`}>
-                      <CirclePause aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
-                      Stopped · partial answer
-                    </span>
-                  </>
-                ) : null}
-              </>
-            }
+            trailing={status === "streaming" ? <span aria-hidden className="caret" /> : null}
           />
           {status === "stopped" ? <p className={STATE_NOTE}>{NO_SOURCES_NOTE.stopped}</p> : null}
           {status === "done" && answer.kind !== "abstain" ? (
             <ChipArea answer={answer} isLatest={isLatest} />
           ) : null}
-          {status === "done" && answer.kind === "abstain" ? <AbstainNote onTry={onTry} /> : null}
+          {status === "done" && answer.kind === "abstain" ? (
+            <AbstainNote question={question} onTry={onTry} />
+          ) : null}
           <Footer answer={answer} />
         </Card>
       )}
@@ -153,8 +137,8 @@ function Card({ children }: { children: ReactNode }) {
 
 /**
  * First row of the card, 24 px high in every state so nothing under it moves when the state changes. The AI label
- * is on the left (with a caption while streaming); on the right Stop, then the confidence meter,
- * or Retry, swap in place. One button serves Stop and Retry, so focus stays on it when Stop turns into Retry.
+ * is on the left (with a caption while streaming); on the right Stop, then the confidence meter, or the stopped badge
+ * and Retry, swap in place. One button serves Stop and Retry, so focus stays on it when Stop turns into Retry.
  */
 function CardHeader({
   status,
@@ -169,8 +153,6 @@ function CardHeader({
 }) {
   const streaming = status === "streaming";
   const stopped = status === "stopped";
-  // A stopped or failed answer ended before its sources arrived; the right side says so, beside Retry when it has one.
-  const noSources = stopped || status === "failed";
   return (
     <div
       data-slot="card-header"
@@ -184,16 +166,26 @@ function CardHeader({
         {streaming ? <span className={CAPTION}>STREAMING…</span> : null}
       </div>
       <div className="flex items-center gap-x-1.5">
-        {noSources ? <span className={STATE_NOTE}>{NO_SOURCES_CAPTION}</span> : null}
+        {stopped ? <Badge variant="warn">{STOPPED_BADGE}</Badge> : null}
         {streaming || stopped ? (
-          <Button type="button" size="sm" variant="ghost" onClick={streaming ? onStop : onRetry}>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={streaming ? onStop : onRetry}
+            {...(streaming ? { "aria-label": "Stop generating" } : {})}
+          >
             {streaming ? (
               <>
-                <Square aria-hidden className="size-3" strokeWidth={ICON_STROKE} />
+                {/* A filled square mark, so it reads as the media stop symbol and not as an empty checkbox. */}
+                <span aria-hidden className="size-2 bg-current" />
                 Stop
               </>
             ) : (
-              "Retry"
+              <>
+                <RotateCw aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
+                Retry
+              </>
             )}
           </Button>
         ) : confidence ? (
@@ -201,6 +193,29 @@ function CardHeader({
         ) : null}
       </div>
     </div>
+  );
+}
+
+/** Retry on a failed card: the same ghost button the stopped card's header uses. */
+function RetryButton({ onRetry }: { onRetry: () => void }) {
+  return (
+    <Button type="button" size="sm" variant="ghost" onClick={onRetry}>
+      <RotateCw aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
+      Retry
+    </Button>
+  );
+}
+
+/** The answer covers more than the view it was asked from (scopeNote.ts); it leads the text so it is read first. */
+function ScopeNote({ children }: { children: ReactNode }) {
+  return (
+    <p
+      role="note"
+      className="inline-flex items-start gap-1.5 text-pretty text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted"
+    >
+      <Info aria-hidden className="size-4 shrink-0" strokeWidth={ICON_STROKE} />
+      <span>{children}</span>
+    </p>
   );
 }
 
@@ -268,15 +283,22 @@ function AnswerText({ body, trailing }: { body: ReactNode[]; trailing: ReactNode
   );
 }
 
-/** Design-system.md 6.5 state 4: what the data covers, and a question the assistant can answer. */
-function AbstainNote({ onTry }: { onTry: (text: string) => void }) {
+/**
+ * Design-system.md 6.5 state 4: what the data covers, and a question the assistant can answer. A "why is it at
+ * risk?" question is answered with the rule the status follows, since that is all the data says about it.
+ */
+function AbstainNote({ question, onTry }: { question: string; onTry: (text: string) => void }) {
   const { periods } = useDataset().meta;
   const first = periods[0];
   const last = periods[periods.length - 1];
   const suggestion = SUGGESTIONS[0];
   return (
     <div className="flex flex-col items-start gap-2">
-      {first && last ? (
+      {asksWhyStatus(question) ? (
+        <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
+          {STATUS_RULE_TEXT}
+        </p>
+      ) : first && last ? (
         <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
           Data covers {formatPeriodAbbr(first)} to {formatPeriodAbbr(last)}.
         </p>
@@ -296,11 +318,7 @@ function SourcesDisclosure({ answer }: { answer: Extract<Answer, { status: "done
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          className={`-ml-3 text-ink-2 uppercase ${EYEBROW_CLASS}`}
-        >
+        <Button type="button" variant="ghost" className="-ml-3 text-ink-2">
           <ChevronDown
             aria-hidden
             className="size-3.5 transition-transform duration-[var(--dur-fast)] [[aria-expanded=false]_&]:-rotate-90"

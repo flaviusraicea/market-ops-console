@@ -62,7 +62,7 @@ test("Ask why on the Germany row opens the panel, sends, and echoes where it was
   await page.getByRole("button", { name: "Ask why Germany dipped" }).click();
   await expect(page.locator("#assistant-panel")).toBeVisible();
   await expect(composer(page)).toBeFocused();
-  await expect(page.getByText("You asked, about Germany · May 2026:")).toBeVisible();
+  await expect(page.getByText("Asked about Germany · May 2026")).toBeVisible();
   await expect(page.getByText("Answer complete", { exact: true })).toBeAttached({
     timeout: 15_000,
   });
@@ -89,7 +89,7 @@ test("Shift+Enter on a heat map cell fills the composer, sends nothing, then Ent
   await expect(page.getByText("Context", { exact: true })).toHaveCount(0);
   await expect(page.getByText("You asked")).toHaveCount(0);
   await page.keyboard.press("Enter");
-  await expect(page.getByText("You asked, about Germany · Mar 2026:")).toBeVisible();
+  await expect(page.getByText("Asked about Germany · Mar 2026")).toBeVisible();
 });
 
 test("the cell tooltip stays open while the pointer travels to its action", async ({ page }) => {
@@ -128,7 +128,7 @@ test("a sent Ask why leaves a prefilled draft and its context alone", async ({ p
   await page.keyboard.press("Shift+Enter");
   await expect(composer(page)).toHaveValue("Why did Germany's revenue dip in Mar 2026?");
   await page.getByRole("button", { name: "Ask why Spain is off track" }).click();
-  await expect(page.getByText("You asked, about Spain · May 2026:")).toBeVisible();
+  await expect(page.getByText("Asked about Spain · May 2026")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Clear context Germany · Mar 2026" }),
   ).toBeVisible();
@@ -139,7 +139,7 @@ test("a suggestion is not labelled with a pending cell context", async ({ page }
   await page.getByRole("gridcell", { name: /^Germany, Mar 2026/ }).focus();
   await page.keyboard.press("Shift+Enter");
   await page.getByRole("button", { name: "Which markets are at risk?" }).click();
-  await expect(page.getByText("You asked, about Portfolio · May 2026:")).toBeVisible();
+  await expect(page.getByText("Asked about Portfolio · May 2026")).toBeVisible();
 });
 
 test("a collapsed panel keeps streaming and badges the finished answer", async ({ page }) => {

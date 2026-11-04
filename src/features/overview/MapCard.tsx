@@ -159,7 +159,7 @@ export function MapCard({
   map: OverviewVM["map"];
   scheme?: "metric" | "status";
 }) {
-  const { setContext } = useConsoleContext();
+  const { ctx, setContext } = useConsoleContext();
   const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
   const geoState = useGeo(auto);
   const tableId = useId();
@@ -173,7 +173,7 @@ export function MapCard({
   const metricControl = byStatus ? null : (
     <SegmentedControl<Metric>
       ariaLabel="Map metric"
-      value={map.metric}
+      value={ctx.metric}
       onChange={(metric) => setContext({ metric })}
       options={(Object.keys(METRIC_LABEL) as Metric[]).map((m) => ({
         value: m,
@@ -191,7 +191,7 @@ export function MapCard({
         metricLabel={metricLabel}
         scheme={scheme}
         periodLabel={map.periodLabel}
-        selected={map.selected}
+        selected={ctx.market}
         focus={map.focus}
         height={MAP_HEIGHT}
         onSelect={(market) => setContext({ market })}

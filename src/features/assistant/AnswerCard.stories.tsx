@@ -58,7 +58,7 @@ export const Streaming: Story = {
     await expect(canvas.getByText("STREAMING…")).toBeInTheDocument();
     await expect(canvasElement.querySelector(".caret")).not.toBeNull();
     await expect(canvas.queryByText("Show sources")).toBeNull();
-    await userEvent.click(canvas.getByRole("button", { name: "Stop" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Stop generating" }));
     await expect(args.onStop).toHaveBeenCalledOnce();
   },
 };

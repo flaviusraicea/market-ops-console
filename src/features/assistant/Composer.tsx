@@ -75,7 +75,8 @@ export function Composer({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    // A hairline under the composer separates what you type from the answers that scroll below it.
+    <div className="flex flex-col gap-2 border-b border-border pb-4">
       {about ? (
         <div className="flex items-center gap-2">
           <Eyebrow>About</Eyebrow>
@@ -126,7 +127,7 @@ export function Composer({
               submit();
             }
           }}
-          className="field-sizing-content min-h-[var(--composer-row)] max-h-40 resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
+          className="field-sizing-content min-h-[var(--composer-row)] max-h-[100px] resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
         />
         <Button
           type="submit"

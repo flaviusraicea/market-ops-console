@@ -44,7 +44,7 @@ test("Stop keeps the partial text with a pill and no chips or meter, then Retry 
 }) => {
   await page.goto("/");
   await ask(page, GERMANY);
-  const stop = page.getByRole("button", { name: "Stop" });
+  const stop = page.getByRole("button", { name: "Stop generating" });
   await expect(stop).toBeVisible();
   await expect
     .poll(async () => (await page.locator("p.font-display").first().textContent())?.length ?? 0)
@@ -84,8 +84,8 @@ test("asking twice keeps both echoes in order and the composer focused", async (
   await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(2, { timeout: 5000 });
   const echoes = page.locator('[data-slot="question-echo"]');
   await expect(echoes).toHaveText([
-    `You asked, about Portfolio · May 2026:${GERMANY}`,
-    "You asked, about Portfolio · May 2026:Which markets are at risk?",
+    `About Portfolio · May 2026${GERMANY}`,
+    "Asked about Portfolio · May 2026Which markets are at risk?",
   ]);
   await expect(box).toBeFocused();
 });
