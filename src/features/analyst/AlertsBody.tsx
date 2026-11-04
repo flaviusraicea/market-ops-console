@@ -21,6 +21,7 @@ export type AlertsBodyProps = {
 function Body({ readOnly, onSwitchToAnalyst, initialRules }: AlertsBodyProps) {
   const alerts = useAlertSave(alertApi, initialRules);
   const [loadDismissed, setLoadDismissed] = useState(false);
+  const [simulateFail, setSimulateFail] = useState(false);
   useEffect(() => setRulesLoadFailed(alerts.loadFailed), [alerts.loadFailed]);
   return (
     <>
@@ -38,6 +39,8 @@ function Body({ readOnly, onSwitchToAnalyst, initialRules }: AlertsBodyProps) {
       ) : null}
       <AlertForm
         readOnly={readOnly}
+        simulateFail={simulateFail}
+        onSimulateFailChange={setSimulateFail}
         saveRule={alerts.save}
         status={alerts.status}
         savedAt={alerts.savedAt}
@@ -49,7 +52,7 @@ function Body({ readOnly, onSwitchToAnalyst, initialRules }: AlertsBodyProps) {
       {alerts.loadFailed ? null : (
         <RuleList
           rules={alerts.rules}
-          onDelete={alerts.remove}
+          onDelete={(id) => alerts.remove(id, { fail: simulateFail })}
           deleteFailed={alerts.deleteFailed}
           onDismissDeleteFailed={alerts.dismissDeleteFailed}
           deleteReadOnly={alerts.deleteReadOnly}
