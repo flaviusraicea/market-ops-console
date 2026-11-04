@@ -26,12 +26,20 @@ test("following the March chip switches to Analyst and lands on the time series 
   await expect(series).toBeInViewport();
   // One citation, one highlight: nothing else on the page rings, and the chart is centred below the toolbar.
   await expect(page.locator("[data-landed]")).toHaveCount(1);
-  const toolbar = await boxOf(page.getByRole("toolbar").first());
-  const card = await boxOf(series);
+  // Polled: under load the ring can show on the scroll-end fallback while the smooth scroll is still finishing.
   const viewport = page.viewportSize()!.height;
-  const gapAbove = card.y - (toolbar.y + toolbar.height);
-  const gapBelow = viewport - (card.y + card.height);
-  expect(Math.abs(gapAbove - gapBelow)).toBeLessThan(8);
+  await expect
+    .poll(
+      async () => {
+        const toolbar = await boxOf(page.getByRole("toolbar").first());
+        const card = await boxOf(series);
+        const gapAbove = card.y - (toolbar.y + toolbar.height);
+        const gapBelow = viewport - (card.y + card.height);
+        return Math.abs(gapAbove - gapBelow);
+      },
+      { timeout: 1500 },
+    )
+    .toBeLessThan(8);
   await expect(series).not.toHaveAttribute("data-landed", "", { timeout: 4000 });
   await expect(series.getByRole("tooltip")).toHaveCount(0);
 });
