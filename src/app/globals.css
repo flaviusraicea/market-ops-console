@@ -573,13 +573,18 @@ html[data-reduced-motion="true"] .heat-cell:hover {
 }
 /* Charts hold their width while the column moves (lib/panelMotion). A linear-x chart stretches horizontally only:
    strokes stay their width, text and markers are hidden until the final render, then fade back. */
+[data-frozen="hold"] {
+  display: flex;
+  justify-content: center;
+  overflow: clip;
+}
 [data-frozen="stretch"] [data-chart-box] {
   width: 100% !important;
 }
-[data-frozen="stretch"] svg[data-plot] {
+[data-frozen="stretch"] svg[preserveAspectRatio] {
   width: 100%;
 }
-[data-frozen="stretch"] svg[data-plot] :is(path, line) {
+[data-frozen="stretch"] svg[preserveAspectRatio] :is(path, line) {
   vector-effect: non-scaling-stroke;
 }
 [data-chart-box] svg text,

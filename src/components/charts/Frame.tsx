@@ -45,7 +45,6 @@ export function Frame({
       viewBox={`0 0 ${width} ${height}`}
       // Only matters while the assistant column moves and the plot stretches (globals.css); at rest the box matches.
       preserveAspectRatio="none"
-      data-plot
       width={width}
       height={height}
       className="block"

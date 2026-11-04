@@ -25,11 +25,7 @@ export function PanelMotion({
 }) {
   const { size, frozen } = useRestSize(width, height);
   return (
-    <div
-      data-frozen={frozen ? mode : undefined}
-      className={frozen && mode === "hold" ? "flex justify-center overflow-clip" : undefined}
-      style={frozen && mode === "hold" ? { height: size.height } : undefined}
-    >
+    <div data-frozen={frozen ? mode : undefined} style={{ height: size.height }}>
       {children(size)}
     </div>
   );
