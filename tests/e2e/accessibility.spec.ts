@@ -74,7 +74,7 @@ test.describe("density", () => {
 
       await open(page, ANALYST);
       expect(await headerRow()).toBe(56);
-      expect(await px('[role="toolbar"]', "height")).toBe(40);
+      expect(await px('[role="toolbar"]', "height")).toBe(48);
       expect(await px('[role="combobox"]', "height")).toBe(28);
       expect(await px("tbody tr", "height")).toBe(32);
       expect([await token("--row-h"), await token("--control-h")]).toEqual(["32px", "28px"]);

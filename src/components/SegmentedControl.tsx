@@ -50,7 +50,7 @@ export function SegmentedControl<T extends string>({
         {...(ariaLabel ? { "aria-label": ariaLabel } : {})}
         {...(labelledBy ? { "aria-labelledby": labelledBy } : {})}
         onKeyDown={onKeyDown}
-        className="inline-flex h-[var(--track-h)] items-center rounded-pill bg-surface-2 p-0.5"
+        className="inline-flex h-[var(--track-h)] items-center rounded-pill bg-bg p-0.5"
       >
         {options.map((o, i) => {
           const checked = o.value === value;
