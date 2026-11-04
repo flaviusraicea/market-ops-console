@@ -43,6 +43,13 @@ type BuildState = {
   reducedMotion: boolean;
 };
 
+/**
+ * The initials people type for multi-word names, listed by hand rather than generated, so only real abbreviations
+ * match ("uk" finds the United Kingdom; "ta" and "gy" still find nothing).
+ */
+const MARKET_INITIALS: Record<string, string[]> = { gb: ["UK"], us: ["US"] };
+const REGION_INITIALS: Record<string, string[]> = { na: ["NA"] };
+
 const MODE_NAME: Record<Mode, string> = {
   executive: "Executive overview",
   analyst: "Analyst deep-dive",
@@ -67,7 +74,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
         meta: `${regionName(m.regionId)} · ${STATUS_LABEL[m.kpis.status].toLowerCase()}`,
         tone: "accent" as const,
         icon: "market" as const,
-        keywords: [m.iso2, m.iso3],
+        keywords: [m.iso2, m.iso3, ...(MARKET_INITIALS[m.id] ?? [])],
         action: { kind: "market" as const, marketId: m.id },
       })),
     },
@@ -80,6 +87,7 @@ export function buildGroups(ds: Dataset, state: BuildState): PaletteGroup[] {
           id: `region:${r.id}`,
           label: `Go to ${r.name}`,
           name: r.name,
+          keywords: REGION_INITIALS[r.id] ?? [],
           meta: `${n} ${n === 1 ? "market" : "markets"}`,
           icon: "region" as const,
           action: { kind: "region" as const, regionId: r.id },

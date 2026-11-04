@@ -29,6 +29,12 @@ describe("palette ranking", () => {
     expect(labels("ana", "analyst")).toEqual(['Ask: "ana"']);
   });
 
+  it("matches the hand-listed initials of a multi-word name: uk, us, na", () => {
+    expect(labels("uk")).toEqual(["Go to United Kingdom"]);
+    expect(labels("us")).toEqual(["Go to United States"]);
+    expect(labels("na")).toEqual(["Go to North America"]);
+  });
+
   it("matches a keyword by the start of one of its words: ca finds Canada only", () => {
     expect(labels("ca")).toEqual(["Go to Canada"]);
     expect(labels("dark")).toEqual(["Toggle theme"]);
