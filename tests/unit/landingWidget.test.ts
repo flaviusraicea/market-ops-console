@@ -16,13 +16,12 @@ describe("landingWidget", () => {
     const market: Entity = { kind: "market", marketId: "de" };
     const product: Entity = { kind: "product", marketId: "de", productId: "veltrix" };
     const region: Entity = { kind: "region", regionId: "emea" as never };
-    expect(landingWidget(target(market, false), "analyst")).toBe("timeseries");
-    expect(landingWidget(target(product, false), "analyst")).toBe("timeseries");
-    expect(landingWidget(target(market, true), "analyst")).toBe("gridSection");
-    expect(landingWidget(target(product, true), "analyst")).toBe("productRow");
-    expect(landingWidget(target(region, true), "analyst")).toBe("gridSection");
-    expect(landingWidget(target(region, true), "executive")).toBe("regionRow");
-    expect(landingWidget(target({ kind: "portfolio" }, true), "executive")).toBe("kpiTile");
+    expect(landingWidget(target(market, false))).toBe("timeseries");
+    expect(landingWidget(target(product, false))).toBe("timeseries");
+    expect(landingWidget(target(market, true))).toBe("gridSection");
+    expect(landingWidget(target(product, true))).toBe("productRow");
+    expect(landingWidget(target(region, true))).toBe("gridSection");
+    expect(landingWidget(target({ kind: "portfolio" }, true))).toBe("kpiTile");
   });
 });
 

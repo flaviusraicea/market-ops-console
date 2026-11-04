@@ -57,7 +57,7 @@ export function LandingProvider({ children }: { children: ReactNode }) {
       ? latest.citations[ctx.cite]?.resolution
       : undefined;
   const target = resolution?.ok ? resolution.target : undefined;
-  const widget = target ? landingWidget(target, ctx.mode) : undefined;
+  const widget = target ? landingWidget(target) : undefined;
   const key = target && followed ? `${followed.answerId}:${followed.n}:${ctx.cite}` : undefined;
 
   const [element, register] = useState<HTMLElement | null>(null);
