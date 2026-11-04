@@ -629,8 +629,8 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
   return {
     title: `${scope} compared`,
     subtitle: atPortfolio
-      ? `Regions${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · Axes scaled to the compared regions${unavailable}`
-      : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? ` markets · ${ALL_PRODUCTS}` : ""} · Axes scaled to the compared markets${unavailable}`,
+      ? `Regions${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · Relative scale: lowest compared region nearest the centre, highest at the outer ring${unavailable}`
+      : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? ` markets · ${ALL_PRODUCTS}` : ""} · Relative scale: lowest compared market nearest the centre, highest at the outer ring${unavailable}`,
     caption: `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]} · ${radarSource}`,
     allProducts: Boolean(ctx.product),
     axes: measures.map((m) => m.label),

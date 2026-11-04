@@ -118,3 +118,5 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 - With more time: the Analyst toolbar's More menu. Below 1200 px the toolbar scrolls sideways as a fallback; a More menu would fold the lowest-priority controls instead.
 - With more time: the KPI tiles on a four-row layout (label, value, trend or segment bar, status line), so every tile has the same rows. Today only Revenue carries a sparkline.
 - With more time: the radar's "Compare · N markets" picker (approved, deferred): up to four markets, a legend that dims a series, and a `compare` URL parameter. Today the radar compares the markets in scope, in four colours.
+- With more time: the radar should use a fixed portfolio-wide scale per axis with a reference ring, so shapes stay comparable whichever markets are compared. Today each axis is scaled between the lowest and highest compared value.
+- With more time: citation chips on grid rows and KPIs should scroll to the matching time-series row.

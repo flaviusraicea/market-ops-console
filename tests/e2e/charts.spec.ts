@@ -45,9 +45,13 @@ test("the radar compares Units YoY, pads its axes and draws the selected market 
   const radar = card(page, /^Compare/);
   await expect(radar.locator('[data-axis="Units YoY"]')).toBeVisible();
   await expect(radar.getByText("Forecast accuracy")).toHaveCount(0);
-  await expect(radar.getByText("Axes scaled to the compared markets")).toBeVisible();
-  // No ring carries a number: 0.5 and 1.0 would read as values.
-  await expect(radar.locator("svg text", { hasText: /^(0\.5|1\.0)$/ })).toHaveCount(0);
+  await expect(
+    radar.getByText(
+      "Relative scale: lowest compared market nearest the centre, highest at the outer ring",
+    ),
+  ).toBeVisible();
+  // No ring carries a number: 0.5, 1.0, or 0, 50 and 100 would read as values.
+  await expect(radar.locator("svg text", { hasText: /^(0\.5|1\.0|0|50|100)$/ })).toHaveCount(0);
   // The selected market is the last polygon, so it sits on top.
   const order = await radar
     .locator("path[data-series]")
