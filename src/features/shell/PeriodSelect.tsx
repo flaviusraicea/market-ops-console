@@ -27,7 +27,8 @@ export function PeriodSelect({
       <SelectTrigger aria-label="Period" className={cn("min-w-[120px]", className)}>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      {/* The menu belongs to the toolbar control that opened it, so it keeps the chrome scale. */}
+      <SelectContent data-chrome="">
         {newestFirst.map((p) => (
           <SelectItem key={p} value={p}>
             {formatPeriod(p)}

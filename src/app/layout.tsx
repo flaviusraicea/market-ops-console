@@ -37,9 +37,15 @@ export const metadata: Metadata = {
   title: "Market Ops",
   description:
     "Market operations console: portfolio performance, forecast attainment and an assistant.",
-  // An internal console: search engines should neither list it nor follow its links.
-  robots: { index: false, follow: false },
+  // Previews and local builds stay out of search engines. The production deployment is the submission's live link,
+  // so it is indexable; a real deployment would set this per environment the same way.
+  ...(process.env["VERCEL_ENV"] === "production"
+    ? {}
+    : { robots: { index: false, follow: false } }),
 };
+
+// Speed Insights only has a collector on Vercel; anywhere else its script is a 404 and a console error.
+const SPEED_INSIGHTS = process.env["VERCEL"] === "1";
 
 // Applies a stored theme before first paint so there is no flash.
 const THEME_SCRIPT = `try{var t=localStorage.getItem("${THEME_KEY}");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
@@ -73,7 +79,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <WebVitals />
           {children}
         </Providers>
-        <SpeedInsights />
+        {SPEED_INSIGHTS ? <SpeedInsights /> : null}
       </body>
     </html>
   );

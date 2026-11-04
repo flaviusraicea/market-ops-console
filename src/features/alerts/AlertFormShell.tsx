@@ -115,16 +115,16 @@ export function AlertFormShell({
         </div>
       </div>
 
-      <label className="flex w-fit items-center gap-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
+      <label className="flex w-fit items-center gap-2 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
         <input
           type="checkbox"
           checked={false}
           readOnly
           disabled
           aria-disabled
-          className="size-4 accent-[var(--accent)]"
+          className="size-3.5 accent-[var(--accent)]"
         />
-        Simulate failure
+        Demo · simulate a failed save
       </label>
 
       {readOnly ? null : (

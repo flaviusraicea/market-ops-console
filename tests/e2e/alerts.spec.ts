@@ -72,7 +72,7 @@ test("a failed save shows 97 briefly, then the alert Notice and the saved 95 aga
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
   await expect(card(page).getByText("Saved · just now")).toBeVisible();
 
-  await card(page).getByLabel("Simulate failure").check();
+  await card(page).getByLabel("Demo · simulate a failed save").check();
   await card(page).getByRole("textbox", { name: "Attainment below" }).fill("97");
   await card(page).getByRole("button", { name: "Save thresholds" }).click();
   const list = card(page).getByRole("list", { name: "Saved alert rules" });
@@ -90,7 +90,7 @@ test("a failed save shows 97 briefly, then the alert Notice and the saved 95 aga
   await expect(list.getByText("Attainment below 95% · Europe")).toBeVisible();
   await expect(card(page).getByRole("textbox", { name: "Attainment below" })).toHaveValue("95");
 
-  await card(page).getByLabel("Simulate failure").uncheck();
+  await card(page).getByLabel("Demo · simulate a failed save").uncheck();
   await notice.getByRole("button", { name: "Try again" }).click();
   await expect(card(page).getByText("Saved · just now")).toBeVisible({ timeout: 3000 });
   await expect(list.getByText("Attainment below 97% · Europe")).toBeVisible();

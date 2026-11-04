@@ -1,10 +1,17 @@
+<!--
+  TODO(Flavius): voice pass. The sections marked "TODO(Flavius): edit voice" were drafted from the documents in docs/
+  and are factual; rewrite them in your own words before submitting. Two parts are yours alone and are left as
+  placeholders: "How I used AI tools" (search for TODO(Flavius): W20) and the closing thoughts (TODO(Flavius): T3).
+  Remove this comment when done.
+-->
+
 # Market Ops
 
 A market operations console: portfolio performance, forecast attainment and an assistant.
 
 **Live deployment:** https://market-ops-console-bay.vercel.app/ (deployed manually: Git-triggered Vercel deploys are off in `vercel.json`, so a push builds nothing there; CI in GitHub Actions is the only automatic check)
 
-**Scope:** designed for desktop (1024 px and up), usable on tablet and phone. On a phone the Overview works fully and Analyst is readable (wide tables scroll inside their own region; the assistant is a bottom sheet), not built for operating.
+**Scope:** Desktop is the target. Tablet and phone are a working first pass: the assistant is a bottom sheet, charts have table views; polish is under "with more time".
 
 ## Quick setup
 
@@ -24,11 +31,35 @@ pnpm dev          # http://localhost:3000
 | `pnpm test:e2e`                      | Playwright journeys with axe, against the production build            |
 | `pnpm storybook` / `build-storybook` | Component workbench on port 6006, static build to `storybook-static/` |
 | `pnpm check:contrast`                | Asserts every design-token contrast pair in both themes               |
-| `pnpm run ci`                        | Lint, typecheck, contrast, tests, build and Storybook build           |
+| `pnpm check:radius` / `docs:a11y`    | Radius scale by role; the accessibility doc's generated tables        |
+| `pnpm check:budget`                  | Bytes received per view against the budgets in `package.json`         |
+| `pnpm run ci`                        | Every check above, in CI's order, plus the build and Storybook build  |
 
 Component tests are Storybook stories with play functions; `pnpm test:stories` runs them headless in Chromium. Run `pnpm exec playwright install chromium` once before the browser tests.
 
-Design and architecture documents live in `/docs` (copied from the design folder).
+Design and architecture documents live in [`docs/`](docs/README.md).
+
+## Architecture overview
+
+<!-- TODO(Flavius): edit voice -->
+
+Five layers with a one-way dependency rule, enforced by ESLint and tested in `tests/unit/boundaries.test.ts`: `app` (routes, layouts, route handlers) → `features` (data-aware screens: overview, analyst, assistant, alerts, live, palette, shell) → `components` (the design system: primitives, charts, one component per concept) → `lib` (framework glue: the URL hook, the stream client, formatting, telemetry) → `domain` (types, zod schemas, selectors and rules; depends on zod only). The domain has no React, no Next and no fetch.
+
+Data flow: `data.json` is parsed once on the server with zod and cached; the page is a server component that reads the URL, computes typed view models and renders the card shells. Charts, the assistant and the alert form are client islands that receive those view models as props and never fetch the dataset. A write (a drill, a period, a mode) goes to the URL through one hook over nuqs; Next re-renders the server page with the new search params and the islands update. The dashboard streams in behind a skeleton of the same shape, so nothing shifts.
+
+Server against client state: facts live on the server (dataset, view models); navigation state lives in the URL (`region`, `market`, `product`, `period`, `mode`, `metric`, `basis`, `cite`, `facts`, with invariants applied by one writer); identity is one cookie; the answer history, the streaming buffer and the live tick are React reducers in providers; the alert rules are the one piece of remote mutable state, held by TanStack Query with an optimistic save and rollback; preferences are in storage; everything else is local component state. There is no global store. The full account, with the folder tree, the URL schema, the contracts and the component tree, is in [`docs/architecture.md`](docs/architecture.md).
+
+## Productionising
+
+<!-- TODO(Flavius): edit voice -->
+
+- **Performance budgets.** JS budgets of 275 KB (Executive) and 325 KB (Analyst) gzip are a hard gate in CI (`scripts/check-budget.ts`, after the build), with a warning at 90 %; both sit at about 92 %, the warn band. Lighthouse CI (`.github/workflows/lighthouse.yml`, `lighthouserc.json`) asserts performance ≥ 0.9, accessibility ≥ 0.95, LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 200 ms and script weight on both views, median of three desktop runs. Every Analyst widget, the alerts form, the map code, the answer card, the live engine and the palette are lazy chunks, each capped at 60 KB.
+- **No jank while streaming.** Tokens collect in a buffer and are flushed once per animation frame (`useAnswerMachine.ts`), so an answer renders at most once per frame; chart transitions are CSS tweens and the panel's open and close animate one grid column. Frame-budget specs in `tests/e2e/perf/` run alone after the rest of the suite.
+- **Client-side observability.** `src/lib/vitals.tsx` reports LCP, CLS and INP to `/api/vitals` in production (console in development); Vercel Speed Insights adds real-user vitals on the deployment. `reportError` (`src/lib/events.ts`) is the one place a failure is reported: widget boundaries, `window.onerror`, unhandled rejections, stream failures and failed fetches all write one JSON line and beacon it to `/api/errors`, rate-limited per page. Details in [`docs/performance-monitoring.md`](docs/performance-monitoring.md).
+- **Resilience.** Each widget sits in its own error boundary, so a failing chart shows an inline notice and the page stays up. The assistant handles loading, empty, partial (stopped), failed and offline states, with Retry; an offline notice appears when the network drops. The alert save is optimistic and rolls back on failure with a focused notice.
+- **Safe rendering of the model's output.** Answer text is rendered as text nodes, never as HTML or Markdown; the only markup added is the citation anchors the app wraps around known phrases (`renderWithCitations.tsx`, tested in `tests/unit/safeRender.test.tsx`). Every stream event is validated against `SseEventSchema` before it reaches state. A per-request nonce Content-Security-Policy (`src/proxy.ts`, `src/lib/csp.ts`) allows scripts only from this origin or with the nonce.
+- **Built, served, cached.** `next build` produces the app; Vercel (fra1) serves it with `next start` semantics: the page is dynamic (`private, no-cache`, because the URL is the state and the role cookie picks the view), `/api/*` is `no-store`, `/_next/static` and the content-hashed `/geo/*` file are immutable. Security headers (`next.config.ts`) and the CSP go out with every response. A real deployment sets `noindex` per environment; here previews and local builds are `noindex` and production is indexable.
+- **CI/CD.** `.github/workflows/ci.yml` runs lint, format, typecheck, contrast, radius, the accessibility-doc check, unit and story tests, the build, the budget check, the Storybook build and the Playwright suite with axe on every push and pull request; `lighthouse.yml` runs Lighthouse CI. Branch protection requires both. Deploys are manual on purpose: Git-triggered Vercel deploys are off in `vercel.json`, so the live link only changes when a build that passed CI is promoted.
 
 ## Tool choices
 
@@ -51,6 +82,44 @@ Each row gives the problem, the choice, and the alternative turned down with the
 | Bundle size must not creep back after tuning                                                                                                                     | Budgets: 275 KB Executive / 325 KB Analyst gzip, hard fail; derived from Lighthouse ≥ 90 on throttled mobile plus 10% headroom                                                                                                                              | Warning-only, which is no gate; tracking the current size, which means churn                                                                                                  |
 | A selected row must read as selected without competing with a citation landing                                                                                   | Every selected row (product, region, market) gets a `--surface-2` background, a semibold name and `aria-selected="true"`, with no accent edge; the 2 px accent ring is left to a landed citation                                                            | A 3 px accent side stripe: a coloured side stripe is the one decoration the design bans, and it made a selection look like a citation                                         |
 
+## Accessibility
+
+<!-- TODO(Flavius): edit voice -->
+
+Target: WCAG 2.1 AA. The full reference, with the recorded Tab order, the shortcuts and the contrast table, is [`docs/accessibility.md`](docs/accessibility.md); its tables are generated from the tests and the tokens and drift-checked in CI (`pnpm docs:a11y --check`).
+
+- **Keyboard.** A skip link, a documented Tab order on both views, and one pattern for every chart: the chart is one tab stop and the arrow keys move inside it (markets on the map, cells in the heat map, months on the line). The palette (Ctrl/⌘ K), the assistant and the dialogs trap and return focus; Escape always returns focus to what opened the surface. Focus rings are visible on every control and survive forced colours.
+- **ARIA and screen readers.** Landmarks and a heading outline per view; `aria-live` status for "Streaming…", "Answer complete" and the save result; tables with proper headers; the status of every market is read as text ("Germany, off track"), never as colour alone; each popover takes its trigger's name.
+- **Colour and contrast.** Every text pair holds 4.5:1 and every graphic pair 3:1 in both themes, asserted by `pnpm check:contrast` in CI; status always carries a glyph and a word as well as a colour; the heat map's diverging scale has a legend and a table view.
+- **Reduced motion.** The OS setting and an in-app switch zero the transitions, the stream still renders, the live dot stops pulsing.
+- **Accessible alternatives for charts.** Every chart (map, radar, line, heat map, sparklines) has View as table, an SVG title and description, and keyboard-reachable data points with a tooltip that is also read by assistive technology.
+- **Checked.** axe (`wcag2a`, `wcag2aa`, `wcag21aa`) with zero violations on the main screens in light and dark, in the Storybook stories and in the Playwright journeys; Lighthouse accessibility 100 on every route.
+- **What I'd add.** A VoiceOver and NVDA pass by hand, Safari and Firefox checks, and the WCAG 2.2 target-size rule as a CI gate.
+
+## Testing
+
+<!-- TODO(Flavius): edit voice -->
+
+- **Unit (Vitest, jsdom):** domain selectors with real numbers, the citation resolver, the alert evaluator, URL parsers and invariants, formatters, SSE parsing and token batching, the answer and alert-save state machines, the route handlers, safe rendering of model output, the no-LLM dependency check and the layer rules (`tests/unit/`, 61 files, 590 tests).
+- **Contracts:** `DatasetSchema` against the real `data.json`, `fixtures.json` against its schema, the stream guard against the zod schema, the chat request with and without a view.
+- **Component (Storybook + Vitest browser mode):** 167 stories, 148 of them with play functions, run headless in Chromium, once in light and once in dark, with the a11y addon failing on any violation (334 story tests). Stories cover every component with states or variants; primitives are exercised through their parents' stories.
+- **End to end (Playwright with axe, against the production build):** one spec per feature, 42 specs; the happy paths (ask, stream, stop, cite, drill, alert save and rollback, palette, live) plus keyboard, forced colours, reduced motion, offline and the five-width scroll check; frame-budget specs run last, alone, never retried.
+- **Gates that are not tests but fail the build:** contrast pairs, the radius scale, the generated accessibility tables, the bundle budgets, Lighthouse CI.
+- **Deliberately skipped:** visual-regression snapshots (the stories and the e2e assertions check layout facts instead, and snapshots churn on every design change); cross-browser runs (Chromium only, by time); mutation testing; load tests (there is no backend to load).
+
+## Engineering standards
+
+<!-- TODO(Flavius): edit voice -->
+
+Followed: strict TypeScript with no `any` and `noUncheckedIndexedAccess`; zod contracts at every boundary (dataset, stream events, chat request, alert rule, error report) with types inferred from them; a layer dependency rule enforced by ESLint and tested; one component per concept and tokens only (literal colours and radii are lint and script failures); Conventional Commits, one branch and one pull request per change, merge commits, branch protection with CI required; Prettier as the one formatter; every CI gate listed above; an ADR per decision in [`docs/decisions/`](docs/decisions/).
+
+Skipped, knowingly: the React Compiler is not enabled (explicit memo discipline and the boundaries test instead; enabling it is a with-more-time item); GitHub Actions are pinned to tags, not SHAs; no Dependabot (it would open pull requests on the submission repo after hand-in); the default Next browserslist (a modern target would drop about 13 KB of polyfills); Chromium only in automated tests; four hand-written validators shadow their zod schemas on the client, to keep the schema library (about 26 KB) out of the first load; the tests hold them to the schemas.
+
+<!--
+  TODO(Flavius): W20. Write "## How I used AI tools" here in your own words: the workflow, the templates and
+  sub-agents, the do's and don'ts, how it stays repeatable and how the code is held to your standard.
+-->
+
 ## Try it
 
 - `Which markets are at risk?` shows the "Differs from source" note: the assistant says 3 markets are at risk, data.json says 4 at risk and 2 off track.
@@ -62,8 +131,16 @@ Each row gives the problem, the choice, and the alternative turned down with the
 ## Assistant notes
 
 - Answers stream from `POST /api/chat` (Server-Sent Events) and can be stopped; a stopped answer keeps its text, is marked partial and carries no citations or confidence.
-- Every question carries the view it was asked from (entity and month, shown in the question echo), and the mock backend answers about that view: the same question gives a different, cited answer in Europe than in the portfolio. The backend is still a fake: no model and no retrieval. It matches keywords, prefers the canned answer written for the current view, and for one template answer fills in numbers read from `data.json`.
-- The conversation is kept in memory for the session only. A reload starts with an empty panel.
+- Every question carries the view it was asked from (entity and month, shown in the question echo), and the mock backend answers about that view: the same question gives a different, cited answer in Europe than in the portfolio. The backend is still a fake: no model and no retrieval. The keyword matcher is a fixture router (`src/lib/stream/pickFixture.ts`): it picks the canned answer for the question and the current view, and for one template answer fills in numbers read from `data.json`. The event contract is the boundary a real model would plug in behind; the router is the part that would go.
+- The conversation is kept in this tab's session storage: a reload keeps the conversation, a new tab starts empty. Sign-out clears it.
+
+## Data
+
+`src/data/data.json` is the starter pack's file, unchanged. `src/data/fixtures.json` keeps every starter answer, kind and the `default` byte for byte; what changed:
+
+- The top-level `note` describes the matcher as it is now (scope preference and templates).
+- Three keyword sets were widened so the brief's questions match in more phrasings: `at-risk`, `apac-vs-europe` (which now requires one word from each side: APAC or Asia, and Europe) and `forecast-miss`.
+- Four fixtures were added: `at-risk-europe` (the at-risk answer for the Europe view, so the same question is answered about the five European markets), `dip-any-market` (a template answer for "why did revenue dip" in any market view, filled from `data.json`), `off-topic` (an honest abstain for questions the data cannot answer) and `why-status` (an abstain for "why" questions about a status: the data holds the status, not the reason).
 
 ## Data inconsistency: reported vs summed attainment
 
@@ -98,7 +175,7 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 
 - Analyst mode has an `Alert thresholds` card (read-only when you are signed in as Executive; see Roles). Saving writes a growth rule and an attainment rule for the chosen scope through `POST /api/alerts`; saving the same metric and scope again updates the rule.
 - The alerts backend is a mock: `POST`/`DELETE /api/alerts` validate, wait 600 ms and can fail, but store nothing. Rules are saved in your browser (`localStorage`, key `market-ops:alerts:v1`), so they survive a reload, stay in this browser only, and stay in step across tabs. If storage is disabled or full they last for the session.
-- The `Simulate failure` checkbox sends `?fail=1`, so the route answers 500 after its 600 ms delay and the UI shows the rollback.
+- The `Demo · simulate a failed save` checkbox sends `?fail=1`, so the route answers 500 after its 600 ms delay and the UI shows the rollback.
 
 ## Live mode notes
 
@@ -110,19 +187,68 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 
 ## Limits and with more time
 
-- JS budgets 275/325 KB gzip are enforced in CI (warning at 90%). The Lighthouse resource budget in `lighthouserc.json` is the CI budget plus a 10 KB allowance for response headers and Vercel's injected script. With more time: trim the bundle with visx tree-shaking and a d3-geo projection subset, and move static card shells to server components.
+- JS budgets 275/325 KB gzip are enforced in CI (warning at 90%); both views sit at about 92 %, the warn band. The Lighthouse resource budget in `lighthouserc.json` is the CI budget plus a 10 KB allowance for response headers and Vercel's injected script. With more time: trim the bundle with visx tree-shaking and a d3-geo projection subset, and move static card shells to server components.
 - The assistant is scripted on purpose: `/api/chat` streams fixture answers over Server-Sent Events, with no LLM behind it. A real model would plug in behind the same `/api/chat` event contract.
 - Numbers, money and month names use one fixed locale, en-US, and USD, the data's currency, so output is the same in every test, screenshot and browser (`src/lib/format.ts`). A real product would take the locale from the user.
-- Following a citation from Executive to Analyst mounts the Analyst view in one long task: about 170 to 210 ms at 4× CPU slowdown and about 50 ms at 1×. With more time: split the static card shells into server components so less of that mount runs on the client.
+- Following a citation from Executive to Analyst mounts the Analyst view in one long task: about 170 to 210 ms at 4× CPU slowdown and about 50 ms at 1×. The panel animation and the facts-table scroll run near 30 fps at 4× CPU throttle; the period select and the palette's first mount show single long tasks at 4× on slow machines. Streaming an answer reports a layout shift of about 0.07 as the card grows. The first answer also loads the zod chunk that validates the stream (about 26 KB), so it starts a little later than the following ones. With more time: split the static card shells into server components so less of that mount runs on the client.
+- The client receives the dataset without its fact series (`lightDataset`), typed as the full `Dataset`; a domain function that reads series on the client would return zeros rather than fail to compile. It cannot happen with the fixed starter data, but with more time the light shape gets its own type so the compiler enforces it.
+- Inline citation anchors and the "Differs from source" cross-checks are keyed by the known answers' citation labels, because the stream's `done` event carries no answer id. A real model would keep the chips and the sources table and lose the inline anchors; citation spans in the event contract are the next step.
 - Automated tests run in Chromium; with more time: a VoiceOver and NVDA pass and Safari/Firefox checks.
 - `reportError` writes one JSON line per failure and `/api/vitals` one per vital, both to the server log. With more time: feed `reportError` to Sentry, which is one init call plus the DSN.
 - With more time: fold the Markets table's sparklines into the row at docked widths (assistant panel open), so the table keeps its trend column when it narrows.
 - With more time: stack the Analyst rows at docked widths of 1152 px and below. There the radar now draws near its minimum size (a 36 px spoke at 1024 px).
 - With more time: the Analyst toolbar's More menu. Below 1200 px the toolbar scrolls sideways as a fallback; a More menu would fold the lowest-priority controls instead.
-- With more time: the KPI tiles on a four-row layout (label, value, trend or segment bar, status line), so every tile has the same rows. Today only Revenue carries a sparkline.
-- With more time: compare up to four markets on the radar (spec written), through a "Compare · N markets" picker (approved, deferred) with a legend that dims a series, and a `compare` URL parameter. Today the radar compares the markets in scope, in four colours.
+- KPI tiles use three rows (value, change, caption). The four-row grammar in the design notes was dropped because the three-row tile reads cleanly.
+- Compare shows the five markets of the selected region. A market picker and a `compare=` parameter are the next step: up to four markets on the radar (spec written), with a legend that dims a series.
 - With more time: at narrow widths (under 40 rem of card, as with the docked assistant) transpose the Attainment table to months as rows and markets as columns, scrolling vertically. A 24-column table can only scroll sideways there. Today it scrolls horizontally inside the fixed-height box; the Compare table already shortens its heads.
 - With more time: with the assistant docked at 1440, the Compare table scrolls sideways; a denser two-line layout is planned.
 - With more time: the radar should use a fixed portfolio-wide scale per axis with a reference ring, so shapes stay comparable whichever markets are compared. Today each axis is scaled between the lowest and highest compared value.
 - With more time: citation chips on grid rows and KPIs should scroll to the matching time-series row.
 - With more time: the assistant panel animation runs at about 30 fps on a 4× slower CPU during the 400 ms move (clean at 1×). Next step: freeze table column widths and contain the cards during the transition.
+
+## Screenshots
+
+Taken on the production build at 1440 px (2×), light and dark, in [`docs/screenshots/current/`](docs/screenshots/current/).
+
+| View                                                            | Light                                                                                     | Dark                                                           |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Executive overview: verdict, KPIs, map, regions, attention list | ![Executive overview, light](docs/screenshots/current/overview-light.png)                 | [dark](docs/screenshots/current/overview-dark.png)             |
+| Analyst: ledger, radar, heat map, time series, facts            | ![Analyst, light](docs/screenshots/current/analyst-light.png)                             | [dark](docs/screenshots/current/analyst-dark.png)              |
+| A streamed answer with confidence, citations and sources        | ![Analyst with an answer, light](docs/screenshots/current/analyst-panel-answer-light.png) | [dark](docs/screenshots/current/analyst-panel-answer-dark.png) |
+| Following a citation: the chart lifts, the month is pinned      | ![Citation landing, light](docs/screenshots/current/citation-landing-light.png)           | [dark](docs/screenshots/current/citation-landing-dark.png)     |
+| An honest abstain                                               | ![Abstain, light](docs/screenshots/current/abstain-light.png)                             | [dark](docs/screenshots/current/abstain-dark.png)              |
+| Heat map tooltip and the "Differs from source" mark             | ![Heat map tooltip, light](docs/screenshots/current/heatmap-tooltip-light.png)            | [dark](docs/screenshots/current/heatmap-tooltip-dark.png)      |
+| Radar compare                                                   | ![Radar compare, light](docs/screenshots/current/radar-compare-light.png)                 | [dark](docs/screenshots/current/radar-compare-dark.png)        |
+| Command palette                                                 | ![Command palette, light](docs/screenshots/current/palette-light.png)                     | [dark](docs/screenshots/current/palette-dark.png)              |
+| Alert thresholds form                                           | ![Alerts form, light](docs/screenshots/current/alerts-form-light.png)                     | [dark](docs/screenshots/current/alerts-form-dark.png)          |
+| A failed save, rolled back                                      | ![Failed save, light](docs/screenshots/current/alerts-failed-save-light.png)              | [dark](docs/screenshots/current/alerts-failed-save-dark.png)   |
+| Offline notice                                                  | [light](docs/screenshots/current/offline-notice-light.png)                                | [dark](docs/screenshots/current/offline-notice-dark.png)       |
+| Not found                                                       | [light](docs/screenshots/current/not-found-light.png)                                     | [dark](docs/screenshots/current/not-found-dark.png)            |
+
+## Reviewer's map
+
+Where each part of the brief lives in the code.
+
+| Brief item                                               | Where                                                                                                                                                                                                                    |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Streaming chat, stop, in-progress states                 | `src/app/api/chat/route.ts` (SSE), `src/lib/stream/chatClient.ts`, `src/features/assistant/useAnswerMachine.ts` (the answer state machine, per-frame flush), `Panel.tsx`, `Composer.tsx`                                 |
+| Typed event contract                                     | `src/domain/stream.ts` (`SseEventSchema`, `ChatRequestSchema`, `CitationSchema`), `src/domain/sseGuard.ts`                                                                                                               |
+| Citations and the trust surface                          | `src/domain/citations.ts` (resolver), `src/components/CitationChip.tsx`, `src/features/assistant/CitationRow.tsx`, `SourcesTable.tsx`, `renderWithCitations.tsx`; landing in `src/features/analyst/useLanding.tsx`       |
+| Confidence and abstain                                   | `src/components/ConfidenceMeter.tsx`, answer kinds in `src/features/assistant/AnswerCard.tsx`, the horizon check in `src/lib/stream/horizon.ts`                                                                          |
+| AI against authoritative content                         | the violet AI surface (`--ai-*` tokens in `src/app/tokens.css`), provenance captions in `src/domain/provenance.ts` and `src/components/CardHeader.tsx`, "Differs from source" in `src/features/assistant/crossChecks.ts` |
+| Drill-down and coordinated views                         | `src/lib/context/` (one URL hook, parsers, invariants, `hrefFor`), `src/features/shell/Breadcrumbs.tsx`, every chart's click-to-drill                                                                                    |
+| Executive against Analyst                                | `src/features/overview/`, `src/features/analyst/`, density tokens in `src/app/tokens.css`, `src/lib/density.ts`                                                                                                          |
+| Map, radar, time series, heat map, and their table views | `src/components/charts/` (`Choropleth`, `RadarChart`, `LineChart`, `HeatMap`, `ViewAsTable`, `useChartKeyboard`), geometry built by `scripts/build-geo.ts`                                                               |
+| Server and client state                                  | `src/lib/dataset.ts` (server loader), view models in `src/features/*/viewModel.ts`, `src/features/alerts/useAlertSave.ts` (TanStack Query, optimistic save and rollback)                                                 |
+| Schema-validated form                                    | `src/domain/alertRule.ts` (one zod schema), `src/features/alerts/AlertForm.tsx`, `src/app/api/alerts/route.ts`                                                                                                           |
+| Formatting for a multi-market audience                   | `src/lib/format.ts` (the only place numbers, money, percentages and dates are formatted; lint-enforced)                                                                                                                  |
+| Roles (mock SSO)                                         | `src/proxy.ts`, `src/app/api/session/route.ts`, `src/lib/roles.ts`, `src/app/sign-in/`                                                                                                                                   |
+| Live mode                                                | `src/lib/live.ts`, `src/features/live/`                                                                                                                                                                                  |
+| Design tokens and the component system                   | `src/app/tokens.css`, `src/components/`, `docs/design-system.md`, `scripts/check-contrast.ts`, `scripts/check-radius.ts`                                                                                                 |
+| Observability and hardening                              | `src/lib/events.ts`, `src/lib/vitals.tsx`, `src/app/api/errors`, `src/app/api/vitals`, `src/features/shell/ErrorBoundary.tsx`, `src/lib/csp.ts`, `next.config.ts`                                                        |
+| Tests                                                    | `tests/unit/`, `*.stories.tsx` beside each component, `tests/e2e/`                                                                                                                                                       |
+
+<!--
+  TODO(Flavius): T3. Closing thoughts in your own words, if you want them: what you would do differently, and where
+  LLM output was fine and where you had to think it through yourself.
+-->

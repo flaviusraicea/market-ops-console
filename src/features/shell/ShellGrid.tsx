@@ -85,6 +85,7 @@ export function ShellGrid({
         <aside
           aria-labelledby="assistant-h"
           data-panel={phase}
+          data-chrome=""
           className="panel-column relative z-20 min-w-0 max-lg:hidden"
         >
           <ConnectedAssistantRail />

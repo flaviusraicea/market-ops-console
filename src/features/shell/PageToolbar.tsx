@@ -65,6 +65,7 @@ export function PageToolbar({
         role="toolbar"
         aria-label={label}
         data-slot="page-toolbar"
+        data-chrome=""
         data-stuck={stuck}
         className={cn(
           "sticky top-[var(--sticky-top)] z-20 mb-[var(--gap-section)] h-12 rounded-sheet border border-border bg-surface-raised shadow-card",

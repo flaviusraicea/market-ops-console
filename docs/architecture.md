@@ -202,7 +202,7 @@ Transitions follow domain-model.md section 7. `DONE` runs the citation resolver 
 idle → saving (optimistic row shown) → saved (inline "Saved · just now")
                                      → failed (rollback to previous snapshot, Notice shown) → saving (Try again)
 ```
-Implemented with TanStack `useMutation` (`onMutate` snapshot and optimistic write, `onError` restore, `onSettled` invalidate once the last mutation in flight finishes). The `?fail=1` switch is set by the "Simulate failure" checkbox. The route validates, waits and can fail, but stores nothing: the browser keeps the rules in `localStorage` (`src/features/alerts/storage.ts`, with an in-memory fallback when storage is unavailable), so every serverless instance gives the same answer, and other tabs follow through the `storage` event.
+Implemented with TanStack `useMutation` (`onMutate` snapshot and optimistic write, `onError` restore, `onSettled` invalidate once the last mutation in flight finishes). The `?fail=1` switch is set by the "Demo · simulate a failed save" checkbox. The route validates, waits and can fail, but stores nothing: the browser keeps the rules in `localStorage` (`src/features/alerts/storage.ts`, with an in-memory fallback when storage is unavailable), so every serverless instance gives the same answer, and other tabs follow through the `storage` event.
 
 ## 8. Component tree (runtime)
 

@@ -219,7 +219,7 @@ Steps
 1. Open Alerts in the Analyst view (folded by default; it stays open for the tab). Fields: Growth below %, Attainment below %, Scope (All markets, a region or a market). Defaults 0, 95, All markets.
 2. Enter Attainment below 120: the inline error "Enter a value between 0 and 100." and Save disabled until fixed.
 3. Choose Europe and Save: the rules appear at once with "Saving…", then "Saved · just now", each with its evaluation: "3 markets breach this rule: Germany, Italy, United Kingdom".
-4. Tick "Simulate failure", change attainment to 97 and Save: the row shows 97, then the "Couldn't save" notice takes focus, the inputs and the row go back to 95, and Try again re-sends.
+4. Tick "Demo · simulate a failed save", change attainment to 97 and Save: the row shows 97, then the "Couldn't save" notice takes focus, the inputs and the row go back to 95, and Try again re-sends.
 5. Delete a rule: a confirm dialog with Cancel focused and a danger Delete; confirming removes it.
 6. Reload: saved rules are still there. They live in this browser.
 

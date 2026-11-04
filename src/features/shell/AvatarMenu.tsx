@@ -40,7 +40,8 @@ export function AvatarMenu({ role, onSwitch, onSignOut, defaultOpen, openedBy }:
     // Not modal: a header menu should not hide the rest of the page from assistive technology or lock scrolling.
     <DropdownMenu modal={false} {...(defaultOpen ? { defaultOpen } : {})}>
       <DropdownMenuTrigger {...avatarTriggerProps(role)} />
-      <DropdownMenuContent>
+      {/* The menu belongs to the header control that opened it, so it keeps the chrome scale. */}
+      <DropdownMenuContent data-chrome="">
         <div className="flex flex-col gap-1 px-2 py-1.5">
           <span className="font-semibold text-ink">{user.name}</span>
           <span className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">

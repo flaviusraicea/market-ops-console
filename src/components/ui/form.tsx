@@ -52,10 +52,12 @@ const useFormField = () => {
     throw new Error("useFormField should be used within <FormField>");
   }
 
-  const { id } = itemContext;
+  const { id, hasDescription, setHasDescription } = itemContext;
 
   return {
     id,
+    hasDescription,
+    setHasDescription,
     name: fieldContext.name,
     formItemId: `${id}-form-item`,
     formDescriptionId: `${id}-form-item-description`,
@@ -66,15 +68,23 @@ const useFormField = () => {
 
 type FormItemContextValue = {
   id: string;
+  /** Whether this item renders a FormDescription, so the control only names an id that exists. */
+  hasDescription: boolean;
+  setHasDescription: (has: boolean) => void;
 };
 
 const FormItemContext = React.createContext<FormItemContextValue>({} as FormItemContextValue);
 
 function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   const id = React.useId();
+  const [hasDescription, setHasDescription] = React.useState(false);
+  const value = React.useMemo(
+    () => ({ id, hasDescription, setHasDescription }),
+    [id, hasDescription],
+  );
 
   return (
-    <FormItemContext.Provider value={{ id }}>
+    <FormItemContext.Provider value={value}>
       <div data-slot="form-item" className={cn("grid gap-2", className)} {...props} />
     </FormItemContext.Provider>
   );
@@ -95,13 +105,17 @@ function FormLabel({ className, ...props }: React.ComponentProps<typeof LabelPri
 }
 
 function FormControl({ ...props }: React.ComponentProps<typeof Slot.Root>) {
-  const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
+  const { error, formItemId, formDescriptionId, formMessageId, hasDescription } = useFormField();
+  // Only ids that are in the document: a dangling reference is an accessibility "needs review" item.
+  const describedBy = [hasDescription && formDescriptionId, error && formMessageId]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <Slot.Root
       data-slot="form-control"
       id={formItemId}
-      aria-describedby={!error ? `${formDescriptionId}` : `${formDescriptionId} ${formMessageId}`}
+      aria-describedby={describedBy || undefined}
       aria-invalid={!!error}
       {...props}
     />
@@ -109,7 +123,12 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot.Root>) {
 }
 
 function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
-  const { formDescriptionId } = useFormField();
+  const { formDescriptionId, setHasDescription } = useFormField();
+  // Registers with the item before paint, so the control's aria-describedby is in place from the first frame.
+  React.useLayoutEffect(() => {
+    setHasDescription(true);
+    return () => setHasDescription(false);
+  }, [setHasDescription]);
 
   return (
     <p

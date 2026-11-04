@@ -36,7 +36,8 @@ export function ProductSelect({
       <SelectTrigger aria-label="Product" className={cn("min-w-[136px]", className)}>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      {/* The menu belongs to the toolbar control that opened it, so it keeps the chrome scale. */}
+      <SelectContent data-chrome="">
         <SelectItem value={ALL}>All products</SelectItem>
         {products.map((p) => (
           <SelectItem key={p.id} value={p.id}>
