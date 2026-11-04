@@ -64,8 +64,8 @@ export const Live: Story = {
     const canvas = within(canvasElement);
     const advance = canvas.getByRole("button", { name: "Advance tick" });
     await waitFor(() => expect(advance).toBeEnabled());
-    const headline = () =>
-      canvasElement.querySelector('[data-slot="kpi-headline"]')?.textContent ?? "";
+    // The whole row: a tick can move the revenue less than its three significant digits show.
+    const headline = () => canvasElement.textContent ?? "";
     const delta = () => canvasElement.querySelector('[data-slot="kpi-delta"]');
     const before = headline();
     await userEvent.click(advance);

@@ -14,15 +14,18 @@ import {
   type Market,
   type Period,
   STATUS_LABEL,
+  STATUS_WORDS,
+  asksWhyStatus,
 } from "@/domain";
 import { formatMoneyCompact, formatPct, formatPeriodAbbr } from "@/lib/format";
 import { readQuestion } from "./horizon";
 
-type MarketView = { entity: Extract<Entity, { kind: "market" }>; period: Period };
+/** A market in view, or one product of it: the template answers about exactly what the dashboard shows. */
+type MarketView = { entity: Extract<Entity, { kind: "market" | "product" }>; period: Period };
 type Periods = readonly [Period, ...Period[]];
 
 const marketView = (context?: ChatContext): MarketView | undefined =>
-  context?.entity.kind === "market"
+  context?.entity.kind === "market" || context?.entity.kind === "product"
     ? { entity: context.entity, period: context.period }
     : undefined;
 
@@ -37,18 +40,37 @@ const hasKeyword = (fixture: Fixture, q: string) => {
   );
 };
 
-const STATUS_WORDS = /\b(at[- ]risk|off[- ]track|on[- ]track|status)\b/;
+/** Our abstain answer for input that is not about the data (fixtures.json). */
+export const OFF_TOPIC_ID = "off-topic";
+/** Our abstain answer for "why" about a market's status that no curated answer explains (fixtures.json). */
+export const WHY_STATUS_ID = "why-status";
+
+/** Words a question about this dataset uses: a measure, a status, a comparison, time, or a level of the hierarchy. */
+const DATA_WORDS =
+  /\b(revenue|sales|sell|sold|units?|forecast|plan|target|attain\w*|growth|grow\w*|grew|yoy|mom|kpis?|status|risk\w*|track\w*|behind|ahead|miss\w*|short\w*|gap|dip\w*|drop\w*|fall\w*|fell|declin\w*|rise|rose|increas\w*|decreas\w*|chang\w*|trend\w*|perform\w*|compar\w*|vs|versus|best|worst|top|bottom|fastest|slowest|biggest|largest|smallest|share|portfolio|markets?|regions?|products?|countr\w*|month\w*|quarter\w*|year\w*|ytd|mat|summar\w*|overview|why|explain|anomal\w*|predict\w*|next|20\d\d|jan\w*|feb\w*|mar|march|apr\w*|may|jun\w*|jul\w*|aug\w*|sep\w*|oct\w*|nov\w*|dec\w*)\b/;
+
+/** Whether a question is about this dataset: it uses a data word, or names a market, region or product. */
+function aboutTheData(ds: Dataset, q: string): boolean {
+  if (DATA_WORDS.test(q)) return true;
+  const names = [...ds.markets, ...ds.regions, ...ds.products].map((x) => x.name.toLowerCase());
+  return names.some((n) => q.includes(n));
+}
 
 /** Whether the view the question was asked from is the one a fixture's scope is written for. */
 function scopeFits(scope: NonNullable<Fixture["scope"]>, { entity }: ChatContext): boolean {
-  if (scope.entity !== entity.kind) return false;
+  if (scope.entity !== entity.kind && !(scope.entity === "market" && entity.kind === "product"))
+    return false;
   switch (scope.entity) {
     case "portfolio":
       return true;
     case "region":
       return entity.kind === "region" && (!scope.regionId || scope.regionId === entity.regionId);
     case "market":
-      return entity.kind === "market" && (!scope.marketId || scope.marketId === entity.marketId);
+      // A product view is inside its market, so a market-scoped answer fits it (the template then reads the product).
+      return (
+        (entity.kind === "market" || entity.kind === "product") &&
+        (!scope.marketId || scope.marketId === entity.marketId)
+      );
   }
 }
 
@@ -90,6 +112,10 @@ export function pickFixture(
   const asked = readQuestion(ds, question);
   if (asked.beyondHorizon || asked.beforeData)
     return file.fixtures.find((f) => f.kind === "abstain") ?? file.default;
+  // Input that names nothing this data is about ("test", "asdf") abstains instead of getting the portfolio default.
+  if (hits.length === 0 && !aboutTheData(ds, q)) {
+    return file.fixtures.find((f) => f.id === OFF_TOPIC_ID) ?? file.default;
+  }
   const view = marketView(context);
   const scoped = context
     ? hits.find(
@@ -105,6 +131,17 @@ export function pickFixture(
     return fillMarketStatus(ds, namedMarket);
   // An answer written about the one market the question names beats a general keyword match ("Why is Germany off track?").
   const aboutNamed = namedMarket && hits.find((f) => f.marketId === namedMarket.id);
+  // "Why is Italy at risk?" asks for reasons. Only a curated answer gives reasons; the data has the status and the
+  // figures, so without one the assistant says it can't explain rather than echoing the numbers (the card then shows
+  // the status rule). A question that names no market and matches an unscoped answer ("Why are markets off track?")
+  // is about the portfolio, so it gets that answer from any view; the card's scope line says so.
+  const curated =
+    aboutNamed ||
+    (scoped !== undefined && scoped.template === undefined) ||
+    (!singleMarketNamed(ds, q) && scoped === undefined && hits.some((f) => f.scope === undefined));
+  if (asksWhyStatus(q) && (namedMarket || view) && !curated) {
+    return file.fixtures.find((f) => f.id === WHY_STATUS_ID) ?? file.default;
+  }
   const fixture = scoped ?? aboutNamed ?? hits.find((f) => f.scope === undefined) ?? file.default;
   // A template always comes from a scoped match, which needs a market view; the default is the unreachable fallback.
   if (fixture.template === undefined) {
@@ -140,7 +177,10 @@ function outsideCuratedMonths(
     view?.entity.marketId === marketId && view.period !== ds.meta.latestPeriod ? [view.period] : [];
   const [head, ...rest] = named.length > 0 ? named : inView;
   if (head === undefined || [head, ...rest].every((p) => periods.includes(p))) return undefined;
-  return fillMarketMonth(ds, template, { kind: "market", marketId }, [head, ...rest], label);
+  // In a product view of that market the answer reads the product, which is what the dashboard shows.
+  const entity =
+    view?.entity.marketId === marketId ? view.entity : { kind: "market" as const, marketId };
+  return fillMarketMonth(ds, template, entity, [head, ...rest], label);
 }
 
 /** The status of one market as data.json gives it, for "Is Germany at risk?". Read, not written. */
@@ -207,7 +247,11 @@ function fillMarketMonth(
   const previous = single ? previousPeriod(ds, period) : undefined;
   const mom = single ? momChangePct(ds, entity, period) : undefined;
   // At the latest month the dashboard shows the market's own KPI, so the answer quotes that, not a recomputation.
-  const kpi = ds.markets.find((m) => m.id === entity.marketId)?.kpis.forecastAttainmentPct;
+  // A product has no KPI of its own in data.json, so its attainment is always derived.
+  const kpi =
+    entity.kind === "market"
+      ? ds.markets.find((m) => m.id === entity.marketId)?.kpis.forecastAttainmentPct
+      : undefined;
   const attainment =
     single && period === ds.meta.latestPeriod && kpi !== undefined ? kpi : attainmentPct(t);
 
@@ -229,6 +273,7 @@ function fillMarketMonth(
 
   const cite = (p: typeof period): Citation => ({
     marketId: entity.marketId,
+    ...(entity.kind === "product" ? { productId: entity.productId } : {}),
     period: p,
     label: `${name}, ${formatPeriodAbbr(p)}`,
   });

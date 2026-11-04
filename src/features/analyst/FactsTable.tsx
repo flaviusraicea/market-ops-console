@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from "react";
 import { cn } from "@/components/cn";
 import { Button } from "@/components/ui/button";
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { formatInt, formatMoneyExact, formatPct } from "@/lib/format";
+import { formatInt, formatMoneyExact, formatPct, formatPeriodAbbr } from "@/lib/format";
 import { FACTS_VIEWPORT_H } from "./factsViewport";
 import { SheetSection } from "./Sheet";
 import { SortHead, type SortState } from "./SortHead";
@@ -33,7 +33,15 @@ const money = (key: "actual" | "forecast" | "priorYear") => (r: FactRowVM) =>
 const COLUMNS: Column[] = [
   { key: "market", label: "Market", width: "18%", numeric: false, cell: (r) => r.market },
   { key: "product", label: "Product", width: "14%", numeric: false, cell: (r) => r.product },
-  { key: "period", label: "Period", width: "11%", numeric: false, cell: (r) => r.period },
+  {
+    key: "period",
+    label: "Period",
+    width: "11%",
+    numeric: false,
+    cell: (r) => formatPeriodAbbr(r.period),
+    // The copied CSV keeps the sortable ISO month.
+    csv: (r) => r.period,
+  },
   {
     key: "actual",
     label: "Actual",
@@ -209,7 +217,7 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
                       className={cn(
                         "truncate",
                         c.numeric && "num text-right",
-                        c.key === "period" && "font-mono",
+                        c.key === "period" && "whitespace-nowrap",
                         c.key === "market" && "font-medium text-ink",
                       )}
                     >

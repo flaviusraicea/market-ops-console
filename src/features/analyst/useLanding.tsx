@@ -97,7 +97,7 @@ export function LandingProvider({ children }: { children: ReactNode }) {
         frame = requestAnimationFrame(() => {
           if (phase !== "scroll") return;
           const smooth = !prefersReducedMotion();
-          element.scrollIntoView({ block: "center", behavior: smooth ? "smooth" : "auto" });
+          element.scrollIntoView({ block: "nearest", behavior: smooth ? "smooth" : "auto" });
           if (!smooth) return show();
           window.addEventListener("scrollend", show, { once: true, signal });
           later(show, SCROLL_END_FALLBACK_MS);

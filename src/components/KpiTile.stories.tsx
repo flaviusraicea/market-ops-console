@@ -139,7 +139,8 @@ export const Status: Story = {
   play: async ({ canvasElement }) => {
     await expect(canvasElement.querySelector('[data-slot="status-badge"]')).not.toBeNull();
     const caption = canvasElement.querySelector('[data-slot="kpi-delta"]')!;
-    await expect(caption).toHaveAttribute("title", "Attainment 92.0% · Growth -1.2%");
-    await expect(caption.getBoundingClientRect().height).toBeLessThanOrEqual(18);
+    // The whole caption shows: it wraps at the separator rather than truncating.
+    await expect(caption.textContent).toBe("Attainment 92.0% · Growth -1.2%");
+    await expect(caption.scrollWidth).toBeLessThanOrEqual(caption.clientWidth);
   },
 };
