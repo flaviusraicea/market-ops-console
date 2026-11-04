@@ -138,7 +138,7 @@ export function pickFixture(
   const curated =
     aboutNamed ||
     (scoped !== undefined && scoped.template === undefined) ||
-    (!singleMarketNamed(ds, q) && hits.some((f) => f.scope === undefined));
+    (!singleMarketNamed(ds, q) && scoped === undefined && hits.some((f) => f.scope === undefined));
   if (asksWhyStatus(q) && (namedMarket || view) && !curated) {
     return file.fixtures.find((f) => f.id === WHY_STATUS_ID) ?? file.default;
   }

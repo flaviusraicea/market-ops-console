@@ -128,6 +128,7 @@ function CardHeader({
             type="button"
             size="sm"
             variant="ghost"
+            data-answer-action
             onClick={streaming ? onStop : onRetry}
             {...(streaming ? { "aria-label": "Stop generating" } : {})}
           >

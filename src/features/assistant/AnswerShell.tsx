@@ -69,7 +69,7 @@ export function RetryLabel() {
 /** Retry on a failed card: the same ghost sm button as the header's. */
 export function RetryButton({ onRetry }: { onRetry: () => void }) {
   return (
-    <Button type="button" size="sm" variant="ghost" onClick={onRetry}>
+    <Button type="button" size="sm" variant="ghost" data-answer-action onClick={onRetry}>
       <RetryLabel />
     </Button>
   );

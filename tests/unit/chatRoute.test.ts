@@ -154,6 +154,18 @@ describe("/api/chat follows the view the question was asked from", () => {
     expect(text).toBe(portfolio.text);
   });
 
+  it.each(["Why is it at risk?", "Why is it off track?", "Why is this market off track?"])(
+    "abstains on a why question about the market in view (%s): no curated answer gives reasons",
+    async (question) => {
+      const { text, done } = await ask({
+        question,
+        context: { entity: { kind: "market", marketId: "it" }, period: "2026-05" },
+      });
+      expect(text).toMatch(/^I can't say why from this data\./);
+      expect(done).toMatchObject({ kind: "abstain" });
+    },
+  );
+
   it("answers a dip question in a product view with that product's figures", async () => {
     const { text, done } = await ask({
       question: "Why did revenue dip?",

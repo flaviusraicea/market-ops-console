@@ -125,17 +125,35 @@ export function AnswerList({
   }, [scrollSignal]);
 
   // The list item survives a retry (it is keyed by slot), so a header Retry keeps focus as it turns into Stop. A
-  // failed card's Retry sits in the failed row, which the retry removes: focus then moves to the new Stop.
+  // failed card's Retry sits in the failed row, which a retry removes, and a retry that fails again (offline)
+  // removes the Stop it brought: while the retried answer settles, focus follows it to whichever Stop or Retry the
+  // card shows now. It lets go once the answer is done or the reader has moved focus elsewhere.
+  const refocusSlot = useRef<string | null>(null);
   function retryKeepingFocus(a: Answer) {
     const item = scrollerRef.current?.querySelector(`[data-answer-slot="${slotOf(a)}"]`);
-    const hadFocus = item?.contains(document.activeElement) ?? false;
+    refocusSlot.current = item?.contains(document.activeElement) ? slotOf(a) : null;
     onRetry(a.id);
-    if (!hadFocus) return;
-    requestAnimationFrame(() => {
-      if (item?.contains(document.activeElement)) return;
-      item?.querySelector<HTMLElement>('button[aria-label="Stop generating"]')?.focus();
-    });
   }
+  useEffect(() => {
+    const slot = refocusSlot.current;
+    if (!slot) return;
+    const answer = answers.find((a) => slotOf(a) === slot);
+    const item = scrollerRef.current?.querySelector(`[data-answer-slot="${slot}"]`);
+    const active = document.activeElement;
+    const lost = !active || active === document.body || !active.isConnected;
+    if (!answer || !item || (!lost && !item.contains(active))) {
+      refocusSlot.current = null;
+      return;
+    }
+    // After the commit the card has re-rendered (the lazy card is synchronous once loaded); wait one frame for it.
+    const frame = requestAnimationFrame(() => {
+      const now = document.activeElement;
+      if (now && now !== document.body && now.isConnected) return;
+      item.querySelector<HTMLElement>("[data-answer-action]")?.focus();
+    });
+    if (answer.status === "done") refocusSlot.current = null;
+    return () => cancelAnimationFrame(frame);
+  }, [answers]);
 
   const showNewText = hasAnswers && leftAt !== null && leftAt !== signature;
   // More answer below the panel's edge: the list fades out over its last 24 px instead of cutting text off.

@@ -109,6 +109,22 @@ test("Retry from the keyboard keeps focus on the card's Stop/Retry button", asyn
   await answerComplete(page);
 });
 
+test("Retry that fails again keeps focus on the card's Retry", async ({ page }) => {
+  await open(page, GERMANY);
+  await openPanel(page);
+  await page.route("**/api/chat", (route) => route.abort());
+  await ask(page, DIP);
+  const retry = panel(page).getByRole("button", { name: "Retry" });
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  await expect(panel(page).getByText("Request failed · nothing was answered")).toBeVisible();
+  await expect(retry).toBeFocused();
+  // And again: the reader can keep pressing Enter until the connection is back.
+  await page.unroute("**/api/chat");
+  await page.keyboard.press("Enter");
+  await answerComplete(page);
+});
+
 test("signing out clears the conversation", async ({ page }) => {
   await open(page, GERMANY);
   await openPanel(page);
