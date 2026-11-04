@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { ask, germanyAnswer, march, timeSeries } from "./helpers";
+import { ask, boxOf, germanyAnswer, march, timeSeries } from "./helpers";
 
 const veltrix = (page: Page) =>
   page.getByRole("button", { name: "Go to Veltrix in Germany, Mar 2026" });
@@ -24,11 +24,22 @@ test("following the March chip switches to Analyst and lands on the time series 
   await expect(series.getByRole("tooltip")).toContainText("Mar 2026");
   await expect(series.getByRole("tooltip")).toContainText("Actual$1.21M");
   await expect(series).toBeInViewport();
-  // The grid card rings too (a market target), and the ring ends after two seconds.
-  await expect(page.getByRole("region", { name: /products/i }).first()).toHaveAttribute(
-    "data-landed",
-    "",
-  );
+  // One citation, one highlight: nothing else on the page rings, and the chart is centred below the toolbar.
+  await expect(page.locator("[data-landed]")).toHaveCount(1);
+  // Polled: under load the ring can show on the scroll-end fallback while the smooth scroll is still finishing.
+  const viewport = page.viewportSize()!.height;
+  await expect
+    .poll(
+      async () => {
+        const toolbar = await boxOf(page.getByRole("toolbar").first());
+        const card = await boxOf(series);
+        const gapAbove = card.y - (toolbar.y + toolbar.height);
+        const gapBelow = viewport - (card.y + card.height);
+        return Math.abs(gapAbove - gapBelow);
+      },
+      { timeout: 1500 },
+    )
+    .toBeLessThan(8);
   await expect(series).not.toHaveAttribute("data-landed", "", { timeout: 4000 });
   await expect(series.getByRole("tooltip")).toHaveCount(0);
 });
@@ -46,7 +57,9 @@ test("following the Veltrix chip selects the Veltrix row and titles the chart Ge
   await expect(page.getByRole("heading", { level: 3, name: /^Germany · Veltrix/ })).toBeVisible();
   const row = page.getByRole("row", { name: /Veltrix/ });
   await expect(row).toHaveAttribute("aria-current", "true");
-  await expect(row).toHaveAttribute("data-landed", "");
+  // The citation names a month, so the chart rings and the selected row does not.
+  await expect(timeSeries(page)).toHaveAttribute("data-landed", "");
+  await expect(page.locator("[data-landed]")).toHaveCount(1);
 });
 
 test("an inline citation moves focus to its chip", async ({ page }) => {
