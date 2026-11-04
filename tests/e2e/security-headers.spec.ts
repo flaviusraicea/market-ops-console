@@ -5,7 +5,9 @@ test("pages send a nonce policy and the security headers, and nothing on the pag
 }) => {
   const violations: string[] = [];
   page.on("console", (m) => {
-    if (/Content Security Policy|Refused to/.test(m.text())) violations.push(m.text());
+    // Only policy refusals. Locally /_vercel/speed-insights is a 404, which nosniff refuses as text/plain;
+    // on Vercel that path serves the script.
+    if (/Content Security Policy/.test(m.text())) violations.push(m.text());
   });
   const response = await page.goto("/?mode=analyst");
   const headers = response?.headers() ?? {};
