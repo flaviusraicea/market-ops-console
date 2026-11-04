@@ -246,7 +246,7 @@ Seven rules so that every new card looks like its siblings. Rules 2, 3 and 4 are
 2. **Eyebrows never wrap.** 11 px, 0.06 em, 600, uppercase, `white-space: nowrap`. If it does not fit, shorten the words (`NEEDS ATTENTION`, not `MARKETS NEEDING ATTENTION`), never the size. One `Eyebrow` component.
 3. **One header grammar for every card.** Serif title, muted subtitle on the next line, provenance caption and actions right-aligned on the title row, same height on every card. One `CardHeader` component; no card builds its own header.
 4. **Every number is tabular.** `font-variant-numeric: tabular-nums lining-nums` on tiles, tables, tooltips, chips and bars (`.num`), so columns align on the decimal and scanning down is comparing. KPI headlines and the verdict are serif 600 tabular; everything else is sans.
-5. **Captions right-align to the card edge.** `Source · data.json` and `Derived · …` sit on the title row's right edge or the card's bottom-right, never floating mid-card. Legends sit under their chart inside the card.
+5. **Captions right-align to the card edge.** On the Analyst sheet the title row holds the eyebrow, the subtitle and the `View as table` toggle (top-aligned with the eyebrow; the subtitle may wrap without moving it). On the Executive cards the same line comes from `CardCaption` (header has no caption prop). `Source · data.json` and `Derived · …` sit bottom-right of the card body, 8 px under the chart or table, 11/14 px `--ink-muted`, never in the title row and never floating mid-card. Two kinds of legend, each in one fixed place at every width. A series legend (what a line or polygon means: time series, radar) is its own row directly under the card's title and subtitle, never in the title row. A scale legend (the colour bins that key values: heat map, map) sits centred under the chart it keys, inside the card.
 6. **Vertical rhythm on an 8 px grid.** 24 px between sections on Overview, 16 px on Analyst (`--gap-section`); inside a section multiples of 4; density is a token, never an ad hoc margin.
 7. **Empty states: one sentence, one action.** `No alert rules yet.` + `Add a rule`. No illustration, no second paragraph.
 
@@ -387,9 +387,9 @@ Used by the chart and the differs-from-source chip. Box: `--surface`, border, ra
 
 ### 6.10 Time series chart with "View as table"
 
-Card, title `Germany · Revenue vs forecast vs prior year`, caption to the right `Jun 2024 – May 2026 · USD · Source · data.json`. Below the title: a toolbar with a legend on the left and `View as table` on the right.
+Card, title `Germany · Revenue vs forecast vs prior year`, caption to the right `Jun 2024 – May 2026 · USD · Source · data.json`. The legend is its own row under the title and subtitle; `View as table` stays in the title row on the right.
 
-- Legend items: 16 × 2 px line sample in the series style (solid / dashed / dotted) then the name in `--text-label` `--ink-2`: `Actual`, `Forecast`, `Prior year`. Static, not interactive.
+- Legend items: 16 × 2 px line sample in the series style (solid / dashed / dotted; 16 px so a dash pattern reads), a 6 px gap, then the name in `--text-label` `--ink-2`: `Actual`, `Forecast`, `Prior year`. Static, not interactive.
 - `View as table` is a ghost button with lucide `table` 14 px, `aria-pressed`, `aria-controls` the table id. Pressing it hides the SVG (`hidden` attribute) and shows the table, and swaps the label to `View as chart`. Keyboard reachable, one click.
 
 SVG: `viewBox 0 0 720 260`, width 100 %, `role="img"`, `aria-labelledby` the title and a `<desc>` that reads: `Line chart of Germany monthly revenue from June 2024 to May 2026. Actual tracks below forecast throughout, with a sharp dip to 1.21 million in March 2026, 27 percent below February. Table available via View as table.`

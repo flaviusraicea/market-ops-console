@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
-import { Legend } from "./Legend";
 import { RadarMarks, pointAt, type Geometry } from "./RadarMarks";
 import { useChartKeyboard } from "./useChartKeyboard";
 
@@ -131,15 +130,9 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
 /** Five-axis radar (design-system 6.10 pattern). Arrow keys walk the vertices, one tab stop. */
 export function RadarChart(props: RadarChartProps) {
   return (
-    <div className="flex w-full flex-col gap-2">
-      <ParentSize debounceTime={50} parentSizeStyles={{ width: "100%", height: HEIGHT }}>
-        {({ width }) => (width > 0 ? <RadarSvg {...props} width={width} /> : null)}
-      </ParentSize>
-      <Legend
-        label="Radar series"
-        items={props.series.map((s) => ({ label: s.name, swatch: "line-solid", color: s.color }))}
-      />
-    </div>
+    <ParentSize debounceTime={50} parentSizeStyles={{ width: "100%", height: HEIGHT }}>
+      {({ width }) => (width > 0 ? <RadarSvg {...props} width={width} /> : null)}
+    </ParentSize>
   );
 }
 

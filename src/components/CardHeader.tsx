@@ -2,21 +2,20 @@ import type { ReactNode } from "react";
 
 /**
  * One header grammar for every card (design-system 4.1 rule 3): title on the first line, optional
- * muted subtitle on the next, provenance caption and actions right-aligned on the title row.
+ * muted subtitle on the next, actions right-aligned on the title row. The provenance caption is not in the
+ * header: it sits bottom-right of the card body (`CardCaption`).
  */
 export function CardHeader({
   title,
   titleId,
   subtitleId,
   subtitle,
-  caption,
   actions,
 }: {
   title: ReactNode;
   titleId?: string;
   subtitleId?: string;
   subtitle?: ReactNode;
-  caption?: ReactNode;
   actions?: ReactNode;
 }) {
   return (
@@ -28,15 +27,8 @@ export function CardHeader({
         >
           {title}
         </h3>
-        {caption || actions ? (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {caption ? (
-              <p className="text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
-                {caption}
-              </p>
-            ) : null}
-            {actions}
-          </div>
+        {actions ? (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">{actions}</div>
         ) : null}
       </div>
       {subtitle ? (
@@ -48,5 +40,14 @@ export function CardHeader({
         </p>
       ) : null}
     </div>
+  );
+}
+
+/** The provenance line of a card ("Derived · …", "Source · data.json"): bottom-right of the card body. */
+export function CardCaption({ children }: { children: ReactNode }) {
+  return (
+    <p className="mt-2 self-end text-right text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
+      {children}
+    </p>
   );
 }
