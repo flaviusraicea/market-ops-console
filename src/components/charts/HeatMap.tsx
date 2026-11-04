@@ -18,6 +18,7 @@ import { PHONE_QUERY } from "@/lib/useMediaQuery";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { HeatCellView, type CellHandlers } from "./HeatCellView";
 import { heatCellTooltip } from "./heatMapTooltip";
+import { LABEL_STEPS, monthLabels, type LabelAlign, type LabelLayout } from "./heatMapLabels";
 
 export type HeatCell = {
   period: string;
@@ -53,28 +54,10 @@ type HeatMapProps = {
 };
 
 const NAME_COL = "6.5rem";
+let measureCanvas: HTMLCanvasElement | undefined;
+/** Width of the fade at a side that can still scroll, in px (Tailwind `w-6`). */
+const FADE = 24;
 const PAGE = 6;
-/** Month label steps, smallest first: every third month, then every sixth, then once a year. */
-const LABEL_STEPS = [3, 6, 12] as const;
-/** The least room between two month labels. */
-const LABEL_GAP = 8;
-
-/**
- * The smallest step at which every month label keeps LABEL_GAP to the next. Labels count back from the latest
- * month; each starts at its column's left edge except the last, which ends at the grid's right edge, so the last
- * pair is the tightest: from the left edge of the one before it to the grid's right edge is `step` pitches plus one
- * column, which is a pitch less the gap between columns.
- */
-export function monthLabelStep(pitch: number, labelWidth: number, columnWidth = pitch): number {
-  return (
-    LABEL_STEPS.find(
-      (step) =>
-        step * pitch - labelWidth >= LABEL_GAP &&
-        step * pitch + columnWidth - 2 * labelWidth >= LABEL_GAP,
-    ) ?? 12
-  );
-}
-
 /**
  * Markets by month, coloured by forecast attainment (ADR 0008). A roving-tabindex grid: one tab stop,
  * arrows move, PageUp and PageDown jump six months, Enter selects the cell.
@@ -83,36 +66,80 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
   const wrapRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef(new Map<string, HTMLDivElement>());
   const tip = useChartTooltip();
-  // Where the grid is wider than its card (a phone), it opens at the latest months, the ones that matter.
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollLeft = el.scrollWidth;
-  }, []);
   const shown = useRef({ row: 0, col: 0 });
   const nCols = periods.length;
+  const selectedCol = selected ? periods.indexOf(selected.period) : -1;
 
-  // The label step follows the grid's own width, which the docked assistant narrows: measured from a month
-  // column and the widest label, so it holds for any font or locale. Every third month until measured.
+  // Where the grid is wider than its card (a phone, or the docked assistant at 1024 px), it opens at the latest
+  // months, the ones that matter, and a fade marks each side that can still scroll.
+  const scrollRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const [step, setStep] = useState<number>(LABEL_STEPS[0]);
-  useEffect(() => {
+  const [edges, setEdges] = useState({ start: false, end: false });
+  // The label layout is measured from a month column and the widest label, against the part of the grid in view,
+  // so it holds for any font, zoom or panel width. Until measured, every third month from the latest.
+  const [layout, setLayout] = useState<(LabelLayout & { phone: boolean }) | null>(null);
+  const measureRef = useRef<() => void>(() => {});
+  const periodsRef = useRef(periods);
+  useLayoutEffect(() => {
+    periodsRef.current = periods;
+  });
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
     const row = headerRef.current;
     const grid = row?.parentElement;
-    if (!row || !grid) return;
+    if (!el || !row || !grid) return;
+    let overflowed = false;
     const measure = () => {
-      // Phones keep every third month: their labels are the month alone, and the grid scrolls sideways.
-      if (window.matchMedia(PHONE_QUERY).matches) return setStep(LABEL_STEPS[0]);
+      const overflow = el.scrollWidth > el.clientWidth + 1;
+      // The grid opens at its end, and again whenever it starts to overflow, as when the assistant docks.
+      if (overflow && !overflowed) el.scrollLeft = el.scrollWidth;
+      overflowed = overflow;
+      const max = el.scrollWidth - el.clientWidth;
+      const next = { start: el.scrollLeft > 1, end: el.scrollLeft < max - 1 };
+      setEdges((prev) => (prev.start === next.start && prev.end === next.end ? prev : next));
       const cols = row.querySelectorAll<HTMLElement>("[data-month]");
       const first = cols[0]?.getBoundingClientRect();
       const second = cols[1]?.getBoundingClientRect();
       if (!first || !second) return;
+      // The widest of every month's label, not only those on screen: which months are labelled changes with the
+      // scroll and the selection, and "Nov ’25" is wider than "Jun ’25". Text is measured in the label's own font.
       let widest = 0;
+      const shownLabel = row.querySelector<HTMLElement>("[data-month-label]");
       for (const label of row.querySelectorAll<HTMLElement>("[data-month-label]"))
         widest = Math.max(widest, label.getBoundingClientRect().width);
-      setStep(monthLabelStep(second.left - first.left, widest, first.width));
+      const ctx = shownLabel
+        ? (measureCanvas ??= document.createElement("canvas")).getContext("2d")
+        : null;
+      if (ctx && shownLabel) {
+        // The `font` shorthand reads back empty when the label sets numeric variants, so it is built from parts.
+        const cs = getComputedStyle(shownLabel);
+        ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        ctx.letterSpacing = cs.letterSpacing === "normal" ? "0px" : cs.letterSpacing;
+        for (const p of periodsRef.current)
+          widest = Math.max(widest, Math.ceil(ctx.measureText(formatPeriodShort(p)).width));
+      }
+      // A column under the right-hand fade is not counted as in view.
+      const right = el.getBoundingClientRect().right - (next.end ? FADE : 0);
+      let last = cols.length - 1;
+      while (last > 0 && cols[last]!.getBoundingClientRect().right > right + 1) last -= 1;
+      const pitch = second.left - first.left;
+      const phone = window.matchMedia(PHONE_QUERY).matches;
+      const next2 = { pitch, column: first.width, label: widest, last, phone };
+      setLayout((prev) =>
+        prev &&
+        prev.last === last &&
+        prev.phone === phone &&
+        Math.abs(prev.pitch - pitch) < 0.5 &&
+        Math.abs(prev.column - next2.column) < 0.5 &&
+        Math.abs(prev.label - widest) < 0.5
+          ? prev
+          : next2,
+      );
     };
+    measureRef.current = measure;
+    measure();
     const ro = new ResizeObserver(measure);
+    ro.observe(el);
     ro.observe(grid);
     // The web font can arrive after the first measure and widen the labels without resizing the grid.
     const fonts = typeof document !== "undefined" ? document.fonts : undefined;
@@ -125,6 +152,33 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
       fonts?.removeEventListener("loadingdone", measure);
     };
   }, []);
+
+  // A selected month outside the visible part of the grid scrolls into view, clear of the sticky market names.
+  useEffect(() => {
+    const el = scrollRef.current;
+    const col =
+      selectedCol >= 0 ? headerRef.current?.querySelectorAll("[data-month]")[selectedCol] : null;
+    const name = headerRef.current?.firstElementChild;
+    if (!el || !col || !name) return;
+    const box = el.getBoundingClientRect();
+    const c = col.getBoundingClientRect();
+    const left = box.left + name.getBoundingClientRect().width;
+    const by = c.left < left ? c.left - left : c.right > box.right ? c.right - box.right : 0;
+    if (Math.abs(by) < 1) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollBy({ left: by, behavior: reduce ? "auto" : "smooth" });
+  }, [selectedCol]);
+
+  const labels = useMemo<Map<number, LabelAlign>>(() => {
+    // Phones keep every third month from the latest: their labels are the month alone, and the grid scrolls.
+    if (!layout || layout.phone) {
+      const m = new Map<number, LabelAlign>();
+      for (let i = nCols - 1; i >= 0; i -= LABEL_STEPS[0])
+        m.set(i, i === nCols - 1 ? "end" : "start");
+      return m;
+    }
+    return monthLabels(layout, selectedCol >= 0 ? selectedCol : undefined);
+  }, [layout, nCols, selectedCol]);
 
   const [pos, setPos] = useState<{ r: number; c: number }>({
     r: Math.max(
@@ -239,7 +293,11 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
 
   return (
     <div ref={wrapRef} className="relative">
-      <div ref={scrollRef} className="overflow-x-auto">
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]"
+        onScroll={() => measureRef.current()}
+      >
         <div
           role="grid"
           aria-label={label}
@@ -265,15 +323,14 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
                 className="relative h-4 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
               >
                 <span className="sr-only">{formatPeriodAbbr(p)}</span>
-                {/* Every step-th month counted back from the latest, so the last column is always labelled; its
-                    label ends at the grid's right edge instead of running past it. */}
-                {(nCols - 1 - i) % step === 0 ? (
+                {/* The last month in view ends at the visible edge instead of running past it. */}
+                {labels.has(i) ? (
                   <span
                     aria-hidden
                     data-month-label=""
                     className={cn(
                       "absolute bottom-0 whitespace-nowrap",
-                      i === nCols - 1 ? "right-0" : "left-0",
+                      labels.get(i) === "end" ? "right-0" : "left-0",
                     )}
                   >
                     {/* A phone has columns about 20 px wide: the month alone keeps neighbouring labels apart. */}
@@ -320,6 +377,21 @@ export function HeatMap({ rows, periods, selected, label, onCell, onAsk }: HeatM
           })}
         </div>
       </div>
+      {edges.start ? (
+        <span
+          aria-hidden
+          data-slot="scroll-fade"
+          className="pointer-events-none absolute inset-y-0 w-6 bg-gradient-to-r from-surface to-transparent"
+          style={{ left: NAME_COL }}
+        />
+      ) : null}
+      {edges.end ? (
+        <span
+          aria-hidden
+          data-slot="scroll-fade"
+          className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-surface to-transparent"
+        />
+      ) : null}
       {tip.open && tip.content ? (
         <ChartTooltip {...tip.content} left={tip.left} top={tip.top} onHover={tip.hover} />
       ) : null}
