@@ -53,6 +53,12 @@ type ChoroplethProps = {
   onSelect: (marketId: string) => void;
   /** Fixed height in px. Without it the map keeps a clamped aspect ratio. */
   height?: number;
+  /**
+   * Whether a change of frame (a drill) moves the map. Where the drill also re-renders heavy charts beside the
+   * map, as in the Analyst view, the move cannot keep its frames under budget, so the frame cuts, as it does
+   * under reduced motion.
+   */
+  animateFrame?: boolean;
 };
 
 const STATUS_FILL: Record<MapStatus, string> = {
@@ -101,6 +107,7 @@ function MapSvg({
   selected,
   focus,
   onSelect,
+  animateFrame = true,
 }: ChoroplethProps & { width: number; height: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const pathRefs = useRef<Array<SVGPathElement | null>>([]);
@@ -163,7 +170,14 @@ function MapSvg({
     const g = plotRef.current;
     const prev = last.current;
     last.current = { scale, translate, width, height };
-    if (!g || !prev || prev.width !== width || prev.height !== height || prev.scale === scale)
+    if (
+      !animateFrame ||
+      !g ||
+      !prev ||
+      prev.width !== width ||
+      prev.height !== height ||
+      prev.scale === scale
+    )
       return;
     const k = prev.scale / scale;
     const tx = prev.translate[0] - k * translate[0];
@@ -185,7 +199,7 @@ function MapSvg({
       g.style.transition = "none";
       g.style.transform = "";
     };
-  }, [scale, translate, width, height]);
+  }, [scale, translate, width, height, animateFrame]);
 
   // Path strings are the expensive part (d3-geo projects every vertex), and a tooltip move re-renders this
   // component, so they are built once per geometry and size.
