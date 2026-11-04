@@ -71,6 +71,39 @@ export const LineGrid = memo(function LineGrid({
   );
 });
 
+/** The label's line box: 12/16 text, its baseline 12 px under the box top. */
+const LABEL_H = 16;
+const LABEL_ASCENT = 12;
+/** Clear space between the label and the nearest line, and the leader's length and gap to the marker. */
+const LABEL_GAP = 12;
+const LEADER = 8;
+const LEADER_GAP = 2;
+/** The marker's radius, so the leader starts 2 px outside it. */
+const MARKER_R = 4;
+
+/**
+ * Where an anomaly's label goes (Fable 06:25). Below the lowest of the three lines at that month, with 12 px
+ * of clear space, when the plot has room; a dip usually leaves it open. Otherwise above the highest line by
+ * 12 px, held inside the plot so it never reaches the card header. The leader is 8 px, ending 2 px short of the
+ * marker, on the label's side.
+ */
+export function anomalyLabelPlacement(
+  markerY: number,
+  linesY: readonly number[],
+  innerH: number,
+): { top: boolean; baseline: number; leader: [number, number] } {
+  const lowest = Math.max(...linesY);
+  const highest = Math.min(...linesY);
+  const belowTop = lowest + LABEL_GAP;
+  if (belowTop + LABEL_H <= innerH) {
+    const start = markerY + MARKER_R + LEADER_GAP;
+    return { top: false, baseline: belowTop + LABEL_ASCENT, leader: [start, start + LEADER] };
+  }
+  const aboveTop = Math.max(highest - LABEL_GAP - LABEL_H, 0);
+  const start = markerY - MARKER_R - LEADER_GAP;
+  return { top: true, baseline: aboveTop + LABEL_ASCENT, leader: [start, start - LEADER] };
+}
+
 /** The three series paths and the anomaly labels: the marks. Re-rendered only when the data or the size change. */
 export const LineSeries = memo(function LineSeries({
   paths,
@@ -79,6 +112,7 @@ export const LineSeries = memo(function LineSeries({
   x,
   y,
   innerW,
+  innerH,
 }: {
   paths: Record<SeriesKey, string>;
   anomalies: readonly LineAnomaly[];
@@ -86,6 +120,7 @@ export const LineSeries = memo(function LineSeries({
   x: (i: number) => number;
   y: YScale;
   innerW: number;
+  innerH: number;
 }) {
   return (
     <>
@@ -112,26 +147,31 @@ export const LineSeries = memo(function LineSeries({
         if (!p) return null;
         const ax = x(a.index);
         const ay = y(p.actual);
-        // The label sits 28px above and 8px beside the marker, opening to the right; near the right
-        // edge it opens to the left so it is never clipped.
+        const { top, baseline, leader } = anomalyLabelPlacement(
+          ay,
+          [y(p.actual), y(p.forecast), y(p.priorYear)],
+          innerH,
+        );
+        // The label opens to the right; near the right edge it opens to the left so it is never clipped.
         const dir = ax + 100 > innerW ? -1 : 1;
         return (
           <g key={a.period} aria-hidden>
             {/* Under 480 px of plot the label would crowd the line: the marker, its button and tooltip stay. */}
             <line
               {...(innerW < 480 ? { display: "none" } : {})}
-              x1={ax + dir * 2}
-              y1={ay - 4}
-              x2={ax + dir * 8}
-              y2={ay - 26}
-              stroke="var(--bad-mark)"
+              x1={ax}
+              y1={leader[0]}
+              x2={ax}
+              y2={leader[1]}
+              stroke="var(--ink-muted)"
               strokeWidth={1}
             />
             <text
               data-slot="anomaly-label"
               {...(innerW < 480 ? { display: "none" } : {})}
               x={ax + dir * 8}
-              y={ay - 28}
+              y={baseline}
+              data-placement={top ? "above" : "below"}
               textAnchor={dir === 1 ? "start" : "end"}
               fill="var(--bad-text)"
               stroke="var(--surface)"
