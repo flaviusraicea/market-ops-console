@@ -1,13 +1,13 @@
-import { PERIOD_PATTERN, isRegionId } from "@/domain";
+import { resolveCitation, type Dataset } from "@/domain";
 import { CONVERSATION_KEY as KEY } from "@/lib/conversation";
+import { claimTextFor } from "./inlineMap";
+import type { StoredAnswer } from "@/domain/storedConversation";
 import type { Answer } from "./useAnswerMachine";
 
 /** The tab's conversation is kept so a reload does not lose it: per tab (sessionStorage), cleared on sign-out. */
 
 /** An answer as stored: a stream cut short by the reload is kept as what it now is, a stopped partial answer. */
-type Stored = Exclude<Answer, { status: "streaming" }>;
-
-function toStored(a: Answer): Stored {
+function toStored(a: Answer): StoredAnswer {
   const origin = {
     id: a.id,
     question: a.question,
@@ -29,7 +29,7 @@ function toStored(a: Answer): Stored {
         text: a.text,
         kind: a.kind,
         confidence: a.confidence,
-        citations: a.citations,
+        citations: a.citations.map((c) => c.citation),
       };
   }
 }
@@ -43,61 +43,39 @@ export function saveConversation(answers: readonly Answer[]): void {
   }
 }
 
-export function loadConversation(): Answer[] {
+/** A stored answer back in the list, its citations resolved against the dataset as they were when it arrived. */
+function toAnswer(ds: Dataset, a: StoredAnswer): Answer {
+  // Optional fields the schema read as absent are left out, not set to undefined (exactOptionalPropertyTypes).
+  const { about, context, slot, ...rest } = a;
+  const origin = {
+    ...rest,
+    ...(about ? { about } : {}),
+    ...(context ? { context } : {}),
+    ...(slot ? { slot } : {}),
+  };
+  if (origin.status !== "done") return origin;
+  return {
+    ...origin,
+    citations: origin.citations.map((citation, i) => ({
+      citation,
+      resolution: resolveCitation(ds, citation, claimTextFor(origin.text, origin.citations, i)),
+    })),
+  };
+}
+
+/**
+ * What the tab stored, checked against the stored shape (domain/storedConversation.ts) before anything renders it. The
+ * schema and its library load only when there is something to restore, so a fresh tab pays nothing.
+ */
+export async function loadConversation(ds: Dataset): Promise<Answer[]> {
+  let parsed: unknown;
   try {
     const raw = window.sessionStorage.getItem(KEY);
     if (!raw) return [];
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isStored).map(withValidContext);
+    parsed = JSON.parse(raw);
   } catch {
     return [];
   }
-}
-
-/** A context that no longer parses (an old shape, an edited entry) is dropped: a retry then asks about the portfolio. */
-function withValidContext(a: Stored): Stored {
-  if (a.context === undefined || isContext(a.context)) return a;
-  const rest = { ...a };
-  delete rest.context;
-  return rest;
-}
-
-const str = (v: unknown): v is string => typeof v === "string";
-
-/** The shape of ChatContextSchema, checked by hand: the client bundle keeps zod out (see sseGuard.ts). */
-function isContext(v: unknown): boolean {
-  if (typeof v !== "object" || v === null) return false;
-  const { entity, period } = v as { entity?: Record<string, unknown>; period?: unknown };
-  if (!str(period) || !PERIOD_PATTERN.test(period) || typeof entity !== "object" || !entity) {
-    return false;
-  }
-  switch (entity.kind) {
-    case "portfolio":
-      return true;
-    case "region":
-      return isRegionId(entity.regionId);
-    case "market":
-      return str(entity.marketId);
-    case "product":
-      return str(entity.marketId) && str(entity.productId);
-    default:
-      return false;
-  }
-}
-
-const STATUSES = new Set(["done", "stopped", "failed"]);
-
-/** Shape check for what comes back from storage: an id, a question, text and a finished status. */
-function isStored(v: unknown): v is Stored {
-  if (typeof v !== "object" || v === null) return false;
-  const a = v as Record<string, unknown>;
-  return (
-    typeof a.id === "string" &&
-    typeof a.question === "string" &&
-    typeof a.text === "string" &&
-    typeof a.status === "string" &&
-    STATUSES.has(a.status) &&
-    (a.status !== "done" || Array.isArray(a.citations))
-  );
+  const { parseStoredConversation } = await import("@/domain/storedConversation");
+  return parseStoredConversation(parsed).map((a) => toAnswer(ds, a));
 }

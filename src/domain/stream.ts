@@ -31,8 +31,10 @@ export type Kind = z.infer<typeof KindSchema>;
 
 /** What the dashboard is showing when a question is asked. Optional on the wire, so the starter contract still holds. */
 export const ChatContextSchema = z.object({ entity: EntitySchema, period: PeriodSchema });
+/** The composer stops at 1,000 characters (features/assistant/Composer.tsx MAX_CHARS); the route holds the same line. */
+export const MAX_QUESTION_CHARS = 1000;
 export const ChatRequestSchema = z.object({
-  question: z.string(),
+  question: z.string().max(MAX_QUESTION_CHARS),
   context: ChatContextSchema.optional(),
 });
 export type ChatContext = z.infer<typeof ChatContextSchema>;

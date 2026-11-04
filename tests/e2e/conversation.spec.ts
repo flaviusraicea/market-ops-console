@@ -38,19 +38,22 @@ test("asking and streaming never scroll the page", async ({ page }) => {
   expect(at).toBeGreaterThan(0);
 
   await page.getByRole("textbox", { name: "Ask the assistant" }).fill(DIP);
+  // Every scroll of the page during the stream is recorded, so a move between two samples cannot slip through.
+  await page.evaluate(() => {
+    const log: number[] = [];
+    (window as unknown as { __scrollLog: number[] }).__scrollLog = log;
+    window.addEventListener("scroll", () => log.push(window.scrollY));
+  });
   // A real pointer at the button's place: Playwright's own click would scroll the target into view first.
   const send = await page.getByRole("button", { name: "Send" }).boundingBox();
   if (!send) throw new Error("Send is not rendered");
   await page.mouse.click(send.x + send.width / 2, send.y + send.height / 2);
-  // Sample through the stream: the page must not move at any point, not only at the end.
-  const samples: number[] = [];
-  for (let i = 0; i < 20; i++) {
-    samples.push(await page.evaluate(() => window.scrollY));
-    await page.waitForTimeout(100);
-  }
   await answerComplete(page);
-  samples.push(await page.evaluate(() => window.scrollY));
-  expect(new Set(samples)).toEqual(new Set([at]));
+  const moves = await page.evaluate(
+    () => (window as unknown as { __scrollLog: number[] }).__scrollLog,
+  );
+  expect(moves).toEqual([]);
+  expect(await page.evaluate(() => window.scrollY)).toBe(at);
 });
 
 test("an answer about more than the product in view says what it covers", async ({ page }) => {

@@ -17,6 +17,21 @@ export const runtime = "nodejs";
 
 const fixtures = FixturesFileSchema.parse(raw);
 
+const TOKEN_MS = 35;
+
+/** The simulated per-token latency, cut short when the request is aborted. */
+function tokenLatency(signal: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(done, TOKEN_MS);
+    function done() {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", done);
+      resolve();
+    }
+    signal.addEventListener("abort", done, { once: true });
+  });
+}
+
 export async function POST(req: Request) {
   const body: unknown = await req.json().catch(() => null);
   const parsed = ChatRequestSchema.safeParse(body);
@@ -49,11 +64,17 @@ export async function POST(req: Request) {
         return;
       }
 
-      // Stream the answer one whitespace-delimited token at a time.
+      // Stream the answer one whitespace-delimited token at a time. A client that stops (Stop, a closed tab) aborts
+      // the request: the wait ends at once and nothing more is produced for a stream nobody reads.
       const tokens = fixture.answer.text.match(/\S+\s*/g) ?? [];
       for (const value of tokens) {
+        if (req.signal.aborted) break;
         controller.enqueue(send({ type: "token", value }));
-        await new Promise((r) => setTimeout(r, 35)); // simulate token latency
+        await tokenLatency(req.signal);
+      }
+      if (req.signal.aborted) {
+        controller.close();
+        return;
       }
 
       // Final event carries the metadata the trust surface renders.

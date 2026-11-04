@@ -84,11 +84,13 @@ test("a keyboard drill moves focus to the new page heading, a mouse drill leaves
   await expect(page.locator("#verdict-h")).not.toBeFocused();
 });
 
-test("a focused grid row keeps a visible focus ring, and so does a landing target", async ({
+test("the drill link in a grid row keeps a visible focus ring, and the row itself is not a tab stop", async ({
   page,
 }) => {
   await open(page, "/?mode=analyst&region=eu&market=de");
-  const target = page.locator("tr[data-landing-target]").first();
+  const row = page.locator("tr[data-landing-target]").first();
+  await expect(row).not.toHaveAttribute("tabindex");
+  const target = row.getByRole("link");
   await target.focus();
   await page.keyboard.press("Shift+Tab");
   await page.keyboard.press("Tab");

@@ -26,7 +26,7 @@ function setup(handler: (url: string, init?: RequestInit) => Promise<Response>, 
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
-  return { fetchMock, ...renderHook(() => useAlertSave(), { wrapper }) };
+  return { fetchMock, client, wrapper, ...renderHook(() => useAlertSave(), { wrapper }) };
 }
 
 beforeEach(() => {
@@ -113,6 +113,32 @@ describe("useAlertSave", () => {
     await waitFor(() => expect(result.current.deleteFailed).toBe(true));
     expect(result.current.deleteReadOnly).toBe(true);
     expect(result.current.rules).toHaveLength(1);
+  });
+
+  it("a save that fails after the section folded still rolls back and shows its notice on reopen", async () => {
+    let release: (r: Response) => void = () => {};
+    const { result, unmount, wrapper } = setup((url, init) => {
+      if (init?.method === "POST") return new Promise((r) => (release = r));
+      return ok({ rules: [saved] });
+    });
+    await waitFor(() => expect(result.current.rules).toHaveLength(1));
+    act(() => result.current.save([next], { fail: true }));
+    await waitFor(() => expect(result.current.rules[0]?.pending).toBe(true));
+
+    // The section folds mid-save: the hook unmounts, the client (and the mutation) live on.
+    unmount();
+    await act(async () =>
+      release(Response.json({ message: "Save failed (simulated)" }, { status: 500 })),
+    );
+
+    const reopened = renderHook(() => useAlertSave(), { wrapper });
+    await waitFor(() => expect(reopened.result.current.failure).not.toBeNull());
+    expect(reopened.result.current.failure?.restored).toEqual({ growth: 0, attainment: 95 });
+    expect(reopened.result.current.rules[0]).toMatchObject({ threshold: 95 });
+    expect(reopened.result.current.rules[0]?.pending).toBeUndefined();
+
+    act(() => reopened.result.current.dismiss());
+    await waitFor(() => expect(reopened.result.current.failure).toBeNull());
   });
 
   it("a plain 500 is not read-only", async () => {

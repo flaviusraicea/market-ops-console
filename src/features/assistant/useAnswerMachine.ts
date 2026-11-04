@@ -197,13 +197,19 @@ export function useAnswerMachine(stream: AskStream = askStream) {
 
   // The tab's conversation survives a reload: restored after hydration (the server renders none), saved whenever no
   // answer is streaming, and on leaving the page, where a stream in flight is kept as a stopped partial answer.
+  // The restore is checked against the stored shape first; a question asked before it lands wins, so ids never clash.
   useEffect(() => {
-    const restored = loadConversation();
-    if (restored.length === 0) return;
-    const ids = restored.map((a) => Number(a.id.slice(1))).filter(Number.isFinite);
-    seq.current = Math.max(seq.current, ...ids);
-    dispatch({ restore: restored });
-  }, []);
+    let cancelled = false;
+    void loadConversation(ds).then((restored) => {
+      if (cancelled || restored.length === 0 || answersRef.current.length > 0) return;
+      const ids = restored.map((a) => Number(a.id.slice(1))).filter(Number.isFinite);
+      seq.current = Math.max(seq.current, ...ids);
+      dispatch({ restore: restored });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [ds]);
   useEffect(() => {
     if (!answers.some((a) => a.status === "streaming")) saveConversation(answers);
   }, [answers]);

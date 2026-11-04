@@ -1,12 +1,13 @@
 "use client";
 
-import { QueryClient, QueryClientContext, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientContext, QueryClientProvider } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 
 import { Notice } from "@/components/Notice";
 import type { AlertRule } from "@/domain";
 import { AlertForm } from "@/features/alerts/AlertForm";
 import { alertApi } from "@/features/alerts/api";
+import { getAlertsQueryClient } from "@/features/alerts/queryClient";
 import { RuleList } from "@/features/alerts/RuleList";
 import { setRulesLoadFailed } from "@/features/alerts/summary";
 import { useAlertSave } from "@/features/alerts/useAlertSave";
@@ -68,12 +69,14 @@ function Body({ readOnly, onSwitchToAnalyst, initialRules }: AlertsBodyProps) {
 /**
  * The open Alerts section: the form, the saved rules and their mutations. It loads only when the section is
  * opened, so zod, react-hook-form and TanStack Query stay out of the Analyst first load. TanStack Query is used
- * by the alert mutations alone, so its provider lives here too. The read-only notice is AlertsSection's.
+ * by the alert mutations alone, so its provider lives here too; the client itself outlives this component
+ * (queryClient.ts), so folding the section mid-save loses neither the rollback nor its notice. The read-only
+ * notice is AlertsSection's.
  */
 export function AlertsBody(props: AlertsBodyProps) {
   // A host that already provides a client (a test, a story) keeps it.
   const outer = useContext(QueryClientContext);
-  const [client] = useState(() => outer ?? new QueryClient());
+  const client = outer ?? getAlertsQueryClient();
   return (
     <QueryClientProvider client={client}>
       <Body {...props} />

@@ -34,6 +34,38 @@ const europe = ChatContextSchema.parse({
   period: "2026-05",
 });
 
+describe("/api/chat holds the composer's line and stops with the client", () => {
+  it("refuses a question past 1,000 characters with a 400, as the composer would never send one", async () => {
+    const { res } = await ask({ question: "x".repeat(1001) });
+    expect(res.status).toBe(400);
+    const { res: ok } = await ask({ question: "x".repeat(1000) });
+    expect(ok.status).toBe(200);
+  });
+
+  it("stops producing tokens once the request is aborted", async () => {
+    const controller = new AbortController();
+    const res = await POST(
+      new Request("http://test/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ question: AT_RISK, context: europe }),
+        signal: controller.signal,
+      }),
+    );
+    const reader = res.body!.getReader();
+    await reader.read();
+    controller.abort();
+    let chunks = 0;
+    for (;;) {
+      const { done } = await reader.read();
+      if (done) break;
+      chunks += 1;
+    }
+    // At most the token already in flight; never the rest of the answer or its done event.
+    expect(chunks).toBeLessThanOrEqual(1);
+  });
+});
+
 describe("/api/chat follows the view the question was asked from", () => {
   it("answers an at-risk question at Europe scope with the Europe fixture", async () => {
     const { text, done } = await ask({ question: AT_RISK, context: europe });

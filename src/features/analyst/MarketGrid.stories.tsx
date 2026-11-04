@@ -28,6 +28,10 @@ export const Markets: Story = {
     const header = c.getByRole("button", { name: /^ATTAINMENT/i });
     await userEvent.click(header);
     await expect(header.closest("th")).toHaveAttribute("aria-sort");
+    // The name is the drill link, with the address the drill would write; the row itself is not focusable.
+    const germany = c.getByRole("link", { name: "Germany" });
+    await expect(germany).toHaveAttribute("href", "/?region=eu&market=de&mode=analyst");
+    await expect(germany.closest("tr")).not.toHaveAttribute("tabindex");
   },
 };
 
@@ -35,6 +39,10 @@ export const Products: Story = {
   args: { grid: analystVM(ds, { ...base, region: "eu", market: "de" }).grid },
   parameters: { nuqs: { searchParams: "?mode=analyst&region=eu&market=de" } },
   play: async ({ canvasElement }) => {
-    await expect(within(canvasElement).getByText("Veltrix")).toBeVisible();
+    const c = within(canvasElement);
+    await expect(c.getByRole("link", { name: "Veltrix" })).toHaveAttribute(
+      "href",
+      "/?region=eu&market=de&product=veltrix&mode=analyst",
+    );
   },
 };

@@ -35,8 +35,11 @@ const DEDUPE_MS = 10_000;
 const recent = new Map<string, number>();
 let sent = 0;
 
-// Field limits match ErrorReportSchema, so a long message is cut here rather than rejected by the endpoint.
-function describe(error: unknown): { name: string; message: string; stack?: string } {
+/**
+ * An error as a report's fields. The limits match ErrorReportSchema, so a long message is cut here rather than
+ * rejected by the endpoint; the server's instrumentation writes the same fields, so one log search finds both sides.
+ */
+export function describeError(error: unknown): { name: string; message: string; stack?: string } {
   const cut = (name: string, message: string, stack?: string) => ({
     name: name.slice(0, 60),
     message: (message || "Unknown error").slice(0, 500),
@@ -67,7 +70,7 @@ export function reportError(
   const report: ErrorReport = {
     level: "error",
     source: where.source,
-    ...describe(error),
+    ...describeError(error),
     ...(where.widget ? { widget: where.widget } : {}),
     ...(where.route ? { route: where.route } : {}),
     ...(typeof window !== "undefined" ? { path: window.location.pathname } : {}),

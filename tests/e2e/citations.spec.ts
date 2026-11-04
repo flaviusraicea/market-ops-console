@@ -56,7 +56,7 @@ test("following the Veltrix chip selects the Veltrix row and titles the chart Ge
   await expect(march(page)).toHaveAttribute("aria-pressed", "false");
   await expect(page.getByRole("heading", { level: 3, name: /^Germany · Veltrix/ })).toBeVisible();
   const row = page.getByRole("row", { name: /Veltrix/ });
-  await expect(row).toHaveAttribute("aria-selected", "true");
+  await expect(row).toHaveAttribute("aria-current", "true");
   // The citation names a month, so the chart rings and the selected row does not.
   await expect(timeSeries(page)).toHaveAttribute("data-landed", "");
   await expect(page.locator("[data-landed]")).toHaveCount(1);

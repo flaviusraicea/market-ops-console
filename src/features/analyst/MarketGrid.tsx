@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
+import Link from "next/link";
+import { useMemo, useState, type MouseEvent, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
 import { InfoTip } from "@/components/InfoTip";
@@ -20,6 +21,9 @@ import {
 import { PIN_CELL_CLASS, ScrollTable } from "@/components/ui/scroll-table";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
+import { hrefFor } from "@/lib/context/href";
+import { applyContextChange, type ConsoleMeta } from "@/lib/context/invariants";
+import { useConsoleMeta } from "@/lib/context/meta";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { SortHead } from "./SortHead";
 import { useIsLanded, useLandingRef } from "./useLanding";
@@ -32,6 +36,7 @@ import type {
   SortKey,
   SortValues,
 } from "./viewModel";
+import type { Context, ContextPatch } from "@/domain";
 
 const SORT_LABEL: Record<SortKey, string> = {
   name: "name",
@@ -50,27 +55,61 @@ const DEFAULT_SORT: Sort = { key: "revenue", dir: "desc" };
 const signColour = (d: "up" | "down" | "flat") =>
   d === "up" ? "text-ok-text" : d === "down" ? "text-bad-text" : "text-ink-2";
 
-/** A focusable row that selects on Enter or Space, unless the key came from a control inside it. */
+/**
+ * A row whose name is the drill link (DrillLink). The rest of the row drills on a mouse click as a convenience, so
+ * the row is not in the tab order and has no key handling of its own: the keyboard and a screen reader reach the
+ * link, which says where it goes. The selected product row is marked `aria-current`; `aria-selected` means nothing
+ * on a row of a plain table.
+ */
 function rowProps(selected: boolean, onSelect: () => void, landed = false) {
   return {
     "data-landing-target": "",
     "data-landed": landed ? "" : undefined,
-    tabIndex: 0,
-    "aria-selected": selected ? ("true" as const) : undefined,
+    "aria-current": selected ? ("true" as const) : undefined,
     "data-state": selected ? "selected" : undefined,
     className: "group cursor-pointer",
-    onClick: (e: React.MouseEvent) => {
-      if ((e.target as HTMLElement).closest("button")) return;
+    onClick: (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest("a, button")) return;
       onSelect();
     },
-    onKeyDown: (e: KeyboardEvent<HTMLTableRowElement>) => {
-      if (e.target !== e.currentTarget) return;
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onSelect();
-      }
-    },
   };
+}
+
+/** The address a drill would write, from the same rules as the write itself, so the link and the click agree. */
+function drillHref(meta: ConsoleMeta, ctx: Context, patch: ContextPatch): string {
+  const change = applyContextChange(meta, ctx, patch);
+  return change.ok ? hrefFor(meta, change.next) : "/";
+}
+
+/**
+ * The name of a market or product as the link that drills into it (as the attention list does): a real address,
+ * so it can be opened in a new tab or copied, and a plain click goes through setContext like every other write.
+ */
+function DrillLink({
+  href,
+  onNavigate,
+  children,
+}: {
+  href: string;
+  onNavigate: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={(e) => {
+        // Modified clicks keep the browser's own behaviour (new tab, new window).
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        e.preventDefault();
+        onNavigate();
+      }}
+      // Its own box, so a long name truncates inside the link and a touch screen gets the 44 px target the
+      // breadcrumbs use (pointer-coarse: 44 px line height), without the cell clipping the focus ring.
+      className="inline-block max-w-full truncate rounded-control align-bottom underline-offset-4 pointer-coarse:leading-11 hover:underline focus-visible:underline"
+    >
+      {children}
+    </Link>
+  );
 }
 
 /** Sorts a copy of the rows; ties fall back to revenue so the order never shuffles. */
@@ -140,6 +179,7 @@ function MarketRows({
   onSort: (next: Sort) => void;
 }) {
   const { ctx, setContext } = useConsoleContext();
+  const meta = useConsoleMeta();
   const { ask } = useAskWhy();
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
@@ -176,9 +216,14 @@ function MarketRows({
         {sorted.map((r) => (
           <TableRow key={r.id} {...rowProps(false, () => setContext({ market: r.id }))}>
             <TableCell data-pin="start" className={cn(PINNED_CELL, "font-medium text-ink")}>
-              {/* The ellipsis clips an inner box, so the pinned cell's fade can reach past the cell. */}
-              <span className="block truncate">
-                {r.name}{" "}
+              {/* One line: the link truncates its own text, and the code sits after it. */}
+              <span className="block whitespace-nowrap">
+                <DrillLink
+                  href={drillHref(meta, ctx, { market: r.id })}
+                  onNavigate={() => setContext({ market: r.id })}
+                >
+                  {r.name}
+                </DrillLink>{" "}
                 <span className="text-[length:var(--text-caption)] font-normal text-ink-muted max-md:hidden">
                   {r.iso2}
                 </span>
@@ -330,6 +375,7 @@ function ProductRows({
   onSort: (next: Sort) => void;
 }) {
   const { ctx, setContext } = useConsoleContext();
+  const meta = useConsoleMeta();
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   const landed = useIsLanded("productRow");
   const rowRef = useLandingRef("productRow");
@@ -368,7 +414,16 @@ function ProductRows({
               {...rowProps(selected, () => setContext({ product: r.id }), landed && selected)}
             >
               <TableCell data-pin="start" className={cn(PINNED_CELL, "font-medium text-ink")}>
-                {r.name}
+                {selected ? (
+                  r.name
+                ) : (
+                  <DrillLink
+                    href={drillHref(meta, ctx, { product: r.id })}
+                    onNavigate={() => setContext({ product: r.id })}
+                  >
+                    {r.name}
+                  </DrillLink>
+                )}
               </TableCell>
               <TableCell className="text-right num">{r.revenue}</TableCell>
               <TableCell className="text-right num">{r.forecast}</TableCell>
@@ -392,7 +447,7 @@ function ProductRows({
   );
 }
 
-/** Design-system 6.4. A plain table (no grid role): rows are focusable and select on Enter or Space. */
+/** Design-system 6.4. A plain table (no grid role): each name is the link that drills in; a click anywhere on the row does the same. */
 export function MarketGrid({ grid }: { grid: GridVM }): ReactNode {
   // Product rows have no share column, so a sort chosen on markets must not carry over (and back).
   return <MarketGridBody key={grid.kind} grid={grid} />;

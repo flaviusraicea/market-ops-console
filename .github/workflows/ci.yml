@@ -5,6 +5,15 @@ on:
     branches: [main]
   pull_request:
 
+# The workflow only reads the repository; nothing here writes to it.
+permissions:
+  contents: read
+
+# A new push to the same branch supersedes the run in progress.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ci:
     name: ci
@@ -19,7 +28,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run ci
-      - run: pnpm test:e2e
+      - run: pnpm exec playwright test --project=chromium
+      # Frame timing on a shared runner is evidence, not a gate: a stall shows up as an annotation on the run and
+      # in the report, and the merge is not held on it. Locally `pnpm test:e2e` still runs it as a failing test.
+      - name: Frame budgets (advisory)
+        run: pnpm exec playwright test --project=frame-budget --no-deps --reporter=github,list
+        continue-on-error: true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

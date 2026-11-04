@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import type { Context } from "@/domain";
 import { overviewVM, regionBarsVM } from "@/features/overview/viewModel";
+import { contextKey } from "@/features/shell/contextKey";
 import { ErrorBoundary } from "@/features/shell/ErrorBoundary";
 import { OfflineNotice } from "@/features/shell/OfflineNotice";
 import { DatasetProvider } from "@/lib/context/dataset";
@@ -30,6 +31,8 @@ export function Analyst({ ctx, notice }: { ctx: Context; notice?: ReactNode }) {
   const ds = getDataset();
   const vm = analystVM(ds, ctx);
   const overview = overviewVM(ds, ctx);
+  // A widget that failed for one context tries again when the context changes.
+  const reset = contextKey(ctx);
   return (
     <div className="flex flex-col">
       <h2 className="sr-only">Analyst view</h2>
@@ -43,32 +46,32 @@ export function Analyst({ ctx, notice }: { ctx: Context; notice?: ReactNode }) {
       {notice}
       <OfflineNotice />
       <Sheet style={reserveStyle(vm.grid.rows.length, Boolean(ctx.market))}>
-        <ErrorBoundary widget="kpi-strip">
+        <ErrorBoundary widget="kpi-strip" resetKey={reset}>
           <LiveKpiStrip tiles={overview.tiles} provenance={overview.tilesProvenance} />
         </ErrorBoundary>
-        <ErrorBoundary widget="market-grid">
+        <ErrorBoundary widget="market-grid" resetKey={reset}>
           <LiveMarketGrid grid={vm.grid} />
         </ErrorBoundary>
         {ctx.facts ? (
-          <ErrorBoundary widget="facts-table">
+          <ErrorBoundary widget="facts-table" resetKey={reset}>
             <LazyFactsTable facts={factsVM(ds, ctx)} />
           </ErrorBoundary>
         ) : null}
-        <ErrorBoundary widget="map">
+        <ErrorBoundary widget="map" resetKey={reset}>
           <LiveMapSection map={overview.map} regions={regionBarsVM(ds, ctx)} />
         </ErrorBoundary>
-        <ErrorBoundary widget="time-series">
+        <ErrorBoundary widget="time-series" resetKey={reset}>
           <LiveTimeSeriesCard vm={vm.timeSeries} />
         </ErrorBoundary>
         <div className="grid grid-cols-[minmax(0,1fr)] min-[1024px]:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] min-[1024px]:divide-x min-[1024px]:divide-border max-[1023px]:divide-y max-[1023px]:divide-border">
-          <ErrorBoundary widget="radar">
+          <ErrorBoundary widget="radar" resetKey={reset}>
             <LiveRadarCard vm={vm.radar} rowLabel={ctx.region ? "Market" : "Region"} />
           </ErrorBoundary>
-          <ErrorBoundary widget="heat-map">
+          <ErrorBoundary widget="heat-map" resetKey={reset}>
             <LiveHeatMapCard vm={vm.heatMap} />
           </ErrorBoundary>
         </div>
-        <ErrorBoundary widget="alerts">
+        <ErrorBoundary widget="alerts" resetKey={reset}>
           <DatasetProvider dataset={lightDataset(ds)}>
             <ConnectedAlertsSection />
           </DatasetProvider>
