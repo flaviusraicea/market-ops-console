@@ -379,7 +379,8 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
 /* Heat-map cell states (Fable ruling). Selected: an offset ring, a 2 px surface gap then 2 px ink, which clears 1.4.11
    on every fill where the accent did not. Hover: a 2 px ink outline drawn inside the cell plus a small lift, so hover is
    not a movement alone. Keyboard focus keeps the global ring, which differs from selection by colour and by the gap;
-   on a selected cell it steps outside the ink ring. Reduced motion keeps the outline and drops the lift. */
+   on a selected cell it steps outside the ink ring behind its own 2 px surface gap, so it never touches the ink or a
+   neighbouring fill. Reduced motion keeps the outline and drops the lift. */
 .heat-cell {
   transition: transform var(--dur-fast) var(--ease-out);
 }
@@ -405,7 +406,11 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
 }
 .heat-cell[aria-selected="true"]:focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 4px;
+  outline-offset: 6px;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--ink),
+    0 0 0 6px var(--surface);
 }
 @media (prefers-reduced-motion: reduce) {
   .heat-cell:hover {
