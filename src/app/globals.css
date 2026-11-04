@@ -523,8 +523,8 @@ html[data-reduced-motion="true"] .heat-cell:hover {
 }
 
 /* The assistant panel (desktop). The shell grid's second column is `--panel-w`, registered as a length so it
-   transitions: 48 px (the rail) to the docked width in 400 ms on the smooth spring, back in 250 ms on the same
-   spring (an ease-in close would end at full speed on the frame where the charts re-render). The dashboard column
+   transitions: 48 px (the rail) to the docked width in 400 ms on the smooth spring, back in 200 ms ease-in (an
+   exit leaves, an entrance arrives; the panel fades out over the same 200 ms). The dashboard column
    is the other track, so both move in one transition and the table reflows live. The panel keeps its full width,
    right-anchored, and the column clips its left edge; its content fades in after the first 100 ms. ShellGrid sets
    data-panel (opening, open, closing, closed) on the column. */
@@ -536,7 +536,7 @@ html[data-reduced-motion="true"] .heat-cell:hover {
 @media (min-width: 1024px) {
   .shell-grid {
     --panel-w: 48px;
-    transition: --panel-w 250ms var(--spring-smooth);
+    transition: --panel-w 200ms var(--ease-in);
   }
   .shell-grid[data-docked] {
     --panel-w: var(--assistant-w);
@@ -568,6 +568,14 @@ html[data-reduced-motion="true"] .heat-cell:hover {
 [data-panel="opening"] #assistant-panel > * {
   animation: panel-fade-in var(--dur-fast) var(--ease-out) 100ms backwards;
 }
+@keyframes panel-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+[data-panel="closing"] #assistant-panel > * {
+  animation: panel-fade-out 200ms var(--ease-in) forwards;
+}
 @media (min-width: 1024px) {
   [data-panel="closed"] #assistant-panel {
     display: none;
@@ -598,14 +606,7 @@ html[data-reduced-motion="true"] .heat-cell:hover {
   opacity: 0;
   transition: none;
 }
-/* The rail waits for the panel to finish leaving, then fades in, so the two are never on screen together. */
-/* Transparent, not hidden: focus returns to the rail's toggle as soon as the panel collapses. */
-[data-panel="closing"] [data-slot="assistant-rail"] {
-  opacity: 0;
-}
-[data-panel="closed"] [data-slot="assistant-rail"] {
-  animation: scrim-in var(--dur-base) var(--ease-out);
-}
+/* While the panel leaves, the rail is already visible underneath it (same grid cell), so there is no swap at the end. */
 
 /* Reduced motion: overlays cross-fade over a fixed 200 ms (popovers 100 ms) and do not move. Opacity is not
    motion, so these durations are literal: the duration tokens are 0 under reduced motion. The selectors are more

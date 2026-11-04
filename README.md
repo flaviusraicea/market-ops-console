@@ -121,6 +121,7 @@ For May 2026 `data.json` states each market's forecast attainment twice: in `kpi
 - With more time: the Analyst toolbar's More menu. Below 1200 px the toolbar scrolls sideways as a fallback; a More menu would fold the lowest-priority controls instead.
 - With more time: the KPI tiles on a four-row layout (label, value, trend or segment bar, status line), so every tile has the same rows. Today only Revenue carries a sparkline.
 - With more time: compare up to four markets on the radar (spec written), through a "Compare · N markets" picker (approved, deferred) with a legend that dims a series, and a `compare` URL parameter. Today the radar compares the markets in scope, in four colours.
+- With more time: at narrow widths (under 40 rem of card, as with the docked assistant) transpose the Attainment table to months as rows and markets as columns, scrolling vertically. A 24-column table can only scroll sideways there. Today it scrolls horizontally inside the fixed-height box; the Compare table already shortens its heads.
 - With more time: the radar should use a fixed portfolio-wide scale per axis with a reference ring, so shapes stay comparable whichever markets are compared. Today each axis is scaled between the lowest and highest compared value.
 - With more time: citation chips on grid rows and KPIs should scroll to the matching time-series row.
 - With more time: the assistant panel animation runs at about 30 fps on a 4× slower CPU during the 400 ms move (clean at 1×). Next step: freeze table column widths and contain the cards during the transition.

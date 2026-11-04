@@ -43,8 +43,9 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
         <TableView
           id={tableId}
           pressed={pressed}
+          fixedBox
           chart={
-            <>
+            <div className="flex flex-col gap-3">
               <HeatMap
                 rows={vm.rows}
                 periods={vm.periods}
@@ -63,37 +64,35 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
               <p className="mt-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-muted">
                 {vm.hint}
               </p>
-            </>
+              {/* The scale starts at the plot's first month column, past the market names. */}
+              <div
+                className="md:pl-[var(--heat-inset)]"
+                // CSSProperties has no index for custom properties
+                style={{ "--heat-inset": HEAT_PLOT_INSET } as CSSProperties}
+              >
+                <Legend
+                  label="Attainment colour scale"
+                  items={ATTAINMENT_LEGEND.map((b) => ({
+                    label: b.label,
+                    swatch: "fill",
+                    color: b.token,
+                  }))}
+                />
+              </div>
+              {vm.differsNote ? (
+                <p className="flex items-center gap-1.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
+                  <TriangleAlert
+                    aria-hidden
+                    className="size-3 shrink-0 text-warn-mark"
+                    strokeWidth={ICON_STROKE}
+                  />
+                  <span>beside a month: differs from source</span>
+                </p>
+              ) : null}
+            </div>
           }
           table={<HeatMapTable caption={vm.title} rows={vm.rows} periods={vm.periods} />}
         />
-        {pressed ? null : (
-          // The scale starts at the plot's first month column, past the market names.
-          <div
-            className="md:pl-[var(--heat-inset)]"
-            // CSSProperties has no index for custom properties
-            style={{ "--heat-inset": HEAT_PLOT_INSET } as CSSProperties}
-          >
-            <Legend
-              label="Attainment colour scale"
-              items={ATTAINMENT_LEGEND.map((b) => ({
-                label: b.label,
-                swatch: "fill",
-                color: b.token,
-              }))}
-            />
-          </div>
-        )}
-        {vm.differsNote ? (
-          <p className="flex items-center gap-1.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2">
-            <TriangleAlert
-              aria-hidden
-              className="size-3 shrink-0 text-warn-mark"
-              strokeWidth={ICON_STROKE}
-            />
-            <span>beside a month: differs from source</span>
-          </p>
-        ) : null}
       </div>
     </SheetSection>
   );

@@ -185,6 +185,9 @@ export function RadarChart(props: RadarChartProps) {
 }
 
 /** One row per series with the raw values, one column per axis. */
+/** Short column heads for a narrow table, by axis position (the five axes are fixed). */
+const SHORT_HEADS = ["Attain", "Growth", "Share", "MoM", "Units"] as const;
+
 export function RadarChartTable({
   caption,
   rowLabel = "Market",
@@ -197,34 +200,46 @@ export function RadarChartTable({
   series: readonly RadarSeries[];
 }) {
   return (
-    <ScrollTable scrollLabel={`${caption}, scrollable`}>
-      <TableCaption className="sr-only">{caption}</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead scope="col" data-pin="start" className={PIN_HEAD_TINTED_CLASS}>
-            {rowLabel}
-          </TableHead>
-          {axes.map((a) => (
-            <TableHead key={a} scope="col" className="text-right">
-              {a}
+    // Under 40 rem of card the heads shorten so five numeric columns fit without scrolling sideways. The full name
+    // stays in the accessible name.
+    <div className="@container">
+      <ScrollTable scrollLabel={`${caption}, scrollable`}>
+        <TableCaption className="sr-only">{caption}</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead scope="col" data-pin="start" className={PIN_HEAD_TINTED_CLASS}>
+              {rowLabel}
             </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {series.map((s) => (
-          <TableRow key={s.id}>
-            <TableCell data-pin="start" className={cn(PIN_CELL_CLASS, "font-medium")}>
-              {s.name}
-            </TableCell>
-            {s.raw.map((v, i) => (
-              <TableCell key={i} className="text-right num">
-                {v}
-              </TableCell>
-            ))}
+            {axes.map((a, i) => {
+              const short = axes.length === SHORT_HEADS.length ? SHORT_HEADS[i] : undefined;
+              return (
+                <TableHead key={a} scope="col" className="text-right num">
+                  <span className={short ? "@max-[40rem]:sr-only" : undefined}>{a}</span>
+                  {short ? (
+                    <span aria-hidden className="hidden @max-[40rem]:inline">
+                      {short}
+                    </span>
+                  ) : null}
+                </TableHead>
+              );
+            })}
           </TableRow>
-        ))}
-      </TableBody>
-    </ScrollTable>
+        </TableHeader>
+        <TableBody>
+          {series.map((s) => (
+            <TableRow key={s.id}>
+              <TableCell data-pin="start" className={cn(PIN_CELL_CLASS, "font-medium")}>
+                {s.name}
+              </TableCell>
+              {s.raw.map((v, i) => (
+                <TableCell key={i} className="text-right num">
+                  {v}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </ScrollTable>
+    </div>
   );
 }

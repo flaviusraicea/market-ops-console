@@ -267,6 +267,17 @@ html[data-density="analyst"] {
   --grid-cols: 3;
 }
 
+/* Chrome does not follow density: the header re-declares the Executive values, so it is identical in both modes.
+   (data-density stays on <html> so portalled popovers keep it.) */
+.app-header {
+  --space-unit: 8px;
+  --gap: 16px;
+  --control-h: 36px;
+  --chip-h: 24px;
+  --text-body: 14px;
+  --text-body-lh: 20px;
+}
+
 /* Touch: 44 px controls and rows in both densities; a segmented track is 4 px taller than its 44 px buttons. */
 @media (pointer: coarse) {
   :root,
@@ -275,6 +286,10 @@ html[data-density="analyst"] {
     --track-h: 48px;
     --chip-h: 36px;
     --row-h: 44px;
+  }
+  .app-header {
+    --control-h: 44px;
+    --chip-h: 36px;
   }
 }
 

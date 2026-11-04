@@ -338,7 +338,7 @@ export function HeatMap({
     <div ref={wrapRef} className="relative">
       {differsNote ? (
         // Outside the grid, so the roving tab stop stays one; it sits over the latest month's column header.
-        <div className="absolute -top-5 right-0 z-[2]">
+        <div className="absolute top-0 right-0 z-[2]">
           <InfoTip label="Differs from source: latest month" tone="warn">
             {differsNote}
           </InfoTip>
@@ -376,7 +376,9 @@ export function HeatMap({
                 role="columnheader"
                 aria-colindex={i + 2}
                 data-month=""
-                className="relative h-4 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
+                className={cn(
+                  "relative h-4 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted",
+                )}
               >
                 <span className="sr-only">{formatPeriodAbbr(p)}</span>
                 {/* The last month in view ends at the visible edge instead of running past it. */}
@@ -387,6 +389,8 @@ export function HeatMap({
                     className={cn(
                       "absolute bottom-0 whitespace-nowrap",
                       labels.get(i) === "end" ? "right-0" : "left-0",
+                      // Ends 16 px before the edge, leaving room for the warning mark beside the latest month.
+                      differsNote && i === nCols - 1 && "pr-4",
                     )}
                   >
                     {/* A phone has columns about 20 px wide: the month alone keeps neighbouring labels apart. */}
