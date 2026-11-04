@@ -4,12 +4,11 @@ import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { cn } from "@/components/cn";
 import { InfoTip } from "@/components/InfoTip";
-import { ICON_STROKE, Sparkles } from "@/components/icons";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Button } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AskWhyIconButton } from "@/features/assistant/AskWhyIconButton";
 import {
-  Table,
   TableBody,
   TableCaption,
   TableCell,
@@ -18,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PIN_CELL_CLASS, ScrollTable } from "@/components/ui/scroll-table";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
@@ -84,26 +84,49 @@ function sortRows<T extends { name: string; sort: SortValues }>(rows: T[], sort:
   });
 }
 
-function AskWhyButton({ label, onAsk }: { label: string; onAsk: () => void }) {
+/** In the grid the button shows on row hover, focus or selection; on touch it always shows. */
+const REVEAL =
+  "pointer-coarse:opacity-100 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-data-[state=selected]:opacity-100 focus-visible:opacity-100";
+
+/**
+ * Fixed column widths: the market name takes what is left, every other column its own fixed
+ * width, so nothing is clipped and the row's Ask why stays inside the row. The twelve columns need 1,120 px;
+ * a narrower card scrolls the table with the name column pinned and the scrollbar always shown.
+ */
+const MARKET_COLS = [
+  undefined, // Market: what is left, at least 144 px: "United Kingdom" and its code in full
+  "120px", // Region: "North America" in full
+  "112px", // Status: the 88 px badge and the 12 px cell padding each side
+  "80px", // Revenue
+  "80px", // Forecast
+  "80px", // Prior year
+  "96px", // Attainment, with its 20 px note slot
+  "96px", // Growth YoY: its header in full
+  "72px", // Share
+  "80px", // Units: the semibold total "103,868" in full
+  "120px", // 24 months: the 96 px sparkline and its padding
+  "40px", // Ask why
+];
+const PRODUCT_COLS = [undefined, "80px", "80px", "80px", "96px", "80px", "72px", "120px"];
+/** The fixed columns plus 144 px for the name. */
+const minWidth = (cols: ReadonlyArray<string | undefined>) =>
+  cols.reduce((sum, w) => sum + (w ? parseInt(w, 10) : 144), 0);
+
+function ColGroup({ cols }: { cols: ReadonlyArray<string | undefined> }) {
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      aria-label={label}
-      onClick={onAsk}
-      className="pointer-coarse:opacity-100 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-data-[state=selected]:opacity-100 focus-visible:opacity-100"
-    >
-      <Sparkles aria-hidden className="size-3.5 text-ai-label" strokeWidth={ICON_STROKE} />
-      Ask why
-    </Button>
+    <colgroup>
+      {cols.map((w, i) => (
+        <col key={i} {...(w ? { style: { width: w } } : {})} />
+      ))}
+    </colgroup>
   );
 }
 
-const STICKY_HEAD = "sticky left-0 z-[1] bg-surface";
+const PINNED_HEAD = "bg-surface";
+/** The width of the attainment note's ⓘ (InfoTip), kept empty on rows without a note. */
+const NOTE_SLOT = "inline-block w-5 shrink-0";
 
-/** The sticky first cell keeps the row's own tint so scrolled columns slide under it. */
-const STICKY_CELL =
-  "sticky left-0 z-[1] bg-surface group-hover:bg-surface-2 group-data-[state=selected]:bg-accent-soft";
+const PINNED_CELL = PIN_CELL_CLASS;
 
 function MarketRows({
   rows,
@@ -121,6 +144,7 @@ function MarketRows({
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
     <>
+      <ColGroup cols={MARKET_COLS} />
       <TableHeader className="bg-transparent">
         <TableRow className="hover:bg-transparent">
           <SortHead
@@ -130,7 +154,8 @@ function MarketRows({
             align="left"
             sort={sort}
             onSort={onSort}
-            className={STICKY_HEAD}
+            pin="start"
+            className={PINNED_HEAD}
           />
           <TableHead scope="col">Region</TableHead>
           <TableHead scope="col">Status</TableHead>
@@ -142,7 +167,7 @@ function MarketRows({
           <SortHead label="Share" column="share" sort={sort} onSort={onSort} />
           <SortHead label="Units" column="units" sort={sort} onSort={onSort} />
           <TableHead scope="col">24 months</TableHead>
-          <TableHead scope="col">
+          <TableHead scope="col" data-pin="end" className={cn(PINNED_HEAD, "px-1")}>
             <span className="sr-only">Actions</span>
           </TableHead>
         </TableRow>
@@ -150,21 +175,24 @@ function MarketRows({
       <TableBody>
         {sorted.map((r) => (
           <TableRow key={r.id} {...rowProps(false, () => setContext({ market: r.id }))}>
-            <TableCell className={cn(STICKY_CELL, "font-medium text-ink")}>
-              {r.name}{" "}
-              <span className="text-[length:var(--text-caption)] font-normal text-ink-muted max-md:hidden">
-                {r.iso2}
+            <TableCell data-pin="start" className={cn(PINNED_CELL, "font-medium text-ink")}>
+              {/* The ellipsis clips an inner box, so the pinned cell's fade can reach past the cell. */}
+              <span className="block truncate">
+                {r.name}{" "}
+                <span className="text-[length:var(--text-caption)] font-normal text-ink-muted max-md:hidden">
+                  {r.iso2}
+                </span>
               </span>
             </TableCell>
             <TableCell className="max-md:px-2">
               {ctx.region === r.regionId ? (
-                <span className="text-ink-2">{r.regionName}</span>
+                <span className="block truncate text-ink-2">{r.regionName}</span>
               ) : (
                 <button
                   type="button"
                   aria-label={`Drill into ${r.regionName}`}
                   onClick={() => setContext({ region: r.regionId })}
-                  className="rounded-control text-ink-2 underline-offset-4 hover:text-ink hover:underline"
+                  className="block max-w-full truncate rounded-control text-ink-2 underline-offset-4 hover:text-ink hover:underline"
                 >
                   {r.regionName}
                 </button>
@@ -179,9 +207,12 @@ function MarketRows({
             <TableCell className="text-right num">
               <span className="inline-flex items-center justify-end gap-0.5">
                 {r.attainment}
+                {/* Every row, and the total, reserves the note's 20 px slot, so the numbers share one right edge (A3). */}
                 {r.attainmentNote ? (
                   <InfoTip label={`Status note for ${r.name}`}>{r.attainmentNote}</InfoTip>
-                ) : null}
+                ) : (
+                  <span aria-hidden className={NOTE_SLOT} />
+                )}
               </span>
             </TableCell>
             <TableCell className={cn("text-right num", signColour(r.growthDirection))}>
@@ -196,8 +227,10 @@ function MarketRows({
                 label={r.trend.label}
               />
             </TableCell>
-            <TableCell className="text-right">
-              <AskWhyButton
+            {/* 4 px each side: the 32 px button fills its 40 px column. */}
+            <TableCell data-pin="end" className={cn(PINNED_CELL, "px-1 text-right")}>
+              <AskWhyIconButton
+                className={REVEAL}
                 label={r.askWhy.aria}
                 onAsk={() =>
                   ask(
@@ -210,7 +243,7 @@ function MarketRows({
           </TableRow>
         ))}
       </TableBody>
-      <TotalRow total={total} labelSpan={3} share trailing={2} />
+      <TotalRow total={total} labelSpan={3} share trailing={1} pinEnd noteSlot />
     </>
   );
 }
@@ -221,32 +254,47 @@ function TotalRow({
   labelSpan,
   share = false,
   trailing,
+  pinEnd = false,
+  noteSlot = false,
 }: {
   total: GridTotalVM;
   labelSpan: number;
   share?: boolean;
   trailing: number;
+  /** The table pins its last column, so the footer keeps a pinned cell there too. */
+  pinEnd?: boolean;
+  /** The rows above reserve the attainment note's slot, so the total does too. */
+  noteSlot?: boolean;
 }) {
   return (
     <TableFooter>
       <TableRow className="hover:bg-transparent">
-        <TableCell colSpan={labelSpan} className="font-semibold text-ink">
-          {total.label}
+        {/* The label pins with the first column alone, so its edge lines up with the rows above. */}
+        <TableCell data-pin="start" className="bg-surface-2 font-semibold text-ink">
+          <span className="block truncate">{total.label}</span>
         </TableCell>
+        {labelSpan > 1 ? <TableCell colSpan={labelSpan - 1} /> : null}
         <TableCell className="text-right num">{total.revenue}</TableCell>
         <TableCell className="text-right num">{total.forecast}</TableCell>
         <TableCell className="text-right num">{total.priorYear}</TableCell>
         <TableCell className="text-right num">
-          <AttainmentSlot
-            figure={total.attainment}
-            note={
-              total.attainmentNote ? (
-                <InfoTip label={`Differs from source: ${total.label} attainment`} tone="warn">
-                  {`Differs from source: ${total.attainmentNote}`}
-                </InfoTip>
-              ) : null
-            }
-          />
+          {noteSlot ? (
+            <span className="inline-flex items-center justify-end gap-0.5">
+              {total.attainment}
+              <span aria-hidden className={NOTE_SLOT} />
+            </span>
+          ) : (
+            <AttainmentSlot
+              figure={total.attainment}
+              note={
+                total.attainmentNote ? (
+                  <InfoTip label={`Differs from source: ${total.label} attainment`} tone="warn">
+                    {`Differs from source: ${total.attainmentNote}`}
+                  </InfoTip>
+                ) : null
+              }
+            />
+          )}
         </TableCell>
         <TableCell className={cn("text-right num", signColour(total.growthDirection))}>
           {total.growth}
@@ -254,6 +302,7 @@ function TotalRow({
         {share ? <TableCell /> : null}
         <TableCell className="text-right num">{total.units}</TableCell>
         <TableCell colSpan={trailing} />
+        {pinEnd ? <TableCell data-pin="end" className="bg-surface-2" /> : null}
       </TableRow>
     </TableFooter>
   );
@@ -286,6 +335,7 @@ function ProductRows({
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
     <>
+      <ColGroup cols={PRODUCT_COLS} />
       <TableHeader className="bg-transparent">
         <TableRow className="hover:bg-transparent">
           <SortHead
@@ -295,7 +345,8 @@ function ProductRows({
             align="left"
             sort={sort}
             onSort={onSort}
-            className={STICKY_HEAD}
+            pin="start"
+            className={PINNED_HEAD}
           />
           <SortHead label="Revenue" column="revenue" sort={sort} onSort={onSort} />
           <SortHead label="Forecast" column="forecast" sort={sort} onSort={onSort} />
@@ -315,7 +366,9 @@ function ProductRows({
               key={r.id}
               {...rowProps(selected, () => setContext({ product: r.id }), landed && selected)}
             >
-              <TableCell className={cn(STICKY_CELL, "font-medium text-ink")}>{r.name}</TableCell>
+              <TableCell data-pin="start" className={cn(PINNED_CELL, "font-medium text-ink")}>
+                {r.name}
+              </TableCell>
               <TableCell className="text-right num">{r.revenue}</TableCell>
               <TableCell className="text-right num">{r.forecast}</TableCell>
               <TableCell className="text-right num">{r.priorYear}</TableCell>
@@ -361,12 +414,18 @@ function MarketGridBody({ grid }: { grid: GridVM }): ReactNode {
       caption={grid.caption}
       landed={landing.active && kind !== "product" && kind !== "portfolio"}
     >
-      <Table scrollLabel={`${grid.title}, scrollable`}>
+      <ScrollTable
+        scrollLabel={`${grid.title}, scrollable`}
+        className="table-fixed"
+        style={{ minWidth: minWidth(grid.kind === "markets" ? MARKET_COLS : PRODUCT_COLS) }}
+      >
         <TableCaption className="sr-only">
           {grid.title}. {subtitle}. {grid.caption}
         </TableCaption>
         {grid.kind === "markets" ? (
-          <MarketRows rows={grid.rows} total={grid.total} sort={sort} onSort={setSort} />
+          <TooltipProvider>
+            <MarketRows rows={grid.rows} total={grid.total} sort={sort} onSort={setSort} />
+          </TooltipProvider>
         ) : (
           <ProductRows
             rows={grid.rows}
@@ -376,7 +435,7 @@ function MarketGridBody({ grid }: { grid: GridVM }): ReactNode {
             onSort={setSort}
           />
         )}
-      </Table>
+      </ScrollTable>
     </SheetSection>
   );
 }

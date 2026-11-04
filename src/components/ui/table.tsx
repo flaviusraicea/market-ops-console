@@ -4,7 +4,18 @@ import * as React from "react";
 import { cn } from "@/components/cn";
 import { EYEBROW_CLASS } from "@/components/Eyebrow";
 
-/** `stickyFirst` pins the first column (for a table that scrolls sideways on a phone). `scrollLabel` makes the scrolling container a focusable named region, for tables wider than their card. */
+/** Classes shared with `ScrollTable` (ui/scroll-table). */
+export const TABLE_CLASS = "w-full caption-bottom text-[length:var(--text-body)] leading-[18px]";
+
+/** Where the table is wider than its card, the first column stays in view while the rest scrolls. */
+export const STICKY_FIRST_CLASS =
+  "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-accent-soft [&_thead_tr>:first-child]:bg-surface-2";
+
+/**
+ * `stickyFirst` pins the first column (for a table that scrolls sideways on a phone). `scrollLabel` makes the
+ * scrolling container a focusable named region, for tables wider than their card. `ScrollTable` (ui/scroll-table)
+ * adds the always-visible scrollbar, edge fades and pinned columns for the Analyst's wide grids.
+ */
 function Table({
   className,
   scrollLabel,
@@ -19,13 +30,7 @@ function Table({
     >
       <table
         data-slot="table"
-        className={cn(
-          "w-full caption-bottom text-[length:var(--text-body)] leading-[18px]",
-          // Where the table is wider than its card, the first column stays in view while the rest scrolls.
-          stickyFirst &&
-            "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-accent-soft [&_thead_tr>:first-child]:bg-surface-2",
-          className,
-        )}
+        className={cn(TABLE_CLASS, stickyFirst && STICKY_FIRST_CLASS, className)}
         {...props}
       />
     </div>

@@ -7,7 +7,8 @@ import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AskWhyIconButton } from "@/features/assistant/AskWhyIconButton";
 import { useAskWhy, type AskContext } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
 import type { Status } from "@/domain";
@@ -104,20 +105,7 @@ function AskWhy({ aria, compact, onAsk }: { aria: string; compact: boolean; onAs
   );
   if (compact) {
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            aria-label={aria}
-            onClick={onAsk}
-            className="size-8 px-0 max-md:min-h-11 max-md:min-w-11"
-          >
-            {icon}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="left">Ask why</TooltipContent>
-      </Tooltip>
+      <AskWhyIconButton label={aria} onAsk={onAsk} className="max-md:min-h-11 max-md:min-w-11" />
     );
   }
   return (
