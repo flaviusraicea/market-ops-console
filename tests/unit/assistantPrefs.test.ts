@@ -18,15 +18,6 @@ describe("parsePrefs", () => {
   });
 });
 
-describe("parsePrefs, legacy key", () => {
-  it("reads the preference stored as overview before the rename", () => {
-    expect(parsePrefs('{"overview":false,"analyst":true}')).toEqual({
-      executive: false,
-      analyst: true,
-    });
-  });
-});
-
 describe("createStoredState", () => {
   it("round-trips a value and tells subscribers", () => {
     const state = createStoredState("test:stored", "local");

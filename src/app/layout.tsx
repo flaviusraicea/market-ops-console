@@ -55,9 +55,9 @@ const MOTION_SCRIPT = `try{if(localStorage.getItem("${REDUCED_MOTION_KEY}")==="t
 // Density follows the mode in the URL, or the signed-in role when the URL has none (lib/density.ts keeps it in
 // step afterwards). Set before first paint, the server-rendered Analyst view already has its compact rows and
 // header; set after hydration it re-flowed the whole page and was the layout shift Lighthouse reported on
-// Analyst links. "overview" is the old name of "executive", which the proxy redirects.
+// Analyst links.
 const densityScript = (role: string) =>
-  `try{var m=new URLSearchParams(location.search).get("mode");document.documentElement.setAttribute("data-density",m==="analyst"?"analyst":m==="executive"||m==="overview"?"executive":"${role}")}catch(e){}`;
+  `try{var m=new URLSearchParams(location.search).get("mode");document.documentElement.setAttribute("data-density",m==="analyst"?"analyst":m==="executive"?"executive":"${role}")}catch(e){}`;
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const role = await readRole();

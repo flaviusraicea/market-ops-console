@@ -15,12 +15,12 @@ import {
 import type { Metric } from "@/domain";
 import { METRIC_LABEL, MarketsTable, legendFor, useGeo } from "@/features/overview/MapCard";
 import { RegionBars } from "@/features/overview/RegionBars";
-import type { OverviewVM, RegionBarsVM } from "@/features/overview/viewModel";
+import type { MapVM, RegionBarsVM } from "@/features/overview/viewModel";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { SheetSection } from "./Sheet";
 
 /** The Analyst map section: the choropleth at 7/12 with the By region bars at 5/12 and the legend under the map. */
-export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: RegionBarsVM }) {
+export function MapSection({ map, regions }: { map: MapVM; regions: RegionBarsVM }) {
   const { ctx, setContext } = useConsoleContext();
   const { pressed, auto, viewMap, toggle } = useTableFirstOnPhone();
   const geoState = useGeo(auto);

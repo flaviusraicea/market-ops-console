@@ -8,6 +8,19 @@ import { defineConfig } from "vitest/config";
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const alias = { "@": path.join(dirname, "src") };
 
+// CHROMIUM_PATH points at a browser the machine has when Playwright's own build is missing, as check:budget does.
+// A fresh object per project: Vitest registers each project's instances on it.
+const browser = () => ({
+  enabled: true,
+  provider: playwright(
+    process.env["CHROMIUM_PATH"]
+      ? { launchOptions: { executablePath: process.env["CHROMIUM_PATH"] } }
+      : {},
+  ),
+  headless: true,
+  instances: [{ browser: "chromium" as const }],
+});
+
 export default defineConfig({
   test: {
     projects: [
@@ -25,12 +38,7 @@ export default defineConfig({
         plugins: [storybookTest({ configDir: path.join(dirname, ".storybook") })],
         test: {
           name: "stories",
-          browser: {
-            enabled: true,
-            provider: playwright({}),
-            headless: true,
-            instances: [{ browser: "chromium" }],
-          },
+          browser: browser(),
           setupFiles: [".storybook/vitest.setup.ts"],
         },
       },
@@ -40,12 +48,7 @@ export default defineConfig({
         plugins: [storybookTest({ configDir: path.join(dirname, ".storybook") })],
         test: {
           name: "stories:dark",
-          browser: {
-            enabled: true,
-            provider: playwright({}),
-            headless: true,
-            instances: [{ browser: "chromium" }],
-          },
+          browser: browser(),
           setupFiles: [".storybook/vitest.setup.ts"],
         },
       },

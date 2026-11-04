@@ -3,7 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { ANALYST_STATE, open } from "./helpers";
 
 // The open Alerts section's code (the form, zod, TanStack Query) is a separate chunk that loads on intent. Until it
-// attaches, a disabled shell stands in. These tests hold or fail that chunk on purpose.
+// attaches, the saved rules are listed and a placeholder holds the form's place. These tests hold or fail that
+// chunk on purpose.
 
 const URL = "/?mode=analyst";
 const CHUNKS = "**/_next/static/chunks/**";
@@ -11,6 +12,7 @@ const CHUNKS = "**/_next/static/chunks/**";
 const section = (page: Page) => page.getByRole("region", { name: /^Alerts/ });
 const trigger = (page: Page) => section(page).getByRole("button", { name: /^Alerts/ });
 const form = (page: Page) => section(page).locator("form");
+const placeholder = (page: Page) => section(page).getByText("Loading the alert editor…");
 
 test.describe("as an Analyst", () => {
   test.use({ storageState: ANALYST_STATE });
@@ -30,38 +32,35 @@ test.describe("as an Analyst", () => {
       );
     });
     await open(page, URL);
-    // One sample per frame from before the click until the form is no longer busy.
+    // One sample per frame from before the click until the form has attached.
     await page.evaluate(() => {
-      const frames: { height: number; empty: boolean }[] = [];
+      const frames: { rows: number; empty: boolean }[] = [];
       Object.assign(window, { __alertFrames: frames });
       const tick = () => {
         const host = [...document.querySelectorAll("section")].find((s) =>
           s.querySelector("h3")?.textContent?.startsWith("Alerts"),
         );
-        const form = host?.querySelector("form");
-        if (host && form) {
+        if (host?.querySelector('[aria-expanded="true"]')) {
           frames.push({
-            // The body under the header: the open animation clips the section, not this.
-            height: form.parentElement?.getBoundingClientRect().height ?? 0,
+            rows: host.querySelectorAll("li").length,
             empty: host.textContent?.includes("No rules yet") ?? false,
           });
-          if (form.getAttribute("aria-busy") !== "true" && frames.length > 3) return;
+          if (host.querySelector("form") && frames.length > 3) return;
         }
         requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
     });
     await trigger(page).click();
-    await expect(form(page)).not.toHaveAttribute("aria-busy", "true");
+    await expect(form(page)).toBeVisible();
     await expect(section(page).getByRole("listitem")).toHaveCount(2);
     const frames = await page.evaluate(
       () =>
-        (window as unknown as { __alertFrames: { height: number; empty: boolean }[] })
-          .__alertFrames,
+        (window as unknown as { __alertFrames: { rows: number; empty: boolean }[] }).__alertFrames,
     );
     expect(frames.length).toBeGreaterThan(0);
     expect(frames.filter((f) => f.empty)).toEqual([]);
-    expect(new Set(frames.map((f) => Math.round(f.height))).size).toBe(1);
+    expect(frames.filter((f) => f.rows !== 2)).toEqual([]);
   });
 
   test("a chunk that fails to load says so, and Retry brings the form", async ({ page }) => {
@@ -72,9 +71,9 @@ test.describe("as an Analyst", () => {
 
     const notice = section(page).getByRole("alert");
     await expect(notice).toContainText("Couldn’t load the alert editor");
-    // Nothing is on its way any more, so the form is not busy, but its fields stay disabled.
-    await expect(form(page)).not.toHaveAttribute("aria-busy", "true");
-    await expect(section(page).getByRole("textbox", { name: "Growth below" })).toBeDisabled();
+    // Nothing is on its way any more: the placeholder is gone and there is no form yet.
+    await expect(placeholder(page)).toHaveCount(0);
+    await expect(form(page)).toHaveCount(0);
 
     await page.unroute(CHUNKS);
     await notice.getByRole("button", { name: "Retry" }).click();
@@ -92,11 +91,11 @@ test("focus on Switch to Analyst survives the form attaching (Executive)", async
     await route.continue();
   });
   await trigger(page).click();
-  await expect(form(page)).toHaveAttribute("aria-busy", "true");
+  await expect(placeholder(page)).toBeVisible();
 
   const switchButton = section(page).getByRole("button", { name: "Switch to Analyst" });
   await switchButton.focus();
   release();
-  await expect(form(page)).not.toHaveAttribute("aria-busy", "true");
+  await expect(form(page)).toBeVisible();
   await expect(switchButton).toBeFocused();
 });

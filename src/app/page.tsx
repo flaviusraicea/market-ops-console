@@ -1,14 +1,9 @@
-import { Suspense } from "react";
-
 import type { Metadata } from "next";
 
 import { breadcrumbTrail, entityName, entityOf } from "@/domain";
 import { Panel } from "@/features/assistant/Panel";
 import { Analyst } from "@/features/analyst/Analyst";
-import { AnalystSkeleton, reserveStyle } from "@/features/analyst/AnalystSkeletons";
-import { gridRowCount } from "@/features/analyst/viewModel";
 import { Overview } from "@/features/overview/Overview";
-import { OverviewSkeleton } from "@/features/overview/OverviewSkeleton";
 import { panelContextVM } from "@/features/overview/viewModel";
 import { Header } from "@/features/shell/Header";
 import { ResetNotice } from "@/features/shell/ResetNotice";
@@ -55,18 +50,9 @@ export default async function Page({ searchParams }: PageProps) {
     period: formatPeriod(ctx.period),
   });
   const resetNotice = <ResetNotice reset={reset} href={hrefFor(meta, ctx)} />;
-  // The fallback shows until the dashboard streams in, so it has the dashboard's shape: Analyst's own skeleton
-  // holds each section at its height, which keeps the swap from shifting the page.
-  const fallback =
-    ctx.mode === "analyst" ? (
-      <AnalystSkeleton
-        style={reserveStyle(gridRowCount(ds, ctx), Boolean(ctx.market))}
-        facts={Boolean(ctx.facts)}
-      />
-    ) : (
-      <OverviewSkeleton />
-    );
-
+  // No Suspense around the dashboard: nothing in it waits, so a boundary here only held the whole view behind a
+  // skeleton until React revealed it, which delayed the largest paint on Analyst. Each lazy Analyst section
+  // has its own boundary (AnalystIslands), so a mode switch still shows a placeholder per section.
   return (
     <ConsoleMetaProvider meta={meta}>
       <NavigationProvider>
@@ -83,13 +69,11 @@ export default async function Page({ searchParams }: PageProps) {
               />
             }
             dashboard={
-              <Suspense fallback={fallback}>
-                {ctx.mode === "analyst" ? (
-                  <Analyst ctx={ctx} notice={resetNotice} />
-                ) : (
-                  <Overview ctx={ctx} notice={resetNotice} />
-                )}
-              </Suspense>
+              ctx.mode === "analyst" ? (
+                <Analyst ctx={ctx} notice={resetNotice} />
+              ) : (
+                <Overview ctx={ctx} notice={resetNotice} />
+              )
             }
             assistant={<Panel context={panelContextVM(ds, ctx)} />}
           />

@@ -45,9 +45,9 @@ export type RawContext = {
 
 const MODES = ["executive", "analyst"] as const;
 
-/** Mode as a URL value. Links written before the rename say `overview`; they mean `executive`. */
+/** Mode as a URL value. */
 export function parseMode(v: string | null | undefined): Mode | null {
-  return oneOf(MODES, v === "overview" ? "executive" : v);
+  return oneOf(MODES, v);
 }
 export const METRICS = ["attainment", "revenue", "growth"] as const;
 export const BASES = ["month", "ytd", "mat"] as const;

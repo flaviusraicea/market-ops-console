@@ -40,12 +40,22 @@ type Story = StoryObj<typeof meta>;
 const headings = (dialog: HTMLElement) =>
   Array.from(dialog.querySelectorAll("[cmdk-group-heading]")).map((h) => h.textContent);
 
+/** The palette as it opens: every group with its count. It stays open, so the canvas shows it. */
 export const Open: Story = {
+  play: async () => {
+    const dialog = await within(document.body).findByRole("dialog", { name: "Command palette" });
+    // The list mounts one commit after the dialog.
+    await waitFor(() =>
+      expect(headings(dialog)).toEqual(["Markets13", "Regions4", "Views1", "Ask3", "Theme2"]),
+    );
+    await expect(within(dialog).getByText("Switch to Analyst deep-dive")).toBeInTheDocument();
+  },
+};
+
+/** Typing narrows the list, Enter chooses: the palette closes and hands the choice to onSelect. */
+export const SelectsGermany: Story = {
   play: async ({ args }) => {
     const dialog = await within(document.body).findByRole("dialog", { name: "Command palette" });
-    await expect(headings(dialog)).toEqual(["Markets13", "Regions4", "Views1", "Ask3", "Theme2"]);
-    await expect(within(dialog).getByText("Switch to Analyst deep-dive")).toBeInTheDocument();
-
     const input = within(dialog).getByRole("combobox");
     await userEvent.type(input, "germ");
     await waitFor(() =>
@@ -68,7 +78,7 @@ export const WithMarket: Story = {
   args: { hasMarket: true, mode: "analyst" },
   play: async () => {
     const dialog = await within(document.body).findByRole("dialog", { name: "Command palette" });
-    await expect(headings(dialog)).toContain("Products5");
+    await waitFor(() => expect(headings(dialog)).toContain("Products5"));
     await expect(within(dialog).getByText("Switch to Executive overview")).toBeInTheDocument();
   },
 };
