@@ -89,7 +89,7 @@ export function Composer({
 
   return (
     // A hairline under the composer separates what you type from the answers that scroll below it.
-    <div className="flex flex-col gap-2 border-b border-border pb-4">
+    <div className="relative flex flex-col gap-2 border-b border-border pb-5">
       {about ? (
         <div className="flex items-center gap-2">
           <Eyebrow>About</Eyebrow>
@@ -147,7 +147,7 @@ export function Composer({
               submit();
             }
           }}
-          className="field-sizing-content min-h-[var(--composer-row)] max-h-[100px] resize-none overflow-y-auto"
+          className="field-sizing-content min-h-[var(--composer-row)] max-h-[calc(var(--text-body-lh)*4+14px)] resize-none overflow-y-auto"
         />
         <Button
           type="submit"
@@ -159,19 +159,24 @@ export function Composer({
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
         </Button>
       </form>
-      {/* One fixed 20 px helper slot, always there: the wait line while an answer streams, the counter from 900
-          characters, or nothing. Its height never changes, so nothing under the composer moves. */}
-      <div
-        data-slot="composer-helper"
-        className="flex h-5 items-center justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
-      >
-        {disabled ? <p id="ask-wait">Wait for the answer, or Stop.</p> : <span />}
-        {showCount ? (
-          <p id="ask-count" className={cn("num shrink-0", tooLong && "font-medium text-bad-text")}>
-            {formatInt(value.length)} / {formatInt(MAX_CHARS)}
-          </p>
-        ) : null}
-      </div>
+      {/* The helper line (the wait line while an answer streams, the counter from 900 characters) sits in the
+          composer's bottom padding, out of flow, so showing it moves nothing and an idle composer has no band. */}
+      {disabled || showCount ? (
+        <div
+          data-slot="composer-helper"
+          className="absolute inset-x-0 bottom-1 flex h-4 items-center justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted"
+        >
+          {disabled ? <p id="ask-wait">Wait for the answer, or Stop.</p> : <span />}
+          {showCount ? (
+            <p
+              id="ask-count"
+              className={cn("num shrink-0", tooLong && "font-medium text-bad-text")}
+            >
+              {formatInt(value.length)} / {formatInt(MAX_CHARS)}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       {simulated ? (
         <p
           id="ask-live"

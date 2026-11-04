@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 import { useLiveState } from "@/features/live/LiveProvider";
 import { PAGE_HEADING_ATTR, TWEEN_SETTLE_MS } from "@/lib/motion";
@@ -40,6 +40,18 @@ export function DashboardColumn({ children }: { children: ReactNode }) {
       ref.current?.querySelector<HTMLElement>(`[${PAGE_HEADING_ATTR}]`)?.focus();
     }
   }, [isPending, scope]);
+
+  // Drilling into another region, market or product is a new page: it opens at its headline. Left alone, the
+  // browser keeps the old scroll offset, and a shorter page clamps it, so the row that was clicked jumps away. The
+  // Analyst grid keeps its offset, because its sections stay where they are. This runs in the commit that swaps the
+  // content, before paint, so the jump and the new view arrive together.
+  const shown = useRef(scope);
+  useLayoutEffect(() => {
+    if (isPending || shown.current === scope) return;
+    shown.current = scope;
+    if (ctx.mode === "executive" && window.scrollY > 0)
+      window.scrollTo({ top: 0, behavior: "instant" });
+  }, [isPending, scope, ctx.mode]);
 
   useEffect(() => {
     if (isPending) {

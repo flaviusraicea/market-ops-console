@@ -70,7 +70,7 @@ export function RegionBars({
       )}
     >
       <CardHeader title="By region" titleId="regions-h" subtitle={bars.subtitle} />
-      {/* Each row is one button, so the whole row takes the lift hover. Its name is its visible text with hidden
+      {/* Each row is one button, so the whole row tints on hover, like a table row. Its name is its visible text with hidden
           separators: "Drill into Europe, $7.06M, At risk, 95.4%". Fixed badge and value columns keep every track,
           and so every 100 % tick, at one x. */}
       <ul className="@container -mx-2 flex flex-col">
@@ -83,13 +83,16 @@ export function RegionBars({
                 onClick={() => select(row.id)}
                 {...(current ? { "aria-current": "true" as const } : {})}
                 className={cn(
-                  "lift press grid w-full items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-surface-2",
+                  "press grid w-full items-center gap-3 px-2 py-2 text-left",
+                  // The selected row looks like a selected table row; the others only tint on hover.
+                  current
+                    ? "selected-row"
+                    : "transition-colors duration-[var(--dur-fast)] hover:bg-surface-2",
                   // A phone keeps its row as it was. From md the list's own width picks the layout: under 24 rem
                   // (the panel docked) two lines per row; wider, one line with the bar taking 3 parts to the name's 2.
                   "grid-cols-[minmax(0,1fr)_auto_minmax(48px,72px)_auto]",
                   "md:@min-[24rem]:grid-cols-[minmax(120px,2fr)_104px_minmax(48px,3fr)_4rem]",
                   "md:@max-[24rem]:grid-cols-[88px_minmax(0,1fr)_3.5rem] md:@max-[24rem]:gap-x-2 md:@max-[24rem]:gap-y-1.5",
-                  current && "bg-surface-2",
                 )}
               >
                 <span className="min-w-0 md:@max-[24rem]:col-span-2">

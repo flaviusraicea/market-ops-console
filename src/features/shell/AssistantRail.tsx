@@ -29,6 +29,7 @@ export function AssistantRail({
 }: AssistantRailProps) {
   return (
     <div
+      data-slot="assistant-rail"
       className={cn(
         "relative flex h-fit w-12 flex-col items-center rounded-sheet layer-card",
         className,

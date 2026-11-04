@@ -109,7 +109,7 @@ export function ShellGrid({
           aria-labelledby="assistant-h"
           data-panel={phase}
           onAnimationEnd={onAnimationEnd}
-          className="relative z-10 min-w-0 max-lg:hidden"
+          className="relative z-20 min-w-0 max-lg:hidden"
         >
           <ConnectedAssistantRail />
           {assistant}
