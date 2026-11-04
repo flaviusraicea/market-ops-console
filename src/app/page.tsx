@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 
 import type { Metadata } from "next";
-import { RedirectType, redirect } from "next/navigation";
 
 import { breadcrumbTrail, entityName, entityOf } from "@/domain";
 import { Panel } from "@/features/assistant/Panel";
@@ -12,6 +11,7 @@ import { Overview } from "@/features/overview/Overview";
 import { OverviewSkeleton } from "@/features/overview/OverviewSkeleton";
 import { panelContextVM } from "@/features/overview/viewModel";
 import { Header } from "@/features/shell/Header";
+import { ResetNotice } from "@/features/shell/ResetNotice";
 import { Layout } from "@/features/shell/Layout";
 import { NavigationProvider } from "@/lib/context/navigation";
 import { formatPeriod } from "@/lib/format";
@@ -19,7 +19,8 @@ import { DatasetProvider } from "@/lib/context/dataset";
 import { ConsoleMetaProvider } from "@/lib/context/meta";
 import { lightDataset, metaFromDataset } from "@/lib/context/invariants";
 import { hrefFor } from "@/lib/context/href";
-import { hasInvalidContextParams, parseContextFromSearchParams } from "@/lib/context/parsers";
+import { parseContextFromSearchParams } from "@/lib/context/parsers";
+import { describeContextReset } from "@/lib/context/reset";
 import { getDataset } from "@/lib/dataset";
 import { defaultModeFor } from "@/lib/roles";
 import { readRole } from "@/lib/roles.server";
@@ -45,9 +46,15 @@ export default async function Page({ searchParams }: PageProps) {
   const params = await searchParams;
   const ctx = parseContextFromSearchParams(ds, params, defaultMode);
   const meta = metaFromDataset(ds, defaultMode);
-  // An unknown or out-of-range value falls back when parsed; put the fallback in the address too, so a copied link
-  // and Back show what is on screen. The new address holds Context parameters only; nothing else is read on `/`.
-  if (hasInvalidContextParams(params, ctx)) redirect(hrefFor(meta, ctx), RedirectType.replace);
+  // An unknown or out-of-range value falls back when parsed. The page renders the fallback and says so; the
+  // ResetNotice then puts the fallback in the address too, so a copied link and Back show what is on screen.
+  // The new address holds Context parameters only; nothing else is read on `/`.
+  const entity = entityOf(ctx);
+  const reset = describeContextReset(params, ctx, {
+    scope: entity.kind === "portfolio" ? "portfolio" : entityName(ds, entity),
+    period: formatPeriod(ctx.period),
+  });
+  const resetNotice = <ResetNotice reset={reset} href={hrefFor(meta, ctx)} />;
   // The fallback shows until the dashboard streams in, so it has the dashboard's shape: Analyst's own skeleton
   // holds each section at its height, which keeps the swap from shifting the page.
   const fallback =
@@ -77,7 +84,11 @@ export default async function Page({ searchParams }: PageProps) {
             }
             dashboard={
               <Suspense fallback={fallback}>
-                {ctx.mode === "analyst" ? <Analyst ctx={ctx} /> : <Overview ctx={ctx} />}
+                {ctx.mode === "analyst" ? (
+                  <Analyst ctx={ctx} notice={resetNotice} />
+                ) : (
+                  <Overview ctx={ctx} notice={resetNotice} />
+                )}
               </Suspense>
             }
             assistant={<Panel context={panelContextVM(ds, ctx)} />}

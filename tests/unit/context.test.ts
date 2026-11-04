@@ -4,6 +4,7 @@ import raw from "@/data/data.json";
 import { parseDataset } from "@/domain/dataset";
 import { applyContextChange, metaFromDataset } from "@/lib/context/invariants";
 import { hasInvalidContextParams, parseContextFromSearchParams } from "@/lib/context/parsers";
+import { describeContextReset } from "@/lib/context/reset";
 
 const ds = parseDataset(raw);
 
@@ -106,5 +107,30 @@ describe("hasInvalidContextParams", () => {
       expect(parseContextFromSearchParams(ds, { market }).region).toBeUndefined();
       expect(invalid({ market })).toBe(true);
     }
+  });
+});
+
+describe("describeContextReset", () => {
+  const landed = { scope: "portfolio", period: "May 2026" };
+  const reset = (params: Record<string, string>) =>
+    describeContextReset(params, parseContextFromSearchParams(ds, params), landed);
+
+  it("is null for an address that parsed as written", () => {
+    expect(reset({ market: "de", period: "2026-03" })).toBeNull();
+  });
+  it("names the unknown market and where the view landed", () => {
+    expect(reset({ market: "xx" })?.title).toBe("Unknown market reset to portfolio");
+  });
+  it("names a period outside the data and the month shown", () => {
+    expect(reset({ period: "2030-01" })?.title).toBe("Period outside the data reset to May 2026");
+  });
+  it("says why a product was dropped", () => {
+    expect(reset({ product: "veltrix" })).toEqual({
+      title: "Product dropped",
+      detail: "A product needs a market",
+    });
+  });
+  it("reports the market before the other values", () => {
+    expect(reset({ market: "xx", period: "2030-01" })?.title).toMatch(/^Unknown market/);
   });
 });

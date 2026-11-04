@@ -91,6 +91,8 @@ export type OverviewVM = {
     periodLabel: string;
     /** A product is selected but the map still shows every product. */
     allProducts: boolean;
+    /** "not filtered by Calyx": the part of the subtitle that is set in warning text. Absent without a product. */
+    unfiltered?: string | undefined;
     /** The Executive card's subtitle, scope included. */
     subtitle: string;
     /** The Analyst section's subtitle, scope included. */
@@ -303,6 +305,11 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
     ? ds.markets.filter((m) => m.regionId === ctx.region).map((m) => m.id)
     : undefined;
 
+  // The map ignores the product filter, so a selected product gets said plainly instead of read as a bug.
+  const productName = ctx.product ? ds.products.find((p) => p.id === ctx.product)?.name : undefined;
+  const unfiltered = productName ? `not filtered by ${productName}` : undefined;
+  const scope = unfiltered ? `${ALL_PRODUCTS}, ${unfiltered} · ` : "";
+
   return {
     title: entityName(ds, entityOf(ctx)),
     caption: `${formatPeriod(ctx.period)} · ${BASIS_LABEL[basis]}${matFallback ? " · MAT unavailable, showing Month" : ""}`,
@@ -314,8 +321,9 @@ export function overviewVM(ds: Dataset, ctx: Context): OverviewVM {
       focus,
       periodLabel: formatPeriod(ctx.period),
       allProducts: Boolean(ctx.product),
-      subtitle: `${ctx.product ? `${ALL_PRODUCTS} · ` : ""}${formatPeriod(ctx.period)} · click a market to drill`,
-      sheetSubtitle: `Markets by ${suffix} · ${ctx.product ? `${ALL_PRODUCTS} · ` : ""}${formatPeriod(ctx.period)}`,
+      unfiltered,
+      subtitle: `${scope}${formatPeriod(ctx.period)} · click a market to drill`,
+      sheetSubtitle: `Markets by ${suffix} · ${scope}${formatPeriod(ctx.period)}`,
       provenance: sourceLabel(ds, atLatest(ds, ctx)),
       maxRevenue: Math.max(...entries.map((e) => e.k.totals.actual)),
       values,

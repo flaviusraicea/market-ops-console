@@ -355,10 +355,22 @@ test("at product level the cards that show all products say so and their Analyst
     }),
   );
   await expect(page.getByRole("region", { name: /^Map/ })).toContainText(
-    "Markets by attainment · All products · March 2026",
+    "Markets by attainment · All products, not filtered by Veltrix · March 2026",
   );
   await expect(page.getByRole("region", { name: /^Attainment by month/ })).toContainText(
     "Europe markets · All products",
+  );
+  // The scope warning is set in warning text.
+  await expect(page.getByText("not filtered by Veltrix")).toHaveCSS(
+    "color",
+    await page.evaluate(() => {
+      const probe = document.createElement("span");
+      probe.className = "text-warn-text";
+      document.body.append(probe);
+      const colour = getComputedStyle(probe).color;
+      probe.remove();
+      return colour;
+    }),
   );
   // The status tile is the shared badge with a one-line caption.
   const status = page.getByRole("group", { name: "STATUS" });

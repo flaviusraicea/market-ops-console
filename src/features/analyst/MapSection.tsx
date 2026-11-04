@@ -3,6 +3,7 @@
 import { useId } from "react";
 
 import { Notice } from "@/components/Notice";
+import { ScopeSubtitle } from "@/components/ScopeSubtitle";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { LazyChoropleth, MapSkeleton } from "@/components/charts/LazyChoropleth";
 import { Legend } from "@/components/charts/Legend";
@@ -32,7 +33,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
     <SheetSection
       eyebrow="Map"
       allProducts={map.allProducts}
-      subtitle={map.sheetSubtitle}
+      subtitle={<ScopeSubtitle text={map.sheetSubtitle} warn={map.unfiltered} />}
       actions={
         <>
           <SegmentedControl<Metric>
