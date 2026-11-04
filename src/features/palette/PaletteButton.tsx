@@ -6,8 +6,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePalette } from "./PaletteProvider";
 import { useShortcutLabel } from "./useShortcutLabel";
 
-/** The only visible way in besides the keyboard: it lives in the assistant panel header, not the page header. */
-export function PaletteButton({ side }: { side?: "left" }) {
+/** The visible way into the palette besides the keyboard: a ghost icon button, tooltip "Search · ⌘K". */
+export function PaletteButton() {
   const { openPalette } = usePalette();
   const shortcut = useShortcutLabel();
   return (
@@ -17,14 +17,14 @@ export function PaletteButton({ side }: { side?: "left" }) {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Open command palette"
+            aria-label="Search and commands"
             aria-keyshortcuts="Control+K Meta+K"
             onClick={openPalette}
           >
-            <Search aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
+            <Search aria-hidden className="size-4" strokeWidth={ICON_STROKE} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent {...(side ? { side } : {})}>{shortcut}</TooltipContent>
+        <TooltipContent>{shortcut ? `Search · ${shortcut}` : "Search"}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

@@ -188,8 +188,8 @@ function PanelBody({
         note={pending?.note ?? null}
         simulated={isSimulated(live)}
       />
-      {/* After the composer in the DOM so the composer stays first in tab order; placed top right. */}
-      <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:right-[calc(var(--pad-card)+var(--control-h)+8px)]">
+      {/* Phone sheet only: the desktop entry point is the page header's search button. */}
+      <div className="absolute top-[var(--pad-card)] right-[var(--pad-card)] lg:hidden">
         <PaletteButton />
       </div>
       <AnswerList

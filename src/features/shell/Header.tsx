@@ -15,6 +15,7 @@ import { ConnectedAvatarMenu } from "./ConnectedAvatarMenu";
 import { ModeSwitch } from "./ModeSwitch";
 import { ProductSelect, type ProductOption } from "./ProductSelect";
 import { PeriodSelect } from "./PeriodSelect";
+import { PaletteButton } from "@/features/palette/PaletteButton";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type HeaderProps = {
@@ -105,6 +106,10 @@ export function Header({ trail, products, periods, latestPeriod }: HeaderProps) 
             <ModeSwitch mode={mode} onChange={(m) => setContext({ mode: m })} />
           </div>
           <div className="flex items-center gap-x-1 max-md:order-2 md:contents">
+            {/* Hidden on a phone: the mobile header is frozen. */}
+            <span className="mr-1 max-md:hidden">
+              <PaletteButton />
+            </span>
             <ThemeToggle />
             <ConnectedAvatarMenu />
           </div>

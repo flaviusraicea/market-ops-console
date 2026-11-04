@@ -20,7 +20,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   play: async ({ canvasElement }) => {
-    const button = within(canvasElement).getByRole("button", { name: "Open command palette" });
+    const button = within(canvasElement).getByRole("button", { name: "Search and commands" });
     await expect(button).toHaveAttribute("aria-keyshortcuts", "Control+K Meta+K");
   },
 };
