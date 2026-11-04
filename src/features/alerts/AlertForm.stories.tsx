@@ -26,7 +26,7 @@ export const Empty: Story = {
     await expect(canvas.getByRole("combobox", { name: "Scope" })).toHaveTextContent("All markets");
     await expect(canvas.getByRole("button", { name: "Save thresholds" })).toBeEnabled();
     await expect(
-      canvas.getByText("No alert rules yet. Add one to watch a threshold."),
+      canvas.getByText("No rules yet. Set a growth or attainment threshold and save it."),
     ).toBeInTheDocument();
   },
 };
@@ -136,7 +136,7 @@ export const Failed: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
     const notice = canvas.getByRole("alert");
-    await expect(within(notice).getByText("Couldn't save")).toBeInTheDocument();
+    await expect(within(notice).getByText("Couldn’t save")).toBeInTheDocument();
     await expect(notice).toHaveTextContent(
       "Your thresholds were restored to the last saved values (growth below 0%, attainment below 95%).",
     );

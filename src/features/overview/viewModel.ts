@@ -41,6 +41,8 @@ export type KpiTileVM = {
   headline: string;
   delta: { direction: "up" | "down" | "flat"; value: string; comparison: string };
   provenance: string;
+  /** What the figure is and how it is computed: the first lines of the info popover. */
+  definition: string;
   /** Accessible name of the info button, in sentence case, for example "About Germany revenue". */
   infoLabel: string;
   /** The status tile shows this status as a badge, labelled with `headline`, in place of a figure. */
@@ -159,6 +161,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
       comparison: `vs ${prior}`,
     },
     provenance,
+    definition: "Actual revenue for the selected scope and period.",
     infoLabel: `About ${entity.kind === "portfolio" ? "portfolio" : entityName(ds, entity)} revenue`,
     trend: revenueTrend(ds, entity, ctx.period),
   };
@@ -172,6 +175,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
       comparison: "vs forecast",
     },
     provenance,
+    definition: "Actual revenue as a share of forecast. Attainment = actual ÷ forecast.",
     infoLabel: "About forecast attainment",
   };
   const growth: KpiTileVM = {
@@ -184,6 +188,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
       comparison: `vs ${year - 1}`,
     },
     provenance,
+    definition: "Revenue against the same period last year. Growth = actual ÷ prior year − 1.",
     infoLabel: "About year-on-year growth",
   };
 
@@ -201,6 +206,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
         comparison: "",
       },
       provenance: sourceLabel(ds, latest),
+      definition: "The status the data file gives this market.",
       infoLabel: "About status",
     };
   } else {
@@ -214,6 +220,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
         comparison: "",
       },
       provenance: sourceLabel(ds, latest),
+      definition: "Markets the data file marks at risk or off track.",
       infoLabel: "About markets needing attention",
     };
   }
@@ -664,10 +671,14 @@ export type RegionBarVM = {
   attainment: string;
   status: Status;
   statusLabel: string;
+  /** The bar's length as a share of the common scale, 0 to 1. */
+  share: number;
 };
 
 export type RegionBarsVM = {
   rows: RegionBarVM[];
+  /** Where the 100 % tick sits on the common scale, as a percentage of the track. */
+  tickPct: number;
   /** `lead` is set in bold, `rest` follows it. Together they read as one sentence. */
   sentence: { lead: string; rest: string };
   caption: string;
@@ -676,9 +687,17 @@ export type RegionBarsVM = {
   subtitle: string;
 };
 
+/**
+ * One scale for every region row, so bar lengths compare across regions: 0 to 120 %, or further when a region
+ * is above that, rounded up to the next 10.
+ */
+export function regionScaleMax(attainments: readonly number[]): number {
+  return Math.max(120, Math.ceil(Math.max(0, ...attainments) / 10) * 10);
+}
+
 /** Revenue and attainment per region, with one derived sentence about the weakest (or leading) region. */
 export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
-  const rows = ds.regions.map((r) => {
+  const base = ds.regions.map((r) => {
     const k = kpiFor(ds, { kind: "region", regionId: r.id }, ctx.period, "month");
     const status = statusForDerived(k.attainmentPct, k.growthPct);
     return {
@@ -691,6 +710,11 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
       statusLabel: STATUS_LABEL[status],
     };
   });
+  const max = regionScaleMax(base.map((r) => r.attainmentPct));
+  const rows = base.map((r) => ({
+    ...r,
+    share: Math.min(Math.max(r.attainmentPct, 0), max) / max,
+  }));
 
   const lowest = rows.reduce((a, b) => (b.attainmentPct < a.attainmentPct ? b : a));
   let sentence: RegionBarsVM["sentence"];
@@ -712,12 +736,13 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
   }
   return {
     rows,
+    tickPct: (100 / max) * 100,
     sentence,
     caption: derivedLabel(ds, atLatest(ds, ctx)),
     allProducts: Boolean(ctx.product),
     subtitle: ctx.product
-      ? `${ALL_PRODUCTS} · vs forecast, 100% at centre`
-      : "Attainment vs forecast · 100% at centre",
+      ? `${ALL_PRODUCTS} · vs forecast, tick at 100%`
+      : "Attainment vs forecast · tick at 100%",
   };
 }
 

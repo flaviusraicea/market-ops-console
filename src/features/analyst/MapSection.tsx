@@ -83,6 +83,7 @@ export function MapSection({ map, regions }: { map: OverviewVM["map"]; regions: 
                 )}
                 <div className="mt-3 flex w-full justify-center">
                   <Legend
+                    noData
                     label={`${metricLabel} colour scale`}
                     items={legendFor(map).map((b) => ({
                       label: b.label,

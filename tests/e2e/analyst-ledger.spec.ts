@@ -91,8 +91,15 @@ test("the Region cell drills forward into the region", async ({ page }) => {
 test("the By region bars drill, and the sentence names Europe as the drag", async ({ page }) => {
   await open(page);
   await expect(page.getByText("Europe is the drag.")).toBeVisible();
-  await expect(page.getByRole("img", { name: "Europe, 95.4% of forecast" })).toBeVisible();
-  await page.getByRole("button", { name: "Drill into APAC", exact: true }).last().click();
+  await expect(
+    page
+      .getByRole("region", { name: "By region" })
+      .getByRole("button", { name: /^Drill into Europe/ }),
+  ).toContainText("95.4%");
+  await page
+    .getByRole("region", { name: "By region" })
+    .getByRole("button", { name: /^Drill into APAC/ })
+    .click();
   await expect(page).toHaveURL(/region=apac/);
 });
 
@@ -102,7 +109,7 @@ test("Alerts are folded by default, open on activation and stay open for the tab
   await open(page);
   const trigger = page.getByRole("button", { name: /^Alerts/ });
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
-  await expect(trigger).toContainText("0 rules");
+  await expect(trigger).toContainText("No rules");
   await trigger.click();
   await expect(page.getByRole("textbox", { name: "Attainment below" })).toBeVisible();
   await page.reload();

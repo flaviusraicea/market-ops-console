@@ -202,7 +202,7 @@ export function MapCard({
 
   const legendEl = (
     <div className="mx-auto mt-3 flex w-full max-w-[40rem] justify-center">
-      <Legend items={legend} label={`${byStatus ? "Status" : metricLabel} colour scale`} />
+      <Legend noData items={legend} label={`${byStatus ? "Status" : metricLabel} colour scale`} />
     </div>
   );
 
