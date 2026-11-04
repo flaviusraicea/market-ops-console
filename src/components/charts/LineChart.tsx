@@ -2,7 +2,7 @@
 
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
-import { line } from "@visx/shape";
+import { area, line } from "@visx/shape";
 import {
   useCallback,
   useEffect,
@@ -128,6 +128,14 @@ function LineSvg({
       line<LinePoint>({ x: (_, i) => x(i), y: (p) => y(p[key]) })(points as LinePoint[]) ?? "";
     return { actual: build("actual"), forecast: build("forecast"), priorYear: build("priorYear") };
   }, [points, x, y]);
+  // The wash under Actual: the same curve closed down to the plot's floor.
+  const areaPath = useMemo(
+    () =>
+      area<LinePoint>({ x: (_, i) => x(i), y0: innerH, y1: (p) => y(p.actual) })(
+        points as LinePoint[],
+      ) ?? "",
+    [points, x, y, innerH],
+  );
 
   function askAbout(a: LineAnomaly) {
     ask?.onAsk({ period: a.period, momPct: a.momPct });
@@ -241,6 +249,7 @@ function LineSvg({
         ) : null}
         <LineSeries
           paths={paths}
+          areaPath={areaPath}
           anomalies={anomalies}
           points={points}
           x={x}

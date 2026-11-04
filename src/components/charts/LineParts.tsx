@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useId } from "react";
 
 import { formatMoneyAxis } from "@/lib/format";
 import type { scaleLinear } from "@visx/scale";
@@ -129,6 +129,7 @@ export function anomalyLabelPlacement(
 /** The three series paths and the anomaly labels: the marks. Re-rendered only when the data or the size change. */
 export const LineSeries = memo(function LineSeries({
   paths,
+  areaPath,
   anomalies,
   points,
   x,
@@ -137,6 +138,7 @@ export const LineSeries = memo(function LineSeries({
   innerH,
 }: {
   paths: Record<SeriesKey, string>;
+  areaPath: string;
   anomalies: readonly LineAnomaly[];
   points: readonly LinePoint[];
   x: (i: number) => number;
@@ -144,8 +146,23 @@ export const LineSeries = memo(function LineSeries({
   innerW: number;
   innerH: number;
 }) {
+  const gradientId = useId();
   return (
     <>
+      <defs>
+        <linearGradient id={`${gradientId}-actual-wash`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="var(--accent)" stopOpacity={0.12} />
+          <stop offset="1" stopColor="var(--accent)" stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <path
+        aria-hidden="true"
+        data-slot="actual-wash"
+        className="tween-path pointer-events-none"
+        d={areaPath}
+        style={{ d: `path("${areaPath}")` }}
+        fill={`url(#${gradientId}-actual-wash)`}
+      />
       {SERIES.map((s) => {
         const d = paths[s.key];
         return (

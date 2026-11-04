@@ -308,7 +308,11 @@ function MapSvg({
   const desc = `Choropleth of ${markets.length} markets coloured by ${scheme === "status" ? "status" : metricLabel.toLowerCase()} for ${periodLabel}. ${counts.on_track} on track, ${counts.at_risk} at risk, ${counts.off_track} off track. Table available via View as table.`;
 
   return (
-    <div ref={wrapRef} className="relative" style={{ width, height }}>
+    <div
+      ref={wrapRef}
+      className="relative overflow-hidden rounded-control bg-surface-2 shadow-basin"
+      style={{ width, height }}
+    >
       <Frame
         role="group"
         width={width}
