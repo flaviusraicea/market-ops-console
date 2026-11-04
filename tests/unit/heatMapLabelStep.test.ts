@@ -15,4 +15,10 @@ describe("monthLabelStep", () => {
   it("falls back to once a year when even six is too tight", () => {
     expect(monthLabelStep(10, 42)).toBe(12);
   });
+
+  it("counts the last column without the gap after it", () => {
+    // 6 × 15 + 15 − 96 = 9 clears on pitch alone, but the 13 px column leaves 7 < 8.
+    expect(monthLabelStep(15, 48)).toBe(6);
+    expect(monthLabelStep(15, 48, 13)).toBe(12);
+  });
 });
