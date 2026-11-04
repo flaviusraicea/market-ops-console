@@ -53,6 +53,8 @@ export type KpiTileVM = {
   infoLabel: string;
   /** The status tile shows this status as a badge, labelled with `headline`, in place of a figure. */
   status?: Status;
+  /** The delta line is a count, not a change: no direction icon. */
+  plainDelta?: boolean;
   trend?: { actual: number[]; forecast: number[]; label: string };
 };
 
@@ -240,6 +242,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
       provenance: sourceLabel(ds, latest),
       definition: "Markets the data file marks at risk or off track.",
       infoLabel: "About markets needing attention",
+      plainDelta: true,
     };
   }
   const given = sourceLabel(ds, latest);

@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { evaluate, format, lazyChunks, type Budgets, type Load } from "../../scripts/budget";
 
 const budgets: Budgets = {
-  overview: { path: "/", jsKb: 250 },
-  analyst: { path: "/?mode=analyst", jsKb: 350 },
+  overview: { path: "/", jsKb: 275 },
+  analyst: { path: "/?mode=analyst", jsKb: 325 },
   lazyChunkKb: 60,
   fontsKb: 110,
   cssKb: 20,
@@ -31,12 +31,12 @@ describe("budget evaluation", () => {
   });
 
   it("fails the Overview budget when its scripts grow past the limit", () => {
-    const heavy = { ...overview, js: [...overview.js, asset("zod.js", 30)] };
+    const heavy = { ...overview, js: [...overview.js, asset("zod.js", 50)] };
     const rows = evaluate(budgets, heavy, {
       ...analyst,
       js: [...heavy.js, asset("alerts.js", 31)],
     });
-    expect(rows.find((r) => r.name === "Overview JS")).toMatchObject({ actual: 260, pass: false });
+    expect(rows.find((r) => r.name === "Overview JS")).toMatchObject({ actual: 280, pass: false });
   });
 
   it("fails when one lazy chunk is over its limit even though the totals fit", () => {
@@ -45,6 +45,15 @@ describe("budget evaluation", () => {
     const lazy = rows.find((r) => r.name.startsWith("Largest lazy chunk"));
     expect(lazy).toMatchObject({ actual: 61, pass: false });
     expect(lazy?.name).toContain("everything.js");
+  });
+
+  it("warns, without failing, past 90% of a limit", () => {
+    const near = { ...overview, js: [asset("framework.js", 250)] };
+    const row = evaluate(budgets, near, { ...near, js: [...near.js, asset("a.js", 40)] }).find(
+      (r) => r.name === "Overview JS",
+    );
+    expect(row).toMatchObject({ pass: true, warn: true });
+    expect(format([row!])).toContain("WARN  Overview JS");
   });
 
   it("prints a PASS or FAIL line per budget", () => {

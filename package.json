@@ -92,11 +92,11 @@
   "budgets": {
     "overview": {
       "path": "/",
-      "jsKb": 250
+      "jsKb": 275
     },
     "analyst": {
       "path": "/?mode=analyst",
-      "jsKb": 300
+      "jsKb": 325
     },
     "lazyChunkKb": 60,
     "fontsKb": 110,

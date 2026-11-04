@@ -27,6 +27,8 @@ export type KpiTileProps = {
   trend?: { actual: readonly number[]; forecast: readonly number[]; label: string } | undefined;
   /** The status tile shows the status badge, labelled with `headline`, in place of a figure. */
   status?: GlyphStatus;
+  /** Drops the delta's direction icon, for a caption that is a count and not a change (Needs attention). */
+  plainDelta?: boolean;
   /** `strip` is the Analyst ledger cell: the same content as the tile, without its own card. */
   variant?: "tile" | "strip";
   className?: string;
@@ -52,6 +54,7 @@ export function KpiTile({
   infoLabel = "About this figure",
   trend,
   status,
+  plainDelta,
   variant = "tile",
   className,
 }: KpiTileProps) {
@@ -113,7 +116,7 @@ export function KpiTile({
         )}
       >
         <span className="inline-flex min-w-0 items-start gap-x-1">
-          {status ? null : (
+          {status || plainDelta ? null : (
             <Icon
               aria-hidden
               className={cn(
