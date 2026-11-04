@@ -35,6 +35,7 @@ test("tab order at the latest period skips the wordmark; the period lives in the
     { role: "button", name: "Live" },
     { role: "button", name: "Paused" },
     { role: "radio", name: "Executive" },
+    { role: "button", name: "Search and commands" },
     { role: "button", name: "Switch to dark theme" },
   ]);
 });
@@ -49,6 +50,7 @@ test("tab order on a drilled earlier period", async ({ page }) => {
     { role: "button", name: "Live" },
     { role: "button", name: "Paused" },
     { role: "radio", name: "Executive" },
+    { role: "button", name: "Search and commands" },
     { role: "button", name: "Switch to dark theme" },
   ]);
 });
