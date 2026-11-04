@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/components/cn";
 import { useState, type ReactNode } from "react";
 
 import { ConfidenceMeter } from "@/components/ConfidenceMeter";
@@ -115,9 +116,14 @@ function CardHeader({
   return (
     <div
       data-slot="card-header"
-      className="flex min-h-[var(--chip-h)] flex-wrap items-center justify-between gap-x-3 gap-y-1"
+      className={cn(
+        "flex min-h-[var(--chip-h)] items-center justify-between gap-x-3 gap-y-1",
+        // The stopped badge and Retry do not fit beside the label in the docked panel, so only then does the row wrap.
+        // Streaming and finished rows never wrap, so the header keeps its height when an answer completes.
+        stopped && "flex-wrap",
+      )}
     >
-      <div className="flex shrink-0 items-center gap-x-2.5">
+      <div className={cn("flex items-center gap-x-2.5", stopped ? "shrink-0" : "min-w-0")}>
         <AiLabel />
         {streaming ? <span className={CAPTION}>STREAMING…</span> : null}
       </div>
