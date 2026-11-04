@@ -31,7 +31,7 @@ function PopoverContent({
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          "z-50 max-w-[280px] rounded-sheet layer-overlay px-3 py-2.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2 outline-none",
+          "z-50 max-w-[280px] rounded-control layer-overlay px-3 py-2.5 text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2 outline-none",
           className,
         )}
         {...props}

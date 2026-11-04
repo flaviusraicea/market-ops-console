@@ -7,10 +7,12 @@ import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAskWhy, type AskContext } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
 import type { Status } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
+import { useNarrowerThan } from "@/lib/useNarrowerThan";
 import type { AttentionRowVM, AttentionVM, ProductRowVM, RankedRowVM } from "./viewModel";
 
 const SPARK_COLOR: Record<Status, string> = {
@@ -50,10 +52,13 @@ function MarketRow({
   row,
   select,
   ask,
+  compact,
 }: {
   row: RankedRowVM;
   select: (id: string) => void;
   ask: (text: string, ctx: AskContext) => void;
+  /** The card is under 40 rem: Ask why shows its icon only, and the tooltip carries the words. */
+  compact: boolean;
 }) {
   const { ctx } = useConsoleContext();
   return (
@@ -73,23 +78,59 @@ function MarketRow({
         role="cell"
         className={cn(CELL, "text-right max-md:justify-self-end max-md:p-0 max-md:[grid-area:ask]")}
       >
-        <Button
-          type="button"
-          variant="secondary"
-          aria-label={row.askWhy.aria}
-          onClick={() =>
+        <AskWhy
+          aria={row.askWhy.aria}
+          compact={compact}
+          onAsk={() =>
             ask(
               row.askWhy.text,
               askContext({ kind: "market", marketId: row.id }, row.name, ctx.period),
             )
           }
-          className="max-md:min-h-11 max-md:min-w-11"
-        >
-          <Sparkles aria-hidden className="size-3.5 text-ai-label" strokeWidth={ICON_STROKE} />
-          <span className="max-md:sr-only">Ask why</span>
-        </Button>
+        />
       </td>
     </tr>
+  );
+}
+
+/**
+ * The row's Ask why. With room it shows its words. Under a 40 rem card it is a 32 px icon-only ghost button,
+ * the same as the Markets grid's, and the tooltip carries the words. On a phone the row layout keeps the icon
+ * with a 44 px target.
+ */
+function AskWhy({ aria, compact, onAsk }: { aria: string; compact: boolean; onAsk: () => void }) {
+  const icon = (
+    <Sparkles aria-hidden className="size-3.5 text-ai-label" strokeWidth={ICON_STROKE} />
+  );
+  if (compact) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            aria-label={aria}
+            onClick={onAsk}
+            className="size-8 px-0 max-md:min-h-11 max-md:min-w-11"
+          >
+            {icon}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="left">Ask why</TooltipContent>
+      </Tooltip>
+    );
+  }
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      aria-label={aria}
+      onClick={onAsk}
+      className="max-md:min-h-11 max-md:min-w-11"
+    >
+      {icon}
+      <span className="max-md:sr-only">Ask why</span>
+    </Button>
   );
 }
 
@@ -185,30 +226,37 @@ function MoverColumn({
         </p>
       ) : null}
       {rows.length > 0 ? (
-        <ul className="-mx-2 flex flex-col">
+        <ul className="@container -mx-2 flex flex-col">
           {rows.map((row) => (
             <li key={row.id} className="border-b border-grid last:border-b-0">
               {/* The whole row is the link, so it is one button with the lift hover; its name is its visible text, with hidden separators. */}
               <button
                 type="button"
                 onClick={() => select(row.id)}
-                className="lift press flex w-full items-center gap-3 rounded-control px-2 text-left hover:bg-surface-2 md:h-[var(--row-h)] max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']"
+                className={cn(
+                  "lift press flex w-full items-center gap-3 rounded-control px-2 text-left hover:bg-surface-2 md:h-[var(--row-h)]",
+                  // A phone keeps its two-line row as it was.
+                  "max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']",
+                  // From md, a list under 24 rem (the panel docked) takes two lines like By region: the name and the
+                  // growth figure, then the badge in its 88 px slot and the sparkline. Every column starts at one x.
+                  "md:@max-[24rem]:grid md:@max-[24rem]:h-auto md:@max-[24rem]:grid-cols-[88px_minmax(0,1fr)_auto] md:@max-[24rem]:gap-x-2 md:@max-[24rem]:gap-y-1.5 md:@max-[24rem]:py-2",
+                )}
               >
-                <span className="min-w-0 flex-1 font-medium break-words text-ink max-md:flex max-md:min-h-11 max-md:items-center max-md:[grid-area:name]">
+                <span className="min-w-0 flex-1 truncate font-medium text-ink max-md:flex max-md:min-h-11 max-md:items-center max-md:whitespace-normal max-md:[grid-area:name] md:@max-[24rem]:col-span-2">
                   <span className="sr-only">Drill into </span>
                   {row.name}
                   <span className="sr-only">, </span>
                 </span>
-                <span className="flex md:w-[104px] max-md:justify-self-end max-md:[grid-area:status]">
+                <span className="flex md:w-[104px] max-md:justify-self-end max-md:[grid-area:status] md:@max-[24rem]:row-start-2 md:@max-[24rem]:w-[88px]">
                   <StatusBadge status={row.status} label={row.statusLabel} size="md" />
                 </span>
-                <span className="num w-16 text-right max-md:w-auto max-md:text-left max-md:[grid-area:growth]">
+                <span className="num w-16 text-right max-md:w-auto max-md:text-left max-md:[grid-area:growth] md:@max-[24rem]:col-start-3 md:@max-[24rem]:row-start-1">
                   <span className="sr-only">, </span>
                   <Growth pct={row.growthPct} rising={rising}>
                     {row.growth}
                   </Growth>
                 </span>
-                <span className="max-md:justify-self-end max-md:[grid-area:spark]">
+                <span className="max-md:justify-self-end max-md:[grid-area:spark] md:@max-[24rem]:col-span-2 md:@max-[24rem]:row-start-2">
                   <Sparkline
                     values={row.spark}
                     label={row.sparkLabel}
@@ -281,6 +329,7 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
   const assistant = useAskWhy();
   const select = onSelect ?? ((market: string) => setContext({ market }));
   const ask = onAsk ?? assistant.ask;
+  const { attach, narrow } = useNarrowerThan(640);
 
   if (attention.kind === "products") {
     return (
@@ -311,6 +360,7 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
 
   return (
     <section
+      ref={attach}
       aria-labelledby="attention-h"
       className="flex flex-col gap-3 rounded-sheet layer-card p-[var(--pad-card)]"
     >
@@ -352,11 +402,13 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
               </th>
             </tr>
           </thead>
-          <tbody className="max-md:block">
-            {attention.rows.map((row) => (
-              <MarketRow key={row.id} row={row} select={select} ask={ask} />
-            ))}
-          </tbody>
+          <TooltipProvider>
+            <tbody className="max-md:block">
+              {attention.rows.map((row) => (
+                <MarketRow key={row.id} row={row} select={select} ask={ask} compact={narrow} />
+              ))}
+            </tbody>
+          </TooltipProvider>
         </table>
       ) : null}
       <div

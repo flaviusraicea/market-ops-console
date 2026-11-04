@@ -176,38 +176,16 @@ export function useFocusRequest(target: FocusRequest["target"], el: RefObject<HT
 }
 
 /**
- * The overlay behaviour of the open panel: Escape collapses it, and while it overlays the dashboard
- * (1024 to 1279 px) Tab wraps inside it. Attach the returned handler to the panel.
+ * Escape collapses the open, docked panel on desktop. The panel sits beside the dashboard, so Tab moves on
+ * through the page and is never trapped. Attach the returned handler to the panel.
  */
-export function useOverlayKeys(
-  panelRef: RefObject<HTMLElement | null>,
-  { desktop, overlay, collapse }: { desktop: boolean; overlay: boolean; collapse: () => void },
-) {
+export function usePanelEscape({ desktop, collapse }: { desktop: boolean; collapse: () => void }) {
   return useCallback(
     (e: KeyboardEvent<HTMLElement>) => {
-      if (!desktop) return;
-      if (e.key === "Escape" && !e.defaultPrevented) {
-        e.preventDefault();
-        collapse();
-        return;
-      }
-      if (e.key !== "Tab" || !overlay || !panelRef.current) return;
-      const items = [
-        ...panelRef.current.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), textarea:not([readonly]), [tabindex]:not([tabindex="-1"])',
-        ),
-      ].filter((el) => el.offsetParent !== null);
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (!first || !last) return;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      if (!desktop || e.key !== "Escape" || e.defaultPrevented) return;
+      e.preventDefault();
+      collapse();
     },
-    [panelRef, desktop, overlay, collapse],
+    [desktop, collapse],
   );
 }

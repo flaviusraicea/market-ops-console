@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
-import { RadarMarks, pointAt, type Geometry } from "./RadarMarks";
+import { RadarMarks, fitRadius, pointAt, splitLabel, type Geometry } from "./RadarMarks";
 import { useChartKeyboard } from "./useChartKeyboard";
 
 export type RadarSeries = {
@@ -38,19 +38,38 @@ type RadarChartProps = {
 
 const HEIGHT = 340;
 
+let canvas: HTMLCanvasElement | undefined;
+/**
+ * Each axis label's widest line and line count, measured in the label's own font (12 px, weight 500, the UI
+ * family). Canvas text metrics need no layout pass, so the radius is right on the first paint.
+ */
+function measureLabels(axes: readonly string[]) {
+  canvas ??= document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const family = getComputedStyle(document.body).fontFamily;
+  if (ctx) ctx.font = `500 12px ${family}`;
+  return axes.map((label) => {
+    const lines = splitLabel(label);
+    const width = Math.max(...lines.map((l) => (ctx ? ctx.measureText(l).width : l.length * 7)));
+    return { width: Math.ceil(width), lines: lines.length };
+  });
+}
+
 function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { width: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef<Array<SVGCircleElement | null>>([]);
   const tip = useChartTooltip();
   const n = axes.length;
+  const labels = useMemo(() => measureLabels(axes), [axes]);
   const geometry = useMemo<Geometry>(
     () => ({
       cx: width / 2,
       cy: HEIGHT / 2,
-      radius: Math.max(Math.min(120, (width - 200) / 2), 80),
+      // The plot takes what its labels leave, so a narrow card shrinks the plot and never clips a label.
+      radius: fitRadius({ width, height: HEIGHT, labels }),
       n,
     }),
-    [width, n],
+    [width, labels, n],
   );
   const point = useCallback((axis: number, r: number) => pointAt(geometry, axis, r), [geometry]);
 

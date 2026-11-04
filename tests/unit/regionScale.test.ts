@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { regionScaleMax } from "@/features/overview/RegionBars";
+import { regionScaleMax } from "@/features/overview/viewModel";
 
 describe("regionScaleMax", () => {
   it("is 120 % while every region is at or below it", () => {

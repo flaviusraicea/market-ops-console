@@ -671,10 +671,14 @@ export type RegionBarVM = {
   attainment: string;
   status: Status;
   statusLabel: string;
+  /** The bar's length as a share of the common scale, 0 to 1. */
+  share: number;
 };
 
 export type RegionBarsVM = {
   rows: RegionBarVM[];
+  /** Where the 100 % tick sits on the common scale, as a percentage of the track. */
+  tickPct: number;
   /** `lead` is set in bold, `rest` follows it. Together they read as one sentence. */
   sentence: { lead: string; rest: string };
   caption: string;
@@ -683,9 +687,17 @@ export type RegionBarsVM = {
   subtitle: string;
 };
 
+/**
+ * One scale for every region row, so bar lengths compare across regions: 0 to 120 %, or further when a region
+ * is above that, rounded up to the next 10.
+ */
+export function regionScaleMax(attainments: readonly number[]): number {
+  return Math.max(120, Math.ceil(Math.max(0, ...attainments) / 10) * 10);
+}
+
 /** Revenue and attainment per region, with one derived sentence about the weakest (or leading) region. */
 export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
-  const rows = ds.regions.map((r) => {
+  const base = ds.regions.map((r) => {
     const k = kpiFor(ds, { kind: "region", regionId: r.id }, ctx.period, "month");
     const status = statusForDerived(k.attainmentPct, k.growthPct);
     return {
@@ -698,6 +710,11 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
       statusLabel: STATUS_LABEL[status],
     };
   });
+  const max = regionScaleMax(base.map((r) => r.attainmentPct));
+  const rows = base.map((r) => ({
+    ...r,
+    share: Math.min(Math.max(r.attainmentPct, 0), max) / max,
+  }));
 
   const lowest = rows.reduce((a, b) => (b.attainmentPct < a.attainmentPct ? b : a));
   let sentence: RegionBarsVM["sentence"];
@@ -719,6 +736,7 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
   }
   return {
     rows,
+    tickPct: (100 / max) * 100,
     sentence,
     caption: derivedLabel(ds, atLatest(ds, ctx)),
     allProducts: Boolean(ctx.product),

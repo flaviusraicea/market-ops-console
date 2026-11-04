@@ -9,9 +9,9 @@ const TONE: Record<GlyphStatus, string> = {
 
 // sm sits in table and list rows; md in tiles, the attention list and tooltips (24 px; a badge is not a control, so the touch target size does not apply).
 const SIZE = {
-  sm: { box: "h-5 min-w-[88px] text-[11px] leading-[14px]", glyph: "size-2" },
+  sm: { box: "h-5 text-[11px] leading-[14px]", glyph: "size-2" },
   md: {
-    box: "h-6 min-w-[104px] text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
+    box: "h-6 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
     glyph: "size-2.5",
   },
 } as const;
@@ -19,9 +19,10 @@ const SIZE = {
 /**
  * The one status mark in the app: a glyph that differs by shape (dot, triangle, diamond) then the status word.
  * Only at risk and off track are tinted, so a screen of healthy markets stays quiet. The word is the accessible
- * label and the glyph is decoration. A minimum width per size keeps the badge column one width whatever the
- * word, so tracks and values beside it line up from row to row. Every variant reserves a 1 px border so the box is the same size, and forced
- * colours draw it in the system text colour.
+ * label and the glyph is decoration. The badge is as wide as its word: a list that needs its columns to line up
+ * gives the badge a fixed-width slot, so the badge never takes space a narrow row needs for the name. Every
+ * variant reserves a 1 px border so the box is the same size, and forced colours draw it in the system text
+ * colour.
  */
 export function StatusBadge({
   status,

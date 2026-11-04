@@ -387,5 +387,6 @@ test("by region, every bar shares one scale: the 100% tick sits at the same x in
   const ticks = card.locator("li button span.bg-ink-muted");
   await expect(ticks).toHaveCount(4);
   const xs = await ticks.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().left));
-  for (const x of xs) expect(Math.abs(x - xs[0]!)).toBeLessThan(1);
+  const first = xs[0] ?? Number.NaN;
+  for (const x of xs) expect(Math.abs(x - first)).toBeLessThan(1);
 });

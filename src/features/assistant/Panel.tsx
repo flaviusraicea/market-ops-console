@@ -8,7 +8,7 @@ import { PaletteButton } from "@/features/palette/PaletteButton";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ChevronRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useAssistantRail, useFocusRequest, useOverlayKeys } from "@/features/shell/railState";
+import { useAssistantRail, useFocusRequest, usePanelEscape } from "@/features/shell/railState";
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { COARSE_QUERY } from "@/lib/useMediaQuery";
 import { AnswerList } from "./AnswerList";
@@ -71,7 +71,7 @@ function PanelBody({
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const panelRef = useRef<HTMLDivElement>(null);
   // Docked from 1024 px, never a modal over the dashboard, so Tab is not trapped: Escape still collapses it.
-  const onKeyDown = useOverlayKeys(panelRef, { desktop, overlay: false, collapse });
+  const onKeyDown = usePanelEscape({ desktop, collapse });
 
   const { answers, stop, retry, isStreaming, submitCount, bumpSubmit } = machine;
   const coarse = useMediaQuery(COARSE_QUERY);

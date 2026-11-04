@@ -47,9 +47,10 @@ function Swatch(item: Extract<LegendItem, { color: string }>) {
 }
 
 /**
- * Static legend (design-system 6.10). Status marks sit inline and centred. Fill swatches stack a centred label under the swatch. Seven bins sit
- * on one row from 1100px up; below that they wrap to two rows, the first three bins (the low side of the
- * scale) on the first row and the remaining four (the neutral bin and the high side) on the second.
+ * Static legend (design-system 6.10). Status marks sit inline and centred. Fill swatches stack a centred label
+ * under the swatch. Seven bins sit on one row when the legend has 36 rem, which leaves every label at least 8 px
+ * from the next; narrower, they wrap to two rows, the first three bins (the low side of the scale) on the first
+ * row and the remaining four (the neutral bin and the high side) on the second.
  */
 export function Legend({
   items,
@@ -73,7 +74,7 @@ export function Legend({
       className={cn(
         "text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2",
         fills
-          ? "grid w-full max-w-[40rem] grid-cols-4 gap-x-3 gap-y-2 min-[1100px]:grid-cols-7 max-md:flex max-md:max-w-none max-md:overflow-x-auto max-md:pb-1"
+          ? "grid w-full max-w-[40rem] grid-cols-4 gap-x-3 gap-y-2 @min-[36rem]:grid-cols-7 max-md:flex max-md:max-w-none max-md:overflow-x-auto max-md:pb-1"
           : "flex flex-wrap items-center gap-x-4 gap-y-1",
         items.every((i) => i.swatch === "status") && "justify-center gap-x-6",
         className,
@@ -86,7 +87,7 @@ export function Legend({
             fills
               ? "flex min-w-0 flex-col items-center gap-1 text-center whitespace-nowrap max-md:min-w-[72px] max-md:shrink-0"
               : "inline-flex items-center gap-1.5",
-            fills && items.length === 7 && i === 3 && "col-start-1 min-[1100px]:col-auto",
+            fills && items.length === 7 && i === 3 && "col-start-1 @min-[36rem]:col-auto",
           )}
         >
           {item.swatch === "status" ? <StatusGlyph status={item.status} /> : <Swatch {...item} />}
@@ -95,19 +96,28 @@ export function Legend({
       ))}
     </ul>
   );
-  if (!noData) return list;
-  // The scale stays centred under the map; No data sits in the right-hand column, mirrored by an empty left one.
+  // The bins' column count follows the room the scale itself has, not the viewport.
+  const scale = fills ? (
+    <div className="@container flex w-full min-w-0 justify-center">{list}</div>
+  ) : (
+    list
+  );
+  if (!noData) return scale;
+  // With room, the scale stays centred under the map and No data sits in the right-hand column, mirrored by an
+  // empty left one. Under 40 rem No data takes its own centred row under the scale.
   return (
-    <div className="grid w-full grid-cols-[minmax(72px,1fr)_minmax(0,40rem)_minmax(72px,1fr)] items-start gap-x-4 max-md:flex max-md:flex-col max-md:gap-y-2">
-      <span aria-hidden className="max-md:hidden" />
-      <div className="flex min-w-0 justify-center">{list}</div>
-      <p className="flex w-[72px] flex-col items-center gap-1 justify-self-start text-center text-[length:var(--text-label)] leading-[var(--text-label-lh)] whitespace-nowrap text-ink-2 max-md:w-auto max-md:flex-row">
-        <span
-          aria-hidden
-          className="block h-3 w-full min-w-6 rounded-none border border-border bg-map-land max-md:w-6"
-        />
-        No data
-      </p>
+    <div className="@container/legend w-full">
+      <div className="grid w-full grid-cols-[minmax(72px,1fr)_minmax(0,40rem)_minmax(72px,1fr)] items-start gap-x-4 md:@max-[40rem]/legend:flex md:@max-[40rem]/legend:flex-col md:@max-[40rem]/legend:items-center md:@max-[40rem]/legend:gap-y-2 max-md:flex max-md:flex-col max-md:gap-y-2">
+        <span aria-hidden className="max-md:hidden md:@max-[40rem]/legend:hidden" />
+        {scale}
+        <p className="flex w-[72px] flex-col items-center gap-1 justify-self-start text-center text-[length:var(--text-label)] leading-[var(--text-label-lh)] whitespace-nowrap text-ink-2 max-md:w-auto max-md:flex-row">
+          <span
+            aria-hidden
+            className="block h-3 w-full min-w-6 rounded-none border border-border bg-map-land max-md:w-6"
+          />
+          No data
+        </p>
+      </div>
     </div>
   );
 }
