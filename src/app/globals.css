@@ -528,8 +528,9 @@ html[data-reduced-motion="true"] .press:active:not(:disabled) {
   }
 }
 /* The rail waits for the panel to finish leaving, then fades in, so the two are never on screen together. */
+/* Transparent, not hidden: focus returns to the rail's toggle as soon as the panel collapses. */
 [data-panel="closing"] [data-slot="assistant-rail"] {
-  visibility: hidden;
+  opacity: 0;
 }
 [data-panel="closed"] [data-slot="assistant-rail"] {
   animation: scrim-in var(--dur-base) var(--ease-out);
