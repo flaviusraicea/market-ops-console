@@ -217,12 +217,12 @@ function MoverColumn({
         <ul className="@container -mx-2 flex flex-col">
           {rows.map((row) => (
             <li key={row.id} className="border-b border-grid last:border-b-0">
-              {/* The whole row is the link, so it is one button with the lift hover; its name is its visible text, with hidden separators. */}
+              {/* The whole row is the link, so it is one button that tints on hover like a table row; its name is its visible text, with hidden separators. */}
               <button
                 type="button"
                 onClick={() => select(row.id)}
                 className={cn(
-                  "lift press flex w-full items-center gap-3 rounded-control px-2 text-left hover:bg-surface-2 md:h-[var(--row-h)]",
+                  "press flex w-full items-center gap-3 px-2 text-left transition-colors duration-[var(--dur-fast)] hover:bg-surface-2 md:h-[var(--row-h)]",
                   // A phone keeps its two-line row as it was.
                   "max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-3 max-md:py-1 max-md:[grid-template-areas:'name_status'_'growth_spark']",
                   // From md, a list under 24 rem (the panel docked) takes two lines like By region: the name and the
