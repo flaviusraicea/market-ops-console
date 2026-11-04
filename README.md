@@ -91,7 +91,7 @@ Each row gives the problem, the choice, and the alternative turned down with the
 - The assistant is scripted on purpose: `/api/chat` streams fixture answers over Server-Sent Events, with no LLM behind it. A real model would plug in behind the same `/api/chat` event contract.
 - Numbers, money and month names use one fixed locale, en-US, and USD, the data's currency, so output is the same in every test, screenshot and browser (`src/lib/format.ts`). A real product would take the locale from the user.
 - Following a citation from Executive to Analyst mounts the Analyst view in one long task: about 170 to 210 ms at 4× CPU slowdown and about 50 ms at 1×. With more time: split the static card shells into server components so less of that mount runs on the client.
-- Automated tests run in Chromium; VoiceOver and Safari are checked by hand on a Mac.<!-- TODO(Flavius): add the result of the Mac run. -->
+- Automated tests run in Chromium; with more time: a VoiceOver and NVDA pass and Safari/Firefox checks.
 - `reportError` writes one JSON line per failure and `/api/vitals` one per vital, both to the server log. With more time: feed `reportError` to Sentry, which is one init call plus the DSN.
 - With more time: fold the Markets table's sparklines into the row at docked widths (assistant panel open), so the table keeps its trend column when it narrows.
 - With more time: stack the Analyst rows at docked widths of 1152 px and below. There the radar now draws near its minimum size (a 36 px spoke at 1024 px).
