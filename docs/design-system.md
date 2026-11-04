@@ -233,7 +233,15 @@ Two density scales, switched by `html[data-density="executive"]` (default) and `
 
 Fixed in both densities:
 
-- `--radius-control: 6px` (buttons, inputs, chips that are rectangular), `--radius-card: 8px`, `--radius-pill: 999px` (badges, citation chips, segmented control).
+- One radius family, nested so that an inner radius is always smaller than its container’s. Use only these tokens. `pnpm check:radius` fails on any literal radius:
+  - `--radius-sheet: 12px`: cards, the toolbar card, the assistant panel, dialogs, the palette, popovers and sheets.
+  - `--radius-control: 8px`: buttons, inputs, selects, tooltips and notes.
+  - `--radius-menu: 6px`: items inside a padded menu.
+  - `--radius-pill: 999px`: badges, chips (citation chips and the status strip's market chips), segmented controls, the avatar and Live/Paused.
+  - `--radius-mark: 4px`: small marks only: heat cells, inline text washes (the verdict word) and keycaps.
+  - No radius (`rounded-none`): data marks. That covers bars and their tracks, meter segments, sparklines, map shapes and the legend strip.
+  - A skeleton takes the radius of what it stands in for: 8 px for a control, a text line or a chart area.
+  - Containers nested in a card: an unbordered table or list has no radius (0). A bordered standalone table, with its own 1 px `--border`, takes 8 px.
 - Borders are always `1px solid var(--border)`. No 2 px borders except the focus ring.
 - Page max width 1280 px, centered, 24 px side gutter at ≥ 1024 px, 16 px below. The layout must work at 390 px wide with no horizontal scroll: widgets stack to one column, wide tables and the heat map scroll inside their own labelled region with a sticky first column, and under 1024 px the assistant is a fixed bottom bar (56 px, with the palette button) that opens a 90 dvh bottom sheet. Under 768 px the header is two 44 px rows. On a touch screen (`pointer: coarse`) every control is at least 44 × 44 px and chips 36 px tall (`--control-h` 44, `--chip-h` 36, `--row-h` 44).
 - Content column split at ≥ 1024 px: dashboard `minmax(0, 1fr)`, assistant panel fixed 380 px, gap `--gap`.
@@ -294,7 +302,7 @@ One component (`PageToolbar`) for both modes, sticky under the header at `top: v
 
 ### 6.2 KPI tile (Overview mode content)
 
-Four tiles in a row (2 × 2 below 768 px). Card: `--surface`, border, `--radius-card`, padding `--pad-card`.
+Four tiles in a row (2 × 2 below 768 px). Card: `--surface`, border, `--radius-sheet`, padding `--pad-card`.
 
 Anatomy, top to bottom, 4 px gaps:
 1. Eyebrow: caption text in `--ink-muted` (the KPI name).
@@ -335,11 +343,11 @@ Five rows, data in section 9.2.
 
 ### 6.5 Assistant panel and answer card
 
-Panel: `--surface`, border, radius card. Header row: eyebrow `ASSISTANT` in `--ai-label` with lucide `sparkles` 14 px before it, then on the right a caption `Answers are AI-generated. Numbers link to source.` in `--ink-muted`.
+Panel: `--surface`, border, radius sheet. Header row: eyebrow `ASSISTANT` in `--ai-label` with lucide `sparkles` 14 px before it, then on the right a caption `Answers are AI-generated. Numbers link to source.` in `--ink-muted`.
 
 Inside, the states below stacked with 16 px gaps, each with its own eyebrow label so the reviewer can tell them apart. All answer cards share this anatomy:
 
-- Card: background `--ai-bg`, `1px solid var(--ai-border)`, radius card, padding `--pad-card`. No left accent rule; the full border plus the tinted background is the AI signal.
+- Card: background `--ai-bg`, `1px solid var(--ai-border)`, radius sheet, padding `--pad-card`. No left accent rule; the full border plus the tinted background is the AI signal.
 - Question echo above the card: `--text-label` `--ink-2`, prefixed with `You asked:` in `--ink-muted`.
 - Answer text in `--text-answer` (serif), colour `--ink`.
 - Numbers inside the answer text that correspond to a citation are wrapped in `<a class="cite-inline">` rendered as `--accent` with a 1 px dotted underline, `text-decoration-thickness: 1px; text-underline-offset: 3px`. Hover and focus make the underline solid. (In the sample texts the words to wrap are given in 9.4.)
@@ -363,7 +371,7 @@ Input row at the bottom of the panel: `<textarea rows="1">` with placeholder `As
 
 ### 6.6 Confidence meter
 
-Inline flex, 8 px gap: three bars 14 × 6 px, radius 2 px, 3 px apart; then the word; then a one-line meaning in `--ink-muted` `--text-label`. Filled bars use `--ink-2`; empty bars use `--border`. Never a status colour.
+Inline flex, 8 px gap: three bars 14 × 6 px, no radius, 3 px apart; then the word; then a one-line meaning in `--ink-muted` `--text-label`. Filled bars use `--ink-2`; empty bars use `--border`. Never a status colour.
 
 | Level | Bars | Word | Meaning text | Icon (lucide, 14 px, before bars, `--ink-2`) |
 |---|---|---|---|---|
@@ -375,7 +383,7 @@ Markup: `<div role="img" aria-label="High confidence: directly supported by cite
 
 ### 6.7 Loading skeleton
 
-One KPI tile and one answer card in skeleton state, side by side. Skeleton blocks: `--surface-2`, radius 4 px, heights matching the text lines they stand in for (eyebrow 11 px, headline 28 px, delta 12 px). Shimmer: a linear gradient from `--surface-2` through `rgba(255,255,255,0.35)` (light) / `rgba(255,255,255,0.06)` (dark) moving left to right over 1.4 s, `infinite`. `aria-busy="true"` on the container and `<span class="sr-only">Loading</span>`. No fake numbers anywhere in a skeleton.
+One KPI tile and one answer card in skeleton state, side by side. Skeleton blocks: `--surface-2`, the radius of what they stand in for (8 px for a text line), heights matching the text lines they stand in for (eyebrow 11 px, headline 28 px, delta 12 px). Shimmer: a linear gradient from `--surface-2` through `rgba(255,255,255,0.35)` (light) / `rgba(255,255,255,0.06)` (dark) moving left to right over 1.4 s, `infinite`. `aria-busy="true"` on the container and `<span class="sr-only">Loading</span>`. No fake numbers anywhere in a skeleton.
 
 ### 6.8 Tooltip
 
@@ -416,7 +424,7 @@ Height `--control-h`, padding 0 12px, radius control, `--text-label` weight 500,
 
 ### 6.12 Notice (error and rollback)
 
-One component for the stream error, the failed-save rollback, and any blocking error. Anatomy: background `--bad-bg`, `1px solid var(--bad-mark)`, left rule `box-shadow: inset 4px 0 0 var(--bad-mark)`, radius card, padding `--pad-card`; lucide `circle-alert` 20 px in `--bad-text` top-aligned with the title; title `--text-body` weight 600 in `--bad-text`; body `--text-body` in `--ink`; actions: one secondary button, optionally one ghost `Dismiss`. `role="alert"`. Entry is the base 200 ms fade only. Verified: title on fill 5.68:1 light / 7.41:1 dark; body on fill 13.96:1 / 12.21:1; rule vs fill 4.38:1 / 4.64:1; edge vs surface 5.45:1 / 5.18:1.
+One component for the stream error, the failed-save rollback, and any blocking error. Anatomy: background `--bad-bg`, `1px solid var(--bad-mark)`, left rule `box-shadow: inset 4px 0 0 var(--bad-mark)`, radius sheet, padding `--pad-card`; lucide `circle-alert` 20 px in `--bad-text` top-aligned with the title; title `--text-body` weight 600 in `--bad-text`; body `--text-body` in `--ink`; actions: one secondary button, optionally one ghost `Dismiss`. `role="alert"`. Entry is the base 200 ms fade only. Verified: title on fill 5.68:1 light / 7.41:1 dark; body on fill 13.96:1 / 12.21:1; rule vs fill 4.38:1 / 4.64:1; edge vs surface 5.45:1 / 5.18:1.
 
 ### 6.13 Form field, valid and invalid
 

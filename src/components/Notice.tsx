@@ -75,7 +75,7 @@ function Row({
       data-tone={tone}
       data-leaving={leaving}
       className={cn(
-        "flex items-center gap-2.5 rounded-card border border-border bg-surface-2 px-3 py-2.5",
+        "flex items-center gap-2.5 rounded-sheet border border-border bg-surface-2 px-3 py-2.5",
         page &&
           // The toolbar above carries the section gap; pull up to the spec's 8 px and restore the gap below.
           "page-notice mt-[calc(8px-var(--gap-section))] mb-[var(--gap-section)]",

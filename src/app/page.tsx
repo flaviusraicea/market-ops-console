@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import type { Metadata } from "next";
+import { RedirectType, redirect } from "next/navigation";
 
 import { breadcrumbTrail, entityName, entityOf } from "@/domain";
 import { Panel } from "@/features/assistant/Panel";
@@ -17,7 +18,8 @@ import { formatPeriod } from "@/lib/format";
 import { DatasetProvider } from "@/lib/context/dataset";
 import { ConsoleMetaProvider } from "@/lib/context/meta";
 import { lightDataset, metaFromDataset } from "@/lib/context/invariants";
-import { parseContextFromSearchParams } from "@/lib/context/parsers";
+import { hrefFor } from "@/lib/context/href";
+import { hasInvalidContextParams, parseContextFromSearchParams } from "@/lib/context/parsers";
 import { getDataset } from "@/lib/dataset";
 import { defaultModeFor } from "@/lib/roles";
 import { readRole } from "@/lib/roles.server";
@@ -40,8 +42,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 export default async function Page({ searchParams }: PageProps) {
   const ds = getDataset();
   const defaultMode = await roleDefaultMode();
-  const ctx = parseContextFromSearchParams(ds, await searchParams, defaultMode);
+  const params = await searchParams;
+  const ctx = parseContextFromSearchParams(ds, params, defaultMode);
   const meta = metaFromDataset(ds, defaultMode);
+  // An unknown or out-of-range value falls back when parsed; put the fallback in the address too, so a copied link
+  // and Back show what is on screen.
+  if (hasInvalidContextParams(params, ctx)) redirect(hrefFor(meta, ctx), RedirectType.replace);
   // The fallback shows until the dashboard streams in, so it has the dashboard's shape: Analyst's own skeleton
   // holds each section at its height, which keeps the swap from shifting the page.
   const fallback =

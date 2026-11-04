@@ -30,7 +30,7 @@ export function AssistantRail({
   return (
     <div
       className={cn(
-        "relative flex h-fit w-12 flex-col items-center rounded-card layer-card",
+        "relative flex h-fit w-12 flex-col items-center rounded-sheet layer-card",
         className,
       )}
     >
@@ -42,7 +42,7 @@ export function AssistantRail({
         aria-controls="assistant-panel"
         aria-label={open ? "Close assistant" : "Open assistant"}
         onClick={onToggle}
-        className="absolute inset-0 rounded-card hover:bg-surface-2"
+        className="absolute inset-0 rounded-sheet hover:bg-surface-2"
       />
       <div className="pointer-events-none relative flex flex-col items-center gap-3 py-3 text-ai-label">
         <ChevronLeft aria-hidden className="size-4 text-ink-muted" strokeWidth={ICON_STROKE} />

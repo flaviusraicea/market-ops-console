@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, within } from "storybook/test";
 
 import { Legend } from "./Legend";
+import { ATTAINMENT_LEGEND } from "./scales";
 
 const meta = {
   title: "components/charts/Legend",
@@ -44,14 +45,17 @@ export const Status: Story = {
 };
 
 export const Bins: Story = {
+  // The bins the attainment map and heat map use, so the story cannot drift from the app.
   args: {
-    label: "Attainment bins",
-    items: ["--div-n3", "--div-n2", "--div-n1", "--div-0", "--div-p1", "--div-p2", "--div-p3"].map(
-      (color, i) => ({
-        label: ["< 90%", "90–95%", "95–99%", "99–101%", "101–105%", "105–110%", "> 110%"][i] ?? "",
-        swatch: "fill" as const,
-        color,
-      }),
-    ),
+    label: "Attainment colour scale",
+    items: ATTAINMENT_LEGEND.map((b) => ({
+      label: b.label,
+      swatch: "fill" as const,
+      color: b.token,
+    })),
+  },
+  play: async ({ canvasElement }) => {
+    const items = within(canvasElement).getAllByRole("listitem");
+    await expect(items.map((li) => li.textContent)).toEqual(ATTAINMENT_LEGEND.map((b) => b.label));
   },
 };

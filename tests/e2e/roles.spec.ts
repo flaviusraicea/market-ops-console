@@ -109,7 +109,7 @@ test("Sign out goes to the sign-in screen, and picking a persona returns to its 
   await page.getByRole("menuitem", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/sign-in$/);
   await expect(page.getByRole("heading", { name: "Sign in to Market Ops" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with SSO" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Continue with SSO (mocked)" })).toBeDisabled();
 
   await page.getByRole("button", { name: /Dana Whitfield/ }).click();
   await expect(page).toHaveURL(/\/\?mode=executive$/);
