@@ -52,9 +52,9 @@ export function contextParsers(meta: ConsoleMeta) {
   };
 }
 
-type SearchParams = Record<string, string | string[] | undefined>;
+export type SearchParams = Record<string, string | string[] | undefined>;
 
-function first(v: string | string[] | undefined): string | undefined {
+export function first(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
@@ -79,7 +79,7 @@ export function parseContextFromSearchParams(
   return normalizeContext(metaFromDataset(ds, defaultMode), raw);
 }
 
-const CONTEXT_KEYS = [
+export const CONTEXT_KEYS = [
   "region",
   "market",
   "product",
@@ -92,7 +92,7 @@ const CONTEXT_KEYS = [
 ] as const satisfies readonly (keyof Context)[];
 
 /** How a Context field reads in the URL; `facts` is the flag `1`. */
-function urlValue(ctx: Context, key: (typeof CONTEXT_KEYS)[number]): string | undefined {
+export function urlValue(ctx: Context, key: (typeof CONTEXT_KEYS)[number]): string | undefined {
   const value = ctx[key];
   if (value === undefined) return undefined;
   if (key === "facts") return value ? "1" : undefined;

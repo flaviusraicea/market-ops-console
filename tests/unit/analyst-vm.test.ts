@@ -157,10 +157,10 @@ describe("analyst view model", () => {
     ]);
     expect(radar.series.map((s) => s.color)).toEqual([
       "--cat-1",
-      "--cat-2",
       "--cat-3",
-      "--cat-4",
       "--cat-5",
+      "--cat-6",
+      "--ink-2",
     ]);
     for (let axis = 0; axis < 5; axis++) {
       const vals = radar.series.map((s) => s.values[axis]!);

@@ -73,7 +73,6 @@
   --shadow-raised: var(--shadow-raised);
   --shadow-overlay: var(--shadow-overlay);
   --shadow-header: var(--shadow-header);
-  --shadow-toolbar: var(--shadow-toolbar);
   --shadow-basin: var(--shadow-basin);
 }
 
@@ -140,17 +139,9 @@ body {
 
 /* A map market draws its ring as a stroke along the country's outline (Choropleth), because a native outline on an
    SVG path boxes the bounding rectangle. */
+[data-focus-ring="stroke"]:focus,
 [data-focus-ring="stroke"]:focus-visible {
   outline: none;
-}
-
-/* The map's frame move repaints the whole SVG on each frame, so for its 240 ms the countries drop their strokes
-   and the group draws for speed (Choropleth). */
-[data-moving] path {
-  stroke: none;
-}
-[data-moving] {
-  shape-rendering: optimizeSpeed;
 }
 
 /* Numeric figures: tabular, lining (design-system 2, 4.1 rule 4). */
@@ -600,6 +591,31 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
  * Low specificity (:where) so a component can still ask for more.
  */
 @layer base {
+  /* Tailwind v4's preflight leaves buttons on the default arrow. Anything that acts on click shows the hand; a disabled
+     control shows not-allowed. Components can still ask for another cursor with a utility (the utilities layer wins). */
+  :where(
+    button,
+    a[href],
+    summary,
+    select,
+    label[for],
+    input:is([type="checkbox"], [type="radio"], [type="button"], [type="submit"]),
+    [role="button"],
+    [role="tab"],
+    [role="radio"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="menuitem"],
+    [role="menuitemradio"],
+    [role="menuitemcheckbox"],
+    [role="option"],
+    [role="link"]
+  ) {
+    cursor: pointer;
+  }
+  :where(:disabled, [aria-disabled="true"], [data-disabled]) {
+    cursor: not-allowed;
+  }
   @media (pointer: coarse) {
     :where(button, a[href], select, summary, [role="button"], [role="radio"], [role="tab"]):not(
       .sr-only-focusable,
