@@ -1,6 +1,6 @@
-# Ledger design system (final spec)
+# Ledger design system
 
-Approved by Flavius on 2026-11-02: Direction A "Ledger, sharpened" (light default, designed dark theme following the OS setting with a header toggle), the error-state treatment, and the sources tables. This file supersedes preview-spec.md for tokens and components; preview-spec.md section 9 remains the source of sample data, and design/ledger-preview.html is the rendered reference.
+Direction A, "Ledger, sharpened": a light default, a designed dark theme that follows the OS setting with a header toggle, the error-state treatment and the sources tables. This file is the reference for tokens and components; sample values are in domain-model.md section 5.
 
 ## 0. Principles the system encodes
 
@@ -9,9 +9,9 @@ Approved by Flavius on 2026-11-02: Direction A "Ledger, sharpened" (light defaul
 3. Nothing is colour-only. Status has text, deltas have signs, confidence has a word, disagreement has an icon and hidden text, series have dash patterns and a legend, every chart has a table one click away.
 4. Two depths from one token set. Overview and Analyst switch density tokens, never components. Mode lives in the URL.
 5. Calm. No flashing, no loops except the streaming caret and the skeleton shimmer, and both stop under reduced motion.
-6. Every token is verified. Text at 4.5:1, marks at 3:1, in both themes; the runtime token sheet in the preview proves it and the same check runs in CI.
+6. Every token is verified. Text at 4.5:1, marks at 3:1, in both themes; `pnpm check:contrast` proves it in CI.
 
-## 0.1 Settled questions from the preview rounds
+## 0.1 Settled details
 
 - Focus ring always equals the accent: `--focus: #174A94` light, `#8DB4E8` dark.
 - Inset wells and table header rows use `--surface-2 #E8E3D8` (1.28:1 vs white cards). `--ink-muted` darkened to `#66615A` so captions on wells stay at 4.92:1.
@@ -26,7 +26,7 @@ Approved by Flavius on 2026-11-02: Direction A "Ledger, sharpened" (light defaul
 
 - Tokens are CSS custom properties in `app/tokens.css`, exactly the names below, with the dark block under both `:root[data-theme="dark"]` and the `prefers-color-scheme` media query guarded by `:not([data-theme="light"])`. Tailwind v4 `@theme` maps them to utilities (`bg-surface`, `text-ink-2`, `border-border`, `text-accent`, `bg-ai`, `text-ok` …). No raw hex outside `tokens.css`.
 - Density: `html[data-density]` switches the spacing tokens; components use `p-[var(--pad-card)]` style utilities or the mapped `p-card`.
-- shadcn components are restyled through the token map only: Button (primary, secondary, ghost, danger), Badge (status), Card, Table, Tabs/segmented (mode switch), Tooltip, Collapsible (Show sources), Form + Input + Select, Textarea, Dialog (confirm delete), Command (cmd-K, stretch), Skeleton, Sonner-style toast is **not** used: errors are inline Notices.
+- shadcn components are restyled through the token map only: Button (primary, secondary, ghost, danger), Badge (status), Card, Table, Tabs/segmented (mode switch), Tooltip, Collapsible (Show sources), Form + Input + Select, Textarea, Dialog (confirm delete), Command (cmd-K), Skeleton, Sonner-style toast is **not** used: errors are inline Notices.
 - Icons: lucide-react, stroke 1.75, sizes 12 / 14 / 16 / 18 / 20 as specified per component.
 - A script `scripts/check-contrast.ts` reads `tokens.css` and asserts every pair listed in section 3; it runs in CI and is mentioned in the README.
 
@@ -250,7 +250,7 @@ Seven rules so that every new card looks like its siblings. Rules 2, 3 and 4 are
 6. **Vertical rhythm on an 8 px grid.** 24 px between sections on Overview, 16 px on Analyst (`--gap-section`); inside a section multiples of 4; density is a token, never an ad hoc margin.
 7. **Empty states: one sentence, one action.** `No alert rules yet.` + `Add a rule`. No illustration, no second paragraph.
 
-Analyst adds the ledger chrome (slice 14): sections are not cards but one sheet with 1 px rules between sections, eyebrow section titles, 32 px rows and 13 px body.
+Analyst adds the ledger chrome: sections are not cards but one sheet with 1 px rules between sections, eyebrow section titles, 32 px rows and 13 px body.
 
 ## 5. Motion
 
@@ -429,7 +429,7 @@ Save states shown inline next to the button, `--text-label`: `Saving…` (`--ink
 
 ### 6.14 Sources table rows
 
-Rows for assistant states 1, 2 and 3 are in preview-spec.md section 9.4 and preview-spec-addendum-sources.md. Rule for the app: one row per citation, `Source value` always from data.json (`kpis` for status and attainment, `series` sums for monthly figures), `Assistant` column is the assistant's wording; a disagreement gets the warning icon and `--warn-text`.
+Rule: one row per citation, `Source value` always from data.json (`kpis` for status and attainment, `series` sums for monthly figures), `Assistant` column is the assistant's wording; a disagreement gets the warning icon and `--warn-text`.
 
 ### 9.5 Formatting rules
 
@@ -440,15 +440,15 @@ Rows for assistant states 1, 2 and 3 are in preview-spec.md section 9.4 and prev
 - Counts: `6 of 13`.
 
 
-## 10. Accessibility checklist (every build thread verifies before handing off)
+## 10. Accessibility checklist
 
 1. Every interactive element is reachable with Tab and operable with Enter or Space; the segmented controls with arrow keys; the chart crosshair with arrow keys when focused.
 2. Visible focus ring on every interactive element in both themes.
 3. No information is colour-only: status has text, deltas have signs, confidence has a word, the differs marker has an icon and hidden text, series have dash patterns and a legend.
 4. Every chart and sparkline has `role="img"` with a meaningful label, and the chart has a table alternative one click away.
-5. All text tokens meet 4.5:1 on their surfaces in both themes; the runtime token sheet shows it.
+5. All text tokens meet 4.5:1 on their surfaces in both themes; `pnpm check:contrast` asserts it.
 6. Reduced motion stops the caret and shimmer and zeroes transitions.
-7. The page has one `<h1>` ("Ledger preview"), sections use `<h2>`, components `<h3>`.
+7. The page has one `<h1>` ("Market Ops" in the header; "Sign in to Market Ops" on the sign-in screen), sections use `<h2>`, components `<h3>`.
 8. Run axe (Playwright `@axe-core/playwright` if available, else the axe browser extension output pasted) and fix every violation. Report the result.
 9. No horizontal scroll at 390 px, 768 px, 1024 px and 1440 px.
 10. Google Fonts failing to load must not break layout (system fallbacks defined).
