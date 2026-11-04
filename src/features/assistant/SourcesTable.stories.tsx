@@ -46,7 +46,7 @@ export const GermanyDip: Story = {
         claim: "Decline across the portfolio",
         entity: "Germany · Veltrix",
         period: "2026-03",
-        sourceValue: "$0.43M actual · 92.5% of forecast",
+        sourceValue: "$427K actual · 92.5% of forecast",
         assistant: "Across products",
         disagreement: false,
         resolved: true,
