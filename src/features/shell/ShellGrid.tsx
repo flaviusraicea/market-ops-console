@@ -56,8 +56,9 @@ export function ShellGrid({
       setPanelMoving(false);
     };
   }, [moving]);
+  // --panel-w is not inherited, so only this element can report it.
   const onTransitionEnd = (e: TransitionEvent<HTMLElement>) => {
-    if (e.target === e.currentTarget && e.propertyName === "--panel-w") settle();
+    if (e.propertyName === "--panel-w") settle();
   };
   const docked = phase !== "closed";
   // The server cannot know the viewport, so it sends both: the column is hidden by CSS below 1024 px and the bar

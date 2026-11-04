@@ -9,10 +9,16 @@ let frozen = false;
 let timer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 
-function set(next: boolean) {
+const set = (next: boolean) => {
   frozen = next;
   listeners.forEach((l) => l());
-}
+};
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => void listeners.delete(l);
+};
+const read = () => frozen;
+const server = () => false;
 
 export function setPanelMoving(moving: boolean) {
   clearTimeout(timer);
@@ -22,13 +28,8 @@ export function setPanelMoving(moving: boolean) {
 
 /** The size a chart should render at: the live size at rest, the size it had when the move began during one. */
 export function useRestSize(width: number, height: number) {
-  const frozen = useSyncExternalStore(
-    (l) => (listeners.add(l), () => void listeners.delete(l)),
-    () => frozen_(),
-    () => false,
-  );
+  const held = useSyncExternalStore(subscribe, read, server);
   const [rest, setRest] = useState({ width, height });
-  if (!frozen && (rest.width !== width || rest.height !== height)) setRest({ width, height });
-  return { size: frozen ? rest : { width, height }, frozen };
+  if (!held && (rest.width !== width || rest.height !== height)) setRest({ width, height });
+  return { size: held ? rest : { width, height }, frozen: held };
 }
-const frozen_ = () => frozen;
