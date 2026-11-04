@@ -9,8 +9,6 @@ import { ReadOnlyRoleError, alertApi, type AlertApi } from "./api";
 import { DEFAULT_THRESHOLDS, keyOf, normalizeRules } from "./rules";
 import { subscribeToRules } from "./storage";
 
-export { DEFAULT_THRESHOLDS, normalizeRules };
-
 const ALERTS_KEY = ["alerts"] as const;
 
 /** A rule in the list; `pending` while its save or delete has not been confirmed. */
@@ -57,16 +55,22 @@ function reportAlertFailure(error: Error) {
     reportError(error, { source: "fetch", route: "/api/alerts" });
 }
 
-export function useAlertSave(api: AlertApi = alertApi) {
+/**
+ * `initial` is what was on screen before this hook mounted (the shell's list, read from storage). It stands in
+ * until the first read lands, so the list never shows a false "No rules yet" for a frame. A failed read still
+ * reports `loadFailed`, because placeholder data is not data.
+ */
+export function useAlertSave(api: AlertApi = alertApi, initial?: readonly AlertRule[]) {
   const qc = useQueryClient();
   const [failure, setFailure] = useState<SaveFailure | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [deleteFailed, setDeleteFailed] = useState(false);
   const [deleteReadOnly, setDeleteReadOnly] = useState(false);
 
-  const list = useQuery({
+  const list = useQuery<readonly AlertRule[], Error, RuleRow[]>({
     queryKey: ALERTS_KEY,
     queryFn: () => api.listRules(),
+    ...(initial ? { placeholderData: initial } : {}),
     select: (rows) => normalizeRules(rows),
   });
   const { refetch } = list;
@@ -143,7 +147,7 @@ export function useAlertSave(api: AlertApi = alertApi) {
       : "idle";
 
   return {
-    rules: (list.data ?? []) as RuleRow[],
+    rules: list.data ?? [],
     /** The saved rules could not be read. Shown as a failed load, never as "0 rules". */
     loadFailed: list.isLoadingError,
     reloading: list.isFetching,

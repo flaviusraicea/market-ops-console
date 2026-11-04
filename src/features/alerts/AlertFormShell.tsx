@@ -11,7 +11,7 @@ import { DEFAULT_THRESHOLDS } from "./rules";
 /**
  * The alert form's own markup, every control disabled, shown only until the form's chunk (react-hook-form and zod)
  * attaches. Same elements, classes and sizes as AlertForm with its defaults, so swapping one for the other moves
- * nothing; tests/unit/alertFormShell.test.tsx compares the two.
+ * nothing; tests/unit/alertsBodyShell.test.tsx compares the two.
  */
 
 function ShellField({
@@ -69,10 +69,17 @@ function ShellField({
   );
 }
 
-export function AlertFormShell({ readOnly = false }: { readOnly?: boolean }) {
+export function AlertFormShell({
+  readOnly = false,
+  busy = true,
+}: {
+  readOnly?: boolean;
+  /** The form's code is on its way; false once loading it has failed. */
+  busy?: boolean;
+}) {
   const scopeId = useId();
   return (
-    <form noValidate aria-busy className="flex flex-col gap-4">
+    <form noValidate aria-busy={busy} className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-3">
         <ShellField
           name="growth"

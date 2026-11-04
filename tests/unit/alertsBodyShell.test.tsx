@@ -42,19 +42,30 @@ function renderBody(node: React.ReactNode) {
   );
 }
 
+describe("AlertsBody's first frame", () => {
+  it("lists the rules it was handed before the first read lands, never 'No rules yet'", () => {
+    writeRules(rules);
+    renderBody(<AlertsBody readOnly={false} initialRules={rules} />);
+    // No waitFor: this is the first committed render, the frame the shell is swapped for.
+    expect(screen.getAllByRole("listitem")).toHaveLength(rules.length);
+    expect(screen.queryByText("No rules yet")).toBeNull();
+  });
+});
+
 describe.each([false, true])("the Alerts shell (read-only: %s)", (readOnly) => {
   it("has the loaded body's layout, with every control disabled", async () => {
     writeRules(rules);
     const shell = renderBody(<AlertsBodyShell readOnly={readOnly} rules={rules} />);
     const shellHost = shell.getByTestId("host");
-    for (const control of shellHost.querySelectorAll("input, button, select, textarea")) {
-      if (control.textContent === "Switch to Analyst") continue;
-      expect(control).toBeDisabled();
-    }
+    const controls = [...shellHost.querySelectorAll("input, button, select, textarea")];
+    expect(controls.length).toBeGreaterThan(0);
+    for (const control of controls) expect(control).toBeDisabled();
     const shellMarkup = skeleton(shellHost);
     shell.unmount();
 
-    const live = renderBody(<AlertsBody readOnly={readOnly} />);
+    const live = renderBody(<AlertsBody readOnly={readOnly} initialRules={rules} />);
+    // The first frame already matches; it still matches once the read lands.
+    expect(skeleton(live.getByTestId("host"))).toBe(shellMarkup);
     await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(rules.length));
     expect(skeleton(live.getByTestId("host"))).toBe(shellMarkup);
   });

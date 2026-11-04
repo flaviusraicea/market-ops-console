@@ -207,7 +207,7 @@ describe("normalizeRules", () => {
   });
 
   it("dedupes by metric and scope and orders the list the same way every time", async () => {
-    const { normalizeRules } = await import("@/features/alerts/useAlertSave");
+    const { normalizeRules } = await import("@/features/alerts/rules");
     const rows = [
       rule("attainment", { regionId: "eu" }, "a"),
       rule("attainment", "portfolio", "b"),

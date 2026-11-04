@@ -11,7 +11,16 @@ export const THRESHOLD_RANGE = {
   growth: { min: -100, max: 100, message: "Enter a value between −100 and 100." },
 } as const;
 
-const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?Z$/;
+/**
+ * What zod's `z.string().datetime()` accepts: UTC, seconds required, any fraction. The shape alone lets through
+ * hour 25 or 30 February, so the date must also come back unchanged from `Date`.
+ */
+const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
+const isIsoDateTime = (s: string) => {
+  if (!ISO_DATETIME.test(s)) return false;
+  const date = new Date(s);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 19) === s.slice(0, 19);
+};
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 
@@ -35,7 +44,7 @@ export function parseAlertRule(v: unknown): AlertRule | null {
   const scope = parseScope(v["scope"]);
   if (!scope) return null;
   if (id !== undefined && typeof id !== "string") return null;
-  if (createdAt !== undefined && (typeof createdAt !== "string" || !ISO_DATETIME.test(createdAt)))
+  if (createdAt !== undefined && (typeof createdAt !== "string" || !isIsoDateTime(createdAt)))
     return null;
   return {
     ...(id === undefined ? {} : { id }),

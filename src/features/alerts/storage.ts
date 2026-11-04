@@ -1,15 +1,11 @@
 import { type AlertRule } from "@/domain";
 import { parseAlertRule } from "@/domain/alertRule";
-import { scopeToValue } from "./labels";
 import { RULES_CHANGED, STORAGE_KEY } from "./storageKey";
 
 export { STORAGE_KEY };
 
 /** Used when localStorage is unavailable or full, so rules still last for the session. */
 let memory: AlertRule[] = [];
-
-export const ruleKey = (r: Pick<AlertRule, "metric" | "scope">) =>
-  `${r.metric}:${scopeToValue(r.scope)}`;
 
 /** Reads the saved rules. Corrupt or unreadable data gives an empty list; invalid entries are dropped. */
 export function readRules(): AlertRule[] {
