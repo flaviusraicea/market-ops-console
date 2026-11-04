@@ -102,6 +102,21 @@
   box-shadow: var(--shadow-overlay);
 }
 
+/* A disabled secondary or ghost button reads as an outline, not a filled bar: transparent, a 1 px
+   --border hairline, muted text at 60 %. Important, so it beats the base button's disabled fill whatever the
+   utility order. Ghost draws its hairline inset, so the box keeps its size. */
+@utility btn-off {
+  background-color: transparent !important;
+  color: var(--ink-muted) !important;
+  opacity: 0.6;
+}
+@utility btn-off-ring {
+  background-color: transparent !important;
+  color: var(--ink-muted) !important;
+  opacity: 0.6;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
 body {
   font-family: var(--font-ui);
   font-variant-numeric: num;
@@ -186,7 +201,7 @@ html[data-reduced-motion="true"] .skeleton::after {
   display: none;
 }
 
-/* Reduced motion, blanket rule (slice 11): stops every animation and transition, including third-party enter and
+/* Reduced motion, blanket rule: stops every animation and transition, including third-party enter and
    exit animations (Radix, shadcn) that the per-component rules above do not know about. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -208,7 +223,7 @@ html[data-reduced-motion="true"] *::after {
   scroll-behavior: auto !important;
 }
 
-/* Live-mode dot (slice 21): pulses while data is moving. The loop ends where it begins, so a stopped animation
+/* Live-mode dot: pulses while data is moving. The loop ends where it begins, so a stopped animation
    (reduced motion) leaves the dot solid. */
 .live-dot {
   animation: live-pulse 1.6s ease-in-out infinite;
@@ -580,7 +595,7 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
 }
 
 /*
- * Touch targets (slice 20): on a touch screen every button, link and form control is at least 44 px each way.
+ * Touch targets: on a touch screen every button, link and form control is at least 44 px each way.
  * Chips are 36 px tall (they sit in rows and wrap); the skip link only shows on focus and is exempt.
  * Low specificity (:where) so a component can still ask for more.
  */
@@ -639,7 +654,7 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
   cursor: progress;
 }
 
-/* A retried answer takes the failed or stopped card's place and fades in over it (Fable, chrome verdict F09). */
+/* A retried answer takes the failed or stopped card's place and fades in over it. */
 @keyframes answer-retry-in {
   from {
     opacity: 0;
@@ -649,7 +664,7 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
   animation: answer-retry-in var(--dur-fast) var(--ease);
 }
 
-/* Pinned table columns (components/ui/table): cells marked data-pin stay at their edge while the columns between
+/* Pinned table columns (components/ui/scroll-table): cells marked data-pin stay at their edge while the columns between
    them scroll. The first column pins at every width. From 768 px the last one pins too, and while the table
    overflows a 1px edge marks where columns pass under, with a 24 px fade beside the edge while that side can still
    scroll. The fade starts from the cell's own tint (--pin-bg). Phones keep their layout. */

@@ -14,7 +14,7 @@ import {
 import { formatMoneyCompact, formatMonthShort, formatPct, formatPeriodAbbr } from "@/lib/format";
 import type { Resolved } from "./useAnswerMachine";
 
-/** Per-answer wording that is not in the citation itself. In slice 6 `inlineMap.ts` supplies it per fixture. */
+/** Per-answer wording that is not in the citation itself. `inlineMap.ts` supplies it per fixture. */
 export type SourcesMeta = {
   /** Add the market revenue to rows at the latest period (the forecast-miss answer). */
   withRevenue?: boolean;

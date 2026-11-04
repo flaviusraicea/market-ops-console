@@ -160,6 +160,8 @@ test.describe("motion trace", () => {
     const shiftSoFar = await trackShifts(page);
     await germanyAnswer(page);
     const cdp = await page.context().newCDPSession(page);
+    // Timed from the click, so the window includes the Analyst mount. Timing from data-landed instead would mean
+    // splitting measure() around the click, not a one-line change; the mount cost is listed in the README limits.
     const follow = await measure(cdp, page, shiftSoFar, "follow a citation", async () => {
       await march(page).click();
       await expect(timeSeries(page)).toHaveAttribute("data-landed", "");

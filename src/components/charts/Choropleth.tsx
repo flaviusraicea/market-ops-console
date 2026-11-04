@@ -190,7 +190,9 @@ function MapSvg({
     // Hold the old view before paint, then start the move two frames later: the drill also re-renders the
     // other charts, and a transition that starts in the same frames as that commit drops frames.
     // While it moves, the group drops its strokes and draws fast, because each frame repaints the whole SVG.
-    const done = () => {
+    // transitionend bubbles, so a child's own transition (a fill tween) must not end the move early.
+    const done = (e?: TransitionEvent) => {
+      if (e && e.target !== g) return;
       delete g.dataset["moving"];
       g.removeEventListener("transitionend", done);
     };

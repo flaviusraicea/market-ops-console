@@ -46,7 +46,7 @@ export default async function Page({ searchParams }: PageProps) {
   const ctx = parseContextFromSearchParams(ds, params, defaultMode);
   const meta = metaFromDataset(ds, defaultMode);
   // An unknown or out-of-range value falls back when parsed; put the fallback in the address too, so a copied link
-  // and Back show what is on screen.
+  // and Back show what is on screen. The new address holds Context parameters only; nothing else is read on `/`.
   if (hasInvalidContextParams(params, ctx)) redirect(hrefFor(meta, ctx), RedirectType.replace);
   // The fallback shows until the dashboard streams in, so it has the dashboard's shape: Analyst's own skeleton
   // holds each section at its height, which keeps the swap from shifting the page.

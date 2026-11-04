@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { reportError } from "@/lib/events";
 
 /**
- * Mounted once in the root layout. Vitals: console table in dev, beacon to a no-op route in production.
+ * Mounted once in the root layout. Vitals: console table in dev, beacon to /api/vitals in production, which logs it.
  * Errors: anything that escapes a widget boundary (a handler throwing, a rejected promise) is reported too.
  */
 export function WebVitals() {

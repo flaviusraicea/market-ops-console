@@ -11,7 +11,7 @@ export type CitationChipProps = {
   index: number;
   /** DOM id of the button, so inline citations can move focus to it. */
   id?: string;
-  /** Slice 7: the assistant's claim differs from the source status. */
+  /** The assistant's claim differs from the source status. */
   disagreement?: { assistant: string; source: string } | undefined;
 };
 

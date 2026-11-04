@@ -11,8 +11,10 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: "bg-accent text-on-accent hover:bg-accent-hover",
-        secondary: "border border-border bg-surface text-ink hover:bg-surface-2",
-        ghost: "bg-transparent text-ink-2 hover:bg-surface-2 hover:text-ink",
+        // Disabled secondary and ghost read as an outline, not a filled bar; the
+        // utilities are in globals.css.
+        secondary: "border border-border bg-surface text-ink hover:bg-surface-2 disabled:btn-off",
+        ghost: "bg-transparent text-ink-2 hover:bg-surface-2 hover:text-ink disabled:btn-off-ring",
         danger: "bg-bad-mark text-on-bad hover:bg-bad-hover",
       },
       size: {
