@@ -8,7 +8,7 @@ import { useLiveVM } from "@/features/live/LiveProvider";
 import { map, regionBars, tiles, tilesProvenance } from "@/features/live/selectors";
 import type { OverviewVM, RegionBarsVM } from "@/features/overview/viewModel";
 import { PageToolbarSkeleton } from "@/features/shell/PageToolbarSkeleton";
-import { SectionSkeleton } from "./AnalystSkeletons";
+import { MapSkeleton, SectionSkeleton } from "./AnalystSkeletons";
 import type { AnalystVM } from "./viewModel";
 
 /**
@@ -30,7 +30,7 @@ const MarketGrid = dynamic(() => import("./MarketGrid").then((m) => m.MarketGrid
   loading: () => <SectionSkeleton label="market grid" reserve="grid" />,
 });
 const MapSection = dynamic(() => import("./MapSection").then((m) => m.MapSection), {
-  loading: () => <SectionSkeleton label="map" reserve="map" />,
+  loading: () => <MapSkeleton />,
 });
 const TimeSeriesCard = dynamic(() => import("./TimeSeriesCard").then((m) => m.TimeSeriesCard), {
   loading: () => <SectionSkeleton label="time series" reserve="series" />,

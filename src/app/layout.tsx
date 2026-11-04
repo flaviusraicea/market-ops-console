@@ -37,11 +37,9 @@ export const metadata: Metadata = {
   title: "Market Ops",
   description:
     "Market operations console: portfolio performance, forecast attainment and an assistant.",
-  // Previews and local builds stay out of search engines. The production deployment is the submission's live link,
-  // so it is indexable; a real deployment would set this per environment the same way.
-  ...(process.env["VERCEL_ENV"] === "production"
-    ? {}
-    : { robots: { index: false, follow: false } }),
+  // Preview deployments stay out of search engines. A production build is indexable, deployed (the submission's
+  // live link) or local, so a local Lighthouse run scores SEO as the live site does.
+  ...(process.env["VERCEL_ENV"] === "preview" ? { robots: { index: false, follow: false } } : {}),
 };
 
 // Speed Insights only has a collector on Vercel; anywhere else its script is a 404 and a console error.

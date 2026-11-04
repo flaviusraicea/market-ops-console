@@ -26,7 +26,7 @@ Steps
 2. See the header: the wordmark "Market Ops", the drill path at Portfolio, Live and Paused, the stamp "Data through May 2026", the mode switch on Executive, the theme toggle and the account button for Dana Whitfield.
 3. See the Overview and the assistant panel open beside it, with the composer first, a one-line insight about the portfolio ("Germany is furthest from plan: …") and three suggested questions: "Which markets are at risk?", "Why did Germany dip?", "Compare APAC and Europe".
 
-States: loading (a skeleton with the dashboard's shape), ready, fonts failed (system fallbacks). Below 1024 px the assistant is a bottom bar that opens a sheet.
+States: ready (the page is server-rendered; only the map card holds its place while the geometry loads), fonts failed (system fallbacks). Below 1024 px the assistant is a bottom bar that opens a sheet.
 
 Checks
 - The h1 is "Market Ops", the stamp reads "Data through May 2026", Executive is checked, and the three suggestions are visible.

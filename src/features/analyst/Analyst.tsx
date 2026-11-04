@@ -45,7 +45,13 @@ export function Analyst({ ctx, notice }: { ctx: Context; notice?: ReactNode }) {
       />
       {notice}
       <OfflineNotice />
-      <Sheet style={reserveStyle(vm.grid.rows.length, Boolean(ctx.market))}>
+      <Sheet
+        style={reserveStyle({
+          gridRows: vm.grid.rows.length,
+          heatRows: vm.heatMap.rows.length,
+          marketInView: Boolean(ctx.market),
+        })}
+      >
         <ErrorBoundary widget="kpi-strip" resetKey={reset}>
           <LiveKpiStrip tiles={overview.tiles} provenance={overview.tilesProvenance} />
         </ErrorBoundary>
