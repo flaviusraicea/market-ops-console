@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { onScrollIntent, prefersReducedMotion } from "@/lib/motion";
 import { AnswerCard } from "./AnswerCardLazy";
 import { EmptyState, type PanelContext } from "./EmptyState";
-import type { Answer } from "./useAnswerMachine";
+import { slotOf, type Answer } from "./useAnswerMachine";
 
 type AnswerListProps = {
   answers: readonly Answer[];
@@ -35,7 +35,7 @@ export function visibleAnswers<T>(
   return { shown: answers.slice(answers.length - cap), folded: answers.length - cap };
 }
 
-const NEAR_BOTTOM_PX = 48;
+const NEAR_BOTTOM_PX = 24;
 /** How long a smooth scroll to a new card keeps the list following the stream. */
 const FOLLOW_MS = 500;
 
@@ -55,48 +55,31 @@ export function AnswerList({
   const scrollerRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const followUntil = useRef(0);
-  const heights = useRef({ list: 0, page: 0 });
+  const heights = useRef(0);
   const signatureRef = useRef("");
   const [leftAt, setLeftAt] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const last = answers[answers.length - 1];
   const signature = last ? `${answers.length}:${last.id}:${last.status}:${last.text.length}` : "";
   const hasAnswers = answers.length > 0;
+  const streaming = answers.some((a) => a.status === "streaming");
 
-  // Track "at bottom" with IntersectionObservers on a sentinel after the last card (no scroll polling).
-  // One watches the list's own scrollport (from 1024 px the list scrolls inside the panel); the other watches the
-  // viewport (below that the page scrolls). Whichever scrolls right now decides.
+  // Track "at bottom" with an IntersectionObserver on a sentinel after the last card (no scroll polling). The panel
+  // caps its height in every placement, so the list's own scrollport is the only one that matters.
   useEffect(() => {
     const sentinel = sentinelRef.current;
     const scroller = scrollerRef.current;
     if (!hasAnswers || !sentinel || !scroller) return;
-    const seen = { list: true, page: true };
-    const update = () => {
-      const listScrolls = scroller.scrollHeight > scroller.clientHeight + 1;
-      const atBottom = listScrolls ? seen.list : seen.page;
-      setLeftAt(atBottom ? null : signatureRef.current);
-    };
-    const rootMargin = `0px 0px ${NEAR_BOTTOM_PX}px 0px`;
-    const inList = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       ([entry]) => {
-        seen.list = entry?.isIntersecting ?? true;
-        update();
+        const listScrolls = scroller.scrollHeight > scroller.clientHeight + 1;
+        const atBottom = !listScrolls || (entry?.isIntersecting ?? true);
+        setLeftAt(atBottom ? null : signatureRef.current);
       },
-      { root: scroller, rootMargin },
+      { root: scroller, rootMargin: `0px 0px ${NEAR_BOTTOM_PX}px 0px` },
     );
-    const inPage = new IntersectionObserver(
-      ([entry]) => {
-        seen.page = entry?.isIntersecting ?? true;
-        update();
-      },
-      { rootMargin },
-    );
-    inList.observe(sentinel);
-    inPage.observe(sentinel);
-    return () => {
-      inList.disconnect();
-      inPage.disconnect();
-    };
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   }, [hasAnswers]);
 
   // The reader's own scroll input ends the follow window at once, so a reader who scrolls up right after asking is not
@@ -110,10 +93,14 @@ export function AnswerList({
     return () => controller.abort();
   }, [hasAnswers]);
 
+  // Scrolls the list's own scrollport only. `scrollIntoView` would also scroll every ancestor, and the panel is sticky
+  // in a scrolling page, so each flush of a streaming answer moved the whole dashboard.
   function scrollToEnd(smooth: boolean) {
     if (smooth) followUntil.current = performance.now() + FOLLOW_MS;
-    sentinelRef.current?.scrollIntoView({
-      block: "end",
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    scroller.scrollTo({
+      top: scroller.scrollHeight,
       behavior: smooth && !prefersReducedMotion() ? "smooth" : "instant",
     });
   }
@@ -124,24 +111,13 @@ export function AnswerList({
   function distanceBeforeGrowth(): number {
     const scroller = scrollerRef.current;
     if (!scroller) return 0;
-    const root = document.documentElement;
-    if (scroller.scrollHeight > scroller.clientHeight + 1) {
-      const grown = scroller.scrollHeight - heights.current.list;
-      return (
-        scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight - Math.max(grown, 0)
-      );
-    }
-    const grown = root.scrollHeight - heights.current.page;
-    return root.scrollHeight - window.scrollY - window.innerHeight - Math.max(grown, 0);
+    const grown = scroller.scrollHeight - heights.current;
+    return scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight - Math.max(grown, 0);
   }
 
   function rememberHeights() {
     const scroller = scrollerRef.current;
-    if (scroller)
-      heights.current = {
-        list: scroller.scrollHeight,
-        page: document.documentElement.scrollHeight,
-      };
+    if (scroller) heights.current = scroller.scrollHeight;
   }
 
   // Follow the stream only if the reader was within 48 px of the bottom before this flush.
@@ -162,8 +138,41 @@ export function AnswerList({
     rememberHeights();
   }, [scrollSignal]);
 
+  // The list item survives a retry (it is keyed by slot), so a header Retry keeps focus as it turns into Stop. A
+  // failed card's Retry sits in the failed row, which a retry removes, and a retry that fails again (offline)
+  // removes the Stop it brought: while the retried answer settles, focus follows it to whichever Stop or Retry the
+  // card shows now. It lets go once the answer is done or the reader has moved focus elsewhere.
+  const refocusSlot = useRef<string | null>(null);
+  function retryKeepingFocus(a: Answer) {
+    const item = scrollerRef.current?.querySelector(`[data-answer-slot="${slotOf(a)}"]`);
+    refocusSlot.current = item?.contains(document.activeElement) ? slotOf(a) : null;
+    onRetry(a.id);
+  }
+  useEffect(() => {
+    const slot = refocusSlot.current;
+    if (!slot) return;
+    const answer = answers.find((a) => slotOf(a) === slot);
+    const item = scrollerRef.current?.querySelector(`[data-answer-slot="${slot}"]`);
+    const active = document.activeElement;
+    const lost = !active || active === document.body || !active.isConnected;
+    if (!answer || !item || (!lost && !item.contains(active))) {
+      refocusSlot.current = null;
+      return;
+    }
+    // After the commit the card has re-rendered (the lazy card is synchronous once loaded); wait one frame for it.
+    const frame = requestAnimationFrame(() => {
+      const now = document.activeElement;
+      if (now && now !== document.body && now.isConnected) return;
+      item.querySelector<HTMLElement>("[data-answer-action]")?.focus();
+    });
+    if (answer.status === "done") refocusSlot.current = null;
+    return () => cancelAnimationFrame(frame);
+  }, [answers]);
+
   const { shown, folded } = visibleAnswers(answers, showAll);
   const showNewText = hasAnswers && leftAt !== null && leftAt !== signature;
+  // More answer below the panel's edge: the list fades out over its last 24 px instead of cutting text off.
+  const moreBelow = hasAnswers && leftAt !== null;
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -194,14 +203,18 @@ export function AnswerList({
               Earlier · {folded} {folded === 1 ? "answer" : "answers"}
             </Button>
           ) : null}
-          <ol className="flex flex-col gap-4">
+          <ol className="flex flex-col gap-4" aria-busy={streaming}>
             {shown.map((a) => (
-              <li key={a.id}>
+              <li
+                key={slotOf(a)}
+                data-answer-slot={slotOf(a)}
+                className={a.retried ? "answer-retry" : undefined}
+              >
                 <AnswerCard
                   answer={a}
                   isLatest={a.id === last?.id}
                   onStop={() => onStop(a.id)}
-                  onRetry={() => onRetry(a.id)}
+                  onRetry={() => retryKeepingFocus(a)}
                   onTry={onTry}
                 />
               </li>
@@ -212,6 +225,13 @@ export function AnswerList({
       ) : (
         <EmptyState context={context} onPick={onPick} />
       )}
+      {moreBelow ? (
+        <div
+          aria-hidden
+          data-slot="answers-fade"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-linear-to-b from-transparent to-[var(--panel-bg,var(--surface-raised))]"
+        />
+      ) : null}
       {showNewText ? (
         <Button
           type="button"

@@ -97,10 +97,9 @@ export function KpiTile({
       <p
         data-slot="kpi-delta"
         data-direction={delta.direction}
-        {...(status ? { title: delta.value } : {})}
         className={cn(
           "num flex items-center gap-x-1 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
-          // The status tile's caption is one line; the full text is in its title.
+          // The status tile's caption wraps between its parts ("Attainment 102.6% ·" / "Growth +12.7%"), never mid-part.
           status ? "min-w-0" : "flex-wrap",
         )}
       >
@@ -115,8 +114,8 @@ export function KpiTile({
               strokeWidth={ICON_STROKE}
             />
           )}
-          <span className={cn("font-medium", DELTA_STYLE[delta.direction], status && "truncate")}>
-            {delta.value}
+          <span className={cn("font-medium", DELTA_STYLE[delta.direction])}>
+            {status ? <StatusCaption text={delta.value} /> : delta.value}
           </span>
         </span>
         {delta.comparison ? (
@@ -133,4 +132,16 @@ export function KpiTile({
       ) : null}
     </div>
   );
+}
+
+/** "Attainment 102.6% · Growth +12.7%" as parts that wrap only at the separator, which stays at the line's end. */
+function StatusCaption({ text }: { text: string }) {
+  const parts = text.split(" · ");
+  return parts.map((part, i) => (
+    <span key={i} className="whitespace-nowrap">
+      {part}
+      {i < parts.length - 1 ? " · " : ""}
+      {i < parts.length - 1 ? <wbr /> : null}
+    </span>
+  ));
 }

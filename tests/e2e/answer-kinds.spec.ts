@@ -42,24 +42,38 @@ test("an out-of-scope question abstains, and Try fills the composer without send
   expect(results.violations).toEqual([]);
 });
 
-test("force error shows the Request failed notice, and Retry re-sends", async ({ page }) => {
+test("force error shows the failure in the AI card, and Retry re-sends in place", async ({
+  page,
+}) => {
   await page.goto("/");
   await ask(page, "force error");
   const alert = page.getByRole("alert").filter({ hasText: "Request failed" });
   await expect(alert).toBeVisible({ timeout: 8000 });
-  await expect(alert).toContainText("The assistant could not answer. Nothing was changed.");
+  await expect(alert).toContainText("Request failed · nothing was answered");
   await expect(page.getByRole("img", { name: /confidence/i })).toHaveCount(0);
 
   await alert.getByRole("button", { name: "Retry" }).click();
-  await expect(page.locator('[data-slot="question-echo"]')).toHaveCount(2);
-  await expect(page.getByRole("alert").filter({ hasText: "Request failed" })).toHaveCount(2, {
+  // Retry replaces the failed card: errors never stack.
+  await expect(page.locator('[data-slot="question-echo"]')).toHaveCount(1);
+  await expect(page.getByRole("alert").filter({ hasText: "Request failed" })).toHaveCount(1, {
     timeout: 8000,
   });
 });
 
-test("an unmatched question renders the default low-confidence answer", async ({ page }) => {
+test("an off-topic input abstains instead of giving the portfolio default", async ({ page }) => {
   await page.goto("/");
   await ask(page, "hello");
+  await expect(
+    page.getByText("I can't answer that from this data. Try a market, region, product or KPI."),
+  ).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText("Can’t answer from this data")).toBeVisible();
+});
+
+test("an unmatched question about the data renders the default low-confidence answer", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await ask(page, "How are units doing?");
   await expect(page.getByText(/I don't have enough in this dataset/)).toBeVisible({
     timeout: 8000,
   });
@@ -84,11 +98,12 @@ test("a stream that errors after two tokens keeps them marked partial, with the 
   await page.goto("/");
   await ask(page, "Why did Germany dip?");
   await expect(page.getByText("Germany fell sharply")).toBeVisible();
-  await expect(page.getByText("Failed · partial answer")).toBeVisible();
-  await expect(page.getByText("Partial · no sources", { exact: true })).toBeVisible();
+
   await expect(
     page.getByText("Request failed before sources arrived. Retry to get citations."),
   ).toBeVisible();
-  await expect(page.getByRole("alert").filter({ hasText: "Request failed" })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "Request failed" })).toContainText(
+    "Request failed · partial answer",
+  );
   await expect(page.getByRole("list", { name: "Citations" })).toHaveCount(0);
 });

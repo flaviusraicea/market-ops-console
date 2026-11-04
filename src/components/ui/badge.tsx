@@ -11,6 +11,8 @@ const badgeVariants = cva(
     variants: {
       variant: {
         neutral: "border border-border bg-surface-2 text-ink-2",
+        // A partial state on an AI card ("Partial · stopped"): the warn pair, not a status mark.
+        warn: "bg-warn-bg text-warn-text",
       },
     },
     defaultVariants: {

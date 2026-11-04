@@ -11,6 +11,7 @@ import {
   type Kind,
   type Resolution,
 } from "@/domain";
+import { loadConversation, saveConversation } from "./conversationStore";
 import { claimTextFor } from "./inlineMap";
 import type { AskContext } from "./askWhy";
 import { useDataset } from "@/lib/context/dataset";
@@ -19,8 +20,35 @@ import { askStream, type AskStream } from "@/lib/stream/chatClient";
 
 export type Resolved = { citation: Citation; resolution: Resolution };
 
-/** `about` is where the question was asked from, e.g. "Portfolio · May 2026". */
-type Base = { id: string; question: string; about?: string };
+/**
+ * `about` is where the question was asked from, e.g. "Portfolio · May 2026"; `context` is that view (entity and
+ * period), sent with the question and again with a retry, also after a reload, and read by the card to say when an
+ * answer covers more than the view (scopeNote.ts).
+ */
+type Base = {
+  id: string;
+  question: string;
+  about?: string;
+  context?: ChatContext;
+  /**
+   * The first id of the answer in this place in the list. A retry gets a new id (a new stream) but keeps the slot,
+   * so the list item, and the Stop/Retry button that had focus, survive the retry.
+   */
+  slot?: string;
+  /** This answer replaced a stopped or failed one in place: its card fades in (globals.css `.answer-retry`). */
+  retried?: boolean;
+};
+type Origin = Pick<Base, "about" | "context" | "slot">;
+
+/** Where a question came from, carried from one state of its answer to the next. */
+const carry = ({ about, context, slot }: Origin): Origin => ({
+  ...(about ? { about } : {}),
+  ...(context ? { context } : {}),
+  ...(slot ? { slot } : {}),
+});
+
+/** The key that keeps an answer's place in the list across retries. */
+export const slotOf = (a: Pick<Base, "id" | "slot">): string => a.slot ?? a.id;
 
 /** One answer's lifecycle (architecture.md section 7). A stopped answer is partial: no citations, no confidence. */
 export type AnswerState =
@@ -39,7 +67,7 @@ export type AnswerState =
 export type Answer = Exclude<AnswerState, { status: "idle" }>;
 
 export type AnswerAction =
-  | { type: "ASK"; id: string; question: string; about?: string; controller: AbortController }
+  | ({ type: "ASK"; id: string; question: string; controller: AbortController } & Origin)
   | { type: "TOKEN_FLUSH"; text: string }
   | {
       type: "DONE";
@@ -59,7 +87,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "streaming",
         id: action.id,
         question: action.question,
-        ...(action.about ? { about: action.about } : {}),
+        ...carry(action),
         text: "",
         controller: action.controller,
       };
@@ -80,7 +108,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "done",
         id: state.id,
         question: state.question,
-        ...(state.about ? { about: state.about } : {}),
+        ...carry(state),
         text: state.text,
         kind: action.kind,
         confidence: action.confidence,
@@ -93,7 +121,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "stopped",
         id: state.id,
         question: state.question,
-        ...(state.about ? { about: state.about } : {}),
+        ...carry(state),
         text: state.text,
       };
     case "ERROR":
@@ -102,7 +130,7 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "failed",
         id: state.id,
         question: state.question,
-        ...(state.about ? { about: state.about } : {}),
+        ...carry(state),
         text: state.text,
         message: action.message,
       };
@@ -112,18 +140,24 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
         status: "streaming",
         id: action.id,
         question: state.question,
-        ...(state.about ? { about: state.about } : {}),
+        ...carry(state),
+        slot: slotOf(state),
         text: "",
         controller: action.controller,
       };
   }
 }
 
-/** `id` addresses the answer an action applies to. ASK appends a new answer; RETRY appends a copy of `id` re-asked. */
-export type HistoryMessage = { id: string; action: AnswerAction };
+/**
+ * `id` addresses the answer an action applies to. ASK appends a new answer; RETRY puts the re-asked answer in the
+ * place of `id`, so a retry never stacks a second question and card.
+ */
+export type HistoryMessage = { id: string; action: AnswerAction } | { restore: Answer[] };
 
-/** The session's answers, oldest first. In memory only. */
+/** The session's answers, oldest first. Kept in the tab's sessionStorage (conversationStore.ts) across reloads. */
 export function historyReducer(state: readonly Answer[], msg: HistoryMessage): Answer[] {
+  // A reload brings back what was asked before it, ahead of anything asked since.
+  if ("restore" in msg) return [...msg.restore, ...state];
   const { id, action } = msg;
   if (action.type === "ASK") {
     const next = answerReducer({ status: "idle" }, action);
@@ -133,7 +167,8 @@ export function historyReducer(state: readonly Answer[], msg: HistoryMessage): A
     const source = state.find((a) => a.id === id);
     if (!source) return [...state];
     const next = answerReducer(source, action);
-    return next === source || next.status === "idle" ? [...state] : [...state, next];
+    if (next === source || next.status === "idle") return [...state];
+    return state.map((a) => (a.id === id ? { ...next, retried: true } : a));
   }
   return state.map((a) => {
     if (a.id !== id) return a;
@@ -154,12 +189,28 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   const answersRef = useRef<readonly Answer[]>(answers);
   const flushers = useRef(new Map<string, () => void>());
   const seq = useRef(0);
-  // The view each answer was asked about, so a retry asks about the same view and not the one on screen now.
-  const contexts = useRef(new Map<string, ChatContext>());
 
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
+
+  // The tab's conversation survives a reload: restored after hydration (the server renders none), saved whenever no
+  // answer is streaming, and on leaving the page, where a stream in flight is kept as a stopped partial answer.
+  useEffect(() => {
+    const restored = loadConversation();
+    if (restored.length === 0) return;
+    const ids = restored.map((a) => Number(a.id.slice(1))).filter(Number.isFinite);
+    seq.current = Math.max(seq.current, ...ids);
+    dispatch({ restore: restored });
+  }, []);
+  useEffect(() => {
+    if (!answers.some((a) => a.status === "streaming")) saveConversation(answers);
+  }, [answers]);
+  useEffect(() => {
+    const onHide = () => saveConversation(answersRef.current);
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, []);
 
   useEffect(() => {
     const live = flushers.current;
@@ -170,7 +221,12 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   }, []);
 
   const run = useCallback(
-    async (id: string, question: string, controller: AbortController) => {
+    async (
+      id: string,
+      question: string,
+      context: ChatContext | undefined,
+      controller: AbortController,
+    ) => {
       // Tokens collect in a buffer; one TOKEN_FLUSH per animation frame keeps renders at frame rate.
       let pending = "";
       let frame = 0;
@@ -193,7 +249,6 @@ export function useAnswerMachine(stream: AskStream = askStream) {
       };
 
       try {
-        const context = contexts.current.get(id);
         await stream(question, {
           ...(context ? { context } : {}),
           signal: controller.signal,
@@ -245,7 +300,7 @@ export function useAnswerMachine(stream: AskStream = askStream) {
     (question: string, about?: AskContext) => {
       const id = `a${++seq.current}`;
       const controller = new AbortController();
-      if (about?.period) contexts.current.set(id, { entity: about.entity, period: about.period });
+      const context = about?.period ? { entity: about.entity, period: about.period } : undefined;
       dispatch({
         id,
         action: {
@@ -253,10 +308,11 @@ export function useAnswerMachine(stream: AskStream = askStream) {
           id,
           question,
           ...(about ? { about: about.label } : {}),
+          ...(context ? { context } : {}),
           controller,
         },
       });
-      void run(id, question, controller);
+      void run(id, question, context, controller);
     },
     [run],
   );
@@ -275,10 +331,9 @@ export function useAnswerMachine(stream: AskStream = askStream) {
       if (!source || source.status === "streaming") return;
       const id = `a${++seq.current}`;
       const controller = new AbortController();
-      const context = contexts.current.get(fromId);
-      if (context) contexts.current.set(id, context);
+      // The view the question was first asked about (kept through a reload), not the one on screen now.
       dispatch({ id: fromId, action: { type: "RETRY", id, controller } });
-      void run(id, source.question, controller);
+      void run(id, source.question, source.context, controller);
     },
     [run],
   );
