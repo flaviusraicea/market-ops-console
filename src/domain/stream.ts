@@ -1,3 +1,4 @@
+import "./zod";
 import { z } from "zod";
 
 import { EntitySchema, PeriodSchema, RegionIdSchema } from "./dataset";
