@@ -35,6 +35,8 @@ export const metadata: Metadata = {
   title: "Market Ops",
   description:
     "Market operations console: portfolio performance, forecast attainment and an assistant.",
+  // An internal console: search engines should neither list it nor follow its links.
+  robots: { index: false, follow: false },
 };
 
 // Applies a stored theme before first paint so there is no flash.
