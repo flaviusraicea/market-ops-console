@@ -4,7 +4,11 @@ import * as React from "react";
 
 import { cn } from "@/components/cn";
 
-import { STICKY_FIRST_CLASS, TABLE_CLASS, TABLE_SCROLL_CLASS } from "./table";
+import { STICKY_FIRST_CLASS, TABLE_CLASS } from "./table";
+
+/** A table wider than its card always shows a thin scrollbar. */
+const SCROLL_CLASS =
+  "relative w-full overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]";
 
 /**
  * The `Table` for the Analyst's wide grids, with the same classes. A 24 px fade sits at each edge that can still scroll. Cells marked
@@ -27,7 +31,7 @@ export function ScrollTable({
         data-overflow={edges.overflow ? "" : undefined}
         data-scroll-start={edges.start ? "" : undefined}
         data-scroll-end={edges.end ? "" : undefined}
-        className={TABLE_SCROLL_CLASS}
+        className={SCROLL_CLASS}
         onScroll={update}
         onFocus={(e) => {
           if (el) revealBetweenPins(el, e.target);

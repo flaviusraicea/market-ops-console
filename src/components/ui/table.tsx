@@ -6,9 +6,7 @@ import { EYEBROW_CLASS } from "@/components/Eyebrow";
 
 /** Classes shared with `ScrollTable` (ui/scroll-table). */
 export const TABLE_CLASS = "w-full caption-bottom text-[length:var(--text-body)] leading-[18px]";
-/** A table wider than its card always shows a thin scrollbar. */
-export const TABLE_SCROLL_CLASS =
-  "relative w-full overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-gutter:stable] [scrollbar-width:thin]";
+
 /** Where the table is wider than its card, the first column stays in view while the rest scrolls. */
 export const STICKY_FIRST_CLASS =
   "[&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_tbody_tr:hover>:first-child]:bg-surface-2 [&_tbody_tr[data-state=selected]>:first-child]:bg-accent-soft [&_thead_tr>:first-child]:bg-surface-2";
@@ -16,7 +14,7 @@ export const STICKY_FIRST_CLASS =
 /**
  * `stickyFirst` pins the first column (for a table that scrolls sideways on a phone). `scrollLabel` makes the
  * scrolling container a focusable named region, for tables wider than their card. `ScrollTable` (ui/scroll-table)
- * adds edge fades and pinned columns for the Analyst's wide grids.
+ * adds the always-visible scrollbar, edge fades and pinned columns for the Analyst's wide grids.
  */
 function Table({
   className,
@@ -27,7 +25,7 @@ function Table({
   return (
     <div
       data-slot="table-container"
-      className={TABLE_SCROLL_CLASS}
+      className="relative w-full overflow-x-auto"
       {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
     >
       <table
