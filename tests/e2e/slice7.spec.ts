@@ -32,13 +32,14 @@ test("Show sources is open by default for this answer, with four rows and the ca
   await atRiskAnswer(page);
   const trigger = page.getByRole("button", { name: /Hide sources \(4\)/ });
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
-  const region = page.getByRole("region", { name: "Sources table" });
-  await expect(region.getByRole("row")).toHaveCount(5); // header + four
-  const first = region.getByRole("row").nth(1);
+  const list = page.getByRole("list", { name: "Sources" });
+  await expect(list.getByRole("listitem")).toHaveCount(4);
+  const first = list.getByRole("listitem").first();
   await expect(first.locator("svg.lucide-triangle-alert")).toHaveCount(1);
-  const assistant = first.getByRole("cell").last();
-  await expect(assistant).toHaveText("At risk");
+  const assistant = first.getByText("At risk", { exact: true });
   await expect(assistant).toHaveClass(/text-warn-text/);
+  // Nothing scrolls sideways in the panel.
+  expect(await list.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   await expect(page.getByText("Sources · data.json · attainment as given · derived")).toBeVisible();
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
@@ -51,7 +52,7 @@ test("the sources table stays closed when nothing disagrees", async ({ page }) =
   await expect(trigger).toBeVisible({ timeout: 5000 });
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
   await trigger.click();
-  await expect(page.getByRole("region", { name: "Sources table" }).getByRole("row")).toHaveCount(4);
+  await expect(page.getByRole("list", { name: "Sources" }).getByRole("listitem")).toHaveCount(3);
 });
 
 test("following the Germany chip shows Germany as Off track on the dashboard", async ({ page }) => {

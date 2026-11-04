@@ -538,3 +538,13 @@ html[data-reduced-motion="true"] [data-slot="tooltip-content"][data-state="close
     }
   }
 }
+
+/* A retried answer takes the failed or stopped card's place and fades in over it (Fable, chrome verdict F09). */
+@keyframes answer-retry-in {
+  from {
+    opacity: 0;
+  }
+}
+.answer-retry {
+  animation: answer-retry-in var(--dur-fast) var(--ease);
+}

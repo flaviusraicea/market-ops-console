@@ -22,7 +22,7 @@ import { useDataset } from "@/lib/context/dataset";
 import { formatPeriodAbbr } from "@/lib/format";
 import { scopeNote } from "./scopeNote";
 import { SUGGESTIONS } from "./Suggestions";
-import { CitationRow } from "./CitationRow";
+import { CitationRow, useFollowCitation } from "./CitationRow";
 import { SourcesTable } from "./SourcesTable";
 import { useSourcesRows } from "./useSourcesRows";
 import { renderWithCitations, splitParagraphs } from "./renderWithCitations";
@@ -156,7 +156,7 @@ function CardHeader({
   return (
     <div
       data-slot="card-header"
-      className="flex min-h-[var(--chip-h)] items-center justify-between gap-x-1.5"
+      className="flex min-h-[var(--chip-h)] items-center justify-between gap-x-3"
     >
       <div className="flex min-w-0 items-center gap-x-2.5">
         <Eyebrow className="inline-flex items-center gap-1.5 text-ai-label">
@@ -313,6 +313,7 @@ function AbstainNote({ question, onTry }: { question: string; onTry: (text: stri
 /** Show sources opens by itself only when the assistant disagrees with the data, so that is the first thing seen. */
 function SourcesDisclosure({ answer }: { answer: Extract<Answer, { status: "done" }> }) {
   const sources = useSourcesRows(answer.citations);
+  const follow = useFollowCitation(answer.id, answer.citations);
   const disagrees = answer.citations.some((c) => c.resolution.ok && c.resolution.disagreement);
   const [open, setOpen] = useState(disagrees);
   return (
@@ -329,7 +330,7 @@ function SourcesDisclosure({ answer }: { answer: Extract<Answer, { status: "done
       </CollapsibleTrigger>
       <CollapsibleContent>
         {sources.status === "ready" ? (
-          <SourcesTable rows={sources.rows} caption={sources.caption} />
+          <SourcesTable rows={sources.rows} caption={sources.caption} onFollow={follow} />
         ) : (
           <SourcesTable rows={[]} caption="" loading placeholderRows={answer.citations.length} />
         )}

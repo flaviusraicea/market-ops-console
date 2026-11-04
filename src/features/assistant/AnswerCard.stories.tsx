@@ -107,10 +107,8 @@ export const Done: Story = {
     await expect(sources).toBeEnabled();
     await expect(sources).toHaveAttribute("aria-expanded", "false");
     await userEvent.click(sources);
-    const table = await canvas.findByRole("region", { name: "Sources table" });
-    await expect(
-      await within(table).findByRole("row", { name: /Fell in early 2026/ }),
-    ).toBeVisible();
+    const list = await canvas.findByRole("list", { name: "Sources" });
+    await expect(await within(list).findByText("Fell in early 2026")).toBeVisible();
     await expect(canvas.getByRole("button", { name: /Hide sources \(3\)/ })).toBeInTheDocument();
     await expect(
       canvas.getByText("Sources · data.json · attainment as given · derived"),

@@ -30,7 +30,7 @@ test("the differs note leads the chip area and the sources table is open", async
     "aria-expanded",
     "true",
   );
-  await expect(page.getByRole("region", { name: "Sources table" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Sources" })).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);

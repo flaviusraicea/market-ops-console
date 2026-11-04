@@ -57,7 +57,7 @@ export const GermanyDip: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getAllByRole("row")).toHaveLength(4); // header + 3
+    await expect(canvas.getAllByRole("listitem")).toHaveLength(3);
     await expect(canvasElement.querySelector("svg")).toBeNull();
   },
 };
@@ -110,12 +110,14 @@ export const AtRisk: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const region = canvas.getByRole("region", { name: "Sources table" });
-    await expect(region).toHaveAttribute("tabindex", "0");
-    await expect(canvas.getAllByRole("row")).toHaveLength(5);
-    const row = canvas.getByRole("row", { name: /Germany at risk/ });
-    await expect(row.querySelector("svg")).not.toBeNull();
-    await expect(within(row).getByRole("cell", { name: "At risk" })).toHaveClass("text-warn-text");
+    const list = canvas.getByRole("list", { name: "Sources" });
+    const items = within(list).getAllByRole("listitem");
+    await expect(items).toHaveLength(4);
+    // Stacked items: nothing scrolls sideways in the panel.
+    await expect(list.scrollWidth).toBeLessThanOrEqual(list.clientWidth);
+    const first = items[0]!;
+    await expect(first.querySelector("svg")).not.toBeNull();
+    await expect(within(first).getByText("At risk", { exact: true })).toHaveClass("text-warn-text");
     await expect(canvasElement.querySelectorAll("svg")).toHaveLength(1);
   },
 };

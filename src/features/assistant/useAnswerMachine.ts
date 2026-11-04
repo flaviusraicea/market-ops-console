@@ -12,6 +12,7 @@ import {
   type Kind,
   type Resolution,
 } from "@/domain";
+import { loadConversation, saveConversation } from "./conversationStore";
 import { claimTextFor } from "./inlineMap";
 import type { AskContext } from "./askWhy";
 import { useDataset } from "@/lib/context/dataset";
@@ -24,7 +25,14 @@ export type Resolved = { citation: Citation; resolution: Resolution };
  * `about` is where the question was asked from, e.g. "Portfolio · May 2026"; `asked` is that view's entity, so the
  * card can say when an answer covers more than the view (scopeNote.ts).
  */
-type Base = { id: string; question: string; about?: string; asked?: Entity };
+type Base = {
+  id: string;
+  question: string;
+  about?: string;
+  asked?: Entity;
+  /** This answer replaced a stopped or failed one in place: its card fades in (globals.css `.answer-retry`). */
+  retried?: boolean;
+};
 type Origin = Pick<Base, "about" | "asked">;
 
 /** Where a question came from, carried from one state of its answer to the next. */
@@ -130,11 +138,16 @@ export function answerReducer(state: AnswerState, action: AnswerAction): AnswerS
   }
 }
 
-/** `id` addresses the answer an action applies to. ASK appends a new answer; RETRY appends a copy of `id` re-asked. */
-export type HistoryMessage = { id: string; action: AnswerAction };
+/**
+ * `id` addresses the answer an action applies to. ASK appends a new answer; RETRY puts the re-asked answer in the
+ * place of `id`, so a retry never stacks a second question and card.
+ */
+export type HistoryMessage = { id: string; action: AnswerAction } | { restore: Answer[] };
 
-/** The session's answers, oldest first. In memory only. */
+/** The session's answers, oldest first. Kept in the tab's sessionStorage (conversationStore.ts) across reloads. */
 export function historyReducer(state: readonly Answer[], msg: HistoryMessage): Answer[] {
+  // A reload brings back what was asked before it, ahead of anything asked since.
+  if ("restore" in msg) return [...msg.restore, ...state];
   const { id, action } = msg;
   if (action.type === "ASK") {
     const next = answerReducer({ status: "idle" }, action);
@@ -144,7 +157,8 @@ export function historyReducer(state: readonly Answer[], msg: HistoryMessage): A
     const source = state.find((a) => a.id === id);
     if (!source) return [...state];
     const next = answerReducer(source, action);
-    return next === source || next.status === "idle" ? [...state] : [...state, next];
+    if (next === source || next.status === "idle") return [...state];
+    return state.map((a) => (a.id === id ? { ...next, retried: true } : a));
   }
   return state.map((a) => {
     if (a.id !== id) return a;
@@ -171,6 +185,24 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
+
+  // The tab's conversation survives a reload: restored after hydration (the server renders none), saved whenever no
+  // answer is streaming, and on leaving the page, where a stream in flight is kept as a stopped partial answer.
+  useEffect(() => {
+    const restored = loadConversation();
+    if (restored.length === 0) return;
+    const ids = restored.map((a) => Number(a.id.slice(1))).filter(Number.isFinite);
+    seq.current = Math.max(seq.current, ...ids);
+    dispatch({ restore: restored });
+  }, []);
+  useEffect(() => {
+    if (!answers.some((a) => a.status === "streaming")) saveConversation(answers);
+  }, [answers]);
+  useEffect(() => {
+    const onHide = () => saveConversation(answersRef.current);
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, []);
 
   useEffect(() => {
     const live = flushers.current;

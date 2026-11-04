@@ -1,88 +1,95 @@
 import { ICON_STROKE, TriangleAlert } from "@/components/icons";
 import { cn } from "@/components/cn";
-import { EYEBROW_CLASS } from "@/components/Eyebrow";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SourceRow } from "./sourcesRows";
-
-const HEADERS = ["Claim", "Entity", "Period", "Source value", "Assistant"] as const;
-
-const CELL = "px-3 py-2 align-top";
 
 type SourcesTableProps = {
   rows: readonly SourceRow[];
   caption: string;
   loading?: boolean;
   placeholderRows?: number;
+  /** Follows citation `i` (row `i` is citation `i`): the claim is the citation's link. */
+  onFollow?: (i: number) => void;
 };
 
+const LABEL = "text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted";
+const LINE = "text-[length:var(--text-label)] leading-[var(--text-label-lh)]";
+
 /**
- * Design-system.md 6.9: what the answer cited, read from data.json. The surface colour differs from the
- * AI card on purpose, so the table reads as source data. Inside the 380 px panel it scrolls sideways in a
- * focusable region.
+ * Design-system.md 6.9: what the answer cited, read from data.json. One stacked item per claim, so nothing scrolls
+ * sideways in the 380 px panel: the claim (the citation's link), then entity and period, then the source's value
+ * and what the assistant said, each labelled. The surface differs from the AI card on purpose, so it reads as
+ * source data.
  */
 export function SourcesTable({
   rows,
   caption,
   loading = false,
   placeholderRows = 3,
+  onFollow,
 }: SourcesTableProps) {
   return (
     <div className="mt-3 flex flex-col gap-2">
-      <div
+      <ol
+        aria-label="Sources"
         aria-busy={loading || undefined}
-        role="region"
-        aria-label="Sources table"
-        tabIndex={0}
-        className="overflow-x-auto rounded-control border border-border bg-surface"
+        className="rounded-control border border-border bg-surface px-3"
       >
-        <table className="w-full min-w-[560px] border-collapse [&_tr>:first-child]:sticky [&_tr>:first-child]:left-0 [&_tr>:first-child]:z-[1] [&_tbody_tr>:first-child]:bg-surface [&_thead_tr>:first-child]:bg-surface-2 text-left text-[length:var(--text-body)] leading-[18px]">
-          <caption className="sr-only">Sources cited by this answer</caption>
-          <thead>
-            <tr className="border-b border-border bg-surface-2">
-              {HEADERS.map((h) => (
-                <th key={h} scope="col" className={cn(CELL, EYEBROW_CLASS, "text-ink-muted")}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading
-              ? Array.from({ length: placeholderRows }, (_, i) => (
-                  <tr key={i} className="border-b border-border last:border-b-0">
-                    {HEADERS.map((h) => (
-                      <td key={h} className={CELL}>
-                        <Skeleton className="h-4 w-full" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              : rows.map((row, i) => (
-                  <tr key={i} className="border-b border-border text-ink last:border-b-0">
-                    <th scope="row" className={cn(CELL, "font-normal")}>
-                      {row.disagreement ? (
-                        <>
-                          <TriangleAlert
-                            aria-hidden
-                            className="mr-1 inline size-3 align-[-1px] text-warn-text"
-                            strokeWidth={ICON_STROKE}
-                          />
-                          <span className="sr-only">Differs from source: </span>
-                        </>
-                      ) : null}
+        {loading
+          ? Array.from({ length: placeholderRows }, (_, i) => (
+              <li
+                key={i}
+                className="flex flex-col gap-1.5 border-b border-border py-2.5 last:border-b-0"
+              >
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+                <Skeleton className="h-3 w-2/3" />
+              </li>
+            ))
+          : rows.map((row, i) => (
+              <li
+                key={i}
+                className="flex flex-col gap-0.5 border-b border-border py-2.5 last:border-b-0"
+              >
+                <p className="text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink">
+                  {row.disagreement ? (
+                    <>
+                      <TriangleAlert
+                        aria-hidden
+                        className="mr-1 inline size-3 align-[-1px] text-warn-text"
+                        strokeWidth={ICON_STROKE}
+                      />
+                      <span className="sr-only">Differs from source: </span>
+                    </>
+                  ) : null}
+                  {row.resolved && onFollow ? (
+                    <button
+                      type="button"
+                      onClick={() => onFollow(i)}
+                      className="cite-inline rounded-control text-left"
+                    >
                       {row.claim}
-                    </th>
-                    <td className={cn(CELL, !row.resolved && "text-ink-muted")}>{row.entity}</td>
-                    <td className={cn(CELL, "whitespace-nowrap")}>{row.period}</td>
-                    <td className={CELL}>{row.sourceValue}</td>
-                    <td className={cn(CELL, row.disagreement && "text-warn-text")}>
-                      {row.assistant}
-                    </td>
-                  </tr>
-                ))}
-          </tbody>
-        </table>
-      </div>
+                    </button>
+                  ) : (
+                    row.claim
+                  )}
+                </p>
+                <p className={cn(LINE, "text-ink-muted")}>
+                  {row.entity} · {row.period}
+                </p>
+                <p className={LINE}>
+                  <span className={LABEL}>Source </span>
+                  <span className="text-ink">{row.sourceValue}</span>
+                </p>
+                <p className={LINE}>
+                  <span className={LABEL}>Assistant </span>
+                  <span className={row.disagreement ? "text-warn-text" : "text-ai-label"}>
+                    {row.assistant}
+                  </span>
+                </p>
+              </li>
+            ))}
+      </ol>
       <p className="text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
         {loading ? <span className="sr-only">Loading sources</span> : caption}
       </p>

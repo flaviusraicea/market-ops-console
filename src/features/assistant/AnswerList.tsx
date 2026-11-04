@@ -140,7 +140,7 @@ export function AnswerList({
         >
           <ol className="flex flex-col gap-4" aria-busy={streaming}>
             {answers.map((a) => (
-              <li key={a.id}>
+              <li key={a.id} className={a.retried ? "answer-retry" : undefined}>
                 <AnswerCard
                   answer={a}
                   isLatest={a.id === last?.id}

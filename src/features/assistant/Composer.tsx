@@ -2,13 +2,18 @@
 
 import { useEffect, useLayoutEffect, type Ref } from "react";
 
+import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ArrowUp, ICON_STROKE, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { formatInt } from "@/lib/format";
 import { warmAnswerCard } from "./AnswerCardLazy";
 
 const MAX_ROWS = 4;
+/** The longest question the composer sends; the counter shows from COUNT_FROM. */
+const MAX_CHARS = 1000;
+const COUNT_FROM = 900;
 
 /**
  * `field-sizing: content` grows the box with its text, capped by max-h, and re-measures by itself when the panel is
@@ -67,9 +72,13 @@ export function Composer({
     return () => observer.disconnect();
   }, []);
 
+  const tooLong = value.length > MAX_CHARS;
+  const showCount = value.length >= COUNT_FROM;
+
   function submit() {
     const question = value.trim();
-    if (!question || disabled) return;
+    // While an answer streams the draft stays and Enter does nothing; Stop or wait, then send.
+    if (!question || disabled || tooLong) return;
     onSubmit(question);
     onChange("");
   }
@@ -108,12 +117,17 @@ export function Composer({
           ref={textareaRef}
           rows={1}
           value={value}
-          // Read-only rather than disabled while an answer streams, so the textarea keeps focus.
-          readOnly={disabled}
-          aria-disabled={disabled || undefined}
+          // Typing stays open while an answer streams, so a follow-up can be drafted; only sending waits.
+          aria-invalid={tooLong || undefined}
           aria-describedby={
-            [note ? "ask-note" : "", simulated ? "ask-live" : ""].filter(Boolean).join(" ") ||
-            undefined
+            [
+              disabled ? "ask-wait" : "",
+              showCount ? "ask-count" : "",
+              note ? "ask-note" : "",
+              simulated ? "ask-live" : "",
+            ]
+              .filter(Boolean)
+              .join(" ") || undefined
           }
           placeholder="Ask about a market or period…"
           onChange={(e) => {
@@ -127,18 +141,31 @@ export function Composer({
               submit();
             }
           }}
-          className="field-sizing-content min-h-[var(--composer-row)] max-h-[100px] resize-none overflow-y-auto aria-disabled:cursor-not-allowed aria-disabled:bg-surface-2"
+          className="field-sizing-content min-h-[var(--composer-row)] max-h-[100px] resize-none overflow-y-auto"
         />
         <Button
           type="submit"
           size="icon"
           aria-label="Send"
-          disabled={disabled}
+          disabled={disabled || tooLong}
           className="size-[var(--composer-row)]"
         >
           <ArrowUp aria-hidden className="size-[18px]" strokeWidth={ICON_STROKE} />
         </Button>
       </form>
+      {disabled || showCount ? (
+        <div className="flex items-start justify-between gap-3 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] text-ink-muted">
+          {disabled ? <p id="ask-wait">Wait for the answer, or Stop.</p> : <span />}
+          {showCount ? (
+            <p
+              id="ask-count"
+              className={cn("num shrink-0", tooLong && "font-medium text-bad-text")}
+            >
+              {formatInt(value.length)} / {formatInt(MAX_CHARS)}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       {simulated ? (
         <p
           id="ask-live"
