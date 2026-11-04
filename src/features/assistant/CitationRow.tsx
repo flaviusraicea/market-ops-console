@@ -32,7 +32,7 @@ export function useFollowCitation(answerId: string, citations: readonly Resolved
     const next = targetToContext(resolution.target, ds);
     // A followed citation lands in Analyst; the answer that led there stays on screen.
     if (next.mode) openIn(next.mode);
-    follow(answerId, i);
+    follow(answerId, i, citations);
     setContext({ ...next, cite: i }, { history: "push" });
   };
 }

@@ -40,21 +40,21 @@ const NO_TARGET_MS = 1500;
 const SCROLL_END_FALLBACK_MS = 750;
 
 /**
- * Owns one landing at a time (motion-spec.md section 3, rows 3 and 4): when a followed chip's answer is the latest and
- * finished, wait for the page to stop moving, scroll the registered widget into view once, wait for the scroll to
+ * Owns one landing at a time (motion-spec.md section 3, rows 3 and 4): once no answer is streaming, wait for the page to stop moving, scroll the registered widget into view once, wait for the scroll to
  * end, then show the ring for --hold-highlight. One timer, so the widgets that share the landing (chart, tooltip,
  * grid) never drift apart. The reader scrolling cancels the scroll, never the ring.
  *
- * `cite` in the URL indexes the chips of the answer that was followed, so a landing needs that answer to still be
- * the latest: a later question never re-lands an earlier chip. Each follow is its own landing (`n`).
+ * `cite` in the URL indexes the chips of the answer that was followed, so it resolves against that answer's
+ * citations, whether or not it is still the latest (a chip in an older answer lands too). A stale URL does not
+ * re-land: the landing key is answerId:n:cite. Each follow is its own landing (`n`).
  */
 export function LandingProvider({ children }: { children: ReactNode }) {
   const { ctx } = useConsoleContext();
   const latest = useLatestAnswer();
   const { followed } = useFollowed();
   const resolution =
-    ctx.cite !== undefined && latest?.status === "done" && followed?.answerId === latest.id
-      ? latest.citations[ctx.cite]?.resolution
+    ctx.cite !== undefined && latest?.status === "done" && followed
+      ? followed.citations[ctx.cite]?.resolution
       : undefined;
   const target = resolution?.ok ? resolution.target : undefined;
   const widget = target ? landingWidget(target) : undefined;

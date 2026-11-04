@@ -137,6 +137,14 @@ body {
   outline: none;
 }
 
+/* Elements that only receive focus from code (the page heading, the #main skip target, the landed row) are not
+   operable controls, so they draw no ring; focus still moves there so a screen reader announces the new page.
+   Real controls keep theirs. */
+[data-focus-ring="none"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 /* A map market draws its ring as a stroke along the country's outline (Choropleth), because a native outline on an
    SVG path boxes the bounding rectangle. */
 [data-focus-ring="stroke"]:focus,

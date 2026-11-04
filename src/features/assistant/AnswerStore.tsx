@@ -10,10 +10,16 @@ import {
   type ReactNode,
 } from "react";
 
-import type { Answer } from "./useAnswerMachine";
+import type { Answer, Resolved } from "./useAnswerMachine";
 
-/** The chip the reader followed. `n` counts follows, so following the same chip again is a new landing. */
-export type Followed = { answerId: string; index: number; n: number };
+type Citations = readonly Resolved[];
+
+/**
+ * The chip the reader followed, with the citations of the answer it belongs to, so a landing resolves `index`
+ * against that answer and not only the latest one. `n` counts follows, so following the same chip again is a
+ * new landing.
+ */
+export type Followed = { answerId: string; index: number; n: number; citations: Citations };
 
 type Store = { latest: Answer | undefined; publish: (a: Answer | undefined) => void };
 const StoreContext = createContext<Store>({ latest: undefined, publish: () => {} });
@@ -21,7 +27,7 @@ const StoreContext = createContext<Store>({ latest: undefined, publish: () => {}
 // Apart from the store so that following a chip does not re-render everything that reads the answers.
 type FollowedStore = {
   followed: Followed | null;
-  follow: (answerId: string, index: number) => void;
+  follow: (answerId: string, index: number, citations: Citations) => void;
 };
 const FollowedContext = createContext<FollowedStore>({ followed: null, follow: () => {} });
 
@@ -31,8 +37,8 @@ export function AnswerStoreProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({ latest, publish }), [latest]);
   const [followed, setFollowed] = useState<Followed | null>(null);
   const follow = useCallback(
-    (answerId: string, index: number) =>
-      setFollowed((prev) => ({ answerId, index, n: (prev?.n ?? 0) + 1 })),
+    (answerId: string, index: number, citations: Citations) =>
+      setFollowed((prev) => ({ answerId, index, citations, n: (prev?.n ?? 0) + 1 })),
     [],
   );
   const followedValue = useMemo(() => ({ followed, follow }), [followed, follow]);
