@@ -3,7 +3,7 @@
 import { StatusBadge } from "@/components/StatusBadge";
 import type { RegionId } from "@/domain";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
-import { CardHeader } from "@/components/CardHeader";
+import { CardCaption, CardHeader } from "@/components/CardHeader";
 import { cn } from "@/components/cn";
 import type { RegionBarsVM } from "./viewModel";
 
@@ -54,12 +54,7 @@ export function RegionBars({
         framed ? "rounded-card layer-card p-[var(--pad-card)]" : "px-[var(--pad-card)] py-3",
       )}
     >
-      <CardHeader
-        title="By region"
-        titleId="regions-h"
-        caption={bars.caption}
-        subtitle={bars.subtitle}
-      />
+      <CardHeader title="By region" titleId="regions-h" subtitle={bars.subtitle} />
       <ul>
         {bars.rows.map((row) => (
           <li
@@ -94,6 +89,7 @@ export function RegionBars({
         <strong className="font-semibold text-ink">{bars.sentence.lead}</strong>
         {bars.sentence.rest}
       </p>
+      <CardCaption>{bars.caption}</CardCaption>
     </section>
   );
 }

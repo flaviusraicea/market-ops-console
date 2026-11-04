@@ -162,3 +162,25 @@ for (const [width, rail] of [
     },
   );
 }
+
+test("Overview cards put the provenance caption bottom-right of the card, not in the title row", async ({
+  page,
+}) => {
+  for (const width of [1440, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await open(page, OVERVIEW);
+    for (const name of ["Needs attention", "By region"]) {
+      const region = card(page, name);
+      const header = region.locator('[data-slot="card-header"]');
+      const caption = region.locator("p.self-end").last();
+      const r = await region.boundingBox();
+      const h = await header.boundingBox();
+      const c = await caption.boundingBox();
+      if (!r || !h || !c) throw new Error(`${name} card not laid out at ${width}`);
+      expect(c.y).toBeGreaterThan(h.y + h.height);
+      expect(r.x + r.width - (c.x + c.width)).toBeLessThanOrEqual(40);
+      // The caption is the card's last line.
+      expect(r.y + r.height - (c.y + c.height)).toBeLessThanOrEqual(40);
+    }
+  }
+});

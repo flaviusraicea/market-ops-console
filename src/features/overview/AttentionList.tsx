@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/components/cn";
-import { CardHeader } from "@/components/CardHeader";
+import { CardCaption, CardHeader } from "@/components/CardHeader";
 import { ArrowDownRight, ArrowUpRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { EYEBROW_CLASS, Eyebrow } from "@/components/Eyebrow";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -309,12 +309,7 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
       aria-labelledby="attention-h"
       className="flex flex-col gap-3 rounded-card layer-card p-[var(--pad-card)]"
     >
-      <CardHeader
-        title="Needs attention"
-        titleId="attention-h"
-        subtitle={attention.caption}
-        caption={attention.provenance}
-      />
+      <CardHeader title="Needs attention" titleId="attention-h" subtitle={attention.caption} />
       {attention.rows.length === 0 ? (
         <p className="text-[length:var(--text-body)] leading-[var(--text-body-lh)] text-ink-2">
           All markets are on track.
@@ -392,6 +387,7 @@ export function AttentionList({ attention, onSelect, onAsk }: Props) {
           />
         </div>
       </div>
+      <CardCaption>{attention.provenance}</CardCaption>
     </section>
   );
 }
