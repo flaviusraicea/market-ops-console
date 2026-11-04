@@ -283,6 +283,8 @@ html[data-density="analyst"] {
     --text-body: 14px;
     --text-body-lh: 20px;
     --composer-row: 34px;
+    /* The chrome's own size, so nothing in it inherits the density's body size. */
+    font-size: var(--text-body);
   }
 }
 
