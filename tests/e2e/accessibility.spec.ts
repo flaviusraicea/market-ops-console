@@ -81,7 +81,8 @@ test.describe("density", () => {
       expect(await headerRow()).toBe(56);
       expect(await headerControlH()).toBe("36px"); // chrome does not follow density
       expect(await px('[role="toolbar"]', "height")).toBe(48);
-      expect(await px('[role="combobox"]', "height")).toBe(28);
+      // The toolbar's selects are chrome and keep the 36 px control; the data surface is dense.
+      expect(await px('[role="combobox"]', "height")).toBe(36);
       expect(await px("tbody tr", "height")).toBe(32);
       expect([await token("--row-h"), await token("--control-h")]).toEqual(["32px", "28px"]);
     });
