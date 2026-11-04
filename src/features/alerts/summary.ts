@@ -1,25 +1,17 @@
-// The folded Alerts row reads the saved rules without the form's code: no zod, no TanStack Query. It only needs
-// each rule's metric and threshold, so anything else in storage is ignored here and validated by the form later.
-import { RULES_CHANGED, STORAGE_KEY } from "./storageKey";
+// The folded Alerts row reads the saved rules without the form's code: no zod, no TanStack Query. It parses them with
+// the same hand-written check as storage.ts, so the row counts exactly the rules the list will show.
+import type { AlertRule } from "@/domain";
+import { parseAlertRule } from "@/domain/alertRule";
 import { METRIC_LABEL, formatThreshold } from "./labels";
+import { RULES_CHANGED, STORAGE_KEY } from "./storageKey";
 
-export type RuleSummary = { metric: keyof typeof METRIC_LABEL; threshold: number };
-
-const isSummary = (x: unknown): x is RuleSummary => {
-  if (typeof x !== "object" || x === null) return false;
-  const r = x as Record<string, unknown>;
-  return (
-    (r["metric"] === "growth" || r["metric"] === "attainment") &&
-    typeof r["threshold"] === "number" &&
-    Number.isFinite(r["threshold"])
-  );
-};
+export type RuleSummary = Pick<AlertRule, "metric" | "threshold">;
 
 let lastRaw: string | null | undefined;
-let lastRules: readonly RuleSummary[] = [];
+let lastRules: readonly AlertRule[] = [];
 
-/** The saved rules' metric and threshold. The same array comes back until storage changes. */
-export function readRuleSummaries(): readonly RuleSummary[] {
+/** The saved rules that parse. The same array comes back until storage changes. */
+export function readRuleSummaries(): readonly AlertRule[] {
   let raw: string | null;
   try {
     raw = window.localStorage.getItem(STORAGE_KEY);
@@ -30,7 +22,12 @@ export function readRuleSummaries(): readonly RuleSummary[] {
   lastRaw = raw;
   try {
     const parsed: unknown = raw === null ? [] : JSON.parse(raw);
-    lastRules = Array.isArray(parsed) ? parsed.filter(isSummary) : [];
+    lastRules = Array.isArray(parsed)
+      ? parsed.flatMap((item) => {
+          const rule = parseAlertRule(item);
+          return rule ? [rule] : [];
+        })
+      : [];
   } catch {
     lastRules = [];
   }
