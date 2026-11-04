@@ -9,7 +9,7 @@ const meta = {
   component: CardHeader,
   decorators: [
     (Story) => (
-      <div className="max-w-xl rounded-card border border-border bg-surface p-5">
+      <div className="max-w-xl rounded-sheet border border-border bg-surface p-5">
         <Story />
       </div>
     ),

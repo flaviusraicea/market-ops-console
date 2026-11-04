@@ -20,7 +20,7 @@ export function SignIn({ onPick }: { onPick: (role: Role) => void }) {
       >
         <section
           aria-labelledby="sign-in-heading"
-          className="flex w-full max-w-md flex-col gap-5 rounded-card layer-overlay p-6"
+          className="flex w-full max-w-md flex-col gap-5 rounded-sheet layer-overlay p-6"
         >
           <h1
             id="sign-in-heading"
@@ -44,7 +44,7 @@ export function SignIn({ onPick }: { onPick: (role: Role) => void }) {
                   <button
                     type="button"
                     onClick={() => onPick(role)}
-                    className="flex w-full flex-col items-start gap-1 rounded-card border border-border bg-surface px-4 py-3 text-left transition-colors duration-[var(--dur-fast)] hover:border-accent hover:bg-accent-soft"
+                    className="flex w-full flex-col items-start gap-1 rounded-sheet border border-border bg-surface px-4 py-3 text-left transition-colors duration-[var(--dur-fast)] hover:border-accent hover:bg-accent-soft"
                   >
                     <Eyebrow className="text-accent">{ROLE_LABEL[role]}</Eyebrow>
                     <span className="font-semibold">{persona.name}</span>

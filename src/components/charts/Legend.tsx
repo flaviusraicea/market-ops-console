@@ -25,7 +25,7 @@ function Swatch(item: Extract<LegendItem, { color: string }>) {
     return (
       <span
         aria-hidden
-        className="block h-3 w-full rounded-[2px] border border-border"
+        className="block h-3 w-full rounded-mark border border-border"
         style={{ background: c }}
       />
     );
