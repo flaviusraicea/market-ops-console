@@ -11,7 +11,6 @@ import {
 } from "react";
 
 import {
-  Table,
   TableBody,
   TableCaption,
   TableCell,
@@ -19,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ScrollTable } from "@/components/ui/scroll-table";
 import { cn } from "@/components/cn";
 import { ICON_STROKE, TriangleAlert } from "@/components/icons";
 import { formatMonthShort, formatPeriodAbbr, formatPeriodShort } from "@/lib/format";
@@ -314,7 +314,7 @@ export function HeatMapTable({
   periods: readonly string[];
 }) {
   return (
-    <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
+    <ScrollTable stickyFirst scrollLabel={`${caption}, scrollable`}>
       <TableCaption className="sr-only">{caption}</TableCaption>
       <TableHeader>
         <TableRow>
@@ -355,6 +355,6 @@ export function HeatMapTable({
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </ScrollTable>
   );
 }

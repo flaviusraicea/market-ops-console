@@ -9,7 +9,6 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AskWhyIconButton } from "@/features/assistant/AskWhyIconButton";
 import {
-  Table,
   TableBody,
   TableCaption,
   TableCell,
@@ -18,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ScrollTable } from "@/components/ui/scroll-table";
 import { useAskWhy } from "@/features/assistant/askWhy";
 import { askContext } from "@/features/assistant/questions";
 import { useConsoleContext } from "@/lib/context/useConsoleContext";
@@ -381,7 +381,7 @@ function MarketGridBody({ grid }: { grid: GridVM }): ReactNode {
       caption={grid.caption}
       landed={landing.active && kind !== "product" && kind !== "portfolio"}
     >
-      <Table
+      <ScrollTable
         scrollLabel={`${grid.title}, scrollable`}
         className="table-fixed"
         style={{ minWidth: minWidth(grid.kind === "markets" ? MARKET_COLS : PRODUCT_COLS) }}
@@ -402,7 +402,7 @@ function MarketGridBody({ grid }: { grid: GridVM }): ReactNode {
             onSort={setSort}
           />
         )}
-      </Table>
+      </ScrollTable>
     </SheetSection>
   );
 }

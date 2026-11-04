@@ -4,7 +4,6 @@ import { ParentSize } from "@visx/responsive";
 import { useCallback, useMemo, useRef, type FocusEvent, type MouseEvent } from "react";
 
 import {
-  Table,
   TableBody,
   TableCaption,
   TableCell,
@@ -12,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ScrollTable } from "@/components/ui/scroll-table";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
 import {
@@ -172,7 +172,7 @@ export function RadarChartTable({
   series: readonly RadarSeries[];
 }) {
   return (
-    <Table stickyFirst scrollLabel={`${caption}, scrollable`}>
+    <ScrollTable stickyFirst scrollLabel={`${caption}, scrollable`}>
       <TableCaption className="sr-only">{caption}</TableCaption>
       <TableHeader>
         <TableRow>
@@ -196,6 +196,6 @@ export function RadarChartTable({
           </TableRow>
         ))}
       </TableBody>
-    </Table>
+    </ScrollTable>
   );
 }
