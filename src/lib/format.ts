@@ -2,9 +2,9 @@
 const MINUS = "−";
 
 const int = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-const millions = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
+const sig3 = new Intl.NumberFormat("en-US", {
+  minimumSignificantDigits: 3,
+  maximumSignificantDigits: 3,
 });
 const one = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const monthLong = new Intl.DateTimeFormat("en-US", { month: "long", timeZone: "UTC" });
@@ -22,10 +22,18 @@ function parts(period: string): { y: number; m: number } {
   return { y, m };
 }
 
+/**
+ * The one compact money format, used everywhere except the facts table (which is exact): three significant digits
+ * in millions or thousands ("$1.32M", "$13.5M", "$176K", "$4.59K"), whole dollars under $1K ("$588").
+ * Changing the house rule is a change here only.
+ */
 export function formatMoneyCompact(n: number): string {
   const sign = n < 0 ? MINUS : "";
   const abs = Math.abs(n);
-  if (abs >= 100_000) return `${sign}$${millions.format(abs / 1_000_000)}M`;
+  // Round first, so 999,600 reads "$1.00M" and not "$1,000K".
+  const k = Number((abs / 1_000).toPrecision(3));
+  if (k >= 1_000) return `${sign}$${sig3.format(abs / 1_000_000)}M`;
+  if (abs >= 999.5) return `${sign}$${sig3.format(abs / 1_000)}K`;
   return `${sign}$${int.format(abs)}`;
 }
 
@@ -67,9 +75,10 @@ export function formatPeriodAbbr(p: string): string {
   return `${monthShort.format(new Date(Date.UTC(y, m - 1, 1)))} ${y}`;
 }
 
+/** "Dec ’24": a chart tick, with a curly apostrophe for the dropped century. */
 export function formatPeriodShort(p: string): string {
   const { y, m } = parts(p);
-  return `${monthShort.format(new Date(Date.UTC(y, m - 1, 1)))} ${String(y).slice(2)}`;
+  return `${monthShort.format(new Date(Date.UTC(y, m - 1, 1)))} ’${String(y).slice(2)}`;
 }
 
 /** "February": the month name alone, for sentences such as "versus February". */

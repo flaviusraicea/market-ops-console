@@ -14,7 +14,15 @@ import {
 } from "@/components/ui/table";
 import { ChartTooltip, useChartTooltip } from "./ChartTooltip";
 import { Frame } from "./Frame";
-import { RadarMarks, pointAt, type Geometry } from "./RadarMarks";
+import {
+  LABEL_GAP,
+  NO_DATA,
+  RadarMarks,
+  angleOf,
+  pointAt,
+  splitLabel,
+  type Geometry,
+} from "./RadarMarks";
 import { useChartKeyboard } from "./useChartKeyboard";
 
 export type RadarSeries = {
@@ -37,6 +45,26 @@ type RadarChartProps = {
 };
 
 const HEIGHT = 340;
+/** Room kept around the ring for the axis labels, in px. */
+const LABEL_RESERVE = 56;
+/** A label's width estimate per character at --text-label (12px Inter, medium); errs wide. */
+const CHAR_PX = 7;
+const EDGE_PX = 4;
+
+/**
+ * The ring's radius: half the smaller side less the label reserve, with no floor, then shrunk further if a side
+ * label would still cross the chart's edge. A narrow card (the panel open) draws a smaller radar, never a clipped one.
+ */
+export function fitRadius(width: number, axes: readonly string[]): number {
+  let radius = Math.min(width, HEIGHT) / 2 - LABEL_RESERVE;
+  axes.forEach((label, a) => {
+    const cos = Math.abs(Math.cos(angleOf(a, axes.length)));
+    if (cos < 0.3) return; // top and bottom labels are centred on their spoke
+    const text = Math.max(...splitLabel(label).map((l) => l.length), NO_DATA.length) * CHAR_PX;
+    radius = Math.min(radius, (width / 2 - EDGE_PX - text) / cos - LABEL_GAP);
+  });
+  return Math.max(radius, 24);
+}
 
 function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { width: number }) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -44,13 +72,8 @@ function RadarSvg({ width, axes, series, title, desc }: RadarChartProps & { widt
   const tip = useChartTooltip();
   const n = axes.length;
   const geometry = useMemo<Geometry>(
-    () => ({
-      cx: width / 2,
-      cy: HEIGHT / 2,
-      radius: Math.max(Math.min(120, (width - 200) / 2), 80),
-      n,
-    }),
-    [width, n],
+    () => ({ cx: width / 2, cy: HEIGHT / 2, radius: fitRadius(width, axes), n }),
+    [width, axes, n],
   );
   const point = useCallback((axis: number, r: number) => pointAt(geometry, axis, r), [geometry]);
 

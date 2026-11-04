@@ -90,10 +90,13 @@ test("the time-series table shows compact dollars with the exact figure on hover
   await expect(actual).toHaveAttribute("title", /^\$[\d,]+$/);
 });
 
-test("the radar drops Units YoY in the first year of data and says why", async ({ page }) => {
+test("the radar keeps Units YoY in the first year of data, marked no data, and says why", async ({
+  page,
+}) => {
   await open(page, `${EUROPE}&period=2025-03`);
   const radar = card(page, /^Compare/);
-  await expect(radar.locator('[data-axis="Units YoY"]')).toHaveCount(0);
+  await expect(radar.locator("[data-axis]")).toHaveCount(5);
+  await expect(radar.locator('[data-axis="Units YoY"]')).toContainText("no data");
   await expect(radar.getByText("Units YoY unavailable before Jun 2025")).toBeVisible();
 });
 

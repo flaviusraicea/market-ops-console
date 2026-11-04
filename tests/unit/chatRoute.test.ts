@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { POST } from "@/app/api/chat/route";
-import { STATUS_RULE_TEXT, type SseEvent } from "@/domain";
+import { type SseEvent } from "@/domain";
 import { ChatContextSchema } from "@/domain/stream";
 import fixtures from "@/data/fixtures.json";
 
@@ -134,33 +134,71 @@ describe("/api/chat follows the view the question was asked from", () => {
     }
   });
 
-  it("abstains on an Ask why about a status when only the data's figures exist, citing the status rule", async () => {
+  it("abstains on an Overview Ask why on France: no curated answer gives reasons, and the numbers are not an answer", async () => {
     const { text, done } = await ask({
       question: "Why is France at risk?",
       context: { entity: { kind: "market", marketId: "fr" }, period: "2026-05" },
     });
-    expect(text).toMatch(/^I can't say why France is at risk\. /);
-    expect(text).toContain("96.4% attainment and +");
-    expect(text).toContain("growth as of May 2026");
-    expect(text).toContain(STATUS_RULE_TEXT);
+    expect(text).toMatch(/^I can't say why from this data\./);
     expect(done).toMatchObject({ kind: "abstain", citations: [] });
   });
 
-  it("does not answer about the market in view when the question names two others", async () => {
-    const { text } = await ask({
-      question: "Why is Italy at risk compared with France?",
-      context: { entity: { kind: "market", marketId: "es" }, period: "2026-05" },
+  it("answers a generic why question from a market view with the portfolio answer, not the why abstain", async () => {
+    const question = "Why are markets off track?";
+    const portfolio = await ask({ question });
+    const { text, done } = await ask({
+      question,
+      context: { entity: { kind: "market", marketId: "it" }, period: "2026-05" },
     });
-    expect(text).not.toMatch(/Spain/);
+    expect(done).not.toMatchObject({ kind: "abstain" });
+    expect(text).toBe(portfolio.text);
   });
 
-  it("does not abstain on a question about several markets from a market view", async () => {
-    const { done } = await ask({
-      question: "Which markets are at risk this quarter, and why?",
-      context: { entity: { kind: "market", marketId: "fr" }, period: "2026-05" },
+  it.each(["Why is it at risk?", "Why is it off track?", "Why is this market off track?"])(
+    "abstains on a why question about the market in view (%s): no curated answer gives reasons",
+    async (question) => {
+      const { text, done } = await ask({
+        question,
+        context: { entity: { kind: "market", marketId: "it" }, period: "2026-05" },
+      });
+      expect(text).toMatch(/^I can't say why from this data\./);
+      expect(done).toMatchObject({ kind: "abstain" });
+    },
+  );
+
+  it("answers a dip question in a product view with that product's figures", async () => {
+    const { text, done } = await ask({
+      question: "Why did revenue dip?",
+      context: {
+        entity: { kind: "product", marketId: "ca", productId: "calyx" },
+        period: "2024-08",
+      },
     });
-    expect(done).toMatchObject({ kind: "normal" });
+    expect(text).toMatch(/^Canada · Calyx's revenue in Aug 2024 was \$\d+K /);
+    expect(done).toMatchObject({
+      citations: [
+        expect.objectContaining({ marketId: "ca", productId: "calyx", period: "2024-08" }),
+        expect.objectContaining({ marketId: "ca", productId: "calyx", period: "2024-07" }),
+      ],
+    });
   });
+
+  it.each(["test", "bla", "hello"])(
+    "abstains on input that is not about the data (%s)",
+    async (question) => {
+      const { text, done } = await ask({
+        question,
+        context: {
+          entity: { kind: "product", marketId: "ca", productId: "calyx" },
+          period: "2024-08",
+        },
+      });
+      expect(text).toBe(
+        "I can't answer that from this data. Try a market, region, product or KPI.",
+      );
+      expect(done).toMatchObject({ kind: "abstain" });
+    },
+  );
 
   const germany = { entity: { kind: "market", marketId: "de" }, period: "2026-03" };
   const france = { entity: { kind: "market", marketId: "fr" }, period: "2026-03" };

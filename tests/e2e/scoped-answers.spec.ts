@@ -14,7 +14,7 @@ test("at Europe scope, the at-risk answer is about European markets only", async
   await answerComplete(page);
 
   await expect(page.locator('[data-slot="question-echo"]')).toHaveText(
-    "You asked, about Europe · May 2026:Which markets are at risk?",
+    "Asked about Europe · May 2026Which markets are at risk?",
   );
   await expect(citations(page)).toHaveText([
     "Germany, latest period",
@@ -49,7 +49,7 @@ test("in Germany in March, 'Why did revenue dip?' is answered from that month's 
   await answerComplete(page);
 
   await expect(page.locator('[data-slot="question-echo"]')).toHaveText(
-    "You asked, about Germany · Mar 2026:Why did revenue dip?",
+    "Asked about Germany · Mar 2026Why did revenue dip?",
   );
   await expect(
     page.getByText(
@@ -74,9 +74,9 @@ test("Ask why on a France row in the Overview answers about France", async ({ pa
     .click();
   await answerComplete(page);
   await expect(page.locator('[data-slot="question-echo"]')).toHaveText(
-    "You asked, about France · May 2026:Why is France at risk?",
+    "Asked about France · May 2026Why is France at risk?",
   );
-  // The data records France's status but not why, so the assistant says so instead of restating figures.
-  await expect(page.getByText(/^I can't say why France is at risk\. /)).toBeVisible();
-  await expect(page.getByText("Can’t answer from this data")).toBeVisible();
+  // No curated answer explains France's status, so the assistant abstains and shows the status rule.
+  await expect(page.getByText(/^I can't say why from this data\./)).toBeVisible();
+  await expect(page.getByText(/^Status is given in the data\./)).toBeVisible();
 });

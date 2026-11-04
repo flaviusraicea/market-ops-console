@@ -282,7 +282,7 @@ function ProductRows({
   sort: Sort;
   onSort: (next: Sort) => void;
 }) {
-  const { setContext } = useConsoleContext();
+  const { ctx, setContext } = useConsoleContext();
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
   return (
     <>
@@ -307,27 +307,31 @@ function ProductRows({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {sorted.map((r) => (
-          <TableRow
-            key={r.id}
-            {...rowProps(r.selected, () => setContext({ product: r.id }), landed && r.selected)}
-          >
-            <TableCell className={cn(STICKY_CELL, "font-medium text-ink")}>{r.name}</TableCell>
-            <TableCell className="text-right num">{r.revenue}</TableCell>
-            <TableCell className="text-right num">{r.forecast}</TableCell>
-            <TableCell className="text-right num">{r.priorYear}</TableCell>
-            <TableCell className="text-right num">
-              <AttainmentSlot figure={r.attainment} />
-            </TableCell>
-            <TableCell className={cn("text-right num", signColour(r.growthDirection))}>
-              {r.growth}
-            </TableCell>
-            <TableCell className="text-right num">{r.units}</TableCell>
-            <TableCell>
-              <Sparkline values={r.trend.values} label={r.trend.label} />
-            </TableCell>
-          </TableRow>
-        ))}
+        {sorted.map((r) => {
+          // The selection moves on the click; the server's row model follows.
+          const selected = ctx.product === r.id;
+          return (
+            <TableRow
+              key={r.id}
+              {...rowProps(selected, () => setContext({ product: r.id }), landed && selected)}
+            >
+              <TableCell className={cn(STICKY_CELL, "font-medium text-ink")}>{r.name}</TableCell>
+              <TableCell className="text-right num">{r.revenue}</TableCell>
+              <TableCell className="text-right num">{r.forecast}</TableCell>
+              <TableCell className="text-right num">{r.priorYear}</TableCell>
+              <TableCell className="text-right num">
+                <AttainmentSlot figure={r.attainment} />
+              </TableCell>
+              <TableCell className={cn("text-right num", signColour(r.growthDirection))}>
+                {r.growth}
+              </TableCell>
+              <TableCell className="text-right num">{r.units}</TableCell>
+              <TableCell>
+                <Sparkline values={r.trend.values} label={r.trend.label} />
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
       <TotalRow total={total} labelSpan={1} trailing={1} />
     </>

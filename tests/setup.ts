@@ -7,3 +7,8 @@ import { afterEach } from "vitest";
 // rendered tree stays mounted until the file ends, and React work still scheduled when jsdom tears down
 // throws "window is not defined".
 afterEach(cleanup);
+
+// The assistant keeps the tab's conversation in sessionStorage; each test starts with an empty tab.
+afterEach(() => {
+  if (typeof window !== "undefined") window.sessionStorage.clear();
+});

@@ -31,3 +31,12 @@ export function askWhyPrompt(market: Market): { aria: string; text: string } {
     : `Ask why ${market.name} is ${STATUS_LABEL[market.kpis.status].toLowerCase()}`;
   return { aria, text: prefillFor(market) };
 }
+
+/** Words that ask about a market's status. */
+export const STATUS_WORDS = /\b(at[- ]risk|off[- ]track|on[- ]track|status)\b/;
+
+/** "Why is Italy at risk?": a question for the reasons behind a status, which the data does not hold. */
+export function asksWhyStatus(question: string): boolean {
+  const q = question.toLowerCase();
+  return /\bwhy\b/.test(q) && STATUS_WORDS.test(q);
+}

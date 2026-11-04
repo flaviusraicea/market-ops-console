@@ -15,7 +15,9 @@ import { SheetSection } from "./Sheet";
 import type { HeatMapVM } from "./viewModel";
 
 export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: string }) {
-  const { setContext } = useConsoleContext();
+  const { ctx, setContext } = useConsoleContext();
+  // The outline moves on the click; the server's model follows.
+  const selected = ctx.market ? { market: ctx.market, period: ctx.period } : vm.selected;
   const { prefill } = useAskWhy();
   const tableId = useId();
   const [pressed, setPressed] = useState(false);
@@ -35,7 +37,9 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
       }
       {...(className ? { className } : {})}
     >
-      <div className="flex flex-col gap-3">
+      {/* Centred in the height the radar beside it sets, so a region with few markets has no empty band under the
+          cells. The cells keep their height: a taller cell would read as a different value. */}
+      <div className="my-auto flex flex-col gap-3">
         <TableView
           id={tableId}
           pressed={pressed}
@@ -44,7 +48,7 @@ export function HeatMapCard({ vm, className }: { vm: HeatMapVM; className?: stri
               <HeatMap
                 rows={vm.rows}
                 periods={vm.periods}
-                selected={vm.selected}
+                selected={selected}
                 label={vm.title}
                 differsNote={vm.differsNote}
                 onCell={(market, period) => setContext({ market, period: toPeriod(period) })}

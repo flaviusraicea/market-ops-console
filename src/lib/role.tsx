@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { clearConversation } from "./conversation";
 import { parseAsMode } from "./context/parsers";
 import { reportError } from "./events";
 import { PERSONAS, defaultModeFor, type Persona, type Role } from "./roles";
@@ -80,6 +81,8 @@ export function RoleProvider({ role, children }: { role: Role; children: ReactNo
   );
 
   const signOut = useCallback(() => {
+    // The conversation belongs to the signed-in person: it does not outlive the session.
+    clearConversation();
     void send("DELETE").then((ok) => {
       if (ok) router.push("/sign-in");
     });

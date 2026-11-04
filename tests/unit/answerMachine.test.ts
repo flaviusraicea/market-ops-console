@@ -103,7 +103,7 @@ describe("answerReducer", () => {
 });
 
 describe("historyReducer", () => {
-  it("RETRY appends a new answer and leaves the stopped one in place", () => {
+  it("RETRY puts the re-asked answer in the stopped one's place, with no second question", () => {
     const c = () => new AbortController();
     let list: Answer[] = [];
     list = historyReducer(list, {
@@ -113,10 +113,7 @@ describe("historyReducer", () => {
     list = historyReducer(list, { id: "a1", action: { type: "TOKEN_FLUSH", text: "part" } });
     list = historyReducer(list, { id: "a1", action: { type: "STOP" } });
     list = historyReducer(list, { id: "a1", action: { type: "RETRY", id: "a2", controller: c() } });
-    expect(list.map((a) => [a.id, a.status])).toEqual([
-      ["a1", "stopped"],
-      ["a2", "streaming"],
-    ]);
-    expect(list[0]).toMatchObject({ text: "part" });
+    expect(list.map((a) => [a.id, a.status])).toEqual([["a2", "streaming"]]);
+    expect(list[0]).toMatchObject({ question: "q", text: "", retried: true });
   });
 });

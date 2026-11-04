@@ -46,7 +46,7 @@ describe("sourcesRows", () => {
     expect(rows[0]).toMatchObject({
       claim: "Germany at risk",
       entity: "Germany",
-      period: "2026-05",
+      period: "May 2026",
       sourceValue: "Off track · 92.0% attainment",
       assistant: "At risk",
       disagreement: true,
@@ -68,22 +68,22 @@ describe("sourcesRows", () => {
       [
         "Fell in early 2026",
         "Germany",
-        "2026-02",
+        "Feb 2026",
         "$1.66M actual · 91.1% of forecast",
         "Revenue fell",
       ],
       [
         "Steepest drop in March",
         "Germany",
-        "2026-03",
+        "Mar 2026",
         "$1.21M actual · 92.2% of forecast · −27% vs Feb (anomaly note)",
         "Steepest drop",
       ],
       [
         "Decline across the portfolio",
         "Germany · Veltrix",
-        "2026-03",
-        "$0.43M actual · 92.5% of forecast",
+        "Mar 2026",
+        "$427K actual · 92.5% of forecast",
         "Across products",
       ],
     ]);
@@ -96,7 +96,7 @@ describe("sourcesRows", () => {
     expect(caption).toBe("Sources · data.json · attainment as given");
     expect(rows.map((r) => [r.entity, r.sourceValue, r.assistant])).toEqual([
       ["Germany", "Off track · 92.0% attainment · $1.68M", "Under plan"],
-      ["Italy", "At risk · 93.0% attainment · $0.94M", "Under plan"],
+      ["Italy", "At risk · 93.0% attainment · $941K", "Under plan"],
       ["Brazil", "At risk · 96.0% attainment · $1.12M", "Smaller drag"],
     ]);
   });
@@ -130,7 +130,7 @@ describe("sourcesRows", () => {
       resolution: resolveCitation(ds, { marketId: "de", label: "Germany" }),
     };
     const { rows, caption } = sourcesRows(ds, [noPeriod, bad], { items: [] });
-    expect(rows[0]!.period).toBe("2026-05 (latest)");
+    expect(rows[0]!.period).toBe("May 2026 (latest)");
     expect(caption).toBe(
       "Sources · data.json · attainment as given · 1 citation could not be resolved",
     );

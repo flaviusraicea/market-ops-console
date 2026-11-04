@@ -550,21 +550,23 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
     { label: given[3], get: (r) => r.mom, show: pct(true) },
     { label: given[4], get: (r) => r.unitsYoy, show: pct(true) },
   ];
-  // An axis nobody has a value for is dropped for the period: a polygon would otherwise plot it at the midpoint.
-  const kept = measures.filter((m) => byName.some((r) => m.get(r) !== undefined));
-  const dropped = measures.filter((m) => !kept.includes(m)).map((m) => m.label);
-  const scaled = kept.map((m) =>
+  // The five axes are fixed, so the chart keeps its shape from month to month. An axis nobody has a value for in
+  // this period stays drawn as a "no data" spoke; every market is null on it, so no polygon plots a made-up point.
+  const dropped = measures
+    .filter((m) => byName.every((r) => m.get(r) === undefined))
+    .map((m) => m.label);
+  const scaled = measures.map((m) =>
     minMax(byName.flatMap((r) => (m.get(r) === undefined ? [] : [m.get(r)!]))),
   );
   const series: RadarSeriesVM[] = byName.slice(0, 6).map((r, i) => ({
     id: r.id,
     name: r.name,
     color: `--cat-${i + 1}`,
-    values: kept.map((m, a) => {
+    values: measures.map((m, a) => {
       const v = m.get(r);
       return v === undefined ? null : scaled[a]!(v);
     }),
-    raw: kept.map((m) => {
+    raw: measures.map((m) => {
       const v = m.get(r);
       return v === undefined ? "n/a" : m.show(v);
     }),
@@ -582,9 +584,9 @@ function radarVM(ds: Dataset, ctx: Context): RadarVM {
     subtitle: atPortfolio
       ? `Regions${ctx.product ? ` · ${ALL_PRODUCTS}` : ""} · Axes scaled to the compared regions${unavailable}`
       : `${entityName(ds, { kind: "region", regionId: ctx.region! })}${ctx.product ? ` markets · ${ALL_PRODUCTS}` : ""} · Axes scaled to the compared markets${unavailable}`,
-    caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod) : kept.some((m) => m.label === "Units YoY") ? "Attainment, growth and units YoY derived · share from data.json" : "Attainment and growth derived · share from data.json"}`,
+    caption: `${formatPeriod(ctx.period)} · ${atPortfolio ? derivedLabel(ds, ctx.period === ds.meta.latestPeriod) : !dropped.includes("Units YoY") ? "Attainment, growth and units YoY derived · share from data.json" : "Attainment and growth derived · share from data.json"}`,
     allProducts: Boolean(ctx.product),
-    axes: kept.map((m) => m.label),
+    axes: measures.map((m) => m.label),
     series,
   };
 }

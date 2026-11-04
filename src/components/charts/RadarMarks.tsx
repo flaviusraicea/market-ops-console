@@ -16,20 +16,35 @@ export function splitLabel(label: string): string[] {
   return [label.slice(0, best), label.slice(best + 1)];
 }
 export const RINGS = [0.5, 1];
+/** The second line under the label of an axis with no value this period. */
+export const NO_DATA = "no data";
+
+/** Where an axis label is anchored: LABEL_GAP px past the ring. */
+export const labelAt = ({ cx, cy, radius, n }: Geometry, axis: number): [number, number] => [
+  cx + Math.cos(angleOf(axis, n)) * (radius + LABEL_GAP),
+  cy + Math.sin(angleOf(axis, n)) * (radius + LABEL_GAP),
+];
 /** Clockwise from the top, one angle per axis. */
 export const angleOf = (axis: number, count: number) =>
   ((-90 + (360 / count) * axis) * Math.PI) / 180;
 
 export type Geometry = { cx: number; cy: number; radius: number; n: number };
 
+/** Where a value sits on its axis. Values are clamped to the ring, so no mark can leave the chart. */
 export const pointAt = (
   { cx, cy, radius, n }: Geometry,
   axis: number,
-  r: number,
-): [number, number] => [
-  cx + Math.cos(angleOf(axis, n)) * radius * r,
-  cy + Math.sin(angleOf(axis, n)) * radius * r,
-];
+  value: number,
+): [number, number] => {
+  const r = Math.min(1, Math.max(0, value));
+  return [
+    cx + Math.cos(angleOf(axis, n)) * radius * r,
+    cy + Math.sin(angleOf(axis, n)) * radius * r,
+  ];
+};
+
+/** How far past the ring an axis label starts, in px. */
+export const LABEL_GAP = 10;
 
 export const polyAt = (g: Geometry, rs: readonly (number | null)[]) =>
   svgPath(
@@ -53,8 +68,10 @@ export const RadarMarks = memo(function RadarMarks({
 }) {
   const { cx, cy, n } = geometry;
   const hasSelection = series.some((s) => s.selected);
-  // An axis some compared market has no value on stays drawn, quieter, with a dashed spoke.
+  // An axis some compared market has no value on stays drawn, quieter, with a dashed spoke. One nobody has a value
+  // on this period is a "no data" axis: its spoke is a dashed border line and its label says so.
   const partial = axes.map((_, a) => series.some((s) => s.values[a] === null));
+  const empty = axes.map((_, a) => series.length > 0 && series.every((s) => s.values[a] === null));
   return (
     <>
       {RINGS.map((r) => (
@@ -72,11 +89,11 @@ export const RadarMarks = memo(function RadarMarks({
       ))}
       {axes.map((label, a) => {
         const [x, y] = pointAt(geometry, a, 1);
-        const [lx, ly] = pointAt(geometry, a, 1.18);
+        const [lx, ly] = labelAt(geometry, a);
         const cos = Math.cos(angleOf(a, n));
         const sin = Math.sin(angleOf(a, n));
         const anchor = Math.abs(cos) < 0.3 ? "middle" : cos > 0 ? "start" : "end";
-        const lines = splitLabel(label);
+        const lines = empty[a] ? [...splitLabel(label), NO_DATA] : splitLabel(label);
         const extra = (lines.length - 1) * 1.1;
         // Top labels grow upwards, bottom labels downwards, side labels stay centred on the axis.
         const dy = sin < -0.5 ? `${-0.2 - extra}em` : sin > 0.5 ? "0.9em" : `${0.32 - extra / 2}em`;
@@ -87,7 +104,7 @@ export const RadarMarks = memo(function RadarMarks({
               y1={cy}
               x2={x}
               y2={y}
-              stroke="var(--grid)"
+              stroke={empty[a] ? "var(--border)" : "var(--grid)"}
               strokeWidth={1}
               {...(partial[a] ? { strokeDasharray: "2 3" } : {})}
             />
@@ -98,11 +115,22 @@ export const RadarMarks = memo(function RadarMarks({
               textAnchor={anchor}
               className={`${partial[a] ? "fill-ink-muted" : "fill-ink-2"} text-[length:var(--text-label)] font-medium`}
             >
-              {lines.map((line, i) => (
-                <tspan key={line} x={lx} dy={i === 0 ? dy : "1.1em"}>
-                  {line}
-                </tspan>
-              ))}
+              {lines.map((line, i) =>
+                line === NO_DATA ? (
+                  <tspan
+                    key={line}
+                    x={lx}
+                    dy="1.25em"
+                    className="text-[length:var(--text-caption)]"
+                  >
+                    {line}
+                  </tspan>
+                ) : (
+                  <tspan key={line} x={lx} dy={i === 0 ? dy : "1.1em"}>
+                    {line}
+                  </tspan>
+                ),
+              )}
             </text>
           </g>
         );
