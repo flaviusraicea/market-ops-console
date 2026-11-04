@@ -5,17 +5,10 @@ const IMMUTABLE = "public, max-age=31536000, immutable";
 // asks again every time.
 const PER_USER = "private, no-cache";
 
-// Sent with every response. The Content-Security-Policy carries a per-request nonce, so the proxy sets it on
-// pages (src/proxy.ts). X-Frame-Options repeats its frame-ancestors for browsers that predate it.
-const SECURITY = [
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
-  },
-];
+// Sent with every response: a script or stylesheet is only ever run as its declared type. The headers that
+// only mean something on a document (the policy, framing, referrer, permissions) are set on pages by the
+// proxy (src/proxy.ts, lib/csp.ts), so the 30-odd script responses of a view do not each carry them.
+const SECURITY = [{ key: "X-Content-Type-Options", value: "nosniff" }];
 
 const nextConfig: NextConfig = {
   // No "X-Powered-By: Next.js": it tells a scanner which exploits to try and tells a user nothing.

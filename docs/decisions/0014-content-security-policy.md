@@ -22,7 +22,7 @@ The console renders text from an assistant and from data files, so a cross-site 
 - `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`;
 - development adds `'unsafe-eval'` and the hot-reload socket.
 
-`next.config.ts` sends `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` and a `Permissions-Policy` that turns off camera, microphone, geolocation, payment and USB. `poweredByHeader: false` drops `X-Powered-By`.
+`next.config.ts` sends `X-Content-Type-Options: nosniff` on every response. The proxy adds the headers that only mean something on a document to every page: `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` and a `Permissions-Policy` that turns off camera, microphone, geolocation, payment and USB. Sending them on each of a view's 30-odd script responses would cost about 5 KB of transfer for nothing. `poweredByHeader: false` drops `X-Powered-By`.
 
 ## Consequences
 

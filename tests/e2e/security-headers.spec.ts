@@ -39,6 +39,15 @@ test("pages send a nonce policy and the security headers, and nothing on the pag
   expect(violations).toEqual([]);
 });
 
+test("scripts carry nosniff but not the document-only headers", async ({ page, request }) => {
+  await page.goto("/?mode=executive");
+  const src = await page.locator("script[src^='/_next/static']").first().getAttribute("src");
+  const script = await request.get(src ?? "");
+  expect(script.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(script.headers()["permissions-policy"]).toBeUndefined();
+  expect(script.headers()["content-security-policy"]).toBeUndefined();
+});
+
 test("each page gets its own nonce", async ({ request }) => {
   const nonceOf = async () =>
     /'nonce-([^']+)'/.exec(

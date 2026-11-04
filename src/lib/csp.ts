@@ -30,3 +30,13 @@ export function contentSecurityPolicy(nonce: string, dev = false): string {
     .map(([name, values]) => `${name} ${values.join(" ")}`)
     .join("; ");
 }
+
+/**
+ * Headers that only apply to a document, sent with every page. X-Frame-Options repeats frame-ancestors for
+ * browsers that predate it.
+ */
+export const DOCUMENT_HEADERS: ReadonlyArray<readonly [string, string]> = [
+  ["X-Frame-Options", "DENY"],
+  ["Referrer-Policy", "strict-origin-when-cross-origin"],
+  ["Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()"],
+];

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { DEFAULT_ROLE, ROLE_COOKIE, defaultModeFor, parseRole, roleCookie } from "@/lib/roles";
-import { NONCE_HEADER, contentSecurityPolicy } from "@/lib/csp";
+import { DOCUMENT_HEADERS, NONCE_HEADER, contentSecurityPolicy } from "@/lib/csp";
 
 /**
  * Runs before every page request. Three jobs:
@@ -59,6 +59,7 @@ function withPolicy(request: NextRequest) {
   headers.set("Content-Security-Policy", policy);
   const response = NextResponse.next({ request: { headers } });
   response.headers.set("Content-Security-Policy", policy);
+  for (const [name, value] of DOCUMENT_HEADERS) response.headers.set(name, value);
   return response;
 }
 
