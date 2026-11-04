@@ -154,17 +154,23 @@ test("a collapsed panel keeps streaming and badges the finished answer", async (
   await expect(page.getByRole("img", { name: "1 new answer" })).toHaveCount(0);
 });
 
-test("between 1024 and 1279 px the open panel overlays with a scrim that closes it", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1100, height: 800 });
+test("from 1024 px the open panel docks beside the dashboard, never over it", async ({ page }) => {
+  // 1152 is the CSS width of a 1440 laptop at 125% zoom.
+  await page.setViewportSize({ width: 1152, height: 800 });
   await open(page);
   await toggle(page).click();
   const panel = page.locator("#assistant-panel");
   await expect(panel).toBeVisible();
-  await expect(panel).toHaveAttribute("role", "dialog");
+  await expect(panel).not.toHaveAttribute("role", "dialog");
+  await expect(page.locator('[data-slot="scrim"]')).toHaveCount(0);
+  await expect(page.locator("[data-panel]")).toHaveAttribute("data-panel", "open");
+  const dash = (await page.locator('[data-slot="dashboard"]').boundingBox())!;
+  const side = (await panel.boundingBox())!;
+  expect(dash.x + dash.width).toBeLessThanOrEqual(side.x);
+  expect(Math.round(side.width)).toBe(320);
+  // A click on the dashboard leaves the panel open: there is nothing to dismiss.
   await page.mouse.click(100, 400);
-  await expect(panel).toBeHidden();
+  await expect(panel).toBeVisible();
 });
 
 test("below 1024 px there is no rail and the assistant is a bottom bar", async ({ page }) => {

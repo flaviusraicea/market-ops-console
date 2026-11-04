@@ -41,6 +41,8 @@ export type KpiTileVM = {
   headline: string;
   delta: { direction: "up" | "down" | "flat"; value: string; comparison: string };
   provenance: string;
+  /** What the figure is and how it is computed: the first lines of the info popover. */
+  definition: string;
   /** Accessible name of the info button, in sentence case, for example "About Germany revenue". */
   infoLabel: string;
   /** The status tile shows this status as a badge, labelled with `headline`, in place of a figure. */
@@ -159,6 +161,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
       comparison: `vs ${prior}`,
     },
     provenance,
+    definition: "Actual revenue for the selected scope and period.",
     infoLabel: `About ${entity.kind === "portfolio" ? "portfolio" : entityName(ds, entity)} revenue`,
     trend: revenueTrend(ds, entity, ctx.period),
   };
@@ -172,6 +175,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
       comparison: "vs forecast",
     },
     provenance,
+    definition: "Actual revenue as a share of forecast. Attainment = actual ÷ forecast.",
     infoLabel: "About forecast attainment",
   };
   const growth: KpiTileVM = {
@@ -184,6 +188,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
       comparison: `vs ${year - 1}`,
     },
     provenance,
+    definition: "Revenue against the same period last year. Growth = actual ÷ prior year − 1.",
     infoLabel: "About year-on-year growth",
   };
 
@@ -201,6 +206,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
         comparison: "",
       },
       provenance: sourceLabel(ds, latest),
+      definition: "The status the data file gives this market.",
       infoLabel: "About status",
     };
   } else {
@@ -214,6 +220,7 @@ function tilesFor(ds: Dataset, ctx: Context): { tiles: KpiTileVM[]; provenance: 
         comparison: "",
       },
       provenance: sourceLabel(ds, latest),
+      definition: "Markets the data file marks at risk or off track.",
       infoLabel: "About markets needing attention",
     };
   }
@@ -716,8 +723,8 @@ export function regionBarsVM(ds: Dataset, ctx: Context): RegionBarsVM {
     caption: derivedLabel(ds, atLatest(ds, ctx)),
     allProducts: Boolean(ctx.product),
     subtitle: ctx.product
-      ? `${ALL_PRODUCTS} · vs forecast, 100% at centre`
-      : "Attainment vs forecast · 100% at centre",
+      ? `${ALL_PRODUCTS} · vs forecast, tick at 100%`
+      : "Attainment vs forecast · tick at 100%",
   };
 }
 

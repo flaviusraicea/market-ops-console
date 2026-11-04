@@ -230,7 +230,12 @@ export function AlertForm({
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  {/* 22 options: a bounded list that flips up near the bottom of the window. */}
+                  <SelectContent
+                    position="popper"
+                    collisionPadding={16}
+                    className="max-h-[min(320px,50vh)]"
+                  >
                     <SelectItem value="portfolio">All markets</SelectItem>
                     <SelectSeparator />
                     <SelectGroup>
@@ -285,7 +290,7 @@ export function AlertForm({
         {failure ? (
           <Notice
             noticeRef={noticeRef}
-            title={failure.readOnly ? "Rules are read-only for Executives." : "Couldn't save"}
+            title={failure.readOnly ? "Rules are read-only for Executives." : "Couldn’t save"}
             actions={
               <>
                 {failure.readOnly ? (

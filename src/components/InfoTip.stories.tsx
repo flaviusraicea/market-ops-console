@@ -22,15 +22,23 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const OpensOnFocus: Story = {
+export const OpensOnEnter: Story = {
   play: async ({ canvasElement }) => {
     const button = within(canvasElement).getByRole("button", { name: "About forecast attainment" });
     await userEvent.tab();
     await expect(button).toHaveFocus();
-    await waitFor(() =>
-      expect(within(document.body).getAllByRole("tooltip").length).toBeGreaterThan(0),
-    );
+    await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(within(document.body).getByRole("dialog")).toBeVisible());
     await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(within(document.body).queryByRole("tooltip")).toBeNull());
+    await waitFor(() => expect(within(document.body).queryByRole("dialog")).toBeNull());
+    await expect(button).toHaveFocus();
+  },
+};
+
+export const WithText: Story = {
+  args: {
+    label: "Status rule",
+    text: "Status rule",
+    children: "Off track when attainment is below 92.5%.",
   },
 };

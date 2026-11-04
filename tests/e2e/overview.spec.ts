@@ -249,12 +249,17 @@ test("the map is coloured by status with a three-item legend and no metric contr
   expect(await fill(/^China,/)).toBe("var(--ok-mark)");
 });
 
-test("tile provenance sits in a tooltip on the info button", async ({ page }) => {
+test("tile provenance opens in a popover from the info button, by keyboard", async ({ page }) => {
   await page.goto("/");
   const tile = page.getByRole("group", { name: "FORECAST ATTAINMENT" });
   await expect(tile.locator('[data-slot="kpi-provenance"]')).toHaveClass(/sr-only/);
-  await tile.getByRole("button", { name: "About forecast attainment" }).focus();
-  await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
+  const button = tile.getByRole("button", { name: "About forecast attainment" });
+  await button.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog")).toContainText("Derived · sum of series");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(button).toBeFocused();
 });
 
 test("region revenue shows two decimals on both views", async ({ page }) => {
@@ -307,23 +312,29 @@ test("Analyst says the strip provenance once, as visible text", async ({ page })
 
 test.describe("on a touch screen", () => {
   test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
-  test("tapping the info button opens the provenance tooltip and a second tap closes it", async ({
+  test("tapping the info button opens the provenance popover and a second tap closes it", async ({
     page,
   }) => {
     await page.goto("/");
     const button = page.getByRole("button", { name: "About forecast attainment" });
     await button.tap();
-    await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
+    await expect(page.getByRole("dialog")).toContainText("Derived · sum of series");
     await button.tap();
-    await expect(page.getByRole("tooltip")).toHaveCount(0);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 });
 
-test("the verdict's provenance sits in a tooltip on the Overview", async ({ page }) => {
+test("the verdict's provenance opens in a popover on click and on hover", async ({ page }) => {
   await page.goto("/");
   const info = page.getByRole("button", { name: "About this verdict" });
-  await info.focus();
-  await expect(page.getByRole("tooltip").first()).toContainText("Derived · sum of series");
+  await info.click();
+  await expect(page.getByRole("dialog")).toContainText("Derived · sum of series");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  // The pointer is still on the button after the click; leave and come back for a fresh hover.
+  await page.mouse.move(0, 0);
+  await info.hover();
+  await expect(page.getByRole("dialog")).toContainText("Derived · sum of series");
 });
 
 test("at product level the cards that show all products say so and their Analyst titles step back", async ({
@@ -365,4 +376,16 @@ test("the Executive view carries the same four-tile grammar and the scope in the
   await expect(page.getByRole("group", { name: "STATUS" })).toBeVisible();
   await expect(page.getByRole("region", { name: "By region" })).toContainText("All products");
   await expect(page.getByRole("region", { name: /^Markets by/ })).toContainText("All products");
+});
+
+test("by region, every bar shares one scale: the 100% tick sits at the same x in every row", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/?mode=executive");
+  const card = page.locator("section[aria-labelledby='regions-h']");
+  const ticks = card.locator("li button span.bg-ink-muted");
+  await expect(ticks).toHaveCount(4);
+  const xs = await ticks.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().left));
+  for (const x of xs) expect(Math.abs(x - xs[0]!)).toBeLessThan(1);
 });

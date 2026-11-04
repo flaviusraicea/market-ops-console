@@ -30,7 +30,7 @@ function Swatch(item: Extract<LegendItem, { color: string }>) {
       />
     );
   }
-  const dash = swatch === "line-dashed" ? "6 4" : swatch === "line-dotted" ? "2 3" : undefined;
+  const dash = swatch === "line-dashed" ? "4 4" : swatch === "line-dotted" ? "1 3" : undefined;
   return (
     <svg aria-hidden width="16" height="2" viewBox="0 0 16 2" className="shrink-0">
       <line
@@ -54,16 +54,19 @@ function Swatch(item: Extract<LegendItem, { color: string }>) {
 export function Legend({
   items,
   label,
+  noData = false,
   className,
 }: {
   items: LegendItem[];
   label: string;
+  /** Maps: one more swatch, set apart from the scale, for land without a market (`--map-land`). */
+  noData?: boolean;
   className?: string;
 }) {
   const fills = items.length === 7 && items.every((i) => i.swatch === "fill");
   // On a phone the seven bins are one row that scrolls sideways, so the row takes focus for the keyboard.
   const scrolls = useMediaQuery(PHONE_QUERY) && fills;
-  return (
+  const list = (
     <ul
       aria-label={label}
       {...(scrolls ? { tabIndex: 0 } : {})}
@@ -91,5 +94,20 @@ export function Legend({
         </li>
       ))}
     </ul>
+  );
+  if (!noData) return list;
+  // The scale stays centred under the map; No data sits in the right-hand column, mirrored by an empty left one.
+  return (
+    <div className="grid w-full grid-cols-[minmax(72px,1fr)_minmax(0,40rem)_minmax(72px,1fr)] items-start gap-x-4 max-md:flex max-md:flex-col max-md:gap-y-2">
+      <span aria-hidden className="max-md:hidden" />
+      <div className="flex min-w-0 justify-center">{list}</div>
+      <p className="flex w-[72px] flex-col items-center gap-1 justify-self-start text-center text-[length:var(--text-label)] leading-[var(--text-label-lh)] whitespace-nowrap text-ink-2 max-md:w-auto max-md:flex-row">
+        <span
+          aria-hidden
+          className="block h-3 w-full min-w-6 rounded-none border border-border bg-map-land max-md:w-6"
+        />
+        No data
+      </p>
+    </div>
   );
 }

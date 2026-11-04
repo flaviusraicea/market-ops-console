@@ -4,7 +4,8 @@ import { CircleAlert, Info, ICON_STROKE } from "@/components/icons";
 import { cn } from "@/components/cn";
 
 // Design-system.md 6.12: one component for stream errors, failed-save rollbacks and blocking errors.
-// `neutral` is the same shape for a plain statement of fact (a permission, a limit): surface fill, accent rule.
+// `neutral` is the same shape for a plain statement of fact (a permission, a limit): surface fill, accent icon.
+// No side stripe (banned app-wide): the icon and the border carry the tone.
 export function Notice({
   title,
   children,
@@ -30,9 +31,7 @@ export function Notice({
       role={neutral ? "note" : "alert"}
       className={cn(
         "flex gap-3 rounded-sheet border p-[var(--pad-card)]",
-        neutral
-          ? "border-border bg-surface-2 shadow-[inset_4px_0_0_var(--accent)]"
-          : "border-bad-mark bg-bad-bg shadow-[inset_4px_0_0_var(--bad-mark)]",
+        neutral ? "border-border bg-surface-2" : "border-bad-mark bg-bad-bg",
         className,
       )}
     >

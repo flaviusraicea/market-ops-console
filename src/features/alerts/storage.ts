@@ -1,8 +1,9 @@
 import { type AlertRule } from "@/domain";
 import { AlertRuleSchema } from "@/domain/alerts";
 import { scopeToValue } from "./labels";
+import { RULES_CHANGED, STORAGE_KEY } from "./storageKey";
 
-export const STORAGE_KEY = "market-ops:alerts:v1";
+export { STORAGE_KEY };
 
 /** Used when localStorage is unavailable or full, so rules still last for the session. */
 let memory: AlertRule[] = [];
@@ -38,6 +39,7 @@ export function writeRules(rules: AlertRule[]): void {
   } catch {
     // Disabled or full: the in-memory copy above keeps the session working.
   }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(RULES_CHANGED));
 }
 
 /** Calls `onChange` when another tab changes the saved rules. Returns the unsubscribe. */

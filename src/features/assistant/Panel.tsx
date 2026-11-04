@@ -9,7 +9,7 @@ import { Eyebrow } from "@/components/Eyebrow";
 import { ChevronRight, ICON_STROKE, Sparkles } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAssistantRail, useFocusRequest, useOverlayKeys } from "@/features/shell/railState";
-import { DESKTOP_QUERY, OVERLAY_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
+import { DESKTOP_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
 import { COARSE_QUERY } from "@/lib/useMediaQuery";
 import { AnswerList } from "./AnswerList";
 import { useAskWhyRequest, type AskContext } from "./askWhy";
@@ -67,11 +67,11 @@ function PanelBody({
   const ref = useRef<HTMLTextAreaElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const { request, consume } = useAskWhyRequest();
-  const { open, collapse } = useAssistantRail();
+  const { collapse } = useAssistantRail();
   const desktop = useMediaQuery(DESKTOP_QUERY);
-  const overlay = useMediaQuery(OVERLAY_QUERY) && open;
   const panelRef = useRef<HTMLDivElement>(null);
-  const onKeyDown = useOverlayKeys(panelRef, { desktop, overlay, collapse });
+  // Docked from 1024 px, never a modal over the dashboard, so Tab is not trapped: Escape still collapses it.
+  const onKeyDown = useOverlayKeys(panelRef, { desktop, overlay: false, collapse });
 
   const { answers, stop, retry, isStreaming, submitCount, bumpSubmit } = machine;
   const coarse = useMediaQuery(COARSE_QUERY);
@@ -120,19 +120,17 @@ function PanelBody({
     <div
       ref={panelRef}
       id="assistant-panel"
-      {...(overlay ? { role: "dialog", "aria-modal": true, "aria-labelledby": "assistant-h" } : {})}
       onKeyDown={onKeyDown}
       className={cn(
         "relative flex flex-col gap-4 p-[var(--pad-card)]",
         sheet
           ? "h-full min-h-0 bg-surface-overlay"
           : [
-              "panel-enter rounded-sheet layer-raised",
-              // From 1280 px the panel is sticky in its column; from 1024 to 1279 px it overlays the dashboard when open.
-              "xl:sticky xl:max-h-[calc(100vh-var(--header-h)-32px)]",
-              "xl:top-[var(--assistant-top)]",
-              "lg:max-xl:fixed lg:max-xl:top-[var(--below-header)] lg:max-xl:right-4 lg:max-xl:bottom-4 lg:max-xl:z-50 lg:max-xl:w-[var(--assistant-w)] lg:max-xl:shadow-overlay",
-              !open && "lg:hidden",
+              "rounded-sheet layer-raised",
+              // From 1024 px the panel is sticky in its column. ShellGrid's data-panel hides it once closed, after
+              // its exit animation (globals.css).
+              "lg:sticky lg:max-h-[calc(100vh-var(--header-h)-32px)]",
+              "lg:top-[var(--assistant-top)]",
             ],
       )}
     >

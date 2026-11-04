@@ -1,8 +1,8 @@
 "use client";
 
-import { ICON_STROKE, Info, TableIcon } from "@/components/icons";
+import { ICON_STROKE, TableIcon } from "@/components/icons";
+import { InfoTip } from "@/components/InfoTip";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ConnectedLiveToggle } from "@/features/live/LiveToggle";
 import { PageToolbar } from "@/features/shell/PageToolbar";
 import type { ProductOption } from "@/features/shell/ProductSelect";
@@ -43,18 +43,10 @@ export function AnalystToolbar({
             />
           </div>
           <div className="max-md:snap-start">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1 rounded-control text-[length:var(--text-label)] leading-[var(--text-label-lh)] text-ink-2 underline decoration-border underline-offset-4 hover:text-ink"
-                >
-                  <Info aria-hidden className="size-3.5" strokeWidth={ICON_STROKE} />
-                  Status rule
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-72">{statusRule}</TooltipContent>
-            </Tooltip>
+            {/* The same ghost button as "All facts"; the rule opens on click, tap or Enter, and peeks on hover. */}
+            <InfoTip label="Status rule" text="Status rule">
+              {statusRule}
+            </InfoTip>
           </div>
         </>
       }
