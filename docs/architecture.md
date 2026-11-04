@@ -48,7 +48,7 @@ src/
     tokens.css               every CSS variable, light and dark (from design-system.md)
     globals.css              Tailwind v4 @theme mapping tokens to utilities; the reduced-motion rule
   domain/                    pure, zod only, one file per concept
-    dataset.ts               zod schema for data.json, parseDataset; Dataset, Market, Fact, Kpis, Entity, Scope,
+    dataset.ts               zod schema for data.json, parseDataset; Dataset, Market, Fact, Entity, Scope,
                              Context, Provenance, Status, Basis
     periods.ts               periodsForBasis (month, YTD, MAT), effectiveBasis, latestPeriod, previousPeriod
     scope.ts                 marketsIn, factsFor(scope), entityOf, entityName, breadcrumbTrail
