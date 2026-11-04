@@ -48,11 +48,8 @@ export const HeatCellView = memo(function HeatCellView({
       aria-label={`${rowName}, ${formatPeriodAbbr(cell.period)}, ${cell.display} of forecast${cell.anomaly ? ", anomaly" : ""}${cell.differs ? `, differs from source: reported KPI ${cell.reported ?? ""}` : ""}`}
       data-period={cell.period}
       data-market={rowId}
-      className="tween-fill relative h-6 cursor-pointer rounded-mark"
-      style={{
-        background: `var(${attainmentDiverging(cell.value)})`,
-        ...(isSelected ? { boxShadow: "inset 0 0 0 2px var(--accent)" } : {}),
-      }}
+      className="heat-cell tween-fill relative h-6 cursor-pointer rounded-mark"
+      style={{ background: `var(${attainmentDiverging(cell.value)})` }}
       onClick={() => h.select(ri, ci)}
       onKeyDown={(e) => h.keyDown(e, ri, ci)}
       onMouseMove={(e) => h.mouseMove(e, ri, ci)}

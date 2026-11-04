@@ -147,8 +147,12 @@ export function HeatMap({
         for (const p of periodsRef.current)
           widest = Math.max(widest, Math.ceil(ctx.measureText(formatPeriodShort(p)).width));
       }
-      // A column under the right-hand fade is not counted as in view.
-      const right = el.getBoundingClientRect().right - (next.end ? FADE : 0);
+      // A column under the right-hand fade is not counted as in view. The fade sits at the content edge, inside the
+      // padding that keeps the selection and focus rings of edge cells from being clipped.
+      const right =
+        el.getBoundingClientRect().right -
+        parseFloat(getComputedStyle(el).paddingRight) -
+        (next.end ? FADE : 0);
       let last = cols.length - 1;
       while (last > 0 && cols[last]!.getBoundingClientRect().right > right + 1) last -= 1;
       const pitch = second.left - first.left;
@@ -190,9 +194,11 @@ export function HeatMap({
     const name = headerRef.current?.firstElementChild;
     if (!el || !col || !name) return;
     const box = el.getBoundingClientRect();
+    const pad = getComputedStyle(el);
     const c = col.getBoundingClientRect();
-    const left = box.left + name.getBoundingClientRect().width;
-    const by = c.left < left ? c.left - left : c.right > box.right ? c.right - box.right : 0;
+    const left = box.left + parseFloat(pad.paddingLeft) + name.getBoundingClientRect().width;
+    const right = box.right - parseFloat(pad.paddingRight);
+    const by = c.left < left ? c.left - left : c.right > right ? c.right - right : 0;
     if (Math.abs(by) < 1) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollBy({ left: by, behavior: reduce ? "auto" : "smooth" });
@@ -340,7 +346,7 @@ export function HeatMap({
       ) : null}
       <div
         ref={scrollRef}
-        className="overflow-x-auto [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]"
+        className="-m-2 scroll-p-2 overflow-x-auto p-2 [scrollbar-color:var(--border-control)_transparent] [scrollbar-width:thin]"
         onScroll={() => measureRef.current()}
       >
         <div
@@ -360,7 +366,7 @@ export function HeatMap({
             <div
               role="columnheader"
               aria-colindex={1}
-              className="sticky left-0 z-[1] bg-surface pr-2 text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold text-ink-muted uppercase"
+              className="sticky left-0 z-[4] mr-2 bg-surface text-[length:var(--text-caption)] leading-[var(--text-caption-lh)] font-semibold text-ink-muted uppercase"
             >
               Market
             </div>
@@ -399,7 +405,7 @@ export function HeatMap({
                   role="rowheader"
                   aria-colindex={1}
                   className={cn(
-                    "sticky left-0 z-[1] truncate bg-surface pr-2 text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
+                    "sticky left-0 z-[4] mr-2 truncate bg-surface text-[length:var(--text-label)] leading-[var(--text-label-lh)]",
                     "flex h-6 items-center",
                     rowSelected ? "font-semibold text-ink" : "font-medium text-ink-2",
                   )}
@@ -431,7 +437,7 @@ export function HeatMap({
         <span
           aria-hidden
           data-slot="scroll-fade"
-          className="pointer-events-none absolute inset-y-0 w-6 bg-gradient-to-r from-surface to-transparent"
+          className="pointer-events-none absolute inset-y-0 z-[5] w-6 bg-gradient-to-r from-surface to-transparent"
           style={{ left: HEAT_PLOT_INSET }}
         />
       ) : null}
@@ -439,7 +445,7 @@ export function HeatMap({
         <span
           aria-hidden
           data-slot="scroll-fade"
-          className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-surface to-transparent"
+          className="pointer-events-none absolute inset-y-0 right-0 z-[5] w-6 bg-gradient-to-l from-surface to-transparent"
         />
       ) : null}
       {tip.open && tip.content ? (
