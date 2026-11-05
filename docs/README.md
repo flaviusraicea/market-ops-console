@@ -1,4 +1,6 @@
-These are the working documents behind the build, drafted with AI assistance and reviewed and decided by Flavius.
+# Documentation index
+
+Start here: what each document covers.
 
 ## Design and architecture
 
