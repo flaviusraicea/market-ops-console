@@ -1,10 +1,3 @@
-<!--
-  TODO(Flavius): voice pass. The sections marked "TODO(Flavius): edit voice" were drafted from the documents in docs/
-  and are factual; rewrite them in your own words before submitting. Two parts are yours alone and are left as
-  placeholders: "How I used AI tools" (search for TODO(Flavius): W20) and the closing thoughts (TODO(Flavius): T3).
-  Remove this comment when done.
--->
-
 # Market Ops
 
 A market operations console: portfolio performance, forecast attainment and an assistant.
@@ -45,8 +38,6 @@ Design and architecture documents live in [`docs/`](docs/README.md).
 
 ## b. Architecture overview
 
-<!-- TODO(Flavius): edit voice -->
-
 Five layers with a one-way dependency rule, enforced by ESLint and tested in `tests/unit/boundaries.test.ts`: `app` (routes, layouts, route handlers) → `features` (data-aware screens: overview, analyst, assistant, alerts, live, palette, shell) → `components` (the design system: primitives, charts, one component per concept) → `lib` (framework glue: the URL hook, the stream client, formatting, telemetry) → `domain` (types, zod schemas, selectors and rules; depends on zod only). The domain has no React, no Next and no fetch.
 
 Data flow: `data.json` is parsed once on the server with zod and cached; the page is a server component that reads the URL, computes typed view models and renders the card shells. Charts, the assistant and the alert form are client islands that receive those view models as props and never fetch the dataset. A write (a drill, a period, a mode) goes to the URL through one hook over nuqs; Next re-renders the server page with the new search params and the islands update. There is no page-wide loading skeleton: only the lazy Analyst sections have per-section placeholders of the same shape, so nothing shifts.
@@ -77,8 +68,6 @@ Where each part of the brief lives in the code.
 | Tests                                                    | `tests/unit/`, `*.stories.tsx` beside each component, `tests/e2e/`                                                                                                                                                       |
 
 ## c. Productionising
-
-<!-- TODO(Flavius): edit voice -->
 
 - **Performance budgets.** JS budgets of 275 KB (Executive) and 325 KB (Analyst) gzip are a hard gate in CI (`scripts/check-budget.ts`, after the build), with a warning at 90 %; both sit at about 93 %, the warn band. Lighthouse CI (`.github/workflows/lighthouse.yml`, `lighthouserc.json`) asserts performance ≥ 0.9, accessibility ≥ 0.95, LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 200 ms and script weight on both views, median of three desktop runs. Every Analyst widget, the alerts form, the map code, the answer card, the live engine and the palette are lazy chunks, each capped at 60 KB.
 - **No jank while streaming.** Tokens collect in a buffer and are flushed once per animation frame (`useAnswerMachine.ts`), so an answer renders at most once per frame; chart transitions are CSS tweens and the panel's open and close animate one grid column. Frame-budget specs in `tests/e2e/perf/` run alone after the rest of the suite.
@@ -111,8 +100,6 @@ Each row gives the problem, the choice, and the alternative turned down with the
 
 ## e. Accessibility
 
-<!-- TODO(Flavius): edit voice -->
-
 Target: WCAG 2.1 AA. The full reference, with the recorded Tab order, the shortcuts and the contrast table, is [`docs/accessibility.md`](docs/accessibility.md); its tables are generated from the tests and the tokens and drift-checked in CI (`pnpm docs:a11y --check`).
 
 - **Keyboard.** A skip link, a documented Tab order on both views, and one pattern for every chart: the chart is one tab stop and the arrow keys move inside it (markets on the map, cells in the heat map, months on the line). The palette (Ctrl/⌘ K), the assistant and the dialogs trap and return focus; Escape always returns focus to what opened the surface. Focus rings are visible on every control and survive forced colours.
@@ -125,8 +112,6 @@ Target: WCAG 2.1 AA. The full reference, with the recorded Tab order, the shortc
 
 ## f. Testing
 
-<!-- TODO(Flavius): edit voice -->
-
 - **Unit (Vitest, jsdom):** domain selectors with real numbers, the citation resolver, the alert evaluator, URL parsers and invariants, formatters, SSE parsing and token batching, the answer and alert-save state machines, the route handlers, safe rendering of model output, the no-LLM dependency check and the layer rules (`tests/unit/`, 66 files, 601 tests).
 - **Contracts:** `DatasetSchema` against the real `data.json`, `fixtures.json` against its schema, the stream guard against the zod schema, the chat request with and without a view.
 - **Component (Storybook + Vitest browser mode):** 167 stories, 148 of them with play functions, run headless in Chromium, once in light and once in dark, with the a11y addon failing on any violation (334 story tests). Stories cover every component with states or variants; primitives are exercised through their parents' stories.
@@ -135,8 +120,6 @@ Target: WCAG 2.1 AA. The full reference, with the recorded Tab order, the shortc
 - **Deliberately skipped:** visual-regression snapshots (the stories and the e2e assertions check layout facts instead, and snapshots churn on every design change); cross-browser runs (Chromium only, by time); mutation testing; load tests (there is no backend to load).
 
 ## g. Key technical decisions
-
-<!-- TODO(Flavius): edit voice -->
 
 One record per decision, with the context, the choice and the consequences, in [`docs/decisions/`](docs/decisions/). The ones that shaped the build most:
 
