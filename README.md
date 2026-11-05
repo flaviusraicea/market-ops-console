@@ -254,10 +254,17 @@ The brief lists five optional stretch goals. All five are built.
 
 ## k. In my own words
 
-<!--
-  TODO(Flavius): T3. The brief asks for your thoughts, not an LLM's output. Closing thoughts in your own words:
-  what you would do differently, and where LLM output was fine and where you had to think it through yourself.
--->
+I tried to tackle this assignment from first principles. I had never built a market operations console, but in its design it is close to a trading console, and I used what I know about those to shape the design system. The most important thing on a platform like that is trust, and that became the core idea of the project.
+
+From there the work went in this order. First I broke down the domain layer, to understand the product and who uses it, an executive who needs a verdict in seconds and an analyst who needs exact, traceable numbers. From that I built the design system around the one principle. The data is dense and part of it comes from an assistant, so the user has to know at every step which numbers are true to the source and which are the assistant's output, even though the assistant is mocked for this exercise. Facts and interpretation sit on separate surfaces, and where the two disagree, the dashboard wins.
+
+Within those rules I allowed myself one thing, a bit of depth on the surfaces, so the console feels less flat than most of its category without giving up any of its discipline. This is where the AI and I disagreed most. It held to the research we had done together, which says these tools are flat, and pushed back. The research was right about what exists, but what the category could look like is a call I would rather make myself.
+
+What went right is easy to name. I split the build into the Executive and Analyst views and wrote specs for every use case of each, and once that planning was done the first working version came together very fast and needed almost nothing from me beyond the yes or no on each proposal. The workflow I describe under "How I used AI tools" carried that all the way through. And because the project ran in the cloud, I could answer a decision from my phone while out, and the build kept going.
+
+What I'd do differently is mostly about process. Sometimes decisions were made in the Sonnet builder threads that should have been made by me or by Fable, maybe partly because the Projects feature is still in beta. Next time I'd draw that line more tightly from day one.
+
+If you want the reasoning behind any of this, the [docs folder](docs/README.md) is where I'd send you first.
 
 ## Screenshots
 
