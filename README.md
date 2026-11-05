@@ -166,10 +166,60 @@ Skipped, knowingly: the React Compiler is not enabled (explicit memo discipline 
 
 ## i. How I used AI tools
 
-<!--
-  TODO(Flavius): W20. Write this section in your own words: the workflow, the templates and sub-agents,
-  the do's and don'ts, how it stays repeatable and how the code is held to your standard.
--->
+I used this project to try the new Projects feature in the Claude desktop app for Mac. In theory at least, it's set to become the new way of working with agents: one project that coordinates the work, instead of a separate chat for every feature. It's a simplified version of the setup I normally use, a multi-agent system backed by an Obsidian second brain / knowledge vault, which I mostly run from the CLI. I split the roles as follows: Opus 5.5 as the project coordinator, Fable 5.1 as advisor and spec author, and Sonnet 5.5 for implementation.
+
+I started with a rough MVP and built up from there. The first goal was to get the Executive and Analyst views working properly end to end, with clean foundations underneath. Polish only came once both held up, and the stretch goals were the last thing I added.
+
+The building workflow:
+
+```
+ ME: product owner, approves every decision
+        │
+        ▼
+ COORDINATOR (Opus 5.5)
+  routes work, keeps project memory,
+  forms recommendations with Fable ── proposal ──► me: yes / no
+        │ approved
+        ▼
+ FABLE 5.1 (design + spec author)
+  design system, mocks, slice specs with acceptance
+  criteria as observable outcomes, tests first
+        │ approved spec only
+        ▼
+ SONNET 5.5 EXECUTORS (one per slice or fix, no design calls)
+  one branch + one PR each; ambiguity goes back to the coordinator
+        │
+        ▼ local gates: typecheck · lint · unit · stories + a11y
+          · build · bundle budget · contrast · radius · a11y-docs drift
+        ▼
+ PR (template) ── CI: e2e + axe + Lighthouse ── Opus PR review
+        │
+        ▼ I approve the merge
+        ▼
+ main ─► local build pulled and rebuilt for me to check
+```
+
+The working principles:
+
+1. **I decide, agents propose.** Every decision came to me as an explicit yes or no. Silence never counted as approval, and nothing started without my go-ahead.
+2. **Design decisions only by Fable or Opus, never Sonnet.** Sonnet executors only built specs I had approved.
+3. **Spec first, tests first.** Each slice had acceptance criteria written as observable outcomes before any code.
+4. **One change, one small PR.** It merged only after local typecheck, lint, unit tests, build and the bundle budget passed, and non-trivial PRs also got an Opus review.
+5. **Never touch the starter data** from the brief.
+6. **Accessibility and design quality are part of the definition of done.** That meant WCAG 2.1 AA, Storybook stories counting as tests, and the goal that it must not read as vibe-coded.
+7. **Always verify on the latest main.** Localhost was pulled and rebuilt after every merge before any testing.
+8. **Process files stay out of the repo.** Specs and reports lived in the project's shared folder.
+
+After polishing up to the point where I was satisfied with my solution, I did a final audit of the app. Fable led it at high effort and had the final say on every finding. It covered:
+
+- the full automated suite in a clean environment: unit tests, Storybook interaction and accessibility tests, Playwright end-to-end tests with axe, Lighthouse, and the bundle budgets
+- an independent code review
+- a point-by-point check against every requirement in the brief
+- a manual pass in Chrome on my Mac through computer use
+
+While that was running, I tested the whole app myself and reviewed the documentation.
+
+The findings came back as a prioritised fix list in tiers. I chose which tiers to act on, the executors fixed them as small PRs through the same gates as before, and the app was re-audited afterwards to confirm the fixes held.
 
 ## j. What I'd do differently with more time
 
