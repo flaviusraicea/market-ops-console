@@ -198,7 +198,7 @@ The brief lists five optional stretch goals. All five are built.
 
 - **Live mode.** The `Live` toggle in the header starts a 5-second simulated tick that moves the latest month without losing the drill path or selection (`src/lib/live.ts`, `src/features/live/`; details under "Live mode notes" in the appendix).
 - **Virtualised dense table.** The Analyst view's facts table renders the dataset's 1,560 fact rows through TanStack Virtual (`src/features/analyst/FactsTable.tsx`); open Analyst mode and scroll the facts card.
-- **Context-aware assistant.** Every question carries the current view (entity and month), and the answer is about that view (`src/features/assistant/`); the same question asked in Europe and in the portfolio gets different answers, as in "Try it" in the appendix.
+- **Context-aware assistant.** The assistant knows which view you are on: the market or region you have drilled into and the selected month. That context is sent along with each question, so "Why is revenue down?" asked on Europe in March is answered about Europe in March, with citations, while the same question asked on the portfolio is answered about the portfolio. You do not have to type the context yourself (`src/features/assistant/`; see "Try it" in the appendix).
 - **Command palette.** `Ctrl` / `⌘` + `K` opens a palette that jumps to any market or product (`src/features/palette/`).
 - **Storybook.** Stories for the core components live beside each component (`*.stories.tsx`); run `pnpm storybook`, or open the hosted build at https://market-ops-console-storybook.vercel.app/.
 
