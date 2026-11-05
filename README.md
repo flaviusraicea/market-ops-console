@@ -166,8 +166,10 @@ Skipped, knowingly: the React Compiler is not enabled (explicit memo discipline 
 
 ## i. How I used AI tools
 
-TODO(Flavius): W20. Write "## How I used AI tools" here in your own words: the workflow, the templates and
-sub-agents, the do's and don'ts, how it stays repeatable and how the code is held to your standard.
+<!--
+  TODO(Flavius): W20. Write this section in your own words: the workflow, the templates and sub-agents,
+  the do's and don'ts, how it stays repeatable and how the code is held to your standard.
+-->
 
 ## j. What I'd do differently with more time
 
