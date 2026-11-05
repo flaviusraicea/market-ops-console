@@ -239,24 +239,27 @@ The findings came back as a prioritised fix list in tiers. I chose which tiers t
 
 ## j. What I'd do differently with more time
 
-- JS budgets 275/325 KB gzip are enforced in CI (warning at 90%); both views sit at about 93 %, the warn band. The Lighthouse resource budget in `lighthouserc.json` is the CI budget plus a 10 KB allowance for response headers and Vercel's injected script. With more time: trim the bundle with visx tree-shaking and a d3-geo projection subset, and move static card shells to server components.
-- The assistant is scripted on purpose: `/api/chat` streams fixture answers over Server-Sent Events, with no LLM behind it. A real model would plug in behind the same `/api/chat` event contract.
-- Numbers, money and month names use one fixed locale, en-US, and USD, the data's currency, so output is the same in every test, screenshot and browser (`src/lib/format.ts`). A real product would take the locale from the user.
-- Following a citation from Executive to Analyst mounts the Analyst view in one long task: about 170 to 210 ms at 4× CPU slowdown and about 50 ms at 1×. The panel animation and the facts-table scroll run near 30 fps at 4× CPU throttle; the period select and the palette's first mount show single long tasks at 4× on slow machines. Streaming an answer reports a layout shift of about 0.07 as the card grows. The first answer also loads a zod chunk (about 26 KB) that parses the dataset for the sources table (the stream itself is validated without zod), so it starts a little later than the following ones. Drilling replaces the region strip (four cards, then one, then none on the market view); on slow CPUs that reflow lands after the input window and can count as CLS. With more time: split the static card shells into server components so less of that mount runs on the client, and give the market view a same-height one-row region summary so the drill reflows nothing.
-- The client receives the dataset without its fact series (`lightDataset`), typed as the full `Dataset`; a domain function that reads series on the client would return zeros rather than fail to compile. It cannot happen with the fixed starter data, but with more time the light shape gets its own type so the compiler enforces it.
-- Inline citation anchors and the "Differs from source" cross-checks are keyed by the known answers' citation labels, because the stream's `done` event carries no answer id. A real model would keep the chips and the sources table and lose the inline anchors; citation spans in the event contract are the next step.
-- Automated tests run in Chromium; with more time: a VoiceOver and NVDA pass and Safari/Firefox checks.
-- `reportError` writes one JSON line per failure and `/api/vitals` one per vital, both to the server log. With more time: feed `reportError` to Sentry, which is one init call plus the DSN.
-- With more time: fold the Markets table's sparklines into the row at docked widths (assistant panel open), so the table keeps its trend column when it narrows.
-- With more time: stack the Analyst rows at docked widths of 1152 px and below. There the radar now draws near its minimum size (a 36 px spoke at 1024 px).
-- With more time: the Analyst toolbar's More menu. Below 1200 px the toolbar scrolls sideways as a fallback; a More menu would fold the lowest-priority controls instead.
-- KPI tiles use three rows (value, change, caption). The four-row grammar in the design notes was dropped because the three-row tile reads cleanly.
-- Compare shows the five markets of the selected region. A market picker and a `compare=` parameter are the next step: up to four markets on the radar (spec written), with a legend that dims a series.
-- With more time: at narrow widths (under 40 rem of card, as with the docked assistant) transpose the Attainment table to months as rows and markets as columns, scrolling vertically. A 24-column table can only scroll sideways there. Today it scrolls horizontally inside the fixed-height box; the Compare table already shortens its heads.
-- With more time: with the assistant docked at 1440, the Compare table scrolls sideways; a denser two-line layout is planned.
-- With more time: the radar should use a fixed portfolio-wide scale per axis with a reference ring, so shapes stay comparable whichever markets are compared. Today each axis is scaled between the lowest and highest compared value.
-- With more time: citation chips on grid rows and KPIs should scroll to the matching time-series row.
-- With more time: the assistant panel animation runs at about 30 fps on a 4× slower CPU during the 400 ms move (clean at 1×). Next step: freeze table column widths and contain the cards during the transition.
+I ordered this by what a user would notice first, not by what is easiest to build.
+
+**Product**
+
+- **A real model behind the chat.** The assistant is scripted on purpose, and the chat route streams fixture answers over the same event contract a model would use, so a model plugs in behind it. The next step is citation spans in the final event. Today the inline anchors and the "Differs from source" checks are keyed by the known answers' citation labels, so a real model would keep the chips and the sources table but lose the anchors.
+- **Compare with a market picker.** Compare shows the five markets of the selected region. The spec is written for a `compare=` parameter with up to four markets on the radar, a legend that dims a series, and a fixed portfolio-wide scale per axis, so shapes stay comparable whichever markets are chosen. Today each axis is scaled between the lowest and highest compared value.
+- **Narrow widths with the assistant docked.** With the panel open the Attainment and Compare tables scroll sideways and the Markets table loses its sparkline column. I would transpose Attainment to months as rows, fold the sparkline into the row, stack the Analyst rows at 1152 px and below, and give the toolbar a More menu instead of the sideways scroll it falls back to under 1200 px. This is the layout work I would start earlier.
+- **Phone and tablet polish.** Desktop was the target, and the audit and polish went there. Phone and tablet had one fix pass, so nothing scrolls sideways, touch targets are 44 px, the assistant becomes a bottom sheet and every chart keeps its table view, but nothing below 1024 px has had a design pass. Polishing it means a proper phone layout for the Executive view, which is the real mobile case, and treating the Analyst sheet as a reading view on a phone rather than a working one.
+- **Citations landing everywhere.** Citation chips on grid rows and KPIs should scroll to the matching time-series row, the way chart citations already do.
+- **Locale from the user.** Everything formats as en-US and USD so output is the same in every test and screenshot. A product would take the locale from the account.
+
+**Performance**
+
+- **A smaller first load.** Both views sit in the warning band of their byte budgets. I would tree-shake visx, use a d3-geo projection subset, and move the static card shells to server components, so following a citation from Executive to Analyst mounts less on the client. That mount is one long task today, about 50 ms at 1× and up to 210 ms at 4× CPU slowdown.
+- **The slow-CPU items.** At 4× CPU throttle the panel animation and the facts-table scroll run near 30 fps, the period select and the palette's first mount show single long tasks, and the drill reflow of the region strip can count as layout shift. Streaming reports a shift of about 0.07 as the card grows, and the first answer starts a little later because it loads the zod chunk that parses the dataset for the sources table. Each has a known fix. None shows at 1× or on a laptop, so I documented them and shipped.
+
+**Assurance**
+
+- **A screen-reader pass by hand** with VoiceOver and NVDA, and Safari and Firefox runs. Automated axe and a generated tab-order check are not the same as listening to the page.
+- **Errors to a real sink.** Failures and vitals are written as JSON lines to the server log today. Sentry is one init call plus the DSN.
+- **A type for the light dataset.** The client gets the dataset without its fact series but typed as the full dataset, so a domain function that reads series on the client would return zeros instead of failing to compile. It cannot happen with the fixed starter data, but the light shape should get its own type.
 
 ## Stretch goals
 
