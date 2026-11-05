@@ -1,5 +1,3 @@
-These are the working documents behind the build, drafted with AI assistance and reviewed and decided by Flavius.
-
 ## Design and architecture
 
 - [domain-model.md](domain-model.md): entities, formulas, provenance, assistant and alert models.
