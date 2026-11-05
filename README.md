@@ -249,6 +249,7 @@ I ordered this by what a user would notice first, not by what is easiest to buil
 - **Phone and tablet polish.** Desktop was the target, and the audit and polish went there. Phone and tablet had one fix pass, so nothing scrolls sideways, touch targets are 44 px, the assistant becomes a bottom sheet and every chart keeps its table view, but nothing below 1024 px has had a design pass. Polishing it means a proper phone layout for the Executive view, which is the real mobile case, and treating the Analyst sheet as a reading view on a phone rather than a working one.
 - **Citations landing everywhere.** Citation chips on grid rows and KPIs should scroll to the matching time-series row, the way chart citations already do.
 - **Locale from the user.** Everything formats as en-US and USD so output is the same in every test and screenshot. A product would take the locale from the account.
+- **A short walkthrough video.** I chose to spend the time on the product itself. With more time I would record a few minutes walking through the Executive and Analyst flows.
 
 **Performance**
 
@@ -303,8 +304,6 @@ Taken on the production build at 1440 px (2×), light and dark, in [`docs/screen
 | A failed save, rolled back                                      | ![Failed save, light](docs/screenshots/current/alerts-failed-save-light.png)              | [dark](docs/screenshots/current/alerts-failed-save-dark.png)   |
 | Offline notice                                                  | [light](docs/screenshots/current/offline-notice-light.png)                                | [dark](docs/screenshots/current/offline-notice-dark.png)       |
 | Not found                                                       | [light](docs/screenshots/current/not-found-light.png)                                     | [dark](docs/screenshots/current/not-found-dark.png)            |
-
-<!-- TODO(Flavius): short video walkthrough, if time permits: add the link here. -->
 
 ## Appendix: notes on the app
 
