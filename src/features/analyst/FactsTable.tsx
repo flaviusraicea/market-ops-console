@@ -187,7 +187,9 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
         {/* A bare table: the Table wrapper's own scroll box would break the sticky header. */}
         <table
           aria-rowcount={rows.length + 1}
-          className="w-full min-w-[720px] table-fixed text-[length:var(--text-body)] leading-[18px]"
+          // Separate borders, not collapsed: Chromium paints collapsed borders with the table, so they would stay at
+          // the rows' untransformed position while the rows move. Each cell draws its own line instead.
+          className="w-full min-w-[720px] table-fixed border-separate border-spacing-0 text-[length:var(--text-body)] leading-[18px]"
         >
           <caption className="sr-only">{count}</caption>
           <colgroup>
@@ -206,7 +208,7 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
                   onSort={onSort}
                   firstDir="asc"
                   align={c.numeric ? "right" : "left"}
-                  className="sticky top-0 z-[1] bg-surface-2"
+                  className="sticky top-0 z-[1] border-b border-border bg-surface-2"
                 />
               ))}
             </TableRow>
@@ -218,7 +220,7 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
               </tr>
             </tbody>
           ) : null}
-          <TableBody>
+          <TableBody className="[&_tr:last-child>td]:border-b-0">
             {mounted.map((r, i) => {
               const index = first + i;
               return (
@@ -231,7 +233,7 @@ export function FactsTable({ facts }: { facts: FactsVM }) {
                     <TableCell
                       key={c.key}
                       className={cn(
-                        "truncate",
+                        "truncate border-b border-border",
                         c.numeric && "num text-right",
                         c.key === "period" && "whitespace-nowrap",
                         c.key === "market" && "font-medium text-ink",
