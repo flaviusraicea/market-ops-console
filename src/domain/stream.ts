@@ -2,7 +2,9 @@ import "./zod";
 import { z } from "zod";
 
 import { EntitySchema, PeriodSchema, RegionIdSchema } from "./dataset";
-import { CONFIDENCES, SSE_KINDS } from "./sseGuard";
+import { CONFIDENCES, MAX_QUESTION_CHARS, SSE_KINDS } from "./sseGuard";
+
+export { MAX_QUESTION_CHARS };
 
 export const ConfidenceSchema = z.enum(CONFIDENCES);
 export const KindSchema = z.enum(SSE_KINDS);
@@ -31,8 +33,6 @@ export type Kind = z.infer<typeof KindSchema>;
 
 /** What the dashboard is showing when a question is asked. Optional on the wire, so the starter contract still holds. */
 export const ChatContextSchema = z.object({ entity: EntitySchema, period: PeriodSchema });
-/** The composer stops at 1,000 characters (features/assistant/Composer.tsx MAX_CHARS); the route holds the same line. */
-export const MAX_QUESTION_CHARS = 1000;
 export const ChatRequestSchema = z.object({
   question: z.string().max(MAX_QUESTION_CHARS),
   context: ChatContextSchema.optional(),

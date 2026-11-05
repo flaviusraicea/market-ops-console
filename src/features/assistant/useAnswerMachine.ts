@@ -198,9 +198,16 @@ export function useAnswerMachine(stream: AskStream = askStream) {
   // The tab's conversation survives a reload: restored after hydration (the server renders none), saved whenever no
   // answer is streaming, and on leaving the page, where a stream in flight is kept as a stopped partial answer.
   // The restore is checked against the stored shape first; a question asked before it lands wins, so ids never clash.
+  // It runs once per mount. The dataset is read through a ref because the server sends a new object with every
+  // navigation, and a restore keyed on it would read and parse the stored conversation again on each drill.
+  const dsRef = useRef(ds);
   useEffect(() => {
+    dsRef.current = ds;
+  }, [ds]);
+  useEffect(() => {
+    if (answersRef.current.length > 0) return;
     let cancelled = false;
-    void loadConversation(ds).then((restored) => {
+    void loadConversation(dsRef.current).then((restored) => {
       if (cancelled || restored.length === 0 || answersRef.current.length > 0) return;
       const ids = restored.map((a) => Number(a.id.slice(1))).filter(Number.isFinite);
       seq.current = Math.max(seq.current, ...ids);
@@ -209,7 +216,7 @@ export function useAnswerMachine(stream: AskStream = askStream) {
     return () => {
       cancelled = true;
     };
-  }, [ds]);
+  }, []);
   useEffect(() => {
     if (!answers.some((a) => a.status === "streaming")) saveConversation(answers);
   }, [answers]);

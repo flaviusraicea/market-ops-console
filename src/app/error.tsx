@@ -9,7 +9,7 @@ import { SlimHeader } from "@/features/shell/SlimHeader";
 import { reportError } from "@/lib/events";
 
 /**
- * A throw that no widget boundary caught: the page's own view models, the layout's providers, the assistant. Next
+ * A throw that no widget boundary caught: the page's own view models, the layout's providers, the shell. Next
  * would otherwise show its unstyled "Application error" screen. This is the not-found screen's shape with the
  * console's words: what happened, that nothing is lost (the URL is the state), and two ways on. The error is
  * reported through the same path as every other failure, so it appears in the event log and the server log with

@@ -6,14 +6,14 @@ import { cn } from "@/components/cn";
 import { Eyebrow } from "@/components/Eyebrow";
 import { ArrowUp, ICON_STROKE, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { MAX_QUESTION_CHARS } from "@/domain";
 import { Textarea } from "@/components/ui/textarea";
 import { formatInt } from "@/lib/format";
 import { useHydrated } from "@/lib/useHydrated";
 import { warmAnswerCard } from "./AnswerCardLazy";
 
 const MAX_ROWS = 4;
-/** The longest question the composer sends; the counter shows from COUNT_FROM. */
-const MAX_CHARS = 1000;
+/** The counter shows from COUNT_FROM up to MAX_QUESTION_CHARS, the limit the route holds too. */
 const COUNT_FROM = 900;
 
 /**
@@ -76,7 +76,7 @@ export function Composer({
   // Server-rendered disabled: on a slow network the box is on screen seconds before it works, and anything typed
   // into it then would be wiped by hydration. Nothing can be typed until it can be sent.
   const hydrated = useHydrated();
-  const tooLong = value.length > MAX_CHARS;
+  const tooLong = value.length > MAX_QUESTION_CHARS;
   const showCount = value.length >= COUNT_FROM;
 
   function submit() {
@@ -172,7 +172,7 @@ export function Composer({
               id="ask-count"
               className={cn("num shrink-0", tooLong && "font-medium text-bad-text")}
             >
-              {formatInt(value.length)} / {formatInt(MAX_CHARS)}
+              {formatInt(value.length)} / {formatInt(MAX_QUESTION_CHARS)}
             </p>
           ) : null}
         </div>

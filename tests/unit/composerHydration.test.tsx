@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import { MAX_QUESTION_CHARS } from "@/domain";
 import { Composer } from "@/features/assistant/Composer";
 
 const props = { value: "", onChange: () => {}, onSubmit: () => {} };
@@ -23,5 +24,17 @@ describe("the composer before hydration", () => {
     expect(box).toBeEnabled();
     expect(box).not.toHaveAttribute("aria-disabled");
     expect(box).toHaveAttribute("placeholder", "Ask about a market or period…");
+  });
+});
+
+describe("the composer's limit", () => {
+  it("is the route's limit: one character over it cannot be sent, and the counter says so", () => {
+    const onSubmit = vi.fn();
+    const value = "x".repeat(MAX_QUESTION_CHARS + 1);
+    render(<Composer {...props} value={value} onSubmit={onSubmit} />);
+    expect(screen.getByText("1,001 / 1,000")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send" })).toBeDisabled();
+    fireEvent.keyDown(screen.getByRole("textbox", { name: "Ask the assistant" }), { key: "Enter" });
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });

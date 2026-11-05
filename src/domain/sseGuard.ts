@@ -8,6 +8,8 @@ import type { SseEvent } from "./stream";
 // The values of the stream enums, written once here and used by the zod schemas in stream.ts.
 export const SSE_KINDS = ["normal", "low_confidence", "abstain", "error"] as const;
 export const CONFIDENCES = ["high", "medium", "low"] as const;
+/** The longest question: the composer stops there and the route (ChatRequestSchema) rejects anything longer. */
+export const MAX_QUESTION_CHARS = 1000;
 const KINDS: readonly string[] = SSE_KINDS;
 const LEVELS: readonly string[] = CONFIDENCES;
 const CITATION_KEYS = ["marketId", "regionId", "productId", "label"] as const;
