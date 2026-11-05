@@ -158,11 +158,27 @@ One record per decision, with the context, the choice and the consequences, in [
 
 ## h. Engineering standards
 
-<!-- TODO(Flavius): edit voice -->
+Wherever I could, I turned a standard into a check that fails the build, because rules that only live in a document tend to drift.
 
-Followed: strict TypeScript with no `any` and `noUncheckedIndexedAccess`; zod contracts at every boundary (dataset, stream events, chat request, alert rule, error report) with types inferred from them; a layer dependency rule enforced by ESLint and tested; one component per concept and tokens only (literal colours and radii are lint and script failures); Conventional Commits, one branch and one pull request per change, merge commits, branch protection with CI required; Prettier as the one formatter; every CI gate listed above; workflows run with `permissions: contents: read` and cancel a superseded run of the same branch (`concurrency`); an ADR per decision in [`docs/decisions/`](docs/decisions/).
+**Followed**
 
-Skipped, knowingly: the React Compiler is not enabled (explicit memo discipline and the boundaries test instead; enabling it is a with-more-time item); GitHub Actions are pinned to major tags, not SHAs (there is no Dependabot to keep SHAs current: it would open pull requests on the submission repo after hand-in); the default Next browserslist (a modern target would drop about 13 KB of polyfills); Chromium only in automated tests; two hand-written validators (`sseGuard.ts`, `alertRule.ts`) shadow their zod schemas on the client, to keep the schema library (about 26 KB) out of the first load; the tests hold them to the schemas.
+- **Types and contracts.** Strict TypeScript with no `any`. A zod schema at every boundary (dataset, stream events, chat request, alert rule, error report), and the types are inferred from it, so each contract has one definition. Two hand-written validators shadow their schemas on the client to keep the schema library out of the first load, and tests hold them to the schemas.
+- **One-way boundaries.** Code flows from app to features to components to lib to domain. ESLint enforces it per folder, and a test lints sample code so the rule itself is tested. The domain depends on zod only.
+- **One home per concern.** All number, money and date formatting goes through one module, and a lint rule bans those calls anywhere else. Colours and radii come only from tokens, and a literal hex or radius fails lint. Every colour pair is contrast-checked in CI. Raw HTML is banned outside the root layout.
+- **No model in the box.** A test fails if an LLM SDK appears in the dependencies or the chat route imports anything but Next and zod, because the brief said not to wire one up.
+- **Change process.** One branch and one pull request per change, Conventional Commits, merge commits, and main only accepts a pull request with CI green. Every PR fills the template, covering the user flow it serves, acceptance criteria with the test for each, decisions and deviations, keyboard and screen-reader checks, budget effect and which docs were reconciled.
+- **Decisions written down.** Fifteen ADRs in [`docs/decisions/`](docs/decisions/), one per choice that would be expensive to reverse.
+- **CI as the gate.** The checks listed under Productionising run on every push and pull request, and `pnpm run ci` runs the same checks locally in the same order. Workflows run with read-only permissions and cancel a superseded run of the same branch.
+
+**Skipped, knowingly**
+
+- **No pre-commit hooks.** CI is the gate and hooks on a one-person repo slow commits without adding safety. On a team I would add lint-staged for the fast checks.
+- **No Dependabot, and actions pinned to major tags, not SHAs.** Dependabot would open pull requests on the submission repo after hand-in. SHA pinning is the first thing I would turn on in a real repo.
+- **React Compiler off.** Explicit memo discipline plus the boundaries test instead. I would enable it under the byte and frame budgets before trusting it.
+- **Default Next browserslist.** A modern target would drop about 13 KB of polyfills. I kept the default so the deployed build has no surprises.
+- **Chromium only in automated tests.** The e2e timings are tuned for the CI runner and a laptop, so a slow headless container shows timing failures on a handful of specs. Other browsers are under "with more time".
+- **Placeholder heights are measured constants** checked by an e2e, not derived from the spacing tokens. That keeps layout shift at zero today, and deriving them from tokens is the proper fix.
+- **No CODEOWNERS, release tags or changelog.** One author and one deployable, so nothing to coordinate yet.
 
 ## i. How I used AI tools
 
