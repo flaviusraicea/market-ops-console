@@ -192,6 +192,16 @@ Skipped, knowingly: the React Compiler is not enabled (explicit memo discipline 
 - With more time: citation chips on grid rows and KPIs should scroll to the matching time-series row.
 - With more time: the assistant panel animation runs at about 30 fps on a 4× slower CPU during the 400 ms move (clean at 1×). Next step: freeze table column widths and contain the cards during the transition.
 
+## Stretch goals
+
+The brief lists five optional stretch goals. All five are built.
+
+- **Live mode.** The `Live` toggle in the header starts a 5-second simulated tick that moves the latest month without losing the drill path or selection (`src/lib/live.ts`, `src/features/live/`; details under "Live mode notes" in the appendix).
+- **Virtualised dense table.** The Analyst view's facts table renders the dataset's fact rows (1,560 in the data file) through TanStack Virtual (`src/features/analyst/FactsTable.tsx`); open Analyst mode, press **All facts** in the toolbar (it then reads **Hide facts**) and scroll the table. The table follows the current drill, so it can show fewer rows than the file holds.
+- **Context-aware assistant.** The assistant knows which view you are on: the market or region you have drilled into and the selected month. That context is sent along with each question, so "Why is revenue down?" asked on Europe in March is answered about Europe in March, with citations, while the same question asked on the portfolio is answered about the portfolio. You do not have to type the context yourself (`src/features/assistant/`; see "Try it" in the appendix).
+- **Command palette.** `Ctrl` / `⌘` + `K` opens a palette that jumps to any market or product (`src/features/palette/`).
+- **Storybook.** Stories for the core components live beside each component (`*.stories.tsx`); run `pnpm storybook`, or open the hosted build at https://market-ops-console-storybook.vercel.app/.
+
 ## k. In my own words
 
 <!--
