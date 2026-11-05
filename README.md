@@ -1,5 +1,7 @@
 # Market Ops
 
+The full design and engineering write-up is in [docs/](docs/README.md). Start there for the reasoning behind every decision.
+
 A market operations console: portfolio performance, forecast attainment and an assistant.
 
 **Repository:** https://github.com/flaviusraicea/market-ops-console

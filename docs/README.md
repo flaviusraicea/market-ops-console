@@ -1,3 +1,7 @@
+# Documentation index
+
+Start here: what each document covers.
+
 ## Design and architecture
 
 - [domain-model.md](domain-model.md): entities, formulas, provenance, assistant and alert models.
