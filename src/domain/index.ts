@@ -13,4 +13,4 @@ export * from "./citations";
 export * from "./status";
 export * from "./provenance";
 export * from "./assistantPrefs";
-export { isSseEvent, parseSseLineLite } from "./sseGuard";
+export { MAX_QUESTION_CHARS, isSseEvent, parseSseLineLite } from "./sseGuard";

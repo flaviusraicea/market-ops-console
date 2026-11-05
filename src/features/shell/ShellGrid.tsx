@@ -5,8 +5,11 @@ import { useEffect, useRef, useState, type TransitionEvent, type ReactNode } fro
 import { MobileAssistant } from "@/features/assistant/MobileAssistant";
 import { useHydrated } from "@/lib/useHydrated";
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/useMediaQuery";
+import { useConsoleContext } from "@/lib/context/useConsoleContext";
 import { ConnectedAssistantRail } from "./AssistantRail";
+import { contextKey } from "./contextKey";
 import { DashboardColumn } from "./DashboardColumn";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { setPanelMoving } from "@/components/charts/PanelMotion";
 import { useAssistantRail } from "./railState";
 
@@ -34,6 +37,7 @@ export function ShellGrid({
   assistant: ReactNode;
 }) {
   const { open, setLiveHost } = useAssistantRail();
+  const { ctx } = useConsoleContext();
   const mainRef = useRef<HTMLElement>(null);
   const [phase, setPhase] = useState<Phase>(open ? "open" : "closed");
   // Adjusting state to a prop change during render: the phase starts moving in the same render as `open`.
@@ -70,6 +74,14 @@ export function ShellGrid({
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const showColumn = !hydrated || desktop;
   const showSheet = !hydrated || !desktop;
+  // The panel has a boundary of its own, like every widget: a throw while restoring or streaming an answer shows the
+  // notice in the panel and leaves the dashboard up, instead of reaching app/error.tsx and replacing the page. The
+  // next context change tries the panel again.
+  const guarded = (
+    <ErrorBoundary widget="assistant" resetKey={contextKey(ctx)}>
+      {assistant}
+    </ErrorBoundary>
+  );
   return (
     <main
       id="main"
@@ -89,10 +101,10 @@ export function ShellGrid({
           className="panel-column relative z-20 min-w-0 max-lg:hidden"
         >
           <ConnectedAssistantRail />
-          {assistant}
+          {guarded}
         </aside>
       ) : null}
-      {showSheet ? <MobileAssistant panel={assistant} /> : null}
+      {showSheet ? <MobileAssistant panel={guarded} /> : null}
       {/* Always mounted, so "Answer complete" is announced while the panel is collapsed or the sheet is closed. */}
       <div ref={setLiveHost} role="status" aria-live="polite" className="sr-only" />
     </main>

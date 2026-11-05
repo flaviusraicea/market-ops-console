@@ -1,10 +1,14 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { ReactNode } from "react";
+
 import type { ChatContext, Period } from "@/domain";
 import { loadConversation, saveConversation } from "@/features/assistant/conversationStore";
-import type { Answer } from "@/features/assistant/useAnswerMachine";
+import { useAnswerMachine, type Answer } from "@/features/assistant/useAnswerMachine";
 import { CONVERSATION_KEY, clearConversation } from "@/lib/conversation";
+import { DatasetProvider } from "@/lib/context/dataset";
+import { lightDataset } from "@/lib/context/invariants";
 import { useSlowPending } from "@/lib/context/navigation";
 
 import { ds } from "./helpers";
@@ -91,6 +95,27 @@ describe("the stored conversation", () => {
       JSON.stringify([{ status: "stopped", id: "a1", question: "Q", text: "" }]),
     );
     expect(await loadConversation(ds)).toEqual([]);
+  });
+
+  it("is restored once per mount, not again when a navigation brings a new dataset object", async () => {
+    saveConversation([
+      { status: "failed", id: "a4", question: "And France?", text: "", message: "offline" },
+    ]);
+    // Like page.tsx, which serialises the light dataset per request: every render hands down a new object.
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <DatasetProvider dataset={lightDataset(ds)}>{children}</DatasetProvider>
+    );
+    const reads = vi.spyOn(Storage.prototype, "getItem");
+    const { result, rerender } = renderHook(() => useAnswerMachine(), { wrapper });
+    await act(async () => {});
+    expect(result.current.answers.map((a) => a.id)).toEqual(["a4"]);
+
+    rerender();
+    rerender();
+    await act(async () => {});
+    expect(reads.mock.calls.filter(([key]) => key === CONVERSATION_KEY)).toHaveLength(1);
+    expect(result.current.answers.map((a) => a.id)).toEqual(["a4"]);
+    reads.mockRestore();
   });
 
   it("is gone after sign-out", async () => {
